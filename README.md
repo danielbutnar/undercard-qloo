@@ -23,17 +23,51 @@ To be written in M2 and M5: every Qloo endpoint the agent calls, and why.
 ## AI usage
 
 - This repository is built with Claude Code (Anthropic); Claude writes most of the code.
+- M1: Claude (Opus 5.5) wired the scaffold's tooling and wrote the festival data model, the
+  fee-band mapping, the synthetic lineup fixture, the design brief and the festival screen
+  with its lineup board and tests. I approved the visual direction it proposed in
+  [docs/design-brief.md](docs/design-brief.md).
+- The festival, its presale numbers, and the acts and venues in the test fixture are invented.
+  The two headliners are real artists, named so the agent can look them up on Qloo.
 - The demo video's voiceover is AI-generated with ElevenLabs and is disclosed in the video.
 - Kept current as each milestone lands.
 
 ## Built on
 
-To be written in M1: create-next-app and the libraries in package.json. There is no starter kit.
+There is no starter kit. The app was generated with
+[create-next-app](https://nextjs.org/docs/app/api-reference/cli/create-next-app) 16.4.0
+(TypeScript, Tailwind CSS, ESLint, App Router, `src/`, pnpm). That commit is tagged
+`starter-kit`; everything after it was written during the event.
+
+- Runtime: [Next.js](https://nextjs.org) 16.4, [React](https://react.dev) 19.3 and
+  [Zod](https://zod.dev) 4 for the lineup schema.
+- Styling: [Tailwind CSS](https://tailwindcss.com) 4, with Big Shoulders and Libre Franklin
+  from [Google Fonts](https://fonts.google.com) (SIL Open Font License) through `next/font`.
+- Tooling: TypeScript 5, ESLint 9 with `eslint-config-next`, Prettier 3,
+  [Vitest](https://vitest.dev) 5 with `@vitejs/plugin-react`, jsdom and
+  [Testing Library](https://testing-library.com/docs/react-testing-library/intro/), and
+  [Playwright](https://playwright.dev) 1.64 for the demo path.
 
 ## Running locally
 
-Set-up steps are added in M1. Copy `.env.example` to `.env.local` and fill in your own keys;
-never commit `.env.local`.
+Needs Node 22 or later and pnpm.
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Open http://localhost:3000 to see Sagebrush Sound. In development,
+http://localhost:3000/preview/board shows the board filled from the synthetic test fixture.
+
+The Qloo and Anthropic keys are needed from M2 on. Copy `.env.example` to `.env.local` and
+fill in your own keys; never commit `.env.local`.
+
+Checks:
+
+- `pnpm gate`: typecheck, lint, every unit test and the design-ban scan.
+- `pnpm e2e`: the Playwright demo path in `tests/e2e`. Run `pnpm exec playwright install chromium`
+  once first. Set `E2E_BASE_URL` to test a deployed preview instead of the local dev server.
 
 ## License
 
