@@ -11,3 +11,21 @@ export interface FeeBand {
   maxPopularity: number;
   slots: number;
 }
+
+/** The band a popularity percentile falls in, or null when it sits above or below every band. */
+export function feeBandFor<Band extends FeeBand>(
+  popularity: number,
+  bands: readonly Band[],
+): Band | null {
+  if (!Number.isFinite(popularity) || popularity < 0 || popularity > 1)
+    return null;
+  const highestFirst = [...bands].sort(
+    (a, b) => b.minPopularity - a.minPopularity,
+  );
+  return (
+    highestFirst.find(
+      (band) =>
+        popularity >= band.minPopularity && popularity <= band.maxPopularity,
+    ) ?? null
+  );
+}
