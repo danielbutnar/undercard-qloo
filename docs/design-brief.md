@@ -1,6 +1,6 @@
 # Design brief: Undercard
 
-Pass 1 of the frontend-anti-slop skill. Status: **waiting for approval**. Nothing visual is built until this is approved.
+Pass 1 of the frontend-anti-slop skill. Status: **approved on 2026-10-15**.
 
 ## 1. Direction
 

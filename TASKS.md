@@ -6,7 +6,7 @@ Copied from SPEC.md section 6, M1. Done means: `pnpm gate` runs typecheck, lint 
 - [x] Festival data model: Sagebrush Sound (Boise, Idaho; capacity 3,000; crowd aged 25–34; two headliners as names only; fee bands Mid 0.80–0.92 and Opener 0.55–0.80) with 30 days of deterministic synthetic presale counts
 - [x] Fee-band mapping: a popularity percentile maps to its fee band, unit-tested at both edges of each band
 - [x] Synthetic lineup fixture: tests/fixtures/lineup.synthetic.json holds 10 acts (4 Mid, 6 Opener), each with affinity, popularity, fee band, anchor venue, a "Why Boise" reason and two shared tags, validated by a schema
-- [ ] Design brief (frontend-anti-slop Pass 1): docs/design-bans.md, scripts/design-check.mjs and docs/design-brief.md, approved before any screen is built
+- [x] Design brief (frontend-anti-slop Pass 1): docs/design-bans.md, scripts/design-check.mjs and docs/design-brief.md, approved before any screen is built
 - [ ] Festival screen: `/` shows Sagebrush Sound, its two headliners, both fee bands and the presale sparkline
 - [ ] Lineup board: renders the 10 fixture acts grouped by fee band
 - [ ] Demo path step 1 in tests/e2e
