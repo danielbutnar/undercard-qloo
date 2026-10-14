@@ -1,0 +1,6 @@
+# Markdown keeps its hand formatting (SPEC.md, RULES.md, TASKS.md, docs/).
+*.md
+pnpm-lock.yaml
+next-env.d.ts
+.next/
+.design/
