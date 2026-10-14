@@ -8,8 +8,10 @@ const manifest = JSON.parse(
 const { scripts } = manifest;
 
 describe("project tooling", () => {
-  it("gate runs typecheck, lint and every unit test", () => {
-    expect(scripts.gate).toBe("pnpm typecheck && pnpm lint && pnpm test");
+  it("gate runs typecheck, lint, every unit test and the design-ban scan", () => {
+    expect(scripts.gate).toBe(
+      "pnpm typecheck && pnpm lint && pnpm test && node scripts/design-check.mjs scan",
+    );
     expect(scripts.typecheck).toContain("tsc --noEmit");
     expect(scripts.lint).toMatch(/^eslint\b/);
     expect(scripts.test).toBe("vitest run");

@@ -39,10 +39,10 @@ A letterpress show bill from a Western print shop: wood-type names billed by siz
 
 ## 3. Type
 
-- **Display:** Big Shoulders Display, weight 800, set in capitals like wood type. Festival name, headliners, band names, act names.
-- **Body:** Libre Franklin, weights 400 and 600, with tabular figures for every number. Labels, the Why Boise line, tags, the trace.
+- **Display:** Big Shoulders, weight 800, set in capitals like wood type. Festival name, headliners, band names, act names. (Google Fonts merged Big Shoulders Display into Big Shoulders; its optical-size axis gives the display cut at these sizes.)
+- **Body:** Libre Franklin, weights 400 and 600. Labels, the Why Boise line, tags, the trace. Large standalone numbers use proportional figures; tabular figures only where numbers align in a column (trace result counts), per the dataviz skill.
 - Request parameters in the trace are real code, so they sit in `<code>` in the body face, not a monospace face.
-- Scale (px): 16 · 18 · 22 · 28 · 36 · 48 · 72. Body copy 18, labels and tags 16, Opener act names 22, key numbers 28 (Opener) and 36 (Mid), band names 36, festival name 48, headliners 72.
+- Scale (px): 16 · 18 · 22 · 28 · 36 · 48 · 72. Body copy 18, labels and tags 16, Opener act names 22, key numbers 28 (Opener) and 36 (Mid), band names 36, festival name 48, headliners 72 (36 once the board has acts, so the Qloo numbers carry the frame).
 
 ## 4. Shape
 
@@ -63,7 +63,7 @@ There is one route, `/`, in five states, plus the Poster. `[Q]` marks Qloo outpu
 +------------------------------------------------------------------------------------------------+
 | SAGEBRUSH SOUND                                    48px | Presale, last 30 days                |
 | Boise, Idaho · 3,000 capacity · crowd aged 25-34   18px |  /\                                  |
-|                                                         | /  \__,-._,_.-,_._,-._  blue line    |
+|                                                         | /  \__,-._,_.-,_._,-._  black ink    |
 | KHRUANGBIN · JAPANESE BREAKFAST                    72px | 1,450 sold of 3,000            28px  |
 | Booked headliners                                       |                                      |
 +-----------------------------------------------------------------+------------------------------+
@@ -137,7 +137,7 @@ There is one route, `/`, in five states, plus the Poster. `[Q]` marks Qloo outpu
 | A4 Monospace labels | Metric labels and IDs in a mono face | Labels in Libre Franklin; only real request parameters sit in `<code>` |
 | A5 Pill buttons | Rounded "Build" and "Export" buttons | 2px-radius cut-card buttons with a 2px ink rule |
 | B1 Purple gradients | An "AI" gradient on the build button | Flat ink; no gradients anywhere |
-| B2 Inter or Geist only | The scaffold's Geist | Big Shoulders Display with Libre Franklin |
+| B2 Inter or Geist only | The scaffold's Geist | Big Shoulders with Libre Franklin |
 | B3 Emoji | A ticket or music-note emoji per card | Text labels only; no icons needed |
 | B4 Sparkles for AI | A sparkle on "Build undercard" | The agent shows itself through its Qloo calls in the trace |
 | B5 Glass cards | Blurred cards over a photo | Opaque stock with ink rules; no photos (SPEC.md section 7) |
@@ -159,6 +159,6 @@ Checked against the lists: kraft with two inks is neither pure white with black 
 ## 8. Couldn't confirm
 
 - Qloo brand guidelines: RULES.md links none, and I did not search for them. The blue ink is this product's color, not Qloo's.
-- That `next/font/google` serves Big Shoulders Display under that name in Next 16.4: checked at the start of Pass 2, with Libre Franklin's tabular figures.
-- Whether six Opener cards fit across 1440 next to a 400px trace column: the wireframes are estimates, and the Pass 2 screenshots decide.
+- Resolved in Pass 2: `next/font/google` serves the family as Big Shoulders (Big Shoulders Display no longer exists there). next/font warns it has no fallback metrics for it; harmless.
+- Resolved in Pass 2: six Opener cards fit across 1440 beside a 360px trace column, but at 810 tall their Why Boise lines and tags fall below the fold on the filled board; the names and Qloo numbers stay in frame.
 - How kraft reads after video compression: checked on the M5 render.

@@ -9,7 +9,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "lint": "eslint",
     "test": "vitest run",
-    "gate": "pnpm typecheck && pnpm lint && pnpm test",
+    "gate": "pnpm typecheck && pnpm lint && pnpm test && node scripts/design-check.mjs scan",
     "e2e": "playwright test",
     "format": "prettier --write ."
   },

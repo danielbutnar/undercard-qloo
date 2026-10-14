@@ -1,26 +1,47 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Tokens from docs/design-brief.md (approved 2026-10-15): a letterpress show bill, black and
+ * blue ink on kraft chipboard. Blue ink is reserved for Qloo data. Tailwind's default colors,
+ * text sizes and radii are cleared so components can only use these.
+ */
+@theme {
+  --color-*: initial;
+  --color-page: #cdb38a;
+  --color-surface: #e4d3b2;
+  --color-rule: #231b14;
+  --color-ink: #1c1611;
+  --color-muted: #54412f;
+  --color-accent: #1f3f8c;
+  --color-on-accent: #f1e5cd;
+  --color-danger: #801b12;
+
+  --text-*: initial;
+  --text-label: 16px;
+  --text-label--line-height: 1.375;
+  --text-body: 18px;
+  --text-body--line-height: 1.45;
+  --text-name: 22px;
+  --text-name--line-height: 1.05;
+  --text-figure: 28px;
+  --text-figure--line-height: 1.1;
+  --text-band: 36px;
+  --text-band--line-height: 1;
+  --text-title: 48px;
+  --text-title--line-height: 0.95;
+  --text-bill: 72px;
+  --text-bill--line-height: 0.9;
+
+  --radius-*: initial;
+  --radius-sm: 2px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-display: var(--font-big-shoulders), "Arial Narrow", sans-serif;
+  --font-body: var(--font-libre-franklin), Arial, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-page);
+  color: var(--color-ink);
 }
