@@ -11,7 +11,8 @@ Copied from SPEC.md section 6, M1. Done means: `pnpm gate` runs typecheck, lint 
 - [x] Lineup board: renders the 10 fixture acts grouped by fee band
 - [x] Demo path step 1 in tests/e2e
 - [x] README: Built on and Running locally
-- [ ] M1 Done means holds and `pnpm gate` passes; M1 ticked in SPEC.md
+- [x] M1 Done means holds and `pnpm gate` passes; M1 ticked in SPEC.md
 
 ## Screens (design shots pass the frontend-anti-slop questions)
-- [ ] `/` at 1440x810 (video) and 390 wide (mobile)
+- [x] `/` at 1440x810 (video) and 390 wide (mobile)
+- [x] `/preview/board` (stands in for step 3 until M2) at 1440x810 and 390 wide
