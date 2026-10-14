@@ -1,0 +1,225 @@
+{
+  "festivalId": "sagebrush-sound",
+  "acts": [
+    {
+      "entityId": "00000000-0000-4000-8000-000000000101",
+      "name": "Hollow Pines",
+      "band": "mid",
+      "affinity": 0.94,
+      "popularity": 0.91,
+      "anchorVenue": {
+        "entityId": "00000000-0000-4000-8000-000000000201",
+        "name": "The Lantern Room"
+      },
+      "reason": "Shares fans with The Lantern Room, the late-night indie room downtown.",
+      "sharedTags": [
+        {
+          "id": "urn:tag:genre:music:dream_pop",
+          "name": "Dream Pop"
+        },
+        {
+          "id": "urn:tag:genre:music:psychedelic_rock",
+          "name": "Psychedelic Rock"
+        }
+      ]
+    },
+    {
+      "entityId": "00000000-0000-4000-8000-000000000102",
+      "name": "Marisol Vey",
+      "band": "mid",
+      "affinity": 0.91,
+      "popularity": 0.88,
+      "anchorVenue": {
+        "entityId": "00000000-0000-4000-8000-000000000202",
+        "name": "Fort Street Ballroom"
+      },
+      "reason": "Shares fans with Fort Street Ballroom and its touring indie bills.",
+      "sharedTags": [
+        {
+          "id": "urn:tag:genre:music:indie_pop",
+          "name": "Indie Pop"
+        },
+        {
+          "id": "urn:tag:genre:music:soul",
+          "name": "Soul"
+        }
+      ]
+    },
+    {
+      "entityId": "00000000-0000-4000-8000-000000000103",
+      "name": "The Ditch Riders",
+      "band": "mid",
+      "affinity": 0.89,
+      "popularity": 0.85,
+      "anchorVenue": {
+        "entityId": "00000000-0000-4000-8000-000000000203",
+        "name": "Cottonwood Social Hall"
+      },
+      "reason": "Shares fans with Cottonwood Social Hall and its Friday rock nights.",
+      "sharedTags": [
+        {
+          "id": "urn:tag:genre:music:surf_rock",
+          "name": "Surf Rock"
+        },
+        {
+          "id": "urn:tag:genre:music:psychedelic_rock",
+          "name": "Psychedelic Rock"
+        }
+      ]
+    },
+    {
+      "entityId": "00000000-0000-4000-8000-000000000104",
+      "name": "Kestrel & Bloom",
+      "band": "mid",
+      "affinity": 0.87,
+      "popularity": 0.81,
+      "anchorVenue": {
+        "entityId": "00000000-0000-4000-8000-000000000201",
+        "name": "The Lantern Room"
+      },
+      "reason": "Shares fans with The Lantern Room, the late-night indie room downtown.",
+      "sharedTags": [
+        {
+          "id": "urn:tag:genre:music:dream_pop",
+          "name": "Dream Pop"
+        },
+        {
+          "id": "urn:tag:genre:music:indie_pop",
+          "name": "Indie Pop"
+        }
+      ]
+    },
+    {
+      "entityId": "00000000-0000-4000-8000-000000000105",
+      "name": "Juniper Static",
+      "band": "opener",
+      "affinity": 0.9,
+      "popularity": 0.79,
+      "anchorVenue": {
+        "entityId": "00000000-0000-4000-8000-000000000203",
+        "name": "Cottonwood Social Hall"
+      },
+      "reason": "Shares fans with Cottonwood Social Hall and its Friday rock nights.",
+      "sharedTags": [
+        {
+          "id": "urn:tag:genre:music:shoegaze",
+          "name": "Shoegaze"
+        },
+        {
+          "id": "urn:tag:genre:music:dream_pop",
+          "name": "Dream Pop"
+        }
+      ]
+    },
+    {
+      "entityId": "00000000-0000-4000-8000-000000000106",
+      "name": "Owyhee Drift",
+      "band": "opener",
+      "affinity": 0.88,
+      "popularity": 0.74,
+      "anchorVenue": {
+        "entityId": "00000000-0000-4000-8000-000000000202",
+        "name": "Fort Street Ballroom"
+      },
+      "reason": "Shares fans with Fort Street Ballroom and its touring indie bills.",
+      "sharedTags": [
+        {
+          "id": "urn:tag:genre:music:funk",
+          "name": "Funk"
+        },
+        {
+          "id": "urn:tag:genre:music:psychedelic_rock",
+          "name": "Psychedelic Rock"
+        }
+      ]
+    },
+    {
+      "entityId": "00000000-0000-4000-8000-000000000107",
+      "name": "Saltgrass",
+      "band": "opener",
+      "affinity": 0.86,
+      "popularity": 0.7,
+      "anchorVenue": {
+        "entityId": "00000000-0000-4000-8000-000000000204",
+        "name": "The Foothills Tavern"
+      },
+      "reason": "Shares fans with The Foothills Tavern and its songwriter nights.",
+      "sharedTags": [
+        {
+          "id": "urn:tag:genre:music:indie_rock",
+          "name": "Indie Rock"
+        },
+        {
+          "id": "urn:tag:genre:music:lo_fi",
+          "name": "Lo-Fi"
+        }
+      ]
+    },
+    {
+      "entityId": "00000000-0000-4000-8000-000000000108",
+      "name": "Teddy Arcana",
+      "band": "opener",
+      "affinity": 0.84,
+      "popularity": 0.66,
+      "anchorVenue": {
+        "entityId": "00000000-0000-4000-8000-000000000201",
+        "name": "The Lantern Room"
+      },
+      "reason": "Shares fans with The Lantern Room, the late-night indie room downtown.",
+      "sharedTags": [
+        {
+          "id": "urn:tag:genre:music:bedroom_pop",
+          "name": "Bedroom Pop"
+        },
+        {
+          "id": "urn:tag:genre:music:indie_pop",
+          "name": "Indie Pop"
+        }
+      ]
+    },
+    {
+      "entityId": "00000000-0000-4000-8000-000000000109",
+      "name": "Low Bench Choir",
+      "band": "opener",
+      "affinity": 0.82,
+      "popularity": 0.61,
+      "anchorVenue": {
+        "entityId": "00000000-0000-4000-8000-000000000204",
+        "name": "The Foothills Tavern"
+      },
+      "reason": "Shares fans with The Foothills Tavern and its songwriter nights.",
+      "sharedTags": [
+        {
+          "id": "urn:tag:genre:music:indie_rock",
+          "name": "Indie Rock"
+        },
+        {
+          "id": "urn:tag:genre:music:dream_pop",
+          "name": "Dream Pop"
+        }
+      ]
+    },
+    {
+      "entityId": "00000000-0000-4000-8000-000000000110",
+      "name": "Cass Wren",
+      "band": "opener",
+      "affinity": 0.8,
+      "popularity": 0.56,
+      "anchorVenue": {
+        "entityId": "00000000-0000-4000-8000-000000000202",
+        "name": "Fort Street Ballroom"
+      },
+      "reason": "Shares fans with Fort Street Ballroom and its touring indie bills.",
+      "sharedTags": [
+        {
+          "id": "urn:tag:genre:music:soul",
+          "name": "Soul"
+        },
+        {
+          "id": "urn:tag:genre:music:bedroom_pop",
+          "name": "Bedroom Pop"
+        }
+      ]
+    }
+  ]
+}

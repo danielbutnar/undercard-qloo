@@ -1,4 +1,5 @@
-export type FeeBandId = "mid" | "opener";
+export const FEE_BAND_IDS = ["mid", "opener"] as const;
+export type FeeBandId = (typeof FEE_BAND_IDS)[number];
 
 /**
  * A fee band the buyer sets, expressed as a range of Qloo popularity percentiles (0 to 1).
