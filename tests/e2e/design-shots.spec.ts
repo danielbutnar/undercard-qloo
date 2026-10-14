@@ -4,7 +4,8 @@ import { existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
 import { test } from "@playwright/test";
 
 // The demo-path routes from SPEC.md section 3, in order, served with seeded data.
-const ROUTES = ["/"];
+// /preview/board stands in for step 3 (the filled board) until the M2 agent fills it for real.
+const ROUTES = ["/", "/preview/board"];
 const VIEWPORTS = [
   { name: "video", width: 1440, height: 810, fullPage: false },
   { name: "mobile", width: 390, height: 844, fullPage: true },

@@ -11,7 +11,7 @@
         "entityId": "00000000-0000-4000-8000-000000000201",
         "name": "The Lantern Room"
       },
-      "reason": "Shares fans with The Lantern Room, the late-night indie room downtown.",
+      "reason": "Shares fans with The Lantern Room.",
       "sharedTags": [
         {
           "id": "urn:tag:genre:music:dream_pop",
@@ -33,7 +33,7 @@
         "entityId": "00000000-0000-4000-8000-000000000202",
         "name": "Fort Street Ballroom"
       },
-      "reason": "Shares fans with Fort Street Ballroom and its touring indie bills.",
+      "reason": "Shares fans with Fort Street Ballroom.",
       "sharedTags": [
         {
           "id": "urn:tag:genre:music:indie_pop",
@@ -55,7 +55,7 @@
         "entityId": "00000000-0000-4000-8000-000000000203",
         "name": "Cottonwood Social Hall"
       },
-      "reason": "Shares fans with Cottonwood Social Hall and its Friday rock nights.",
+      "reason": "Shares fans with Cottonwood Social Hall.",
       "sharedTags": [
         {
           "id": "urn:tag:genre:music:surf_rock",
@@ -77,7 +77,7 @@
         "entityId": "00000000-0000-4000-8000-000000000201",
         "name": "The Lantern Room"
       },
-      "reason": "Shares fans with The Lantern Room, the late-night indie room downtown.",
+      "reason": "Shares fans with The Lantern Room.",
       "sharedTags": [
         {
           "id": "urn:tag:genre:music:dream_pop",
@@ -99,7 +99,7 @@
         "entityId": "00000000-0000-4000-8000-000000000203",
         "name": "Cottonwood Social Hall"
       },
-      "reason": "Shares fans with Cottonwood Social Hall and its Friday rock nights.",
+      "reason": "Shares fans with Cottonwood Social Hall.",
       "sharedTags": [
         {
           "id": "urn:tag:genre:music:shoegaze",
@@ -121,7 +121,7 @@
         "entityId": "00000000-0000-4000-8000-000000000202",
         "name": "Fort Street Ballroom"
       },
-      "reason": "Shares fans with Fort Street Ballroom and its touring indie bills.",
+      "reason": "Shares fans with Fort Street Ballroom.",
       "sharedTags": [
         {
           "id": "urn:tag:genre:music:funk",
@@ -143,7 +143,7 @@
         "entityId": "00000000-0000-4000-8000-000000000204",
         "name": "The Foothills Tavern"
       },
-      "reason": "Shares fans with The Foothills Tavern and its songwriter nights.",
+      "reason": "Shares fans with The Foothills Tavern.",
       "sharedTags": [
         {
           "id": "urn:tag:genre:music:indie_rock",
@@ -165,7 +165,7 @@
         "entityId": "00000000-0000-4000-8000-000000000201",
         "name": "The Lantern Room"
       },
-      "reason": "Shares fans with The Lantern Room, the late-night indie room downtown.",
+      "reason": "Shares fans with The Lantern Room.",
       "sharedTags": [
         {
           "id": "urn:tag:genre:music:bedroom_pop",
@@ -187,7 +187,7 @@
         "entityId": "00000000-0000-4000-8000-000000000204",
         "name": "The Foothills Tavern"
       },
-      "reason": "Shares fans with The Foothills Tavern and its songwriter nights.",
+      "reason": "Shares fans with The Foothills Tavern.",
       "sharedTags": [
         {
           "id": "urn:tag:genre:music:indie_rock",
@@ -209,7 +209,7 @@
         "entityId": "00000000-0000-4000-8000-000000000202",
         "name": "Fort Street Ballroom"
       },
-      "reason": "Shares fans with Fort Street Ballroom and its touring indie bills.",
+      "reason": "Shares fans with Fort Street Ballroom.",
       "sharedTags": [
         {
           "id": "urn:tag:genre:music:soul",

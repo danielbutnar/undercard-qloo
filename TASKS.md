@@ -8,7 +8,7 @@ Copied from SPEC.md section 6, M1. Done means: `pnpm gate` runs typecheck, lint 
 - [x] Synthetic lineup fixture: tests/fixtures/lineup.synthetic.json holds 10 acts (4 Mid, 6 Opener), each with affinity, popularity, fee band, anchor venue, a "Why Boise" reason and two shared tags, validated by a schema
 - [x] Design brief (frontend-anti-slop Pass 1): docs/design-bans.md, scripts/design-check.mjs and docs/design-brief.md, approved before any screen is built
 - [x] Festival screen: `/` shows Sagebrush Sound, its two headliners, both fee bands and the presale sparkline
-- [ ] Lineup board: renders the 10 fixture acts grouped by fee band
+- [x] Lineup board: renders the 10 fixture acts grouped by fee band
 - [ ] Demo path step 1 in tests/e2e
 - [ ] README: Built on and Running locally
 - [ ] M1 Done means holds and `pnpm gate` passes; M1 ticked in SPEC.md
