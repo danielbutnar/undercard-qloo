@@ -1,0 +1,37 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js and builds
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# tests
+coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# secrets: only .env.example is committed
+.env
+.env.*
+!.env.example
+
+# deploys
+.vercel/
+
+# judge reports and the calibration set (other entrants' Devpost texts stay local)
+.ai-review/
+calibration.json
+
+# M1 scaffold staging folder
+.scaffold/
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
