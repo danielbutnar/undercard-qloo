@@ -1,20 +1,15 @@
-# TASKS: M3 Refill, the LLM-only baseline, the poster and the export
+# TASKS: M4 Deploy and seed
 
-Copied from SPEC.md section 6, M3. Done means: "Unavailable" refills the slot from the same fee band using filter.exclude.entities, in at most 3 Qloo calls; "LLM only" renders a lineup labeled "No Qloo data" through src/server/ai.ts; Poster renders every act grouped by band; Export CSV downloads the columns act, band, affinity, popularity, anchor_venue, reason; the cached Sagebrush build renders the full board in under 5 seconds; tests in tests/unit/m3.
+Copied from SPEC.md section 6, M4. Done means: the preview URL is live, `pnpm seed` loads 30 days of data, and every AI route is rate-limited.
 
-Also asked for this run: Qloo responses stay cached until at least 2026-11-18, past the end of judging; the filled board's design shots are checked at 1920x1080.
+Decided for this run: the judge URL (PREVIEW_URL) is the production deployment's `.vercel.app` domain, because Vercel puts preview URLs behind a login. Rate limits apply per IP and per day to fresh builds, refills and the LLM-only call; replaying the saved build is never limited. The rate limits and `pnpm seed` are pushed first; the repo is then linked to Vercel by me.
 
-- [x] Cache lifetime: Qloo responses (and saved builds) cached until at least 2026-11-18, then 7 days; cache keys bumped so older 7-day entries are replaced
-- [x] Cached build: a complete build is saved server-side and replayed in under 5 seconds, marked as a replay; a fresh build runs on request
-- [x] Refill: POST /api/refill finds a replacement in the same fee band with filter.exclude.entities, in at most 3 Qloo calls, streamed to the trace
-- [x] Unavailable: a card's Unavailable button stamps the act and swaps in the refill
-- [x] LLM only: POST /api/llm-only asks claude-sonnet-5-5 through src/server/ai.ts for the same brief without Qloo; the board shows it labeled "No Qloo data", with no affinity, fee band or local link
-- [x] Poster: typesets every act grouped by band as a show bill
-- [x] Export CSV: downloads act, band, affinity, popularity, anchor_venue, reason
-- [x] Demo path steps 4 and 5 in tests/e2e, and the cached build's full board in under 5 seconds
-- [x] README: M3 features and AI usage
-- [x] M3 Done means holds and `pnpm gate` passes; M3 ticked in SPEC.md
+- [ ] Rate limits: fresh builds, refills and LLM-only requests limited per IP per day and by a daily ceiling for everyone, with a friendly message at the limit; replays never limited
+- [ ] `pnpm seed`: writes 30 days of deterministic demo data to seed/sagebrush-sound.json, which the app loads; identical on every run
+- [ ] Production build passes; README covers the limits, the seed and deploying
+- [ ] Pushed to origin; repo linked to Vercel with the server environment variables (by me)
+- [ ] Production URL live with no login; recorded below as PREVIEW_URL
+- [ ] `E2E_BASE_URL=$PREVIEW_URL pnpm e2e` passes every step of the demo path
+- [ ] M4 Done means holds and `pnpm gate` passes; M4 ticked in SPEC.md
 
-## Screens (design shots pass the frontend-anti-slop questions)
-- [x] Filled board at 1920x1080, 1440x810 and 390 wide
-- [x] Refill (Unavailable stamp and the new card), LLM only, and Poster at 1440x810 and 390 wide
+PREVIEW_URL: not deployed yet
