@@ -1,10 +1,13 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { assembleLineup, type AssemblyInput } from "@/lib/assemble-lineup";
 import type { BuildEvent } from "@/lib/build-events";
+import type { Lineup } from "@/lib/lineup";
+import { FEE_BAND_IDS } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import { formatCount } from "@/lib/format";
 import { createToolbox, type AgentState } from "./agent-tools";
 import type { AgentModel } from "./ai";
+import type { BuildContext } from "./build-store";
 import type { QlooClient } from "./qloo";
 
 /** Model turns per build; a plan needs about five. */
@@ -56,6 +59,13 @@ function assemblyInput(festival: Festival, state: AgentState): AssemblyInput {
   };
 }
 
+export interface AgentResult {
+  lineup: Lineup | null;
+  /** True when every slot was booked and nothing failed: only such builds are saved. */
+  complete: boolean;
+  context: BuildContext;
+}
+
 /**
  * The agent loop: Claude plans the Qloo calls through the tools, the toolbox enforces the
  * 12-call cap and streams a trace event per call, and the app books the lineup from what
@@ -71,7 +81,7 @@ export async function runUndercardAgent({
   qloo: QlooClient;
   model: AgentModel;
   emit: (event: BuildEvent) => void;
-}): Promise<void> {
+}): Promise<AgentResult> {
   const started = Date.now();
   const toolbox = createToolbox({ festival, qloo, emit });
   const messages: Anthropic.MessageParam[] = [
@@ -83,6 +93,14 @@ export async function runUndercardAgent({
       calls: toolbox.callsUsed(),
       ms: Date.now() - started,
     });
+  const failed = (): AgentResult => {
+    finish();
+    return {
+      lineup: null,
+      complete: false,
+      context: buildContext(assemblyInput(festival, toolbox.state)),
+    };
+  };
 
   emit({ type: "status", text: "Planning the Qloo calls" });
   try {
@@ -98,7 +116,7 @@ export async function runUndercardAgent({
           type: "error",
           message: "The planning model declined this build. Try again.",
         });
-        return finish();
+        return failed();
       }
 
       for (const block of response.content) {
@@ -131,15 +149,14 @@ export async function runUndercardAgent({
       message:
         "The planning model is unavailable right now. Try again in a minute.",
     });
-    return finish();
+    return failed();
   }
 
-  const { acts, shortfall } = assembleLineup(
-    assemblyInput(festival, toolbox.state),
-  );
+  const input = assemblyInput(festival, toolbox.state);
+  const { acts, shortfall } = assembleLineup(input);
   const missing = shortfall.mid + shortfall.opener;
-  if (acts.length > 0)
-    emit({ type: "lineup", lineup: { festivalId: festival.id, acts } });
+  const lineup = acts.length > 0 ? { festivalId: festival.id, acts } : null;
+  if (lineup) emit({ type: "lineup", lineup });
   if (missing > 0) {
     emit({
       type: "error",
@@ -150,4 +167,33 @@ export async function runUndercardAgent({
     });
   }
   finish();
+  return {
+    lineup,
+    complete: lineup !== null && missing === 0,
+    context: buildContext(input),
+  };
+}
+
+function buildContext(input: AssemblyInput): BuildContext {
+  const anchors: BuildContext["anchors"] = {};
+  for (const run of input.venueRuns) {
+    const list = (anchors[run.band] ??= []);
+    if (!list.some((venue) => venue.entityId === run.venue.entityId))
+      list.push(run.venue);
+  }
+  const baselines: BuildContext["baselines"] = {};
+  for (const band of FEE_BAND_IDS) {
+    const ranked = input.baselines[band];
+    if (ranked) baselines[band] = ranked.map((artist) => artist.entityId);
+  }
+  return {
+    headliners: input.headliners.map(({ entityId, name, tags }) => ({
+      entityId,
+      name,
+      tags,
+    })),
+    comparedTags: input.comparedTags,
+    baselines,
+    anchors,
+  };
 }

@@ -4,6 +4,7 @@ import { BuildEventSchema, type BuildEvent } from "@/lib/build-events";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import type { AgentModel } from "@/server/ai";
 import { handleUndercardBuild, ndjsonResponse } from "@/server/undercard-build";
+import { createBuildStore } from "@/server/build-store";
 import { createMemoryCache } from "@/server/qloo-cache";
 import { createQlooClient } from "@/server/qloo";
 import { fakeFetch, syntheticId, syntheticQloo } from "./fake-qloo";
@@ -105,6 +106,8 @@ describe("handleUndercardBuild (POST /api/undercard)", () => {
     const fake = fakeFetch(syntheticQloo);
     const response = handleUndercardBuild({
       festival: SAGEBRUSH_SOUND,
+      store: createBuildStore(createMemoryCache()),
+      fresh: true,
       qloo: () =>
         createQlooClient({
           apiKey: "test-key",
@@ -125,6 +128,8 @@ describe("handleUndercardBuild (POST /api/undercard)", () => {
   it("explains a missing Qloo key instead of failing", async () => {
     const response = handleUndercardBuild({
       festival: SAGEBRUSH_SOUND,
+      store: createBuildStore(createMemoryCache()),
+      fresh: true,
       qloo: () => null,
       model: scriptedModel,
     });
@@ -139,6 +144,8 @@ describe("handleUndercardBuild (POST /api/undercard)", () => {
   it("explains a missing model key instead of failing", async () => {
     const response = handleUndercardBuild({
       festival: SAGEBRUSH_SOUND,
+      store: createBuildStore(createMemoryCache()),
+      fresh: true,
       qloo: () =>
         createQlooClient({
           apiKey: "k",

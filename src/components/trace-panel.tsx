@@ -7,6 +7,16 @@ import type { BuildState } from "@/lib/build-state";
 const CALL_CAP = 12;
 
 const seconds = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
+const savedAt = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+  timeZone: "UTC",
+});
+
+export type BuildRequest = { fresh?: boolean };
 
 // The newest call shows its parameters as it streams in; the rest fold behind a toggle so the
 // trace stays readable at 1440x810.
@@ -76,7 +86,7 @@ export function TracePanel({
   onBuild,
 }: {
   state: BuildState;
-  onBuild: () => void;
+  onBuild: (request?: BuildRequest) => void;
 }) {
   const listRef = useRef<HTMLOListElement>(null);
   const building = state.status === "building";
@@ -95,7 +105,7 @@ export function TracePanel({
       <div className="border-b-2 border-rule p-4">
         <button
           type="button"
-          onClick={onBuild}
+          onClick={() => onBuild()}
           disabled={building}
           className="w-full rounded-sm border-2 border-accent bg-accent px-4 py-2 font-display text-figure font-extrabold uppercase text-on-accent hover:border-ink hover:bg-ink disabled:cursor-wait disabled:border-muted disabled:bg-surface disabled:text-muted"
         >
@@ -125,7 +135,23 @@ export function TracePanel({
             {state.note ?? "Planning the Qloo calls"}
           </p>
         )}
-        {state.status === "done" && state.summary && (
+        {state.status === "done" && state.summary && state.build?.replayed && (
+          <div className="flex flex-col items-start gap-1">
+            <p className="text-label">
+              Replayed the build saved{" "}
+              {savedAt.format(new Date(state.build.createdAt))} UTC:{" "}
+              {state.summary.calls} Qloo calls, served from the cache.
+            </p>
+            <button
+              type="button"
+              onClick={() => onBuild({ fresh: true })}
+              className="text-label text-ink underline underline-offset-2 hover:text-accent"
+            >
+              Run the agent again
+            </button>
+          </div>
+        )}
+        {state.status === "done" && state.summary && !state.build?.replayed && (
           <p className="text-label">
             Built with {state.summary.calls} Qloo calls in{" "}
             {seconds(state.summary.ms)}.

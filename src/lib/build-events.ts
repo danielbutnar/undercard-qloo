@@ -16,6 +16,13 @@ export const TraceCallSchema = z.object({
 
 /** The events POST /api/undercard streams, one JSON object per line. */
 export const BuildEventSchema = z.discriminatedUnion("type", [
+  /** First event of a build: its id (refills name it) and whether it replays a saved build. */
+  z.object({
+    type: z.literal("build"),
+    id: z.string(),
+    createdAt: z.string(),
+    replayed: z.boolean(),
+  }),
   z.object({ type: z.literal("call"), call: TraceCallSchema }),
   z.object({ type: z.literal("status"), text: z.string() }),
   z.object({ type: z.literal("lineup"), lineup: LineupSchema }),

@@ -12,6 +12,8 @@ export interface BuildState {
   acts: Act[];
   error: string | null;
   summary: { calls: number; ms: number } | null;
+  /** The build this board came from; a replayed build was saved earlier and streamed again. */
+  build: { id: string; createdAt: string; replayed: boolean } | null;
 }
 
 export const IDLE_BUILD: BuildState = {
@@ -22,6 +24,7 @@ export const IDLE_BUILD: BuildState = {
   acts: [],
   error: null,
   summary: null,
+  build: null,
 };
 
 export type BuildAction =
@@ -51,6 +54,11 @@ export function buildReducer(
     case "event": {
       const { event } = action;
       switch (event.type) {
+        case "build":
+          return {
+            ...state,
+            build: { id: event.id, createdAt: event.createdAt, replayed: event.replayed },
+          };
         case "call":
           return {
             ...state,
