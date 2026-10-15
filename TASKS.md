@@ -6,7 +6,7 @@ Copied from SPEC.md section 6, M2. Done means: docs/qloo-spike.md records result
 - [x] Qloo client: src/server/qloo.ts calls /search, /v2/tags, /v2/insights (place and artist) and Analysis Compare with X-Api-Key, GET only, never /recs
 - [x] Server-side cache: Qloo responses cached in Upstash Redis (memory fallback without Upstash), keyed by request, never committed
 - [x] Agent tools: one tool per Qloo call, each tested for its query parameters with Qloo mocked
-- [ ] Call cap: the agent stops at 12 Qloo calls per build, tested
+- [x] Call cap: the agent stops at 12 Qloo calls per build, tested
 - [x] Lineup assembly: 4 Mid and 6 Opener acts, each with affinity, popularity, fee band, anchor venue (the venue that lifts it furthest above the headliners-only baseline) and two tags shared with the headliners
 - [ ] Agent loop: claude-sonnet-5-5 plans the calls through src/server/ai.ts, tested with a scripted model
 - [ ] POST /api/undercard streams trace events and the final 10 acts
