@@ -12,4 +12,6 @@ Decided for this run: the judge URL (PREVIEW_URL) is the production deployment's
 - [x] `E2E_BASE_URL=$PREVIEW_URL pnpm e2e` passes every step of the demo path (steps 1–5 and the under-5-second cached build, 2026-10-15)
 - [x] M4 Done means holds and `pnpm gate` passes; M4 ticked in SPEC.md
 
-PREVIEW_URL: https://undercard-1ybr6c8qu-daniel-51ed.vercel.app/ (production deployment, public, no login; checked 2026-10-15)
+PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
+
+Replaced: https://undercard-1ybr6c8qu-daniel-51ed.vercel.app/, a single deployment's URL that would not pick up later deploys.
