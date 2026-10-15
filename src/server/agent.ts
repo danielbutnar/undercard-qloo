@@ -24,7 +24,8 @@ A build that works:
 
 Use only entity ids and tag ids that tools returned. Don't pick acts or invent numbers yourself: the app books the acts each venue lifts most, from Qloo's data.`;
 
-function brief(festival: Festival): string {
+/** The festival brief both the agent and the LLM-only baseline answer. */
+export function festivalBrief(festival: Festival): string {
   const bands = festival.feeBands
     .map(
       (band) =>
@@ -85,7 +86,7 @@ export async function runUndercardAgent({
   const started = Date.now();
   const toolbox = createToolbox({ festival, qloo, emit });
   const messages: Anthropic.MessageParam[] = [
-    { role: "user", content: brief(festival) },
+    { role: "user", content: festivalBrief(festival) },
   ];
   const finish = () =>
     emit({
