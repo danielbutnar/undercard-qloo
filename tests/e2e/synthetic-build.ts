@@ -115,13 +115,83 @@ const calls = [
   artistsCall(11, "Opener", VENUES[1]),
 ];
 
+const ndjson = (events: unknown[]) =>
+  events.map((event) => JSON.stringify(event)).join("\n") + "\n";
+
 /** The full NDJSON body of a finished synthetic build. */
 export function syntheticBuildStream(): string {
-  const events = [
+  return ndjson([
+    {
+      type: "build",
+      id: "synthetic-build",
+      createdAt: "2026-10-15T14:02:00.000Z",
+      replayed: false,
+    },
     { type: "status", text: "Planning the Qloo calls" },
     ...calls.map((call) => ({ type: "call", call })),
     { type: "lineup", lineup },
     { type: "done", calls: calls.length, ms: 15600 },
+  ]);
+}
+
+/** A synthetic refill: one Qloo call, then an invented act takes the slot. */
+export function syntheticRefillStream(replaces: string): string {
+  const replacement = {
+    entityId: "00000000-0000-4000-8000-000000000111",
+    name: "Sego Lily",
+    band: "mid",
+    affinity: 0.86,
+    popularity: 0.83,
+    anchorVenue: lineup.acts[0].anchorVenue,
+    reason: `${lineup.acts[0].anchorVenue.name} fans move it up 13 places.`,
+    sharedTags: [
+      { id: "urn:tag:genre:music:dream_pop", name: "Dream Pop" },
+      { id: "urn:tag:genre:music:indie_rock", name: "Indie Rock" },
+    ],
+  };
+  const call = {
+    ...artistsCall(1, "Mid", VENUES[0]),
+    tool: "refill",
+    summary: `Refill: Mid-band artists for the headliners and ${VENUES[0]}, minus the board`,
+  };
+  call.params = call.params.map((param) =>
+    param.key === "filter.exclude.entities"
+      ? {
+          ...param,
+          value: `${HEADLINERS}, ${lineup.acts.map((act: { name: string }) => act.name).join(", ")}`,
+        }
+      : param,
+  );
+  return ndjson([
+    { type: "call", call },
+    { type: "refill", replaces, act: replacement },
+    { type: "done", calls: 1, ms: 1500 },
+  ]);
+}
+
+/** A synthetic LLM-only answer: invented acts, as the model alone might list them. */
+export function syntheticLlmOnly() {
+  const names = [
+    "Velvet Coyote",
+    "The Long Drives",
+    "Marigold Static",
+    "Paper Canyon",
+    "Dusk Arcade",
+    "Honey Basin",
+    "Lowland Choir",
+    "Silver Mesa",
+    "Fern & Fable",
+    "Night Orchard",
   ];
-  return events.map((event) => JSON.stringify(event)).join("\n") + "\n";
+  return {
+    cached: true,
+    lineup: {
+      festivalId: "sagebrush-sound",
+      createdAt: "2026-10-15T14:02:00.000Z",
+      picks: names.map((name) => ({
+        name,
+        note: `A popular indie act whose sound suits fans of both headliners.`,
+      })),
+    },
+  };
 }
