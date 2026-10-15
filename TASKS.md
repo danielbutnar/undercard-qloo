@@ -12,8 +12,8 @@ Also asked for this run: Qloo responses stay cached until at least 2026-11-18, p
 - [x] Poster: typesets every act grouped by band as a show bill
 - [x] Export CSV: downloads act, band, affinity, popularity, anchor_venue, reason
 - [x] Demo path steps 4 and 5 in tests/e2e, and the cached build's full board in under 5 seconds
-- [ ] README: M3 features and AI usage
-- [ ] M3 Done means holds and `pnpm gate` passes; M3 ticked in SPEC.md
+- [x] README: M3 features and AI usage
+- [x] M3 Done means holds and `pnpm gate` passes; M3 ticked in SPEC.md
 
 ## Screens (design shots pass the frontend-anti-slop questions)
 - [x] Filled board at 1920x1080, 1440x810 and 390 wide
