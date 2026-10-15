@@ -18,7 +18,25 @@ To be written in M5.
 
 ## Sponsor technology
 
-To be written in M2 and M5: every Qloo endpoint the agent calls, and why.
+Qloo does the work in every build. The agent calls the Qloo hackathon API
+(`https://hackathon.api.qloo.com`, `X-Api-Key`, GET only) at most 12 times per build, and
+the trace panel lists every call with its parameters and result count.
+
+| Endpoint | Why the agent calls it |
+|---|---|
+| `GET /search` | Resolve each booked headliner (names only in the seed) to a Qloo entity. |
+| `GET /v2/tags` | Find the tag Qloo puts on live music venues. |
+| `GET /v2/insights` with `filter.type=urn:entity:place` | List the festival city's places with that tag; the agent picks music rooms as anchor venues. |
+| `GET /v2/analysis/compare` | Find the taste tags the two headliners share; they rank the two tags each card shows. |
+| `GET /v2/insights` with `filter.type=urn:entity:artist` | Rank artists inside each fee band's popularity range (`filter.popularity.min/max`), first for the headliners alone, then for the headliners plus one anchor venue in `signal.interests.entities`. |
+
+Qloo's artist type takes no location parameter, so local taste enters only through the
+city's venues as signals. An act makes the board when an anchor venue lifts it at least five
+places above the headliners-only ranking; its "Why Boise" line says by how much. Affinity,
+popularity percentile, fee band, anchor venue and shared tags on every card come from those
+responses. Responses are cached server-side in Upstash Redis for 7 days and never committed;
+[docs/qloo-spike.md](docs/qloo-spike.md) records what the first live calls returned, as
+counts only.
 
 ## AI usage
 
@@ -27,6 +45,13 @@ To be written in M2 and M5: every Qloo endpoint the agent calls, and why.
   fee-band mapping, the synthetic lineup fixture, the design brief and the festival screen
   with its lineup board and tests. I approved the visual direction it proposed in
   [docs/design-brief.md](docs/design-brief.md).
+- M2: Claude (Opus 5.5) ran the Qloo spike and wrote the Qloo client and cache, the agent's
+  tools and loop, the lift-based lineup assembly, the streaming route, the live trace panel and
+  their tests.
+- In the product, Claude Sonnet 5.5 (`claude-sonnet-5-5`, called only from
+  `src/server/ai.ts`) is the agent's planner: it decides which Qloo calls to make, which venues
+  to anchor on and when to try another. It doesn't choose acts or write numbers; the app books
+  the acts from Qloo's responses.
 - The festival, its presale numbers, and the acts and venues in the test fixture are invented.
   The two headliners are real artists, named so the agent can look them up on Qloo.
 - The demo video's voiceover is AI-generated with ElevenLabs and is disclosed in the video.
@@ -39,8 +64,11 @@ There is no starter kit. The app was generated with
 (TypeScript, Tailwind CSS, ESLint, App Router, `src/`, pnpm). That commit is tagged
 `starter-kit`; everything after it was written during the event.
 
-- Runtime: [Next.js](https://nextjs.org) 16.4, [React](https://react.dev) 19.3 and
-  [Zod](https://zod.dev) 4 for the lineup schema.
+- Runtime: [Next.js](https://nextjs.org) 16.4, [React](https://react.dev) 19.3,
+  [Zod](https://zod.dev) 4 for the lineup and API schemas, the
+  [Anthropic TypeScript SDK](https://github.com/anthropics/anthropic-sdk-typescript) for the
+  agent's planner, and [@upstash/redis](https://github.com/upstash/redis-js) for the Qloo
+  response cache.
 - Styling: [Tailwind CSS](https://tailwindcss.com) 4, with Big Shoulders and Libre Franklin
   from [Google Fonts](https://fonts.google.com) (SIL Open Font License) through `next/font`.
 - Tooling: TypeScript 5, ESLint 9 with `eslint-config-next`, Prettier 3,
@@ -57,10 +85,10 @@ pnpm install
 pnpm dev
 ```
 
-Open http://localhost:3000 to see Sagebrush Sound. In development,
-http://localhost:3000/preview/board shows the board filled from the synthetic test fixture.
+Open http://localhost:3000 to see Sagebrush Sound and press Build undercard.
 
-The Qloo and Anthropic keys are needed from M2 on. Copy `.env.example` to `.env.local` and
+A build needs a Qloo hackathon key and an Anthropic key; Upstash is optional (without it,
+Qloo responses are cached in process memory). Copy `.env.example` to `.env.local` and
 fill in your own keys; never commit `.env.local`.
 
 Checks:
@@ -68,6 +96,9 @@ Checks:
 - `pnpm gate`: typecheck, lint, every unit test and the design-ban scan.
 - `pnpm e2e`: the Playwright demo path in `tests/e2e`. Run `pnpm exec playwright install chromium`
   once first. Set `E2E_BASE_URL` to test a deployed preview instead of the local dev server.
+  Steps 2 and 3 run a real build, so they call Qloo and Claude with your keys.
+- `DESIGN_LIVE=1 pnpm e2e tests/e2e/design-shots.spec.ts`: design screenshots in `.design/shots`,
+  including one taken mid-way through a real build.
 
 ## License
 

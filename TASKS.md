@@ -12,7 +12,7 @@ Copied from SPEC.md section 6, M2. Done means: docs/qloo-spike.md records result
 - [x] POST /api/undercard streams trace events and the final 10 acts
 - [x] UI: Build undercard streams the trace into the panel and fills the board; /preview/board removed
 - [x] Demo path steps 2 and 3 in tests/e2e
-- [ ] README: Sponsor technology and AI usage for M2
+- [x] README: Sponsor technology and AI usage for M2
 - [ ] M2 Done means holds and `pnpm gate` passes; M2 ticked in SPEC.md
 
 ## Screens (design shots pass the frontend-anti-slop questions)
