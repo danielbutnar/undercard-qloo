@@ -1,0 +1,69 @@
+import { Redis } from "@upstash/redis";
+
+/**
+ * Server-side cache for Qloo responses. Values stay on the server (Upstash Redis in deployed
+ * builds, process memory otherwise); they are never written to the repository.
+ */
+export interface QlooCache {
+  kind: "memory" | "upstash";
+  get<T>(key: string): Promise<T | null>;
+  set(key: string, value: unknown, ttlSeconds: number): Promise<void>;
+}
+
+export function createMemoryCache(now: () => number = Date.now): QlooCache {
+  const entries = new Map<string, { value: unknown; expiresAt: number }>();
+  return {
+    kind: "memory",
+    async get<T>(key: string) {
+      const entry = entries.get(key);
+      if (!entry) return null;
+      if (entry.expiresAt <= now()) {
+        entries.delete(key);
+        return null;
+      }
+      return entry.value as T;
+    },
+    async set(key, value, ttlSeconds) {
+      entries.set(key, { value, expiresAt: now() + ttlSeconds * 1000 });
+    },
+  };
+}
+
+/** The two Redis commands the cache needs; @upstash/redis's client provides both. */
+export interface RedisLike {
+  get(key: string): Promise<unknown>;
+  set(key: string, value: unknown, options: { ex: number }): Promise<unknown>;
+}
+
+// A cache outage must not fail a build, so Redis errors read as misses and skipped writes.
+export function createUpstashCache(redis: RedisLike): QlooCache {
+  return {
+    kind: "upstash",
+    async get<T>(key: string) {
+      try {
+        return ((await redis.get(key)) as T | null) ?? null;
+      } catch {
+        return null;
+      }
+    },
+    async set(key, value, ttlSeconds) {
+      try {
+        await redis.set(key, value, { ex: ttlSeconds });
+      } catch {
+        // Skipped: the next build fetches from Qloo again.
+      }
+    },
+  };
+}
+
+let processMemory: QlooCache | null = null;
+
+export function createQlooCache(
+  env: Partial<Record<string, string | undefined>> = process.env,
+): QlooCache {
+  const url = env.UPSTASH_REDIS_REST_URL;
+  const token = env.UPSTASH_REDIS_REST_TOKEN;
+  if (url && token) return createUpstashCache(new Redis({ url, token }));
+  processMemory ??= createMemoryCache();
+  return processMemory;
+}
