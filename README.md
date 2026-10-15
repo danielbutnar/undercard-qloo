@@ -106,8 +106,12 @@ pnpm dev
 Open http://localhost:3000 to see Sagebrush Sound and press Build undercard.
 
 A build needs a Qloo hackathon key and an Anthropic key; Upstash is optional (without it,
-Qloo responses are cached in process memory). Copy `.env.example` to `.env.local` and
-fill in your own keys; never commit `.env.local`.
+Qloo responses, saved builds and rate limits live in process memory). Copy `.env.example` to
+`.env.local` and fill in your own keys; never commit `.env.local`.
+
+`pnpm seed` writes the demo festival, Sagebrush Sound, with 30 days of synthetic presale
+to `seed/sagebrush-sound.json`, the file the app loads. It uses a fixed random seed, so every
+run writes the same bytes.
 
 Checks:
 
@@ -118,6 +122,27 @@ Checks:
   and LLM only calls Claude once; after that, builds replay the saved one.
 - `DESIGN_LIVE=1 pnpm e2e tests/e2e/design-shots.spec.ts`: design screenshots in `.design/shots`,
   including one taken mid-way through a real build.
+- `LIVE_UPSTASH=1 pnpm vitest run tests/unit/m4/rate-limit-upstash.test.ts`: checks the rate
+  limiter against the Upstash database in `.env.local`, under its own key prefix.
+
+## Deploying
+
+The app runs on Vercel with no login and no key from the visitor. Link the repository in
+Vercel and set these server environment variables: `QLOO_API_KEY`, `QLOO_BASE_URL`,
+`ANTHROPIC_API_KEY`, `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. None of them is
+exposed to the browser. The judge URL is the production deployment's `.vercel.app` domain,
+because Vercel puts preview deployments behind a login.
+
+Calls that spend money or quota are limited per IP and per UTC day, with a ceiling for
+everyone, and answer with a friendly message at the limit:
+
+| Action | Per IP per day | Everyone per day |
+|---|---|---|
+| Fresh build (runs the agent: Qloo and Claude) | 5 | 60 |
+| Refill (up to 3 Qloo calls) | 25 | 500 |
+| LLM only (asks Claude) | 10 | 100 |
+
+Replaying the saved build and serving the saved LLM-only answer are never limited.
 
 ## License
 

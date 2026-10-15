@@ -6,7 +6,7 @@ Decided for this run: the judge URL (PREVIEW_URL) is the production deployment's
 
 - [x] Rate limits: fresh builds, refills and LLM-only model calls limited per IP per day and by a daily ceiling for everyone, with a friendly message at the limit; replays never limited
 - [x] `pnpm seed`: writes 30 days of deterministic demo data to seed/sagebrush-sound.json, which the app loads; identical on every run
-- [ ] Production build passes; README covers the limits, the seed and deploying
+- [x] Production build passes; README covers the limits, the seed and deploying
 - [ ] Pushed to origin; repo linked to Vercel with the server environment variables (by me)
 - [ ] Production URL live with no login; recorded below as PREVIEW_URL
 - [ ] `E2E_BASE_URL=$PREVIEW_URL pnpm e2e` passes every step of the demo path
