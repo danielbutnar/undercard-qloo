@@ -8,6 +8,7 @@ import { createBuildStore } from "@/server/build-store";
 import { createMemoryCache } from "@/server/qloo-cache";
 import { createQlooClient } from "@/server/qloo";
 import { handleUndercardBuild } from "@/server/undercard-build";
+import { createMemoryLimiter } from "@/server/rate-limit";
 import { fakeFetch, syntheticId, syntheticQloo } from "../m2/fake-qloo";
 
 export const LANTERN = syntheticId(201);
@@ -73,7 +74,10 @@ export function scriptedPlanner() {
   return { model, turns: () => turns };
 }
 
-export async function readEvents(response: Response): Promise<BuildEvent[]> {
+export async function readEvents(
+  pending: Response | Promise<Response>,
+): Promise<BuildEvent[]> {
+  const response = await pending;
   return (await response.text())
     .split("\n")
     .filter(Boolean)
@@ -94,6 +98,8 @@ export function syntheticServer() {
   const build = (options: { fresh?: boolean } = {}) =>
     handleUndercardBuild({
       festival: SAGEBRUSH_SOUND,
+      limiter: createMemoryLimiter(),
+      ip: "203.0.113.7",
       qloo: () => qloo,
       model: () => planner.model,
       store,

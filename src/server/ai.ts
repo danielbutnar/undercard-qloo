@@ -71,7 +71,10 @@ export function createLlmOnlyModel({
         system: LLM_ONLY_SYSTEM,
         messages: [{ role: "user", content: brief }],
         // A short list from memory: low effort is enough.
-        output_config: { effort: "low", format: zodOutputFormat(LlmOnlyAnswerSchema) },
+        output_config: {
+          effort: "low",
+          format: zodOutputFormat(LlmOnlyAnswerSchema),
+        },
       });
       if (response.stop_reason === "refusal" || !response.parsed_output) {
         throw new Error("The model gave no usable answer.");

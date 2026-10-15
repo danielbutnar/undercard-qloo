@@ -7,9 +7,13 @@ import { handleUndercardBuild, ndjsonResponse } from "@/server/undercard-build";
 import { createBuildStore } from "@/server/build-store";
 import { createMemoryCache } from "@/server/qloo-cache";
 import { createQlooClient } from "@/server/qloo";
+import { createMemoryLimiter } from "@/server/rate-limit";
 import { fakeFetch, syntheticId, syntheticQloo } from "./fake-qloo";
 
-async function readEvents(response: Response): Promise<BuildEvent[]> {
+async function readEvents(
+  pending: Response | Promise<Response>,
+): Promise<BuildEvent[]> {
+  const response = await pending;
   const text = await response.text();
   return text
     .split("\n")
@@ -106,6 +110,8 @@ describe("handleUndercardBuild (POST /api/undercard)", () => {
     const fake = fakeFetch(syntheticQloo);
     const response = handleUndercardBuild({
       festival: SAGEBRUSH_SOUND,
+      limiter: createMemoryLimiter(),
+      ip: "203.0.113.7",
       store: createBuildStore(createMemoryCache()),
       fresh: true,
       qloo: () =>
@@ -128,6 +134,8 @@ describe("handleUndercardBuild (POST /api/undercard)", () => {
   it("explains a missing Qloo key instead of failing", async () => {
     const response = handleUndercardBuild({
       festival: SAGEBRUSH_SOUND,
+      limiter: createMemoryLimiter(),
+      ip: "203.0.113.7",
       store: createBuildStore(createMemoryCache()),
       fresh: true,
       qloo: () => null,
@@ -144,6 +152,8 @@ describe("handleUndercardBuild (POST /api/undercard)", () => {
   it("explains a missing model key instead of failing", async () => {
     const response = handleUndercardBuild({
       festival: SAGEBRUSH_SOUND,
+      limiter: createMemoryLimiter(),
+      ip: "203.0.113.7",
       store: createBuildStore(createMemoryCache()),
       fresh: true,
       qloo: () =>

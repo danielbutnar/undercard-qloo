@@ -3,6 +3,7 @@ import { LlmOnlyLineupSchema, type LlmOnlyLineup } from "@/lib/llm-only";
 import { festivalBrief } from "./agent";
 import type { LlmOnlyModel } from "./ai";
 import { cacheTtlSeconds, type QlooCache } from "./qloo-cache";
+import type { RateLimiter } from "./rate-limit";
 
 const PREFIX = "undercard:llm-only:v1:";
 const SLOTS = 10;
@@ -13,17 +14,22 @@ const json = (body: unknown, status = 200) =>
 /**
  * POST /api/llm-only: the same festival brief answered by the model alone, for comparison
  * with the Qloo board. The answer is saved as long as Qloo data is, so the model is asked
- * once per festival.
+ * once per festival. Asking the model is rate-limited per IP and per day; the saved answer
+ * is not.
  */
 export async function handleLlmOnly({
   festival,
   model,
   cache,
+  limiter,
+  ip,
   now = Date.now,
 }: {
   festival: Festival;
   model: () => LlmOnlyModel | null;
   cache: QlooCache;
+  limiter: RateLimiter;
+  ip: string;
   now?: () => number;
 }): Promise<Response> {
   const key = `${PREFIX}${festival.id}`;
@@ -33,6 +39,20 @@ export async function handleLlmOnly({
   const llm = model();
   if (!llm)
     return json({ error: "The model isn't configured on this server." }, 503);
+
+  const verdict = await limiter.check("llmOnly", ip);
+  if (!verdict.allowed) {
+    return Response.json(
+      { error: verdict.message },
+      {
+        status: 429,
+        headers: {
+          "cache-control": "no-store",
+          "retry-after": String(verdict.retryAfterSeconds),
+        },
+      },
+    );
+  }
 
   let picks;
   try {

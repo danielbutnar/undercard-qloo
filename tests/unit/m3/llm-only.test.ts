@@ -5,6 +5,7 @@ import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { AI_MODEL, createLlmOnlyModel, type LlmOnlyModel } from "@/server/ai";
 import { handleLlmOnly } from "@/server/llm-only";
 import { createMemoryCache } from "@/server/qloo-cache";
+import { createMemoryLimiter } from "@/server/rate-limit";
 
 const picks = (names: string[]) =>
   names.map((name) => ({ name, note: `A synthetic note about ${name}.` }));
@@ -27,6 +28,8 @@ describe("POST /api/llm-only", () => {
     const { status, body } = await json(
       await handleLlmOnly({
         festival: SAGEBRUSH_SOUND,
+        limiter: createMemoryLimiter(),
+        ip: "203.0.113.7",
         model: () => model,
         cache: createMemoryCache(),
       }),
@@ -42,12 +45,16 @@ describe("POST /api/llm-only", () => {
     const cache = createMemoryCache();
     await handleLlmOnly({
       festival: SAGEBRUSH_SOUND,
+      limiter: createMemoryLimiter(),
+      ip: "203.0.113.7",
       model: () => model,
       cache,
     });
     const { body } = await json(
       await handleLlmOnly({
         festival: SAGEBRUSH_SOUND,
+        limiter: createMemoryLimiter(),
+        ip: "203.0.113.7",
         model: () => model,
         cache,
       }),
@@ -65,6 +72,8 @@ describe("POST /api/llm-only", () => {
     const { body } = await json(
       await handleLlmOnly({
         festival: SAGEBRUSH_SOUND,
+        limiter: createMemoryLimiter(),
+        ip: "203.0.113.7",
         model: () => model,
         cache: createMemoryCache(),
       }),
@@ -79,6 +88,8 @@ describe("POST /api/llm-only", () => {
     const { status, body } = await json(
       await handleLlmOnly({
         festival: SAGEBRUSH_SOUND,
+        limiter: createMemoryLimiter(),
+        ip: "203.0.113.7",
         model: () => null,
         cache: createMemoryCache(),
       }),
@@ -95,6 +106,8 @@ describe("POST /api/llm-only", () => {
     const { status, body } = await json(
       await handleLlmOnly({
         festival: SAGEBRUSH_SOUND,
+        limiter: createMemoryLimiter(),
+        ip: "203.0.113.7",
         model: () => failing,
         cache,
       }),
@@ -104,6 +117,8 @@ describe("POST /api/llm-only", () => {
     const { model, suggest } = fakeModel();
     await handleLlmOnly({
       festival: SAGEBRUSH_SOUND,
+      limiter: createMemoryLimiter(),
+      ip: "203.0.113.7",
       model: () => model,
       cache,
     });

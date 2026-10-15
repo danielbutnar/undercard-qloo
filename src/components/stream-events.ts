@@ -17,7 +17,11 @@ export async function streamEvents(
     body: JSON.stringify(body),
     signal,
   });
-  if (!response.ok || !response.body)
+  // A refusal such as a rate limit (429) still streams its events, so its message shows.
+  const streamed = response.headers
+    .get("content-type")
+    ?.includes("application/x-ndjson");
+  if (!response.body || !(response.ok || streamed))
     throw new Error(`HTTP ${response.status}`);
   const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = "";

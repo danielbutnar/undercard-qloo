@@ -4,11 +4,15 @@ import { runUndercardAgent } from "./agent";
 import type { AgentModel } from "./ai";
 import type { BuildStore, SavedBuild } from "./build-store";
 import type { QlooClient } from "./qloo";
+import type { LimitResult, RateLimiter } from "./rate-limit";
 
 type Emit = (event: BuildEvent) => void;
 
 /** A streamed response of build events, one JSON object per line, flushed as they happen. */
-export function ndjsonResponse(run: (emit: Emit) => Promise<void>): Response {
+export function ndjsonResponse(
+  run: (emit: Emit) => Promise<void>,
+  init: { status?: number; headers?: Record<string, string> } = {},
+): Response {
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -29,12 +33,30 @@ export function ndjsonResponse(run: (emit: Emit) => Promise<void>): Response {
     },
   });
   return new Response(stream, {
+    status: init.status ?? 200,
     headers: {
       "content-type": "application/x-ndjson; charset=utf-8",
       "cache-control": "no-store",
       "x-accel-buffering": "no",
+      ...init.headers,
     },
   });
+}
+
+/** A 429 that still speaks the build stream, so the trace panel shows the friendly message. */
+export function limitedResponse(
+  result: Extract<LimitResult, { allowed: false }>,
+): Response {
+  return ndjsonResponse(
+    async (emit) => {
+      emit({ type: "error", message: result.message });
+      emit({ type: "done", calls: 0, ms: 0 });
+    },
+    {
+      status: 429,
+      headers: { "retry-after": String(result.retryAfterSeconds) },
+    },
+  );
 }
 
 const savedAt = new Intl.DateTimeFormat("en-US", {
@@ -70,16 +92,19 @@ async function replay(saved: SavedBuild, emit: Emit, delayMs: number) {
 
 /**
  * POST /api/undercard: replays the festival's saved build when there is one, so the board
- * fills in seconds; otherwise (or with fresh) runs the agent and saves a complete build. The
- * factories return null when a server key is missing, which the stream reports as an error.
+ * fills in seconds; otherwise (or with fresh) runs the agent and saves a complete build. A
+ * replay is never rate-limited; an agent run is, per IP and per day. The factories return
+ * null when a server key is missing, which the stream reports as an error.
  */
-export function handleUndercardBuild({
+export async function handleUndercardBuild({
   festival,
   qloo,
   model,
   store,
   fresh,
   replayDelayMs = 120,
+  limiter,
+  ip,
 }: {
   festival: Festival;
   qloo: () => QlooClient | null;
@@ -87,21 +112,27 @@ export function handleUndercardBuild({
   store: BuildStore;
   fresh: boolean;
   replayDelayMs?: number;
-}): Response {
-  return ndjsonResponse(async (emit) => {
-    const started = Date.now();
-    const saved = fresh ? null : await store.latest(festival.id);
-    if (saved) return replay(saved, emit, replayDelayMs);
+  limiter: RateLimiter;
+  ip: string;
+}): Promise<Response> {
+  const saved = fresh ? null : await store.latest(festival.id);
+  if (saved)
+    return ndjsonResponse((emit) => replay(saved, emit, replayDelayMs));
 
-    const qlooClient = qloo();
-    const agentModel = qlooClient ? model() : null;
-    if (!qlooClient || !agentModel) {
-      const missing = !qlooClient ? "Qloo isn't" : "The planning model isn't";
+  const qlooClient = qloo();
+  const agentModel = qlooClient ? model() : null;
+  if (!qlooClient || !agentModel) {
+    const missing = !qlooClient ? "Qloo isn't" : "The planning model isn't";
+    return ndjsonResponse(async (emit) => {
       emit({ type: "error", message: `${missing} configured on this server.` });
-      emit({ type: "done", calls: 0, ms: Date.now() - started });
-      return;
-    }
+      emit({ type: "done", calls: 0, ms: 0 });
+    });
+  }
 
+  const verdict = await limiter.check("build", ip);
+  if (!verdict.allowed) return limitedResponse(verdict);
+
+  return ndjsonResponse(async (emit) => {
     const id = crypto.randomUUID();
     const createdAt = new Date().toISOString();
     const trace: TraceCall[] = [];

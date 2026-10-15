@@ -1,5 +1,11 @@
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
-import { jsonBody, serverBuildStore, serverQloo } from "@/server/deps";
+import {
+  jsonBody,
+  serverBuildStore,
+  serverLimiter,
+  serverQloo,
+} from "@/server/deps";
+import { clientIp } from "@/server/rate-limit";
 import { handleRefill } from "@/server/refill";
 
 // A refill makes at most 3 Qloo calls.
@@ -11,5 +17,7 @@ export async function POST(request: Request): Promise<Response> {
     qloo: serverQloo,
     store: serverBuildStore(),
     body: await jsonBody(request),
+    limiter: serverLimiter(),
+    ip: clientIp(request.headers),
   });
 }

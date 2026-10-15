@@ -6,6 +6,7 @@ import { createBuildStore, type SavedBuild } from "@/server/build-store";
 import { createMemoryCache } from "@/server/qloo-cache";
 import { createQlooClient } from "@/server/qloo";
 import { handleRefill, REFILL_CALL_CAP } from "@/server/refill";
+import { createMemoryLimiter } from "@/server/rate-limit";
 import { fakeFetch, params, syntheticId, syntheticQloo } from "../m2/fake-qloo";
 import { LANTERN, readEvents, syntheticServer } from "./scripted";
 
@@ -37,6 +38,8 @@ function refillWith(
       return readEvents(
         handleRefill({
           festival: SAGEBRUSH_SOUND,
+          limiter: createMemoryLimiter(),
+          ip: "203.0.113.7",
           qloo: () => qloo,
           store,
           body,

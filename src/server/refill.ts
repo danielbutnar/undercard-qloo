@@ -4,7 +4,8 @@ import { FEE_BAND_IDS } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import type { BuildStore } from "./build-store";
 import { QlooError, type QlooClient } from "./qloo";
-import { ndjsonResponse } from "./undercard-build";
+import type { RateLimiter } from "./rate-limit";
+import { limitedResponse, ndjsonResponse } from "./undercard-build";
 
 /** The most Qloo calls one refill may make (SPEC.md, M3). */
 export const REFILL_CALL_CAP = 3;
@@ -19,24 +20,52 @@ export const RefillRequestSchema = z.object({
   excludeIds: z.array(z.string().min(1)).max(60),
 });
 
-
 /**
  * POST /api/refill: books a replacement for an unavailable act in the same fee band. It asks
  * Qloo for the band's artists seeded by the headliners and an anchor venue, with every act on
  * the board in filter.exclude.entities, and keeps the first act that venue lifts past the bar.
  * The act's own anchor venue goes first, then the build's other anchors, at most 3 calls.
+ * Refills are rate-limited per IP and per day.
  */
-export function handleRefill({
+export async function handleRefill({
   festival,
   qloo,
   store,
   body,
+  limiter,
+  ip,
 }: {
   festival: Festival;
   qloo: () => QlooClient | null;
   store: BuildStore;
   body: unknown;
-}): Response {
+  limiter: RateLimiter;
+  ip: string;
+}): Promise<Response> {
+  const refused = (message: string) =>
+    ndjsonResponse(async (emit) => {
+      emit({ type: "error", message });
+      emit({ type: "done", calls: 0, ms: 0 });
+    });
+
+  const request = RefillRequestSchema.safeParse(body);
+  if (!request.success) return refused("That refill request isn't valid.");
+  const {
+    buildId,
+    unavailableId,
+    band: bandId,
+    anchorVenueId,
+    excludeIds,
+  } = request.data;
+  const saved = await store.byId(buildId);
+  if (!saved || saved.festivalId !== festival.id) {
+    return refused("This build is no longer saved. Build the undercard again.");
+  }
+  const client = qloo();
+  if (!client) return refused("Qloo isn't configured on this server.");
+  const verdict = await limiter.check("refill", ip);
+  if (!verdict.allowed) return limitedResponse(verdict);
+
   return ndjsonResponse(async (emit) => {
     const started = Date.now();
     let calls = 0;
@@ -44,21 +73,6 @@ export function handleRefill({
       emit({ type: "error", message });
       emit({ type: "done", calls, ms: Date.now() - started });
     };
-
-    const request = RefillRequestSchema.safeParse(body);
-    if (!request.success) return fail("That refill request isn't valid.");
-    const {
-      buildId,
-      unavailableId,
-      band: bandId,
-      anchorVenueId,
-      excludeIds,
-    } = request.data;
-    const saved = await store.byId(buildId);
-    if (!saved || saved.festivalId !== festival.id)
-      return fail("This build is no longer saved. Build the undercard again.");
-    const client = qloo();
-    if (!client) return fail("Qloo isn't configured on this server.");
 
     const band = festival.feeBands.find((entry) => entry.id === bandId)!;
     const { context } = saved;

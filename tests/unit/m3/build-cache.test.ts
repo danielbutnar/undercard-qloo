@@ -3,6 +3,7 @@ import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { createBuildStore } from "@/server/build-store";
 import { createMemoryCache } from "@/server/qloo-cache";
 import { handleUndercardBuild } from "@/server/undercard-build";
+import { createMemoryLimiter } from "@/server/rate-limit";
 import { readEvents, syntheticServer } from "./scripted";
 
 const acts = (events: Awaited<ReturnType<typeof readEvents>>) =>
@@ -64,6 +65,8 @@ describe("saved builds", () => {
     await readEvents(
       handleUndercardBuild({
         festival: SAGEBRUSH_SOUND,
+        limiter: createMemoryLimiter(),
+        ip: "203.0.113.7",
         qloo: () => null,
         model: () => null,
         store,
