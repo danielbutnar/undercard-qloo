@@ -34,9 +34,22 @@ Qloo's artist type takes no location parameter, so local taste enters only throu
 city's venues as signals. An act makes the board when an anchor venue lifts it at least five
 places above the headliners-only ranking; its "Why Boise" line says by how much. Affinity,
 popularity percentile, fee band, anchor venue and shared tags on every card come from those
-responses. Responses are cached server-side in Upstash Redis for 7 days and never committed;
-[docs/qloo-spike.md](docs/qloo-spike.md) records what the first live calls returned, as
-counts only.
+responses.
+
+Marking an act **Unavailable** refills its slot with at most 3 more Qloo calls: artist
+insights for the same fee band, seeded by the headliners and the act's anchor venue (then the
+build's other anchors), with the headliners and every act on the board in
+`filter.exclude.entities`. The first act that venue lifts past the same bar takes the slot,
+and the call appears in the trace.
+
+**LLM only** sends the same festival brief to the model with no Qloo and no tools, for
+comparison: its picks carry no affinity, no popularity to map to a fee band and no local link.
+
+Qloo responses are cached server-side in Upstash Redis until at least 2026-11-18, past the end
+of judging, and never committed. A complete build is saved the same way, so the next visitor
+gets the board replayed in about 2 seconds, marked as a replay; "Run the agent again" starts a
+fresh build. [docs/qloo-spike.md](docs/qloo-spike.md) records what the first live calls
+returned, as counts only.
 
 ## AI usage
 
@@ -48,10 +61,15 @@ counts only.
 - M2: Claude (Opus 5.5) ran the Qloo spike and wrote the Qloo client and cache, the agent's
   tools and loop, the lift-based lineup assembly, the streaming route, the live trace panel and
   their tests.
+- M3: Claude (Opus 5.5) wrote the saved-build replay, the refill, the LLM-only baseline, the
+  Poster, the CSV export and their tests, and checked the screens in design screenshots,
+  including the filled board at 1920x1080.
 - In the product, Claude Sonnet 5.5 (`claude-sonnet-5-5`, called only from
-  `src/server/ai.ts`) is the agent's planner: it decides which Qloo calls to make, which venues
-  to anchor on and when to try another. It doesn't choose acts or write numbers; the app books
-  the acts from Qloo's responses.
+  `src/server/ai.ts`) does two jobs. It is the agent's planner: it decides which Qloo calls to
+  make, which venues to anchor on and when to try another, but doesn't choose acts or write
+  numbers; the app books the acts from Qloo's responses. It also answers the LLM-only
+  baseline, from its own knowledge with no tools; those picks are labeled "No Qloo data".
+  Refills don't use the model.
 - The festival, its presale numbers, and the acts and venues in the test fixture are invented.
   The two headliners are real artists, named so the agent can look them up on Qloo.
 - The demo video's voiceover is AI-generated with ElevenLabs and is disclosed in the video.
@@ -96,7 +114,8 @@ Checks:
 - `pnpm gate`: typecheck, lint, every unit test and the design-ban scan.
 - `pnpm e2e`: the Playwright demo path in `tests/e2e`. Run `pnpm exec playwright install chromium`
   once first. Set `E2E_BASE_URL` to test a deployed preview instead of the local dev server.
-  Steps 2 and 3 run a real build, so they call Qloo and Claude with your keys.
+  The first build on a fresh cache runs the agent (Qloo and Claude), the refill calls Qloo,
+  and LLM only calls Claude once; after that, builds replay the saved one.
 - `DESIGN_LIVE=1 pnpm e2e tests/e2e/design-shots.spec.ts`: design screenshots in `.design/shots`,
   including one taken mid-way through a real build.
 
