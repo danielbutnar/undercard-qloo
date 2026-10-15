@@ -90,6 +90,14 @@ export function TracePanel({
 }) {
   const listRef = useRef<HTMLOListElement>(null);
   const building = state.status === "building";
+  const busy = building || state.refilling !== null;
+  const buildCalls = state.calls.filter(
+    (call) => call.tool !== "refill",
+  ).length;
+  const refillCalls = state.calls.length - buildCalls;
+  const refillingName = state.acts.find(
+    (act) => act.entityId === state.refilling,
+  )?.name;
 
   // Keep the newest call in view as the trace grows.
   useEffect(() => {
@@ -106,7 +114,7 @@ export function TracePanel({
         <button
           type="button"
           onClick={() => onBuild()}
-          disabled={building}
+          disabled={busy}
           className="w-full rounded-sm border-2 border-accent bg-accent px-4 py-2 font-display text-figure font-extrabold uppercase text-on-accent hover:border-ink hover:bg-ink disabled:cursor-wait disabled:border-muted disabled:bg-surface disabled:text-muted"
         >
           {building ? "Building…" : "Build undercard"}
@@ -121,7 +129,9 @@ export function TracePanel({
             Qloo calls
           </h2>
           <p className="text-label text-muted">
-            {state.calls.length} of {CALL_CAP}
+            {buildCalls} of {CALL_CAP}
+            {refillCalls > 0 &&
+              ` · ${refillCalls} refill ${refillCalls === 1 ? "call" : "calls"}`}
           </p>
         </div>
         {state.status === "idle" && (
@@ -157,6 +167,16 @@ export function TracePanel({
             {seconds(state.summary.ms)}.
           </p>
         )}
+        {refillingName && (
+          <p aria-live="polite" className="text-label">
+            Finding a replacement for {refillingName} in the same fee band…
+          </p>
+        )}
+        {state.refillError && (
+          <p role="alert" className="text-label font-semibold text-danger">
+            {state.refillError}
+          </p>
+        )}
         {state.error && (
           <p role="alert" className="text-label font-semibold text-danger">
             {state.error}
@@ -172,7 +192,11 @@ export function TracePanel({
               <CallRow
                 key={call.n}
                 call={call}
-                highlighted={building && call.n === state.latest}
+                highlighted={
+                  call.n === state.latest &&
+                  (building ||
+                    (state.refilling !== null && call.tool === "refill"))
+                }
               />
             ))}
           </ol>

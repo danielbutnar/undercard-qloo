@@ -2,20 +2,37 @@
 
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { buildReducer, IDLE_BUILD } from "@/lib/build-state";
+import type { Act } from "@/lib/lineup";
 import { streamEvents } from "./stream-events";
 import type { BuildRequest } from "./trace-panel";
 
-/** Runs a build on POST /api/undercard and folds its streamed events into state. */
+/**
+ * Runs a build on POST /api/undercard and refills on POST /api/refill, folding both streams
+ * of events into one board state.
+ */
 export function useUndercardBuild() {
   const [state, dispatch] = useReducer(buildReducer, IDLE_BUILD);
-  const controllerRef = useRef<AbortController | null>(null);
+  const stateRef = useRef(state);
+  const buildController = useRef<AbortController | null>(null);
+  const refillController = useRef<AbortController | null>(null);
 
-  useEffect(() => () => controllerRef.current?.abort(), []);
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  useEffect(
+    () => () => {
+      buildController.current?.abort();
+      refillController.current?.abort();
+    },
+    [],
+  );
 
   const build = useCallback(async (request: BuildRequest = {}) => {
-    controllerRef.current?.abort();
+    buildController.current?.abort();
+    refillController.current?.abort();
     const controller = new AbortController();
-    controllerRef.current = controller;
+    buildController.current = controller;
     dispatch({ type: "start" });
     try {
       await streamEvents(
@@ -35,5 +52,40 @@ export function useUndercardBuild() {
     }
   }, []);
 
-  return { state, dispatch, build };
+  const markUnavailable = useCallback(async (act: Act) => {
+    const current = stateRef.current;
+    if (!current.build || current.refilling) return;
+    const controller = new AbortController();
+    refillController.current = controller;
+    dispatch({ type: "markUnavailable", entityId: act.entityId });
+    try {
+      await streamEvents(
+        "/api/refill",
+        {
+          buildId: current.build.id,
+          unavailableId: act.entityId,
+          band: act.band,
+          anchorVenueId: act.anchorVenue.entityId,
+          excludeIds: [
+            ...new Set([
+              ...current.acts.map((onBoard) => onBoard.entityId),
+              ...current.unavailable,
+            ]),
+          ],
+        },
+        controller.signal,
+        (event) => dispatch({ type: "refillEvent", event }),
+      );
+      dispatch({ type: "refillEnd" });
+    } catch {
+      if (!controller.signal.aborted) {
+        dispatch({
+          type: "refillFail",
+          message: "Couldn't reach the refill service. Try again.",
+        });
+      }
+    }
+  }, []);
+
+  return { state, build, markUnavailable };
 }

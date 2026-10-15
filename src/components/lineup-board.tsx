@@ -1,7 +1,7 @@
 import { ActCard } from "@/components/act-card";
 import type { FeeBand, FeeBandId } from "@/lib/fee-bands";
 import { formatBandRange } from "@/lib/format";
-import { actsInBand, type Act } from "@/lib/lineup";
+import type { Act } from "@/lib/lineup";
 
 const COLUMNS = {
   mid: "grid-cols-1 sm:grid-cols-2 xl:grid-cols-4",
@@ -16,17 +16,27 @@ function OpenSlot() {
   );
 }
 
+/**
+ * The fee bands and their slots. Acts keep the lineup's order (strongest affinity first, as
+ * booked), so a refilled act lands in the slot it replaces.
+ */
 export function LineupBoard({
   bands,
   acts,
+  unavailable = [],
+  refilling = null,
+  onUnavailable,
 }: {
   bands: readonly FeeBand[];
   acts: readonly Act[];
+  unavailable?: readonly string[];
+  refilling?: string | null;
+  onUnavailable?: (act: Act) => void;
 }) {
   return (
     <div className="flex flex-col gap-6">
       {bands.map((band) => {
-        const billed = actsInBand(acts, band.id);
+        const billed = acts.filter((act) => act.band === band.id);
         const slots = Array.from(
           { length: band.slots },
           (_, index) => billed[index] ?? null,
@@ -53,7 +63,16 @@ export function LineupBoard({
             <ol className={`grid gap-3 ${COLUMNS[band.id]}`}>
               {slots.map((act, index) => (
                 <li key={act?.entityId ?? `open-${index}`}>
-                  {act ? <ActCard act={act} /> : <OpenSlot />}
+                  {act ? (
+                    <ActCard
+                      act={act}
+                      unavailable={unavailable.includes(act.entityId)}
+                      disabled={refilling !== null}
+                      onUnavailable={onUnavailable}
+                    />
+                  ) : (
+                    <OpenSlot />
+                  )}
                 </li>
               ))}
             </ol>
