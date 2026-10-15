@@ -11,7 +11,7 @@ Also asked for this run: Qloo responses stay cached until at least 2026-11-18, p
 - [x] LLM only: POST /api/llm-only asks claude-sonnet-5-5 through src/server/ai.ts for the same brief without Qloo; the board shows it labeled "No Qloo data", with no affinity, fee band or local link
 - [x] Poster: typesets every act grouped by band as a show bill
 - [x] Export CSV: downloads act, band, affinity, popularity, anchor_venue, reason
-- [ ] Demo path steps 4 and 5 in tests/e2e, and the cached build's full board in under 5 seconds
+- [x] Demo path steps 4 and 5 in tests/e2e, and the cached build's full board in under 5 seconds
 - [ ] README: M3 features and AI usage
 - [ ] M3 Done means holds and `pnpm gate` passes; M3 ticked in SPEC.md
 
