@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LineupSchema } from "./lineup";
+import { ActSchema, LineupSchema } from "./lineup";
 
 /** One Qloo call as the trace panel shows it. Entity ids in params are replaced by names. */
 export const TraceCallSchema = z.object({
@@ -26,6 +26,8 @@ export const BuildEventSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("call"), call: TraceCallSchema }),
   z.object({ type: z.literal("status"), text: z.string() }),
   z.object({ type: z.literal("lineup"), lineup: LineupSchema }),
+  /** A refill's result: the act that takes the unavailable act's slot. */
+  z.object({ type: z.literal("refill"), replaces: z.string(), act: ActSchema }),
   z.object({ type: z.literal("error"), message: z.string() }),
   z.object({
     type: z.literal("done"),

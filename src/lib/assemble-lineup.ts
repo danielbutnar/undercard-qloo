@@ -36,7 +36,7 @@ export interface AssemblyInput {
   /** Tags Analysis Compare found the two headliners share, with Qloo's score. */
   comparedTags: { name: string; score: number }[];
   /** Per band, the artists ranked for the headliners alone. */
-  baselines: Partial<Record<FeeBandId, RankedArtist[]>>;
+  baselines: Partial<Record<FeeBandId, readonly { entityId: string }[]>>;
   /** Per venue and band, the artists ranked for the headliners plus that venue. */
   venueRuns: VenueRun[];
 }
@@ -51,7 +51,7 @@ export interface Lift {
 
 /** How far each artist in a venue run moved compared with the headliners-only baseline. */
 export function liftsOver(
-  baseline: readonly RankedArtist[],
+  baseline: readonly { entityId: string }[],
   artists: readonly RankedArtist[],
 ): Lift[] {
   const baselineRank = new Map(

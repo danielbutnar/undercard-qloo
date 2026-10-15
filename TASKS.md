@@ -6,7 +6,7 @@ Also asked for this run: Qloo responses stay cached until at least 2026-11-18, p
 
 - [x] Cache lifetime: Qloo responses (and saved builds) cached until at least 2026-11-18, then 7 days; cache keys bumped so older 7-day entries are replaced
 - [x] Cached build: a complete build is saved server-side and replayed in under 5 seconds, marked as a replay; a fresh build runs on request
-- [ ] Refill: POST /api/refill finds a replacement in the same fee band with filter.exclude.entities, in at most 3 Qloo calls, streamed to the trace
+- [x] Refill: POST /api/refill finds a replacement in the same fee band with filter.exclude.entities, in at most 3 Qloo calls, streamed to the trace
 - [ ] Unavailable: a card's Unavailable button stamps the act and swaps in the refill
 - [ ] LLM only: POST /api/llm-only asks claude-sonnet-5-5 through src/server/ai.ts for the same brief without Qloo; the board shows it labeled "No Qloo data", with no affinity, fee band or local link
 - [ ] Poster: typesets every act grouped by band as a show bill
