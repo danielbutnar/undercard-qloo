@@ -7,9 +7,9 @@ Decided for this run: the judge URL (PREVIEW_URL) is the production deployment's
 - [x] Rate limits: fresh builds, refills and LLM-only model calls limited per IP per day and by a daily ceiling for everyone, with a friendly message at the limit; replays never limited
 - [x] `pnpm seed`: writes 30 days of deterministic demo data to seed/sagebrush-sound.json, which the app loads; identical on every run
 - [x] Production build passes; README covers the limits, the seed and deploying
-- [ ] Pushed to origin; repo linked to Vercel with the server environment variables (by me)
-- [ ] Production URL live with no login; recorded below as PREVIEW_URL
-- [ ] `E2E_BASE_URL=$PREVIEW_URL pnpm e2e` passes every step of the demo path
-- [ ] M4 Done means holds and `pnpm gate` passes; M4 ticked in SPEC.md
+- [x] Pushed to origin; repo linked to Vercel with the server environment variables (by me)
+- [x] Production URL live with no login; recorded below as PREVIEW_URL
+- [x] `E2E_BASE_URL=$PREVIEW_URL pnpm e2e` passes every step of the demo path (steps 1–5 and the under-5-second cached build, 2026-10-15)
+- [x] M4 Done means holds and `pnpm gate` passes; M4 ticked in SPEC.md
 
-PREVIEW_URL: not deployed yet
+PREVIEW_URL: https://undercard-1ybr6c8qu-daniel-51ed.vercel.app/ (production deployment, public, no login; checked 2026-10-15)
