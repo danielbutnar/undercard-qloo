@@ -11,7 +11,8 @@
     "test": "vitest run",
     "gate": "pnpm typecheck && pnpm lint && pnpm test && node scripts/design-check.mjs scan",
     "e2e": "playwright test",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON seed/seed.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
