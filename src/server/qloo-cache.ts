@@ -10,6 +10,17 @@ export interface QlooCache {
   set(key: string, value: unknown, ttlSeconds: number): Promise<void>;
 }
 
+/**
+ * Cached data must outlive judging (it ends 2026-11-17 06:45 Europe/Bucharest), so entries
+ * are kept through the end of 2026-11-18 UTC, and for at least 7 days after that date.
+ */
+export const CACHE_KEEP_UNTIL = Date.UTC(2026, 10, 19);
+const MIN_TTL_SECONDS = 7 * 24 * 60 * 60;
+
+export function cacheTtlSeconds(now: number = Date.now()): number {
+  return Math.max(MIN_TTL_SECONDS, Math.ceil((CACHE_KEEP_UNTIL - now) / 1000));
+}
+
 export function createMemoryCache(now: () => number = Date.now): QlooCache {
   const entries = new Map<string, { value: unknown; expiresAt: number }>();
   return {

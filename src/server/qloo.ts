@@ -1,9 +1,10 @@
 import { z } from "zod";
-import type { QlooCache } from "./qloo-cache";
+import { cacheTtlSeconds, type QlooCache } from "./qloo-cache";
 
 /** The hackathon key works only against this host (RULES.md, Dev guide). */
 export const QLOO_BASE_URL = "https://hackathon.api.qloo.com";
-const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60;
+// v2: entries cached until at least 2026-11-18 (v1 entries kept only 7 days).
+const CACHE_PREFIX = "qloo:v2:";
 const REQUEST_TIMEOUT_MS = 20_000;
 
 /** The only Qloo endpoints this app calls, all with GET and parameters in the query string. */
@@ -105,6 +106,7 @@ export interface QlooClientOptions {
   cache: QlooCache;
   baseUrl?: string;
   fetch?: typeof globalThis.fetch;
+  now?: () => number;
 }
 
 export type QlooClient = ReturnType<typeof createQlooClient>;
@@ -114,6 +116,7 @@ export function createQlooClient({
   cache,
   baseUrl = QLOO_BASE_URL,
   fetch = globalThis.fetch,
+  now = Date.now,
 }: QlooClientOptions) {
   // Every result is a list, so its length is the result count the trace shows.
   async function get<T extends unknown[]>(
@@ -124,7 +127,7 @@ export function createQlooClient({
     const entries = Object.entries(params).map(
       ([key, value]): [string, string] => [key, String(value)],
     );
-    const cacheKey = `qloo:v1:${path}?${new URLSearchParams([...entries].sort()).toString()}`;
+    const cacheKey = `${CACHE_PREFIX}${path}?${new URLSearchParams([...entries].sort()).toString()}`;
     const started = Date.now();
     const call = (data: T, cached: boolean): QlooCall => ({
       path,
@@ -152,7 +155,7 @@ export function createQlooClient({
     }
 
     const data = parse(await response.json());
-    await cache.set(cacheKey, data, CACHE_TTL_SECONDS);
+    await cache.set(cacheKey, data, cacheTtlSeconds(now()));
     return { data, call: call(data, false) };
   }
 

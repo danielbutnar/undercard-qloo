@@ -4,7 +4,7 @@ Copied from SPEC.md section 6, M3. Done means: "Unavailable" refills the slot fr
 
 Also asked for this run: Qloo responses stay cached until at least 2026-11-18, past the end of judging; the filled board's design shots are checked at 1920x1080.
 
-- [ ] Cache lifetime: Qloo responses (and saved builds) cached until at least 2026-11-18, then 7 days; cache keys bumped so older 7-day entries are replaced
+- [x] Cache lifetime: Qloo responses (and saved builds) cached until at least 2026-11-18, then 7 days; cache keys bumped so older 7-day entries are replaced
 - [ ] Cached build: a complete build is saved server-side and replayed in under 5 seconds, marked as a replay; a fresh build runs on request
 - [ ] Refill: POST /api/refill finds a replacement in the same fee band with filter.exclude.entities, in at most 3 Qloo calls, streamed to the trace
 - [ ] Unavailable: a card's Unavailable button stamps the act and swaps in the refill
