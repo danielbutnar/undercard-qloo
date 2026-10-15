@@ -10,7 +10,7 @@ Copied from SPEC.md section 6, M2. Done means: docs/qloo-spike.md records result
 - [x] Lineup assembly: 4 Mid and 6 Opener acts, each with affinity, popularity, fee band, anchor venue (the venue that lifts it furthest above the headliners-only baseline) and two tags shared with the headliners
 - [x] Agent loop: claude-sonnet-5-5 plans the calls through src/server/ai.ts, tested with a scripted model
 - [x] POST /api/undercard streams trace events and the final 10 acts
-- [ ] UI: Build undercard streams the trace into the panel and fills the board; /preview/board removed
+- [x] UI: Build undercard streams the trace into the panel and fills the board; /preview/board removed
 - [ ] Demo path steps 2 and 3 in tests/e2e
 - [ ] README: Sponsor technology and AI usage for M2
 - [ ] M2 Done means holds and `pnpm gate` passes; M2 ticked in SPEC.md
