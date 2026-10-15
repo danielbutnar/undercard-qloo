@@ -145,6 +145,15 @@ const Inputs = {
 };
 type ToolName = keyof typeof Inputs;
 
+function describeFailure(error: unknown): string {
+  if (error instanceof QlooError) return error.message;
+  if (error instanceof z.ZodError)
+    return "Qloo answered in a shape the app couldn't read.";
+  if (error instanceof Error && error.name === "TimeoutError")
+    return "Qloo took too long to answer.";
+  return "The Qloo request failed.";
+}
+
 class BudgetSpent extends Error {}
 class ToolMisuse extends Error {}
 
@@ -212,8 +221,8 @@ export function createToolbox({
       emit({ type: "call", call: traceOf(n, tool, summary, call) });
       return data;
     } catch (error) {
-      const message =
-        error instanceof QlooError ? error.message : "The Qloo request failed.";
+      const message = describeFailure(error);
+      console.error(`[undercard] ${tool} (${endpoint}) failed: ${message}`);
       emit({
         type: "call",
         call: {
@@ -268,13 +277,11 @@ export function createToolbox({
         ) ?? matches[0];
       if (booked && chosen) state.headliners.set(booked.toLowerCase(), chosen);
       return {
-        matches: matches
-          .slice(0, 3)
-          .map((match) => ({
-            entity_id: match.entityId,
-            name: match.name,
-            popularity: round(match.popularity),
-          })),
+        matches: matches.slice(0, 3).map((match) => ({
+          entity_id: match.entityId,
+          name: match.name,
+          popularity: round(match.popularity),
+        })),
         booked_headliner: booked && chosen ? chosen.name : null,
       };
     },

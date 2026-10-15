@@ -131,6 +131,25 @@ describe("Qloo client", () => {
     });
   });
 
+  it("drops a malformed tag (seen live: a tag with only a type) instead of the whole response", async () => {
+    const entity = insightsEntity(10, "Juniper Static", 0.66, 0.93);
+    const { client } = clientWith(() =>
+      insightsBody([
+        { ...entity, tags: [...entity.tags, { type: "urn:tag:genre:music" }] },
+      ]),
+    );
+    const { data } = await client.artists({
+      signalEntityIds: [syntheticId(1)],
+      popularityMin: 0.55,
+      popularityMax: 0.8,
+    });
+    expect(data).toHaveLength(1);
+    expect(data[0].tags.map((tag) => tag.name)).toEqual([
+      "Dream Pop",
+      "Indie Rock",
+    ]);
+  });
+
   it("compares two groups of entities on /v2/analysis/compare", async () => {
     const { client, requests } = clientWith(() => ({
       results: {

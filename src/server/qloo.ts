@@ -50,10 +50,11 @@ export class QlooError extends Error {
 
 // Response shapes, loose on purpose: only the fields the app reads are checked. /search and
 // /v2/analysis/compare name a tag's id `tag_id`; Insights and /v2/tags may name it `id`.
+// Qloo occasionally returns a tag with neither id nor name; such tags are dropped.
 const RawTag = z.object({
   id: z.string().optional(),
   tag_id: z.string().optional(),
-  name: z.string(),
+  name: z.string().optional(),
   type: z.string().optional(),
   subtype: z.string().optional(),
 });
@@ -82,10 +83,12 @@ const CompareBody = z.object({
 function toTag(raw: z.infer<typeof RawTag>): QlooTag {
   return {
     id: raw.id ?? raw.tag_id ?? "",
-    name: raw.name,
+    name: raw.name ?? "",
     type: raw.type ?? raw.subtype ?? "",
   };
 }
+
+const usable = (tag: QlooTag) => tag.id !== "" && tag.name !== "";
 
 function toEntity(raw: z.infer<typeof RawEntity>): QlooEntity {
   return {
@@ -93,7 +96,7 @@ function toEntity(raw: z.infer<typeof RawEntity>): QlooEntity {
     name: raw.name,
     popularity: raw.popularity ?? 0,
     affinity: raw.query?.affinity ?? null,
-    tags: (raw.tags ?? []).map(toTag).filter((tag) => tag.id !== ""),
+    tags: (raw.tags ?? []).map(toTag).filter(usable),
   };
 }
 
@@ -183,7 +186,7 @@ export function createQlooClient({
       if (parentType) params["filter.parents.types"] = parentType;
       params.take = take;
       return get("/v2/tags", params, (body) =>
-        TagsBody.parse(body).results.tags.map(toTag),
+        TagsBody.parse(body).results.tags.map(toTag).filter(usable),
       );
     },
 
@@ -251,10 +254,12 @@ export function createQlooClient({
           take,
         },
         (body) =>
-          CompareBody.parse(body).results.tags.map((raw) => ({
-            tag: toTag(raw),
-            score: raw.query?.score ?? 0,
-          })),
+          CompareBody.parse(body)
+            .results.tags.map((raw) => ({
+              tag: toTag(raw),
+              score: raw.query?.score ?? 0,
+            }))
+            .filter(({ tag }) => usable(tag)),
       );
     },
   };
