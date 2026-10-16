@@ -1,6 +1,13 @@
 # dependencies
 node_modules/
 .pnpm-store/
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
 # Next.js and builds
 .next/
@@ -16,16 +23,15 @@ test-results/
 blob-report/
 
 # secrets: only .env.example is committed
-.env
-.env.*
+.env*
 !.env.example
 
 # deploys
 .vercel/
 
-# judge reports and the calibration set (other entrants' Devpost texts stay local)
+# judge reports and the calibration sets (other entrants' Devpost texts stay local)
 .ai-review/
-calibration.json
+calibration*.json
 
 # M1 scaffold staging folder
 .scaffold/
@@ -45,3 +51,10 @@ yarn-error.log*
 
 # design shots from the frontend-anti-slop skill
 .design/
+
+# M5 video: dependencies, render output, captures and voiceover
+video/node_modules
+video/out
+video/public/capture
+video/public/vo
+video/.env.local
