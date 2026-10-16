@@ -32,7 +32,7 @@ The path a judge sees in the video and can repeat on the deployed URL with seede
 ## 4. Done means
 The entry is finished when all of these are true:
 - `pnpm gate` passes.
-- `E2E_BASE_URL=$PREVIEW_URL pnpm e2e` passes every step of section 3, where PREVIEW_URL is the Vercel preview URL recorded in TASKS.md at M4.
+- `E2E_BASE_URL=$PREVIEW_URL pnpm e2e` passes every step of section 3, where PREVIEW_URL is the production deployment's `.vercel.app` domain recorded in TASKS.md at M4 (Vercel puts preview URLs behind a login).
 - The Qloo API does the work in step 2 of section 3 (and the refill in step 4), and the screen shows it: the trace lists every Qloo call and every card shows Qloo's affinity and popularity.
 - README.md has these sections: What it does, How it works, Sponsor technology, AI usage, Built on (create-next-app and the libraries in package.json; there is no starter kit).
 - The deployed demo needs no login and no API key from the judge.
