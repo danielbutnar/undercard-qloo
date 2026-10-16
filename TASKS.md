@@ -15,3 +15,10 @@ Decided for this run: the judge URL (PREVIEW_URL) is the production deployment's
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
 Replaced: https://undercard-1ybr6c8qu-daniel-51ed.vercel.app/, a single deployment's URL that would not pick up later deploys.
+
+## Judge panel findings (2026-10-17, raised by at least two of three judges)
+- [x] README shows the live demo URL (top and Deploying)
+- [x] README "What it does" and "How it works" written, with pointers to the code and tests
+- [x] README backs the lift rule with the spike's counts
+- [x] README states the e2e result against the judge URL
+- [x] README's video line says the video is still to come (M5)

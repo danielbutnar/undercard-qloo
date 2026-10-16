@@ -5,16 +5,52 @@ This repository's history is filtered from Undercard's private development repos
 A lineup agent for regional festival talent buyers: enter two booked headliners and get a
 fee-banded undercard grounded in your town's taste, powered by Qloo.
 
+**Live demo: https://undercard-daniel-51ed.vercel.app** (no login, no API key).
+
 Entry for the [Qloo Agentic Hackathon](https://qloo.devpost.com/). The brief is in
 [SPEC.md](SPEC.md) and the event rules in [RULES.md](RULES.md).
 
 ## What it does
 
-To be written in M5.
+A talent buyer has booked a festival's headliners and set fee bands for the rest of the bill.
+Undercard fills those slots with acts the town's own music crowd already follows, and says
+why for each one.
+
+The demo festival is Sagebrush Sound: fictional, 3,000 capacity, in Boise, Idaho, with
+Khruangbin and Japanese Breakfast booked and two fee bands, Mid (4 slots) and Opener (6 slots).
+
+1. **Build undercard**: the trace panel lists every Qloo call the agent makes, with its
+   parameters and result count.
+2. The board fills with 4 Mid and 6 Opener acts. Each card shows the act's Qloo affinity, its
+   popularity percentile inside the band, a "Why Boise" line naming the local venue whose fans
+   lift it, and two Qloo tags it shares with the headliners.
+3. Mark an act **Unavailable**: the agent finds a replacement in the same fee band with a new
+   Qloo call, and the new card takes the slot.
+4. Flip to **LLM only** to see the same brief answered by the model alone: no affinity, no fee
+   band, no local link.
+5. Open **Poster** for the lineup set as a show bill, and **Export CSV** for the booking sheet.
 
 ## How it works
 
-To be written in M5.
+- **The agent plans the Qloo calls.** Claude Sonnet 5.5 works through one tool per Qloo call
+  ([src/server/agent.ts](src/server/agent.ts), [src/server/agent-tools.ts](src/server/agent-tools.ts)).
+  It resolves the headliners, finds the city's live music venues and picks the music rooms
+  among them as anchors, gets the taste the headliners share, then asks for each band's
+  artists twice: for the headliners alone, and for the headliners plus each anchor venue. It
+  runs independent calls in parallel and stops at 12. In live builds it has changed course
+  mid-build: when one anchor venue lifted no acts, it spent its last call on another room.
+- **The app books the acts.** [src/lib/assemble-lineup.ts](src/lib/assemble-lineup.ts) takes
+  an act when an anchor venue lifts it at least five places above the headliners-only
+  ranking, its popularity sits inside the band, and it shares two genre tags with the
+  headliners; each band takes its strongest-affinity acts. Every number on a card is Qloo's.
+- **A refill** ([src/server/refill.ts](src/server/refill.ts)) reruns the venue query for that
+  band with every act on the board excluded, in at most 3 calls, and applies the same bar.
+- **Saved builds.** A complete build is saved ([src/server/build-store.ts](src/server/build-store.ts))
+  and replayed to later visitors; the trace says when a board is a replay.
+- **Checks.** Unit tests in [tests/unit](tests/unit) run against a synthetic Qloo: each tool's
+  query parameters, the 12-call cap, the refill's exclusions and 3-call cap, the rate limits.
+  The demo path in [tests/e2e/demo-path.spec.ts](tests/e2e/demo-path.spec.ts) (all five steps,
+  plus a replayed board in under 5 seconds) passed against the live demo on 2026-10-15.
 
 ## Sponsor technology
 
@@ -35,6 +71,12 @@ city's venues as signals. An act makes the board when an anchor venue lifts it a
 places above the headliners-only ranking; its "Why Boise" line says by how much. Affinity,
 popularity percentile, fee band, anchor venue and shared tags on every card come from those
 responses.
+
+The spike ([docs/qloo-spike.md](docs/qloo-spike.md)) checked that a venue is a real signal.
+Adding Venue 227 to the headliners moved N–29 artists per fee band up five or more places,
+and 22–23 of them share at least two genre tags with the headliners. The Visual Arts
+Collective moved N–31 (21–23 with shared tags). Venue 166 Boise changed nothing, which
+is why the agent measures each venue's lift instead of trusting the venue list.
 
 Marking an act **Unavailable** refills its slot with at most 3 more Qloo calls: artist
 insights for the same fee band, seeded by the headliners and the act's anchor venue (then the
@@ -72,7 +114,8 @@ returned, as counts only.
   Refills don't use the model.
 - The festival, its presale numbers, and the acts and venues in the test fixture are invented.
   The two headliners are real artists, named so the agent can look them up on Qloo.
-- The demo video's voiceover is AI-generated with ElevenLabs and is disclosed in the video.
+- The demo video is still to come (M5); its voiceover will be AI-generated with ElevenLabs and
+  disclosed in the video.
 - Kept current as each milestone lands.
 
 ## Built on
@@ -130,8 +173,9 @@ Checks:
 The app runs on Vercel with no login and no key from the visitor. Link the repository in
 Vercel and set these server environment variables: `QLOO_API_KEY`, `QLOO_BASE_URL`,
 `ANTHROPIC_API_KEY`, `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. None of them is
-exposed to the browser. The judge URL is the production deployment's `.vercel.app` domain,
-because Vercel puts preview deployments behind a login.
+exposed to the browser. The judge URL is the production domain,
+https://undercard-daniel-51ed.vercel.app, which always serves the latest production deploy;
+Vercel puts preview deployments behind a login.
 
 Calls that spend money or quota are limited per IP and per UTC day, with a ceiling for
 everyone, and answer with a friendly message at the limit:
