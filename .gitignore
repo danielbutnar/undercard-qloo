@@ -33,6 +33,8 @@ blob-report/
 .ai-review/
 calibration*.json
 
+# private tooling: the judge and security-audit script stays on disk only
+
 # M1 scaffold staging folder
 .scaffold/
 

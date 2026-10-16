@@ -19,13 +19,13 @@ RULES.md overrides this file. Keep the filled file under 200 lines. -->
 - Scout value: $25,000 ÷ 344 (last edition's gallery) = $72.67 per entry
 
 ## 2. Goal
-A talent buyer at a regional festival enters two booked headliners and gets a fee-banded undercard grounded in local taste through Qloo, built to win Quality of the Idea.
+A festival talent buyer books the undercard from acts the town's own venue crowds favour, within the buyer's fee bands, through Qloo; built to win Quality of the Idea.
 
 ## 3. Demo path
 The path a judge sees in the video and can repeat on the deployed URL with seeded data:
 1. Open the deployed URL: the seeded festival Sagebrush Sound (fictional; Boise, Idaho; 3,000 capacity; crowd aged 25–34) loads with its two booked headliners, the buyer's two fee bands (Mid, Opener) and a 30-day presale sparkline. There is no login.
 2. Press "Build undercard": the trace panel streams every Qloo call the agent makes (search the headliners, find Boise's anchor music venues, artist insights per anchor venue and fee band) with its parameters and result count.
-3. The board fills with 4 Mid acts and 6 Opener acts. Each card shows Qloo affinity, the popularity percentile mapped to the buyer's fee band, a "Why Boise" line naming the anchor venue whose fans it shares, and two Qloo tags it shares with the headliners.
+3. The board fills with 4 Mid acts and 6 Opener acts. Each card leads with a "Why Boise" line naming the anchor venue whose fans it shares, then shows Qloo affinity, the popularity percentile mapped to the buyer's fee band, and two Qloo tags it shares with the headliners.
 4. Mark one act "Unavailable": the agent refills that slot from the same fee band with a new Qloo call (shown in the trace), and the new card swaps in.
 5. Flip "LLM only": the same brief without Qloo shows a generic lineup with no affinity, no fee band and no local link. Flip back and open Poster, which typesets the lineup by band and offers "Export CSV".
 
@@ -37,6 +37,8 @@ The entry is finished when all of these are true:
 - README.md has these sections: What it does, How it works, Sponsor technology, AI usage, Built on (create-next-app and the libraries in package.json; there is no starter kit).
 - The deployed demo needs no login and no API key from the judge.
 - The video is under the limit in section 1 and shows section 3 running on the live app.
+- A cold reader shown only a screenshot of the first screen names what Undercard does and its first click, "Build undercard".
+- The video shows the product working by 10 s, in clean frames, with one measured number about the product, such as the Qloo calls per build or the refill time.
 - LICENSE (MIT) sits at the repository root, so GitHub shows it in the About section (RULES.md, Required parts).
 - No Qloo response data is committed; tests use synthetic fixtures shaped like Qloo responses.
 
