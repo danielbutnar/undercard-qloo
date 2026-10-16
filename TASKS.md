@@ -22,3 +22,9 @@ Replaced: https://undercard-1ybr6c8qu-daniel-51ed.vercel.app/, a single deployme
 - [x] README backs the lift rule with the spike's counts
 - [x] README states the e2e result against the judge URL
 - [x] README's video line says the video is still to come (M5)
+
+## Before the repository goes public
+- [ ] Remove the Final scores and Weakest criterion bullets from SPEC.md section 9: all three AI judges docked them, and judges or an automated analysis may read self-scores as steering
+- [ ] Decide whether a private note stays public: it's contest strategy, and the judge script can read it from claude-master-setup with --field
+- [ ] Confirm the git history holds no sk-ant- key
+- [ ] Replace the README's "video still to come" line
