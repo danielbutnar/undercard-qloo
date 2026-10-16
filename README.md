@@ -2,8 +2,9 @@
 
 This repository's history is filtered from Undercard's private development repository: the same commits, with their dates and messages, with some files and quotes removed and data from Qloo's answers redacted, as Qloo's developer guide requires.
 
-A lineup agent for regional festival talent buyers: enter two booked headliners and get a
-fee-banded undercard grounded in your town's taste, powered by Qloo.
+A festival talent buyer fills the undercard from acts the town's own venue crowds favour,
+inside the buyer's fee bands, and refills a slot when an act drops out; Undercard finds each
+act through Qloo and shows why.
 
 **Live demo: https://undercard-daniel-51ed.vercel.app** (no login, no API key).
 
