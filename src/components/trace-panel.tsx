@@ -152,13 +152,16 @@ export function TracePanel({
               {savedAt.format(new Date(state.build.createdAt))} UTC:{" "}
               {state.summary.calls} Qloo calls, served from the cache.
             </p>
-            <button
-              type="button"
-              onClick={() => onBuild({ fresh: true })}
-              className="text-label text-ink underline underline-offset-2 hover:text-accent"
-            >
-              Run the agent again
-            </button>
+            {/* After a refusal, the replay below is the next step, not another fresh build. */}
+            {!state.refusal && (
+              <button
+                type="button"
+                onClick={() => onBuild({ fresh: true })}
+                className="text-label text-ink underline underline-offset-2 hover:text-accent"
+              >
+                Run the agent again
+              </button>
+            )}
           </div>
         )}
         {state.status === "done" && state.summary && !state.build?.replayed && (
@@ -181,6 +184,22 @@ export function TracePanel({
           <p role="alert" className="text-label font-semibold text-danger">
             {state.error}
           </p>
+        )}
+        {state.refusal && (
+          <div className="flex flex-col items-start gap-1">
+            <p role="alert" className="text-label font-semibold text-danger">
+              {state.refusal}
+            </p>
+            {state.build && (
+              <button
+                type="button"
+                onClick={() => onBuild()}
+                className="text-label text-ink underline underline-offset-2 hover:text-accent"
+              >
+                Replay the saved build
+              </button>
+            )}
+          </div>
         )}
         {state.calls.length > 0 && (
           <ol

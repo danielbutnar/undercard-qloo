@@ -33,7 +33,7 @@ export function useUndercardBuild() {
     refillController.current?.abort();
     const controller = new AbortController();
     buildController.current = controller;
-    dispatch({ type: "start" });
+    dispatch({ type: "start", fresh: request.fresh ?? false });
     try {
       await streamEvents(
         "/api/undercard",

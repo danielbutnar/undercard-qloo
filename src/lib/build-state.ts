@@ -21,6 +21,13 @@ export interface BuildState {
   /** Calls on the trace when the running refill started; its calls number on from here. */
   refillBase: number;
   refillError: string | null;
+  /**
+   * The board on screen when a fresh build was asked for. It stays up until the server
+   * accepts the build; if the server refuses (a rate limit, a missing key) it comes back.
+   */
+  kept: BuildState | null;
+  /** Why the last fresh build was refused; the trace shows it with the replay as next step. */
+  refusal: string | null;
 }
 
 export const IDLE_BUILD: BuildState = {
@@ -36,10 +43,12 @@ export const IDLE_BUILD: BuildState = {
   refilling: null,
   refillBase: 0,
   refillError: null,
+  kept: null,
+  refusal: null,
 };
 
 export type BuildAction =
-  | { type: "start" }
+  | { type: "start"; fresh?: boolean }
   | { type: "event"; event: BuildEvent }
   | { type: "end" }
   | { type: "fail"; message: string }
@@ -60,6 +69,11 @@ function withCall(state: BuildState, call: TraceCall): BuildState {
 
 function replaceAct(acts: Act[], replaces: string, act: Act): Act[] {
   return acts.map((current) => (current.entityId === replaces ? act : current));
+}
+
+/** Puts the kept board back, with the reason the fresh build didn't start. */
+function restoreKept(state: BuildState, refusal: string): BuildState {
+  return { ...state.kept!, kept: null, refusal };
 }
 
 function applyRefillEvent(state: BuildState, event: BuildEvent): BuildState {
@@ -88,11 +102,22 @@ export function buildReducer(
   action: BuildAction,
 ): BuildState {
   switch (action.type) {
-    case "start":
+    case "start": {
+      if (action.fresh && state.acts.length > 0) {
+        const board: BuildState = { ...state, kept: null, refusal: null };
+        return { ...board, status: "building", kept: board };
+      }
       return { ...IDLE_BUILD, status: "building" };
+    }
     case "fail":
+      if (state.kept) return restoreKept(state, action.message);
       return { ...state, status: "error", error: action.message };
     case "end":
+      if (state.kept)
+        return restoreKept(
+          state,
+          state.refusal ?? "The build stopped before it started. Try again.",
+        );
       return state.status === "building"
         ? {
             ...state,
@@ -127,6 +152,18 @@ export function buildReducer(
       const { event } = action;
       switch (event.type) {
         case "build":
+          // The server accepted the build: a kept board gives way to the new one.
+          if (state.kept) {
+            return {
+              ...IDLE_BUILD,
+              status: "building",
+              build: {
+                id: event.id,
+                createdAt: event.createdAt,
+                replayed: event.replayed,
+              },
+            };
+          }
           return {
             ...state,
             build: {
@@ -147,8 +184,14 @@ export function buildReducer(
             acts: replaceAct(state.acts, event.replaces, event.act),
           };
         case "error":
+          if (state.kept) return { ...state, refusal: event.message };
           return { ...state, error: event.message };
         case "done":
+          if (state.kept)
+            return restoreKept(
+              state,
+              state.refusal ?? "The build didn't start. Try again.",
+            );
           return {
             ...state,
             status: state.error ? "error" : "done",

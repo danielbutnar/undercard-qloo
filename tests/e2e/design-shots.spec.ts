@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
 import { test, type Page } from "@playwright/test";
 import {
   syntheticBuildStream,
+  syntheticLimitStream,
   syntheticLlmOnly,
   syntheticRefillStream,
 } from "./synthetic-build";
@@ -54,6 +55,33 @@ const SCENES: {
     },
   },
   { name: "home-built", viewports: [WIDE, VIDEO, MOBILE], prepare: builtBoard },
+  {
+    // A replayed board, then a fresh build refused at the per-IP limit.
+    name: "home-limited",
+    viewports: [VIDEO, MOBILE],
+    prepare: async (page) => {
+      await page.route("**/api/undercard", async (route) => {
+        const { fresh } = (route.request().postDataJSON() ?? {}) as {
+          fresh?: boolean;
+        };
+        await route.fulfill(
+          fresh
+            ? { status: 429, contentType: NDJSON, body: syntheticLimitStream() }
+            : {
+                status: 200,
+                contentType: NDJSON,
+                body: syntheticBuildStream({ replayed: true }),
+              },
+        );
+      });
+      await page.getByRole("button", { name: "Build undercard" }).click();
+      await page.getByRole("article").nth(9).waitFor();
+      await page.getByRole("button", { name: "Run the agent again" }).click();
+      await page
+        .getByRole("button", { name: "Replay the saved build" })
+        .waitFor();
+    },
+  },
   {
     // The refill request is held open, so the stamp and the refill status show.
     name: "home-refilling",

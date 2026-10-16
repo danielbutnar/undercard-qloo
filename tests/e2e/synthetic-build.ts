@@ -118,19 +118,34 @@ const calls = [
 const ndjson = (events: unknown[]) =>
   events.map((event) => JSON.stringify(event)).join("\n") + "\n";
 
-/** The full NDJSON body of a finished synthetic build. */
-export function syntheticBuildStream(): string {
+/** The full NDJSON body of a finished synthetic build, run fresh or replayed from the saved one. */
+export function syntheticBuildStream({
+  replayed = false,
+}: { replayed?: boolean } = {}): string {
   return ndjson([
     {
       type: "build",
       id: "synthetic-build",
       createdAt: "2026-10-15T14:02:00.000Z",
-      replayed: false,
+      replayed,
     },
     { type: "status", text: "Planning the Qloo calls" },
-    ...calls.map((call) => ({ type: "call", call })),
+    ...calls.map((call) => ({
+      type: "call",
+      call: replayed ? { ...call, cached: true } : call,
+    })),
     { type: "lineup", lineup },
-    { type: "done", calls: calls.length, ms: 15600 },
+    { type: "done", calls: calls.length, ms: replayed ? 1400 : 15600 },
+  ]);
+}
+
+/** The 429 body the build route sends when a fresh build is over the per-IP limit. */
+export const LIMIT_MESSAGE =
+  "You've used today's 5 fresh builds from this network. The saved build still replays instantly. Try again tomorrow (UTC).";
+export function syntheticLimitStream(): string {
+  return ndjson([
+    { type: "error", message: LIMIT_MESSAGE },
+    { type: "done", calls: 0, ms: 0 },
   ]);
 }
 
