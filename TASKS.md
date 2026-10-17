@@ -123,6 +123,14 @@ Copied from SPEC.md section 6, M6h. Closes: Potential Impact. Freeze: 2026-10-20
 - [x] The page reads the query on the server and hands the form its values; a line says they came from the link; nothing runs until the visitor presses Draft my undercard
 - [x] e2e tests/e2e/prefilled-link.spec.ts: the fields are filled, no request reaches /api/undercard in 2 seconds, no bill appears
 
+# TASKS: M6i Rooms that are music rooms (no-go)
+
+Copied from SPEC.md section 6, M6i. Closes: Quality of the Idea and Design. Freeze: 2026-10-24. Done means: a spike's go or no-go in docs/evidence.md; on a go, the rule before the planner, in the trace, and the ten-town spike still at least 8 of 10.
+
+- [x] Spike: Qloo's place categories for 12 towns (181 places); a rule on parks, arenas, stadiums and sports grounds leaves out 9 and drops none of the 29 rooms used
+- [x] Ten-town rerun with the rule, one at a time: 7 of 10 filled both bands (Duluth lost its Opener band without its festival park), under the bar of 8
+- [x] No-go recorded in docs/evidence.md section 10; the rule's code was reverted before any commit and isn't shipped
+
 # TASKS: for the 27-28 October redo (not now)
 
 - [ ] Fix the video's capture script for the reason picker (its refill step now stops at "Why is it unavailable?")

@@ -87,6 +87,8 @@ for (const city of positionals) {
     categories: (place.tags ?? [])
       .filter((t) => /place/.test(t.type ?? t.id ?? t.tag_id ?? ""))
       .map((t) => t.name),
+    // Exact tag ids, such as urn:tag:category:place:park, for a rule on place kinds (M6i).
+    tagIds: (place.tags ?? []).map((t) => t.id ?? t.tag_id ?? ""),
   }));
   const inTown = places.filter((place) => {
     const where = fold(

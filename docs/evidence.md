@@ -162,10 +162,24 @@ The production build of 17 October 2026 matched Boise's row above: Venue 418 8, 
 
 **A correction to section 7.** The "Burlington, Vermont" run in section 7 used the same plain name, so it read Burlington, Ontario. Of the 10 US towns that spike meant to test, 7 filled both bands, under its bar of 8; the 8 of 10 counted a Canadian town. Your festival (M6f) was built on that count.
 
+## 10. Rooms that are music rooms: no-go (M6i)
+
+**The question.** Duluth's bill came entirely from a festival park, and Bozeman's from its only tagged place. Can a rule on the place data the agent already fetches mark parks, arenas, stadiums and similar places as not music rooms?
+
+**The rule tried.** A place isn't a music room when Qloo files it under one of these place categories: park, playground, arena, stadium, sports complex, a racing venue, a sports field or rink, golf course, fairground, amusement or theme park, zoo. Museums stay in, because Nashville's Venue 281 is filed as both a museum and a concert hall.
+
+**The checks** (2026-10-17, the venue lookup for 12 towns, one at a time, `scripts/town-check.ts`):
+- Of 181 places across Boise, Austin, Denver, Nashville and the 8 towns that passed section 7, the rule left out 9: six arenas and stadiums, a sports complex, a racetrack and a festival park.
+- It dropped none of the 29 rooms used in the saved Boise, Austin, Denver and Nashville builds or in those 8 towns' runs. Bozeman's only place stays in: Qloo doesn't file it as any of those kinds.
+- With the rule in the agent's venue search, section 7's ten towns ran again offline, one at a time: 7 of 10 filled both bands, under the bar of 8. Richmond and Missoula failed as before. Duluth now failed too: without its festival park, its rooms filled Mid but none of the 6 Opener slots.
+
+**Verdict: no-go.** The rule does what it should on the data, but the agent then fills fewer towns, under the bar. Nothing ships. The live agent still treats every place Qloo tags as a live music venue as a room, and a park or an arena can still draft a whole bill.
+
 ## What these numbers don't establish
 
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
 - That a town's crowd knows the undercard acts: section 6 found no usable measure of it.
+- That every room behind a bill is a club: a festival park or an arena can still draft one (section 10).
 - That a room's crowd predicts a festival's bookings. Section 2's check against Treefort was a no-go; its counts (0 to 2 of 50) are too small to show the signal either way.
 - Stability beyond the runs in section 5: five in Boise and three in each other town, all on one day, with one pair of headliners.
 
