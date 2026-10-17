@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useState, type ReactNode } from "react";
 import type { FeeBand, FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import { formatBandRange, formatCount } from "@/lib/format";
@@ -10,6 +12,12 @@ const BILLING = {
   mid: "text-band",
   opener: "text-figure",
 } satisfies Record<FeeBandId, string>;
+
+/** A print run's acts start 0.12 s apart, each taking 0.38 s (src/app/globals.css). */
+const PRINT_STEP_S = 0.12;
+
+/** What prints the acts that mount now; null on first paint, which is the finished bill. */
+export type Printing = "run" | "refill" | null;
 
 const savedAt = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -38,17 +46,33 @@ function BillAct({
   top,
   open,
   onOpen,
+  printing,
+  index,
+  onPrinted,
 }: {
   act: Act;
   gone: boolean;
   top?: number;
   open: boolean;
   onOpen?: (act: Act) => void;
+  printing: Printing;
+  /** The act's place in billing order, which sets its turn in a print run. */
+  index: number;
+  onPrinted?: (entityId: string) => void;
 }) {
+  // Decided when the act mounts: the first paint's acts never animate, a print run's acts
+  // print in one at a time, and a refill's replacement prints straight into its slot.
+  const [print] = useState(() =>
+    printing ? { delay: printing === "run" ? index * PRINT_STEP_S : 0 } : null,
+  );
   return (
     <article
       aria-label={act.name}
-      className="flex flex-col items-center gap-1.5"
+      className={`flex flex-col items-center gap-1.5 ${print ? "motion-safe:animate-print-in" : ""}`}
+      style={
+        print ? { animationDelay: `${print.delay.toFixed(2)}s` } : undefined
+      }
+      onAnimationStart={() => onPrinted?.(act.entityId)}
     >
       <h3
         className={`font-display font-extrabold uppercase ${BILLING[act.band]} ${gone ? "text-muted" : ""}`}
@@ -120,6 +144,9 @@ function BandTier({
   openId,
   onOpen,
   keyed,
+  printing,
+  order,
+  onPrinted,
 }: {
   band: FeeBand;
   acts: readonly Act[];
@@ -129,6 +156,10 @@ function BandTier({
   onOpen?: (act: Act) => void;
   /** The act whose mark carries the key, and the key. */
   keyed?: { act: Act; example: string; lines: string[] };
+  printing: Printing;
+  /** Billing order across the bands, by entity id. */
+  order: ReadonlyMap<string, number>;
+  onPrinted?: (entityId: string) => void;
 }) {
   const billed = acts.filter((act) => act.band === band.id);
   const slots = Array.from(
@@ -170,6 +201,9 @@ function BandTier({
                 top={top}
                 open={openId === act.entityId}
                 onOpen={onOpen}
+                printing={printing}
+                index={order.get(act.entityId) ?? 0}
+                onPrinted={onPrinted}
               />
             ) : (
               <OpenSlot />
@@ -250,6 +284,8 @@ export function DraftBill({
   unavailable = [],
   openId = null,
   onOpen,
+  printing = null,
+  onPrinted,
 }: {
   festival: Festival;
   acts: readonly Act[];
@@ -262,11 +298,19 @@ export function DraftBill({
   /** The act whose card is open. */
   openId?: string | null;
   onOpen?: (act: Act) => void;
+  /** What prints acts that mount now: a replay's run, a refill, or nothing (first paint). */
+  printing?: Printing;
+  /** Called as each act's print-in starts, so the rooms' counts can tick up with it. */
+  onPrinted?: (entityId: string) => void;
 }) {
+  const billed = festival.feeBands.flatMap((band) =>
+    acts.filter((act) => act.band === band.id),
+  );
+  const order = new Map(billed.map((act, index) => [act.entityId, index]));
   // The key sits beside the first mark on the bill, in billing order.
-  const firstMarked = festival.feeBands
-    .flatMap((band) => acts.filter((act) => act.band === band.id))
-    .find((act) => !unavailable.includes(act.entityId) && liftOf(act));
+  const firstMarked = billed.find(
+    (act) => !unavailable.includes(act.entityId) && liftOf(act),
+  );
   const keyed = firstMarked && {
     act: firstMarked,
     ...markKey(firstMarked, { acts, top: top[firstMarked.band] }),
@@ -288,6 +332,9 @@ export function DraftBill({
           openId={openId}
           onOpen={onOpen}
           keyed={keyed?.act.band === band.id ? keyed : undefined}
+          printing={printing}
+          order={order}
+          onPrinted={onPrinted}
         />
       ))}
       <p className="mt-auto w-full border-t border-rule pt-2.5 text-label text-muted">

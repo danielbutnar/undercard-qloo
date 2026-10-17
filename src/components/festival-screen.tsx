@@ -2,21 +2,26 @@
 
 import { useState } from "react";
 import { ActCardPanel } from "@/components/act-card-panel";
-import { DraftBill } from "@/components/draft-bill";
+import { DraftBill, type Printing } from "@/components/draft-bill";
 import { FestivalHeader } from "@/components/festival-header";
 import { LineupBoard } from "@/components/lineup-board";
 import { ModelBill } from "@/components/model-bill";
 import { RoomsRail } from "@/components/rooms-rail";
-import { TracePanel } from "@/components/trace-panel";
+import { TracePanel, type BuildRequest } from "@/components/trace-panel";
 import { useLlmOnly } from "@/components/use-llm-only";
 import { useUndercardBuild } from "@/components/use-undercard-build";
 import { firstBoard } from "@/lib/build-state";
 import { lineupCsv } from "@/lib/csv";
 import type { Festival } from "@/lib/festival";
 import type { FirstBill } from "@/lib/first-bill";
+import type { Act } from "@/lib/lineup";
 import { roomsBehind } from "@/lib/rooms";
 
 type Mode = "qloo" | "llm";
+
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 
 function downloadText(filename: string, text: string, type: string) {
   const url = URL.createObjectURL(new Blob([text], { type }));
@@ -111,6 +116,46 @@ export function FestivalScreen({
     firstBill?.placesListed ??
     null;
 
+  // The motion moment: a replay's acts print in one at a time, and the rooms' counts tick up
+  // as each act's print-in starts. Under reduced motion the counts show the end state.
+  const [printing, setPrinting] = useState<Printing>(null);
+  const [printed, setPrinted] = useState<ReadonlySet<string> | null>(null);
+  const rooms = roomsBehind(
+    state.acts,
+    firstBill?.anchors ?? {},
+    state.unavailable,
+  ).map((room) =>
+    printed
+      ? {
+          ...room,
+          lifted: state.acts.filter(
+            (act) =>
+              act.anchorVenue.entityId === room.venue.entityId &&
+              printed.has(act.entityId) &&
+              !state.unavailable.includes(act.entityId),
+          ).length,
+        }
+      : room,
+  );
+
+  function runBuild(request: BuildRequest = {}) {
+    setPrinting("run");
+    // A fresh run may be refused and keep the bill on screen, so only a replay ticks.
+    setPrinted(request.fresh || prefersReducedMotion() ? null : new Set());
+    void build(request);
+  }
+
+  function refill(act: Act) {
+    setPrinting("refill");
+    void markUnavailable(act);
+  }
+
+  function onPrinted(entityId: string) {
+    setPrinted((seen) =>
+      seen && !seen.has(entityId) ? new Set(seen).add(entityId) : seen,
+    );
+  }
+
   function changeMode(next: Mode) {
     setMode(next);
     if (
@@ -172,15 +217,13 @@ export function FestivalScreen({
             unavailable={state.unavailable}
             openId={openAct?.entityId ?? null}
             onOpen={(act) => setOpenId(act.entityId)}
+            printing={printing}
+            onPrinted={onPrinted}
           />
           <div className="flex flex-col gap-4">
             {!openAct && (
               <RoomsRail
-                rooms={roomsBehind(
-                  state.acts,
-                  firstBill?.anchors ?? {},
-                  state.unavailable,
-                )}
+                rooms={rooms}
                 bands={festival.feeBands}
                 placesListed={placesListed}
               />
@@ -190,14 +233,14 @@ export function FestivalScreen({
                 act={openAct}
                 unavailable={state.unavailable.includes(openAct.entityId)}
                 disabled={state.refilling !== null || !state.build}
-                onUnavailable={markUnavailable}
+                onUnavailable={refill}
                 onClose={() => setOpenId(null)}
               />
             )}
             <TracePanel
               state={state}
               savedCalls={firstBill?.calls}
-              onBuild={build}
+              onBuild={runBuild}
             />
           </div>
         </main>
@@ -205,7 +248,7 @@ export function FestivalScreen({
         <main className="grid flex-1 grid-cols-1 content-start gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-6">
           <FestivalHeader festival={festival} />
           <div className="lg:row-span-2">
-            <TracePanel state={state} onBuild={build} />
+            <TracePanel state={state} onBuild={runBuild} />
           </div>
           <section aria-label="Lineup board">
             <LineupBoard
@@ -213,7 +256,7 @@ export function FestivalScreen({
               acts={state.acts}
               unavailable={state.unavailable}
               refilling={state.refilling}
-              onUnavailable={state.build ? markUnavailable : undefined}
+              onUnavailable={state.build ? refill : undefined}
             />
           </section>
         </main>
