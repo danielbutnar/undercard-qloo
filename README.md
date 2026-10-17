@@ -39,6 +39,8 @@ Khruangbin and Japanese Breakfast booked and two fee bands, Mid (4 slots) and Op
 
 ## How it works
 
+![How a build works: the page, the API routes, the planner, the five kinds of Qloo call, the lift rule, the refill, the model-only baseline and Upstash](docs/architecture.svg)
+
 - **The agent plans the Qloo calls.** Claude Sonnet 5.5 works through one tool per Qloo call
   ([src/server/agent.ts](src/server/agent.ts), [src/server/agent-tools.ts](src/server/agent-tools.ts)).
   It resolves the headliners, finds the city's live music venues and picks the music rooms
@@ -62,9 +64,8 @@ Khruangbin and Japanese Breakfast booked and two fee bands, Mid (4 slots) and Op
 - **Checks.** Unit tests in [tests/unit](tests/unit) run against a synthetic Qloo: each tool's
   query parameters, the 12-call cap, the refill's exclusions and 3-call cap, the rate limits.
   The demo path in [tests/e2e/demo-path.spec.ts](tests/e2e/demo-path.spec.ts) (all five steps,
-  plus a first-paint check) passed against the live demo on 2026-10-15 in its earlier form,
-  and in this form against a local production build with a synthetic saved build on
-  2026-10-17.
+  plus a first-paint check) passes against the live demo, most recently on 2026-10-17.
+  GitHub Actions runs `pnpm gate` on every push to main and on pull requests.
 
 ## Sponsor technology
 
@@ -135,8 +136,24 @@ returned, as counts only.
   Refills don't use the model.
 - The festival, its presale numbers, and the acts and venues in the test fixture are invented.
   The two headliners are real artists, named so the agent can look them up on Qloo.
-- The demo video is still to come (M5); its voiceover will be AI-generated with ElevenLabs and
-  disclosed in the video.
+- M4c: Claude (Opus 5.5) shipped M4b, then fixed what fresh cold readers (Claude subagents)
+  misread: the fee band now reads as the buyer's, the marks use "+", the card's Close sits
+  inside the card, the first click comes up under the headliners on phones, and the rooms
+  are named as Boise venues.
+- M4d: Claude (Opus 5.5) saved the planner's lines with each build and replays them among its
+  calls, sent the crowd's age to Qloo with every artist call, and moved the model-only
+  baseline to high effort with the planner's token budget.
+- M4e: Claude (Opus 5.5) wrote and ran the offline scripts in `scripts/` (the Treefort check
+  and the agent in three more towns), wrote [docs/evidence.md](docs/evidence.md) and had a
+  Claude subagent fact-check it against the sources and run outputs.
+- M4f: Claude (Opus 5.5) wrote the GitHub Actions workflow that runs `pnpm gate`.
+- M5: Claude (Opus 5.5) wrote [docs/devpost-story.md](docs/devpost-story.md) and tested its
+  opening on a fresh Claude subagent, drew [docs/architecture.svg](docs/architecture.svg) by
+  hand, and built the Remotion project in `video/`: it captures the live demo's replay as
+  stills, and the narration script follows the story. The video's voiceover is AI-generated
+  with ElevenLabs, and its end card says so. Claude also shot the gallery stills and ran the
+  contradiction check across the README, SPEC.md, the story, the narration and the live
+  screens.
 - Kept current as each milestone lands.
 
 ## Built on
@@ -187,7 +204,8 @@ Checks:
   (`UNDERCARD_E2E_SYNTHETIC=1`): the server serves the synthetic saved build and model answer
   from `tests/e2e/synthetic-build.ts` and never calls Qloo, Claude or Upstash, and the refill
   is answered in the browser. Never set `UNDERCARD_E2E_SYNTHETIC` on Vercel.
-- `E2E_BASE_URL=<url> pnpm e2e`: the same specs against a deployment. There the refill calls
+- `E2E_BASE_URL=<url> pnpm e2e --workers=1`: the same specs against a deployment, one at a
+  time, because parallel workers skew the first-screen LCP measurement. There the refill calls
   Qloo and Without Qloo calls Claude once; the first screen and the replay use the saved
   build.
 - On a production build of your own: `UNDERCARD_E2E_SYNTHETIC=1 pnpm build`, then

@@ -17,6 +17,8 @@ const eslintConfig = defineConfig([
     "playwright-report/**",
     "test-results/**",
     ".design/**",
+    // The demo video is its own project (M5):
+    "video/**",
   ]),
 ]);
 

@@ -1,0 +1,46 @@
+{
+  "title": "Undercard",
+  "sponsor": "the Qloo API",
+  "url": "https://undercard-daniel-51ed.vercel.app",
+  "targetSeconds": 120,
+  "segments": [
+    {
+      "id": "hook",
+      "scene": "hook",
+      "text": "For festival talent buyers: an undercard drafted from acts that Boise's own music venues lift in Qloo.",
+      "onScreen": "An undercard drafted from Boise's own venues"
+    },
+    {
+      "id": "replay",
+      "scene": "step",
+      "text": "Watch the agent build it replays the saved build. Claude plans each Qloo call: the headliners, Boise's music venues, then each fee band's artists, with and without each venue. Twelve Qloo calls, with the planner's own lines between them."
+    },
+    {
+      "id": "card",
+      "scene": "step",
+      "text": "Each act is marked with the venue whose crowd lifted it, and by how many places. Its card adds Qloo's affinity, its popularity inside the fee band, and two tags it shares with the headliners."
+    },
+    {
+      "id": "refill",
+      "scene": "step",
+      "text": "When an act drops out, mark it unavailable. Undercard asks Qloo again for the same band, and the replacement prints into the slot."
+    },
+    {
+      "id": "without",
+      "scene": "step",
+      "text": "Without Qloo, the same brief goes to the model alone. Its picks come with reasons, but no Boise room and no fee-band check."
+    },
+    {
+      "id": "architecture",
+      "scene": "image",
+      "image": "architecture.png",
+      "text": "Claude chooses the Qloo calls. The app books an act only when a venue lifts it at least five places, inside the band."
+    },
+    {
+      "id": "end",
+      "scene": "end",
+      "text": "Undercard is live at this address, built with the Qloo API.",
+      "onScreen": "undercard-daniel-51ed.vercel.app"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "name": "demo-video",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "capture": "node scripts/capture.ts",
+    "voiceover": "node --env-file-if-exists=.env.local scripts/voiceover.ts",
+    "studio": "remotion studio src/index.ts",
+    "still": "remotion still src/index.ts Demo",
+    "render": "remotion render src/index.ts Demo out/demo.mp4 --codec=h264 --crf=18 --jpeg-quality=95",
+    "probe": "remotion ffprobe -v error -show_entries format=duration:stream=codec_type,width,height,r_frame_rate -of json out/demo.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.536",
+    "@remotion/google-fonts": "^4.0.536",
+    "@remotion/media": "^4.0.536",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "remotion": "^4.0.536"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "playwright": "^1.64.1",
+    "typescript": "^7.0.2"
+  }
+}

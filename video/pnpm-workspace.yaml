@@ -1,0 +1,4 @@
+# video/ is its own pnpm workspace, kept apart from the app (motion-video-producer skill).
+allowBuilds:
+  esbuild: true
+  unrs-resolver: false
