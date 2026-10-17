@@ -48,6 +48,8 @@ Two of the three rooms the agent tested in Boise were Treefort 2026 venues: KIVI
 
 The production build of 17 October 2026 matched Boise's row above: Venue 418 8, Venue 227 2, Venue 166 Boise 0, both bands full in 12 calls.
 
+**On production (M6d).** The same brief ran fresh once on production for each of the three towns, under its own festival id, between 14:57 and 14:59 UTC on 17 October 2026, and each build was saved so it replays like Boise's. Austin: 12 calls, Venue 213 Austin lifted all 10 acts. Denver: 11 calls, Venue 333 5 and Venue 184 5. Nashville: 12 calls, Venue 331 lifted all 10. No call was refused, and both bands filled in each. Boise's saved build did not change.
+
 ## 4. Pilot towns (M6a)
 
 **The question.** Before any festival replies to an offer of a free draft: can Undercard read the rooms in Calgary, Raleigh and Reykjavík?

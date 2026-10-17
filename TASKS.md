@@ -67,6 +67,17 @@ Copied from SPEC.md section 6, M6c. Closes: Quality of the Idea, Potential Impac
 - [x] Spike (scripts/local-strength-spike.ts, 28 calls): the heatmap by map cell gives a Boise affinity rank for 7 of the 10 acts on the bill; the heatmap by locality and popularity filtered by location give none
 - [x] No-go recorded in docs/evidence.md section 6: under the bar of 8 of 10, so nothing is added to the card and nothing is claimed
 
+# TASKS: M6d The same brief in other towns
+
+Copied from SPEC.md section 6, M6d. Closes: Technological Implementation, Potential Impact and Design. Freeze: 2026-10-24. Done means: Austin, Denver and Nashville builds of the same brief, each run fresh once on production under its own festival id and replayed like Boise; a town switcher one click deep; Boise stays the default and its latest pointer never moves; a town whose build has a band that isn't full is left out.
+
+- [x] src/lib/towns.ts: the same brief under sagebrush-sound-austin, -denver and -nashville; every request names its festival, Boise when it doesn't, refused when it's unknown (tests/unit/m6d)
+- [x] /towns/<town> pages, cached like the home page; a town shows only once it has a saved build, and only complete builds are saved, so a town with a short band never shows
+- [x] Labels name the town: Why Austin, Austin venue crowds, No Austin room
+- [x] Town switcher in the rail, under Watch the agent build it; e2e tests/e2e/towns.spec.ts
+- [x] Fresh builds on production, once each (14:57-14:59 UTC): Austin 12 calls, Denver 11, Nashville 12, all with both bands full; Boise still serves its 12:13 UTC build
+- [x] Live e2e 33 passed (LCP 268 ms); the cold reader still names the buyer, Boise's venues and Watch the agent build it
+
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
 ## Before judging starts (2026-11-02)
