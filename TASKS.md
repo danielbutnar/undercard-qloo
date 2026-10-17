@@ -108,6 +108,13 @@ Copied from SPEC.md section 6, M6g. Closes: Technological Implementation and Des
 - [x] A real offline Boise build with the new client: 20 s, 12 calls, both bands full, the same rooms
 - [x] Settings and reasons in docs/evidence.md section 8
 
+# TASKS: Step 1 Town check, second outreach wave
+
+- [x] Venue lookup for 16 towns, plus Winooski, with plain city names, one at a time (scripts/town-check.ts); each place's geocode checked against the town
+- [x] Pilots for the 12 towns with at least five places in town, one at a time: all 12 filled both bands (drafts in .design/pilots/)
+- [x] Not run: Cluj-Napoca (3 places), Brighton (0), Wrexham (2 in town), Burlington, Vermont (the name reads Burlington, Ontario; Winooski returns 1)
+- [x] docs/evidence.md section 9, with a correction to section 7: its Burlington row was Burlington, Ontario, so the M6f spike was 7 of 10 US towns
+
 # TASKS: for the 27-28 October redo (not now)
 
 - [ ] Fix the video's capture script for the reason picker (its refill step now stops at "Why is it unavailable?")

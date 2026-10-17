@@ -112,7 +112,7 @@ The production build of 17 October 2026 matched Boise's row above: Venue 418 8, 
 | Bozeman, Montana | yes | 10 | Venue 272 10 (the only tagged place) |
 | Duluth, Minnesota | yes | 12 | Venue 34 10, Venue 280 0, Venue 113 0 |
 
-**Verdict: go, exactly at the bar.** 8 of 10 towns filled both bands within 12 calls. In Richmond the agent stopped after 7 calls without testing a room; in Missoula both rooms it tested lifted nothing. In Minneapolis and Kansas City, even the third attempt met two refused calls, and both bands still filled.
+**Verdict: go, exactly at the bar** (but see the correction in section 9: the Burlington row read Burlington, Ontario, so 7 of the 10 intended US towns filled). 8 of 10 towns filled both bands within 12 calls. In Richmond the agent stopped after 7 calls without testing a room; in Missoula both rooms it tested lifted nothing. In Minneapolis and Kansas City, even the third attempt met two refused calls, and both bands still filled.
 
 **What it doesn't show.** Whether a "room" is a club: Duluth's bill came from Venue 34, an outdoor site, and Bozeman's from its only tagged place. One run per town; section 5 shows a bill can change when the planner picks other rooms. A live form will meet towns that fail like Richmond and Missoula, so it needs designed states for them.
 
@@ -131,6 +131,36 @@ The production build of 17 October 2026 matched Boise's row above: Venue 418 8, 
 **Tested** (tests/unit/m6g, a synthetic Qloo): when every request fails once, alternating 429 and 503, a build tests the same rooms, books the same bill and makes the same number of calls as without the failures. When every artist call answers 429, the build ends in the busy state within the 45-second budget and the 12 calls. Retry-After, the backoff ceiling, the 2-call cap and a 400 that isn't retried each have a test.
 
 **Not tested:** real concurrent load. No load test was run against the real key.
+
+## 9. Town check for the second outreach wave (Step 1)
+
+**The method.** On 2026-10-17, after M6g, `scripts/town-check.ts` ran the venue lookup a build makes for each town (Qloo's live-music-venue tag, then places with the plain city name as the location query, up to 20), one town at a time. Each place's geocode and address were read to check it is in that town. Every town with at least five places in the town itself then had one `scripts/pilot.ts` run on the demo's brief (Sagebrush Sound's headliners, crowd and fee bands), one at a time, with no build saved. Counts only; the places, rooms and drafts stay in `.design/`.
+
+"Music rooms" counts the places Qloo returned whose own categories include concert hall, night club, live music bar, bar, pub or performing arts theater, and none of park, museum, stadium, arena, theme park, amusement park or sports complex. It is a count for this table, not a rule the agent uses.
+
+| Town | Places Qloo returned | In that town | Music rooms | Both bands filled | Qloo calls |
+|---|---|---|---|---|---|
+| Tallinn | 8 | 8 | 3 | yes | 11 |
+| Cluj-Napoca | 3 | 3 | 2 | not run (under 5) | |
+| Bucharest | 20 (the cap) | 20 | 12 | yes | 11 |
+| Vienna | 20 (the cap) | 20 | 14 | yes | 11 |
+| Oslo | 13 | 13 | 8 | yes | 12 |
+| Aarhus | 8 | 8 | 3 | yes | 12 |
+| Berlin | 20 (the cap) | 20 | 12 | yes | 11 |
+| Hamburg | 20 (the cap) | 20 | 13 | yes | 11 |
+| Paris | 20 (the cap) | 20 | 15 | yes | 12 |
+| Utrecht | 11 | 9 | 9 | yes | 12 |
+| Rotterdam | 16 | 12 | 9 | yes | 11 |
+| Brighton | 0 | 0 | 0 | not run (no places) | |
+| Wrexham | 5 | 2 | 3 | not run (2 in Wrexham itself) | |
+| Toronto | 20 (the cap) | 20 | 18 | yes | 12 |
+| Montreal | 20 (the cap) | 19 | 11 | yes | 12 |
+| Burlington, Vermont | 4 | 0 | 3 | not run (all four are in Burlington, Ontario) | |
+| Winooski, next to Burlington, Vermont | 1 | 1 | 1 | not run (under 5) | |
+
+**What it shows.** All 12 towns that were run filled both bands, so none is thin; each is a go for a pilot draft. Places outside the town came back for Utrecht (2, in Houten and Woerden), Rotterdam (4, in Schiedam and other towns nearby), Montreal (1, in Laval) and Wrexham (3, in Llangollen and Llay). The plain name "Burlington" reads Burlington, Ontario, and "Winooski" returns one place, so Undercard can't read the Burlington, Vermont area. Brighton returns no places at all.
+
+**A correction to section 7.** The "Burlington, Vermont" run in section 7 used the same plain name, so it read Burlington, Ontario. Of the 10 US towns that spike meant to test, 7 filled both bands, under its bar of 8; the 8 of 10 counted a Canadian town. Your festival (M6f) was built on that count.
 
 ## What these numbers don't establish
 
