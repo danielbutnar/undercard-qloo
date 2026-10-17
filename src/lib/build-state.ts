@@ -1,4 +1,5 @@
 import type { BuildEvent, TraceCall } from "./build-events";
+import type { FirstBill } from "./first-bill";
 import type { Act } from "./lineup";
 
 export interface BuildState {
@@ -46,6 +47,16 @@ export const IDLE_BUILD: BuildState = {
   kept: null,
   refusal: null,
 };
+
+/** The board the first screen opens on: the saved build's acts, ready to replay or refill. */
+export function firstBoard(bill: FirstBill | null): BuildState {
+  if (!bill) return IDLE_BUILD;
+  return {
+    ...IDLE_BUILD,
+    acts: bill.acts,
+    build: { ...bill.build, replayed: true },
+  };
+}
 
 export type BuildAction =
   | { type: "start"; fresh?: boolean }

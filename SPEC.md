@@ -23,21 +23,21 @@ A festival talent buyer books the undercard from acts the town's own venue crowd
 
 ## 3. Demo path
 The path a judge sees in the video and can repeat on the deployed URL with seeded data:
-1. Open the deployed URL: the seeded festival Sagebrush Sound (fictional; Boise, Idaho; 3,000 capacity; crowd aged 25–34) loads with its two booked headliners, the buyer's two fee bands (Mid, Opener) and a 30-day presale sparkline. There is no login.
-2. Press "Build undercard": the trace panel streams every Qloo call the agent makes (search the headliners, find Boise's anchor music venues, artist insights per anchor venue and fee band) with its parameters and result count.
-3. The board fills with 4 Mid acts and 6 Opener acts. Each card leads with a "Why Boise" line naming the anchor venue whose fans it shares, then shows Qloo affinity, the popularity percentile mapped to the buyer's fee band, and two Qloo tags it shares with the headliners.
-4. Mark one act "Unavailable": the agent refills that slot from the same fee band with a new Qloo call (shown in the trace), and the new card swaps in.
-5. Flip "LLM only": the same brief without Qloo shows a generic lineup with no affinity, no fee band and no local link. Flip back and open Poster, which typesets the lineup by band and offers "Export CSV".
+1. Open the deployed URL: the seeded festival Sagebrush Sound (fictional; Boise, Idaho; 3,000 capacity; crowd aged 25–34) loads as the saved draft bill. Its two booked headliners sit over 4 Mid acts and 6 Opener acts, each marked with the Boise room whose crowd lifted it in Qloo's ranking and by how many places. A rail counts what each tested room produced. There is no login. With no saved build, the empty board and "Build undercard" load instead.
+2. Press "Watch the agent build it": the trace panel streams every Qloo call the agent made (search the headliners, find Boise's anchor music venues, artist insights per anchor venue and fee band) with its parameters and result count, and the bill reprints. "Run the agent live instead" runs the agent fresh, rate-limited.
+3. Open an act: its card leads with a "Why Boise" line naming the anchor venue whose fans it shares, then shows Qloo affinity, the popularity percentile inside the buyer's fee band, and two Qloo tags it shares with the headliners.
+4. Mark it "Unavailable" on its card: the agent refills that slot from the same fee band with a new Qloo call (shown in the trace), and the replacement prints into the slot with its mark.
+5. Flip to "Without Qloo": the same brief without Qloo reprints the bill with the model's ten picks, each with the model's own reason, no Boise room and no fee band check. Flip back; "Export CSV" in the bar downloads the lineup.
 
 ## 4. Done means
 The entry is finished when all of these are true:
 - `pnpm gate` passes.
 - `E2E_BASE_URL=$PREVIEW_URL pnpm e2e` passes every step of section 3, where PREVIEW_URL is the production deployment's `.vercel.app` domain recorded in TASKS.md at M4 (Vercel puts preview URLs behind a login).
-- The Qloo API does the work in step 2 of section 3 (and the refill in step 4), and the screen shows it: the trace lists every Qloo call and every card shows Qloo's affinity and popularity.
+- The Qloo API does the work in step 2 of section 3 (and the refill in step 4), and the screen shows it: the trace lists every Qloo call, every act on the bill shows its room and lift, and its card shows Qloo's affinity and popularity.
 - README.md has these sections: What it does, How it works, Sponsor technology, AI usage, Built on (create-next-app and the libraries in package.json; there is no starter kit).
 - The deployed demo needs no login and no API key from the judge.
 - The video is under the limit in section 1 and shows section 3 running on the live app.
-- A cold reader shown only a screenshot of the first screen names what Undercard does and its first click, "Build undercard".
+- A cold reader shown only a screenshot of the first screen names what Undercard does and its first click, "Watch the agent build it".
 - The video shows the product working by 10 s, in clean frames, with one measured number about the product, such as the Qloo calls per build or the refill time.
 - LICENSE (MIT) sits at the repository root, so GitHub shows it in the About section (RULES.md, Required parts).
 - No Qloo response data is committed; tests use synthetic fixtures shaped like Qloo responses.
@@ -54,13 +54,14 @@ One milestone per Claude Code run. Tick it when its "Done means" is true and `pn
 - [x] M2 Qloo client and the agent loop. Done means: docs/qloo-spike.md records result counts (never response bodies) for three live calls: /search for each headliner, music venues in Boise, and artist insights seeded by one venue; src/server/qloo.ts calls /search, /v2/tags, /v2/insights (urn:entity:place and urn:entity:artist) and Analysis Compare with the X-Api-Key header and caches responses server-side; POST /api/undercard streams trace events and returns 10 acts, each with affinity, popularity, fee band, anchor venue and two shared tags; the agent stops at 12 Qloo calls per build; with Qloo mocked, unit tests check each tool's query parameters and the call cap; tests in tests/unit/m2.
 - [x] M3 Refill, the LLM-only baseline, the poster and the export. Done means: "Unavailable" refills the slot from the same fee band using filter.exclude.entities, in at most 3 Qloo calls; "LLM only" renders a lineup labeled "No Qloo data" through src/server/ai.ts; Poster renders every act grouped by band; Export CSV downloads the columns act, band, affinity, popularity, anchor_venue, reason; the cached Sagebrush build renders the full board in under 5 seconds; tests in tests/unit/m3.
 - [x] M4 Deploy and seed. Done means: the preview URL is live, `pnpm seed` loads 30 days of data, and every AI route is rate-limited.
+- [x] M4b First screen: the draft bill. The page opens on the latest saved build, read on the server and briefly cached, set as the buyer's draft bill with each act's Boise room and lift; the trace sits behind "Watch the agent build it", an act's card opens on click, and "Without Qloo" reprints the bill with the model's picks. The engine, the API routes, the rate limits and the replay stay as they are. Done means: the demo path in section 3 runs end to end; a fresh cold reader of the new 1280x800 judge shot names the buyer, Boise's venues, and "Watch the agent build it" as the first click; LCP on the first screen is under 2.5 s on a production build; every e2e spec and `pnpm gate` pass; tests in tests/unit/m4b.
 - [ ] M5 Package. Done means: the video is rendered within the limit, docs/ holds the Devpost story and the architecture diagram, and the contradiction check has run.
 
 ## 7. Constraints
 - Allowed new dependencies: what create-next-app installs for the M1 scaffold (next, react, react-dom, typescript, tailwindcss, eslint and their type and config packages); vitest, @vitejs/plugin-react, jsdom, @testing-library/react, @playwright/test and prettier as devDependencies; zod, @upstash/redis, @upstash/ratelimit and @anthropic-ai/sdk; and inside video/ only what the motion-video-producer skill installs for M5.
 - AI models allowed by RULES.md: RULES.md names none, so claude-sonnet-5-5 runs both the agent and the LLM-only baseline; every call goes through src/server/ai.ts.
 - Seed data: one fictional festival (Sagebrush Sound, Boise, Idaho; capacity 3,000; crowd aged 25–34; two headliners stored as names only; fee bands Mid = popularity 0.80–0.92 and Opener = 0.55–0.80, tuned at the M2 spike) and 30 days of synthetic presale counts; never real personal data.
-- Design: the frontend-anti-slop skill applies; colors and fonts come from docs/design-brief.md once its Pass 1 is approved.
+- Design: the frontend-anti-slop skill applies; colors and fonts come from docs/design-brief.md once its Pass 1 is approved. For M4b, section 5 of the brief is redrawn from the approved draft-bill mockup (2026-10-17); tokens and type are unchanged.
 - Services: the Qloo hackathon API key, the Anthropic API, Vercel, the Upstash Redis free tier, and ElevenLabs for the M5 voiceover.
 - Qloo: the key works only at https://hackathon.api.qloo.com; never call /recs or /recommendations; send GET requests with parameters in the query string; cache responses server-side only (Upstash) and never commit them.
 - Local taste: the Entity Type Parameter Guide lists no location parameters for urn:entity:artist, so local taste comes from Boise's anchor venues passed in signal.interests.entities, never from a location parameter on artists. If the M2 spike finds fewer than 5 Boise music venues, switch the seeded city to whichever of Austin, Denver or Nashville returns the most.

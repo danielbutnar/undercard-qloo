@@ -118,7 +118,7 @@ describe("TracePanel after a refusal", () => {
   it("doesn't offer another fresh build while the refusal shows", () => {
     render(<TracePanel state={refused(replayed)} onBuild={vi.fn()} />);
     expect(
-      screen.queryByRole("button", { name: "Run the agent again" }),
+      screen.queryByRole("button", { name: "Run the agent live instead" }),
     ).toBeNull();
   });
 });

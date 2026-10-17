@@ -1,6 +1,6 @@
 # Design brief: Undercard
 
-Pass 1 of the frontend-anti-slop skill. Status: **approved on 2026-10-15**.
+Pass 1 of the frontend-anti-slop skill. Status: **approved on 2026-10-15**; section 5 redrawn from the approved draft-bill mockup on 2026-10-17 (M4b).
 
 ## 1. Direction
 
@@ -53,79 +53,73 @@ A letterpress show bill from a Western print shop: wood-type names billed by siz
 
 ## 5. Screens (1440x810, the video viewport)
 
-There is one route, `/`, in five states, plus the Poster. `[Q]` marks Qloo output, printed in blue ink.
+Redrawn on 2026-10-17 from the approved draft-bill mockup, for M4b. Tokens and type are unchanged: every size below comes from the scale in section 3. There is one route, `/`, and it opens on the latest saved build, set as the buyer's draft bill. `[Q]` marks Qloo output, printed in blue ink. Names below are the synthetic ones the design shots use.
 
-**Step 1: the festival loads.** The eye lands on the 72px headliners, then on the empty slots.
-
-```text
-+------------------------------------------------------------------------------------------------+
-| UNDERCARD                                                   [ Qloo | LLM only ]   [ Poster ]   |  56px, 2px ink rule
-+------------------------------------------------------------------------------------------------+
-| SAGEBRUSH SOUND                                    48px | Presale, last 30 days                |
-| Boise, Idaho · 3,000 capacity · crowd aged 25-34   18px |  /\                                  |
-|                                                         | /  \__,-._,_.-,_._,-._  black ink    |
-| KHRUANGBIN · JAPANESE BREAKFAST                    72px | 1,450 sold of 3,000            28px  |
-| Booked headliners                                       |                                      |
-+-----------------------------------------------------------------+------------------------------+
-| MID   popularity 0.80-0.92 · 4 slots                     36px   | [ BUILD UNDERCARD ]  blue    |
-| +- - - - - -+ +- - - - - -+ +- - - - - -+ +- - - - - -+         |------------------------------|
-| | Open slot | | Open slot | | Open slot | | Open slot |  dashed | Qloo calls                   |
-| +- - - - - -+ +- - - - - -+ +- - - - - -+ +- - - - - -+  muted  | The agent's calls list here  |
-| OPENER   popularity 0.55-0.80 · 6 slots                         | as it makes them.            |
-| +- - - -+ +- - - -+ +- - - -+ +- - - -+ +- - - -+ +- - - -+     |                              |
-| | Open  | | Open  | | Open  | | Open  | | Open  | | Open  |     |                              |
-| +- - - -+ +- - - -+ +- - - -+ +- - - -+ +- - - -+ +- - - -+     |                              |
-+-----------------------------------------------------------------+------------------------------+
-```
-
-**Step 2: "Build undercard" streams the trace.** `[Q]` The trace is the first thing the eye lands on: it is the only blue on screen and the only thing moving, the newest row carries a 4px blue rule, and the board is still empty dashed outlines.
-
-```text
-                                                                  +------------------------------+
-                                                                  | Qloo calls        4 of 12    |
-                                                                  | 1 /search                 1  | <- result count 28px [Q]
-                                                                  |   query=Khruangbin           |
-                                                                  | 2 /search                 1  |
-                                                                  |   query=Japanese Breakfast   |
-                                                                  | 3 /v2/insights place      9  |
-                                                                  |   filter.location.query=...  |
-                                                                  || 4 /v2/insights artist    ... | <- newest row, blue rule
-                                                                  ||   signal.interests...       |
-                                                                  +------------------------------+
-```
-
-**Step 3: the board fills.** `[Q]` The eye lands on the Mid cards' 36px blue affinity numbers, the largest blue on screen. Older trace rows fade to muted ink.
-
-```text
-| MID   popularity 0.80-0.92 · 4 slots                                                  |
-| +---------------------+ +---------------------+ +-------------------+ +-------------+ |
-| | HOLLOW PINES   28px | | MARISOL VEY         | | THE DITCH RIDERS  | | KESTREL &   | |
-| | 0.94 [Q]   91st [Q] | | 0.91        88th    | | ...               | | BLOOM       | |
-| | affinity   popularity -> Mid                  |                     |             | |
-| | Why Boise: shares fans with The Lantern Room  |                     |             | |
-| | [Dream Pop] [Psychedelic Rock]  [Q] tags      |                     |             | |
-| |               Unavailable                     |                     |             | |
-| +---------------------+ +---------------------+ +-------------------+ +-------------+ |
-| OPENER   popularity 0.55-0.80 · 6 slots      (narrower cards, 22px names, 28px numbers) |
-| +--------+ +--------+ +--------+ +--------+ +--------+ +--------+                        |
-```
-
-**Step 4: "Unavailable" refills a slot.** The marked card gets a red "Unavailable" stamp and drops to muted ink; `[Q]` a new trace row (call 13, `filter.exclude.entities`) gets the blue rule; the replacement card prints into the same slot.
-
-**Step 5: "LLM only", then the Poster.** In LLM only, every card prints in black ink only: affinity and popularity read "—", the Why Boise line reads "No local link", and the board header carries a red "No Qloo data" stamp. Flipping back restores the blue. The Poster fills the screen as the show bill:
+**Step 1: the draft bill loads.** `[Q]` The eye lands on the bill: the headliners, then the Mid acts and their blue room marks. The key sits beside the first mark, so the marks are explained where they are first seen.
 
 ```text
 +------------------------------------------------------------------------------------------------+
-| < Back to board                                                         [ Export CSV ]  blue   |
-|                                  SAGEBRUSH SOUND                                       48px    |
-|                          KHRUANGBIN · JAPANESE BREAKFAST                               72px    |
-|              HOLLOW PINES · MARISOL VEY · THE DITCH RIDERS · KESTREL & BLOOM            36px    |
-|  JUNIPER STATIC · OWYHEE DRIFT · SALTGRASS · TEDDY ARCANA · LOW BENCH CHOIR · CASS WREN  22px    |
-|                         Boise, Idaho · 3,000 capacity                                  18px    |
+| UNDERCARD  Booking desk · Sagebrush Sound    [ With Qloo: the agent's bill | Without Qloo: the model's picks ] [ Export CSV ]
 +------------------------------------------------------------------------------------------------+
+| +- bill sheet: surface, 2px rule, inner 1px rule ------------------------+  +- rooms ------------+
+| | Boise, Idaho · 3,000 capacity · crowd aged 25–34   [UNDERCARD DRAFT ·  |  | BOISE CROWDS BEHIND |
+| |                                                      NOT ANNOUNCED] red |  | THIS BILL      22px |
+| |                          SAGEBRUSH SOUND                          36px  |  | Qloo listed 8 Boise |
+| |               KHRUANGBIN · JAPANESE BREAKFAST                     48px  |  | live-music places;  |
+| |        Headliners booked. The agent drafted the undercard below.  16px  |  | the agent tested 3. |
+| | ----------------------------------------------------------------------- |  | A room is a crowd   |
+| |  MID  4 slots · fee band set by Qloo's popularity percentile: 80th–92nd |  | here, not a stage.  |
+| |                                                                         |  |                     |
+| |     HOLLOW PINES   36px   | [The Lantern Room ▲11] Qloo ranks artists   |  | The Lantern Room  7 |
+| |  [The Lantern Room ▲11]   | by how much the headliners' fans like them. |  | lifted 7 acts  48px |
+| |          [Q] 22px         | Adding The Lantern Room's crowd moves this  |  | Fort Street       3 |
+| |                           | act up 11 places. Qloo: data on what people |  | Ballroom (FSB)      |
+| |                           | like, across music, places and more.  16px  |  | Cottonwood Social 0 |
+| |   MARISOL VEY        THE DITCH RIDERS        KESTREL & BLOOM            |  | Hall: lifted none   |
+| |    [FSB ▲7]       [The Lantern Room ▲26]  [The Lantern Room ▲9]         |  +---------------------+
+| | ----------------------------------------------------------------------- |  [ WATCH THE AGENT     ]
+| |  OPENER  6 slots · fee band set by Qloo's popularity percentile: 55th–80th  [ BUILD IT       28px ]
+| |    JUNIPER STATIC    OWYHEE DRIFT    SALTGRASS    TEDDY ARCANA    28px  |  Replays the saved build:
+| |         LOW BENCH CHOIR [The Lantern Room new]    CASS WREN             |  12 Qloo calls, then the
+| | ----------------------------------------------------------------------- |  bill reprints.
+| | Drafted by the agent from 12 Qloo calls · saved Oct 15, 14:02 UTC ·     |  Run the agent live instead
+| | click an act to open its card, where you can mark it unavailable        |
+| +-------------------------------------------------------------------------+
 ```
 
-**Mobile (390 wide):** one column. App bar with the mode switch, then the festival block, the sparkline, Build undercard, the trace as a list that starts collapsed after the build, Mid cards full width and Opener cards two across.
+- **The bill** is the sheet from the Poster, now the board. Fact line 16px, red stamp 22px, festival 36px, headliners 48px on one line, band names 22px, Mid act names 36px, Opener act names 28px, all Big Shoulders 800. Each band stays a region of `<article>`s, so the tests' selectors hold.
+- **The mark** under each act: the room's short name (its initials when the name has three or more words, the full name otherwise) and the places it gained, "▲11", in 22px blue Big Shoulders inside a 2px blue rule. An act that was outside the headliners-only top 50 reads "new" instead of a count. The places come from the act's Why Boise line, so the build saved on Oct 15 needs no new field.
+- **The key** sits beside the first Mid act, the two on a row of their own, in 16px Libre Franklin: what the first mark means, what "new" means when an act on the bill carries it, and what Qloo is (what people like, across music, places and more). It stays in that slot while the act is refilled, so nothing jumps.
+- **Each act is a button:** a pointer, an underline on hover and on keyboard focus, and the act's name as its accessible name. No hover-scale (B7).
+- **The rooms rail** counts what each tested room lifted, a 48px blue number per room and a muted 0 for a room that lifted none, and says the rooms are crowds, not stages. While the trace is in use (streaming, listing calls, refilling or showing a refusal) it compacts to names and 28px counts, so the trace stays in frame at 810 tall.
+- **The rail** is 336px, so "Watch the agent build it" sets on one line at 28px.
+- Presale is off the first screen; the component and the seed stay.
+
+**Step 2: "Watch the agent build it".** `[Q]` The trace panel opens in the rail under the rooms and replays the saved build's calls, the newest row with the 4px blue rule. The bill's undercard clears to dashed open slots while the calls stream. When the lineup lands, the acts print in one at a time (0.38 s each, 0.12 s apart), each with its mark, and the rooms' counts tick up with them. This is the screen's one motion moment; under `prefers-reduced-motion` the end state shows at once. Afterwards the panel reads "Replayed the build saved Oct 15, 14:02 UTC: 12 Qloo calls, served from the cache.", and "Run the agent live instead" offers a fresh, rate-limited run.
+
+```text
++- rooms: counts tick 0 -> 7 -----+
++- trace -------------------------+
+| [ WATCH THE AGENT BUILD IT ]    |
+| QLOO CALLS             9 of 12  |
+| 8. Mid-band artists for the  50 |
+|    headliners and The Lantern…  |
+|| 9. Mid-band artists for the 50 |  <- newest row, blue rule [Q]
+||   headliners and FSB…          |
++---------------------------------+
+```
+
+**Step 3: open an act.** A click on an act opens its card at the top of the rail, in place of the rooms: the existing act card with the name, Qloo affinity and popularity `[Q]` (36px on a Mid card, 28px on an Opener card), the Why Boise line, two shared tags and "Unavailable". "Close" brings the rooms back. On a phone the card opens under the bill and takes focus.
+
+**Step 4: "Unavailable".** The card and the act on the bill take the red "Unavailable" stamp and muted ink. `[Q]` The refill call joins the trace with the blue rule, and the replacement prints into the same slot with its mark; the card closes.
+
+**Step 5: "Without Qloo: the model's picks".** The sheet reprints with the model's ten picks under the same headliners, in black ink only, three across at 1400px and wider, two below. A red "No Qloo data" stamp replaces the draft stamp. Each pick shows its name (28px), the model's own reason (16px), and two plain facts: "No Boise room · fee band not checked". There is no score or tally. The rail says what the model got (the same brief, no tools) in place of the rooms and the trace. "With Qloo: the agent's bill" brings back the blue, and "Export CSV" in the bar downloads the agent's bill.
+
+**No saved build, or the store can't be reached.** Today's empty board loads instead, never an error: the festival block with the 72px headliners, ten dashed "Open slot" boxes in Mid and Opener, and the trace panel with "Build undercard". Once a build starts, the screen becomes the bill.
+
+**1280x800 (a judge's laptop):** the same layout; the bill fills the left column and the rail stays 336px.
+
+**Mobile (390 wide):** one column. The bar wraps (the wordmark, then the switch and Export CSV), then the bill with its acts centred and the key under the first act, then the rooms, the Watch button and the trace. An opened card sits under the bill and takes focus.
 
 ## 6. Avoided, and what instead
 

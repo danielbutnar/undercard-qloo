@@ -67,11 +67,51 @@ export function createUpstashCache(redis: RedisLike): QlooCache {
   };
 }
 
+/**
+ * Set only for local e2e runs and design shots (playwright.config.ts); production never sets
+ * it. The server then keeps everything in a memory cache seeded with the synthetic build and
+ * model answer from tests/e2e/synthetic-build.ts, and never reaches Upstash, Qloo or Claude.
+ * "1" seeds both; "empty" seeds no saved build, so the first screen falls back.
+ */
+export const SYNTHETIC_ENV = "UNDERCARD_E2E_SYNTHETIC";
+
+export function syntheticMode(
+  env: Partial<Record<string, string | undefined>> = process.env,
+): boolean {
+  return env[SYNTHETIC_ENV] === "1" || env[SYNTHETIC_ENV] === "empty";
+}
+
 let processMemory: QlooCache | null = null;
+const syntheticMemory = new Map<string, QlooCache>();
+
+// Reads wait for the seed; if seeding fails, every read fails too, so a route errors rather
+// than falling through to a live call.
+function seededSyntheticCache(mode: string): QlooCache {
+  const existing = syntheticMemory.get(mode);
+  if (existing) return existing;
+  const memory = createMemoryCache();
+  const seeded = import("./synthetic-seed").then(({ seedSynthetic }) =>
+    seedSynthetic(memory, { savedBuild: mode !== "empty" }),
+  );
+  const cache: QlooCache = {
+    kind: "memory",
+    async get<T>(key: string) {
+      await seeded;
+      return memory.get<T>(key);
+    },
+    async set(key, value, ttlSeconds) {
+      await seeded;
+      await memory.set(key, value, ttlSeconds);
+    },
+  };
+  syntheticMemory.set(mode, cache);
+  return cache;
+}
 
 export function createQlooCache(
   env: Partial<Record<string, string | undefined>> = process.env,
 ): QlooCache {
+  if (syntheticMode(env)) return seededSyntheticCache(env[SYNTHETIC_ENV]!);
   const url = env.UPSTASH_REDIS_REST_URL;
   const token = env.UPSTASH_REDIS_REST_TOKEN;
   if (url && token) return createUpstashCache(new Redis({ url, token }));

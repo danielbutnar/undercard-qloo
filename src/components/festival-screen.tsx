@@ -1,18 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import { ActCardPanel } from "@/components/act-card-panel";
+import { DraftBill, type Printing } from "@/components/draft-bill";
 import { FestivalHeader } from "@/components/festival-header";
 import { LineupBoard } from "@/components/lineup-board";
-import { LlmOnlyBoard } from "@/components/llm-only-board";
-import { Poster } from "@/components/poster";
-import { PresaleSparkline } from "@/components/presale-sparkline";
-import { TracePanel } from "@/components/trace-panel";
+import { ModelBill } from "@/components/model-bill";
+import { RoomsRail } from "@/components/rooms-rail";
+import { TracePanel, type BuildRequest } from "@/components/trace-panel";
 import { useLlmOnly } from "@/components/use-llm-only";
 import { useUndercardBuild } from "@/components/use-undercard-build";
+import { firstBoard } from "@/lib/build-state";
 import { lineupCsv } from "@/lib/csv";
 import type { Festival } from "@/lib/festival";
+import type { FirstBill } from "@/lib/first-bill";
+import type { Act } from "@/lib/lineup";
+import { roomsBehind } from "@/lib/rooms";
 
 type Mode = "qloo" | "llm";
+
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 
 function downloadText(filename: string, text: string, type: string) {
   const url = URL.createObjectURL(new Blob([text], { type }));
@@ -30,15 +39,16 @@ function ModeSwitch({
   mode: Mode;
   onChange: (mode: Mode) => void;
 }) {
+  // Each side says what it shows (label fix 3).
   const options: { value: Mode; label: string }[] = [
-    { value: "qloo", label: "Qloo" },
-    { value: "llm", label: "LLM only" },
+    { value: "qloo", label: "With Qloo: the agent's bill" },
+    { value: "llm", label: "Without Qloo: the model's picks" },
   ];
   return (
     <div
       role="group"
-      aria-label="Lineup source"
-      className="flex rounded-sm border-2 border-rule"
+      aria-label="Which bill"
+      className="flex flex-wrap rounded-sm border-2 border-rule"
     >
       {options.map((option) => (
         <button
@@ -58,44 +68,112 @@ function ModeSwitch({
 function LlmOnlyNote() {
   return (
     <aside
-      aria-labelledby="llm-note-title"
-      className="flex flex-col gap-2 border-2 border-rule bg-surface p-4"
+      aria-label="The model alone"
+      className="flex flex-col gap-2 self-start border-2 border-rule bg-surface p-4"
     >
-      <h2
-        id="llm-note-title"
-        className="font-display text-name font-extrabold uppercase"
-      >
-        No Qloo calls
+      <h2 className="font-display text-name font-extrabold uppercase">
+        The model alone
       </h2>
       <p className="text-label">
-        LLM only sends the same brief to Claude Sonnet 5.5 with no tools.
-        Without Qloo there is no affinity, no popularity to map to a fee band
-        and no local link.
+        The same brief went to Claude Sonnet 5.5 with no tools: the festival,
+        its city, capacity and crowd, the headliners and the fee bands. It
+        answers from what it already knows, so no pick comes from a Boise
+        room&apos;s crowd, and with no popularity data no fee band can be
+        checked.
       </p>
       <p className="text-label text-muted">
-        Flip back to Qloo for the agent&apos;s board.
+        With Qloo brings back the agent&apos;s bill and its Boise rooms.
       </p>
     </aside>
   );
 }
 
-export function FestivalScreen({ festival }: { festival: Festival }) {
-  const { state, build, markUnavailable } = useUndercardBuild();
+export function FestivalScreen({
+  festival,
+  firstBill = null,
+}: {
+  festival: Festival;
+  /** The latest saved build, read on the server; null falls back to the empty board. */
+  firstBill?: FirstBill | null;
+}) {
+  const { state, build, markUnavailable } = useUndercardBuild(
+    firstBoard(firstBill),
+  );
   const llm = useLlmOnly();
   const [mode, setMode] = useState<Mode>("qloo");
-  const [view, setView] = useState<"board" | "poster">("board");
+  const [openId, setOpenId] = useState<string | null>(null);
+  // A refill replaces the act, which closes its card; the replacement prints into the slot.
+  const openAct = state.acts.find((act) => act.entityId === openId) ?? null;
   const bookedActs = state.acts.filter(
     (act) => !state.unavailable.includes(act.entityId),
   );
-  const posterReady = mode === "qloo" && bookedActs.length > 0;
+  // The bill once there is a build to show: the saved one (also while its replay starts), or
+  // one streaming in now.
+  const onBill =
+    firstBill !== null || state.build !== null || state.acts.length > 0;
+  const calls = state.summary?.calls ?? firstBill?.calls;
+  // A replay streams the venue search again; until then, the server read's count.
+  const placesListed =
+    state.calls.find((call) => call.tool === "find_venues")?.resultCount ??
+    firstBill?.placesListed ??
+    null;
+
+  // The motion moment: a replay's acts print in one at a time, and the rooms' counts tick up
+  // as each act's print-in starts. Under reduced motion the counts show the end state.
+  const [printing, setPrinting] = useState<Printing>(null);
+  const [printed, setPrinted] = useState<ReadonlySet<string> | null>(null);
+  const rooms = roomsBehind(
+    state.acts,
+    firstBill?.anchors ?? {},
+    state.unavailable,
+  ).map((room) =>
+    printed
+      ? {
+          ...room,
+          lifted: state.acts.filter(
+            (act) =>
+              act.anchorVenue.entityId === room.venue.entityId &&
+              printed.has(act.entityId) &&
+              !state.unavailable.includes(act.entityId),
+          ).length,
+        }
+      : room,
+  );
+
+  // While the trace lists calls, streams or reports a problem, the rooms compact so it stays
+  // in view.
+  const traceInUse =
+    state.status !== "idle" ||
+    state.calls.length > 0 ||
+    state.refusal !== null ||
+    state.refilling !== null ||
+    state.refillError !== null;
+
+  function runBuild(request: BuildRequest = {}) {
+    setPrinting("run");
+    // A fresh run may be refused and keep the bill on screen, so only a replay ticks.
+    setPrinted(request.fresh || prefersReducedMotion() ? null : new Set());
+    void build(request);
+  }
+
+  function refill(act: Act) {
+    setPrinting("refill");
+    void markUnavailable(act);
+  }
+
+  function onPrinted(entityId: string) {
+    setPrinted((seen) =>
+      seen && !seen.has(entityId) ? new Set(seen).add(entityId) : seen,
+    );
+  }
 
   function changeMode(next: Mode) {
     setMode(next);
-    if (next === "llm") {
-      setView("board");
-      if (llm.state.status === "idle" || llm.state.status === "error")
-        void llm.load();
-    }
+    if (
+      next === "llm" &&
+      (llm.state.status === "idle" || llm.state.status === "error")
+    )
+      void llm.load();
   }
 
   function exportCsv() {
@@ -108,62 +186,90 @@ export function FestivalScreen({ festival }: { festival: Festival }) {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b-2 border-rule px-4 py-2 lg:px-6">
-        <p className="font-display text-name font-extrabold uppercase">
-          Undercard
-        </p>
+      <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b-2 border-rule px-4 py-2 lg:px-6">
+        <div className="flex flex-wrap items-baseline gap-x-3.5">
+          <p className="font-display text-name font-extrabold uppercase">
+            Undercard
+          </p>
+          <p className="text-label text-muted">
+            Booking desk · {festival.name}
+          </p>
+        </div>
         <div className="flex flex-wrap items-center gap-3">
           <ModeSwitch mode={mode} onChange={changeMode} />
-          <button
-            type="button"
-            disabled={!posterReady}
-            aria-pressed={view === "poster"}
-            onClick={() => setView(view === "poster" ? "board" : "poster")}
-            className="rounded-sm border-2 border-rule px-3 py-1 text-label font-semibold aria-pressed:bg-ink aria-pressed:text-surface disabled:cursor-not-allowed disabled:border-muted disabled:text-muted"
-          >
-            Poster
-          </button>
+          {mode === "qloo" && bookedActs.length > 0 && (
+            <button
+              type="button"
+              onClick={exportCsv}
+              className="rounded-sm border-2 border-rule px-3 py-1 text-label font-semibold hover:bg-ink hover:text-surface"
+            >
+              Export CSV
+            </button>
+          )}
         </div>
-      </div>
-      {view === "poster" && posterReady ? (
-        <main className="px-4 py-4 lg:px-6">
-          <Poster
+      </header>
+      {mode === "llm" ? (
+        <main className="grid flex-1 grid-cols-1 gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_336px] lg:px-6">
+          <ModelBill
             festival={festival}
-            acts={bookedActs}
-            onBack={() => setView("board")}
-            onExport={exportCsv}
+            state={llm.state}
+            onRetry={() => void llm.load()}
           />
+          <LlmOnlyNote />
+        </main>
+      ) : onBill ? (
+        <main className="grid flex-1 grid-cols-1 gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_336px] lg:items-start lg:px-6">
+          <DraftBill
+            festival={festival}
+            acts={state.acts}
+            calls={calls}
+            createdAt={state.build?.createdAt}
+            top={firstBill?.baselineTop}
+            unavailable={state.unavailable}
+            openId={openAct?.entityId ?? null}
+            onOpen={(act) => setOpenId(act.entityId)}
+            printing={printing}
+            onPrinted={onPrinted}
+          />
+          <div className="flex flex-col gap-4">
+            {!openAct && (
+              <RoomsRail
+                rooms={rooms}
+                compact={traceInUse}
+                bands={festival.feeBands}
+                placesListed={placesListed}
+              />
+            )}
+            {openAct && (
+              <ActCardPanel
+                act={openAct}
+                unavailable={state.unavailable.includes(openAct.entityId)}
+                disabled={state.refilling !== null || !state.build}
+                onUnavailable={refill}
+                onClose={() => setOpenId(null)}
+              />
+            )}
+            <TracePanel
+              state={state}
+              savedCalls={firstBill?.calls}
+              onBuild={runBuild}
+            />
+          </div>
         </main>
       ) : (
         <main className="grid flex-1 grid-cols-1 content-start gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-6">
-          <FestivalHeader
-            festival={festival}
-            compact={state.status !== "idle" || mode === "llm"}
-          />
-          <PresaleSparkline
-            presale={festival.presale}
-            capacity={festival.capacity}
-          />
-          {mode === "qloo" ? (
-            <TracePanel state={state} onBuild={build} />
-          ) : (
-            <LlmOnlyNote />
-          )}
-          <section
-            aria-label="Lineup board"
-            className="lg:col-start-1 lg:row-start-2"
-          >
-            {mode === "qloo" ? (
-              <LineupBoard
-                bands={festival.feeBands}
-                acts={state.acts}
-                unavailable={state.unavailable}
-                refilling={state.refilling}
-                onUnavailable={state.build ? markUnavailable : undefined}
-              />
-            ) : (
-              <LlmOnlyBoard state={llm.state} />
-            )}
+          <FestivalHeader festival={festival} />
+          <div className="lg:row-span-2">
+            <TracePanel state={state} onBuild={runBuild} />
+          </div>
+          <section aria-label="Lineup board">
+            <LineupBoard
+              bands={festival.feeBands}
+              acts={state.acts}
+              unavailable={state.unavailable}
+              refilling={state.refilling}
+              onUnavailable={state.build ? refill : undefined}
+            />
           </section>
         </main>
       )}
