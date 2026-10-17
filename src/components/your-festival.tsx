@@ -9,6 +9,7 @@ import {
   type CheckedTown,
 } from "@/lib/checked-towns";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
+import { checkedFestival } from "@/lib/towns";
 import {
   FREE_TEXT_TOWNS,
   YourBriefSchema,
@@ -40,6 +41,15 @@ function problemWith(values: {
   if (!values.first.trim() || !values.second.trim())
     return "Give both headliners.";
   return "Two different headliners, please.";
+}
+
+const same = (a: string, b: string) =>
+  a.trim().toLowerCase() === b.trim().toLowerCase();
+
+/** The headliners are still the demo's, in either order. */
+function demoHeadliners({ first, second }: { first: string; second: string }) {
+  const [a, b] = SAGEBRUSH_SOUND.headliners;
+  return (same(first, a) && same(second, b)) || (same(first, b) && same(second, a));
 }
 
 /**
@@ -76,6 +86,15 @@ export function YourFestival({
   const [problem, setProblem] = useState<string | null>(null);
   const [brief, setBrief] = useState<YourBrief | null>(null);
   const [run, setRun] = useState(0);
+  const [town, setTown] = useState<CheckedTown | null>(null);
+
+  if (town)
+    return (
+      <FestivalScreen
+        festival={checkedFestival(town)}
+        checked={{ onBack: () => setTown(null) }}
+      />
+    );
 
   if (brief)
     return (
@@ -100,11 +119,15 @@ export function YourFestival({
     );
   }
 
-  // A checked town (M6k): one click runs it with the headliners in the form.
+  // A checked town (M6k): with the demo's headliners, one click replays its saved build (M6m);
+  // with headliners of the judge's own, it runs the agent live, as before.
   function runTown(town: CheckedTown) {
     const next = { ...values, city: town.city, region: town.region };
     setValues(next);
-    start(next);
+    if (demoHeadliners(next)) {
+      setProblem(null);
+      setTown(town);
+    } else start(next);
   }
 
   function submit(event: FormEvent) {
@@ -177,8 +200,9 @@ export function YourFestival({
             Towns Undercard has already read
           </h2>
           <p className="text-label text-muted">
-            Each has filled both bands with these headliners before. One click
-            runs the agent for it.
+            Each has a saved build that fills both bands with these headliners.
+            One click replays it, with the live run next to it; change a
+            headliner and the click runs the agent live instead.
           </p>
           <ul
             aria-label="Towns Undercard has already read"
@@ -223,9 +247,9 @@ export function YourFestival({
             </>
           )}
           <p className="text-label text-muted">
-            It runs live: about 15 seconds and up to 12 Qloo calls, limited to 5
-            runs a day from your address. Nothing is saved, and Sagebrush
-            Sound&apos;s bill stays as it is.
+            Your own headliners or town run live: about 15 seconds and up to 12
+            Qloo calls, limited to 5 runs a day from your address. Nothing is
+            saved, and Sagebrush Sound&apos;s bill stays as it is.
           </p>
           <Link
             href="/"

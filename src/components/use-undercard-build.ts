@@ -17,6 +17,8 @@ export function useUndercardBuild(
   festivalId?: string,
   /** A judge's own brief (M6f): sent with every build, which then runs live and isn't saved. */
   brief?: YourBrief,
+  /** A checked town (M6m): a build that isn't fresh only replays, never runs the agent. */
+  replayOnly = false,
 ) {
   const [state, dispatch] = useReducer(buildReducer, initial);
   const stateRef = useRef(state);
@@ -45,6 +47,7 @@ export function useUndercardBuild(
             fresh: request.fresh ?? false,
             festival: festivalId,
             ...(brief ? { brief } : {}),
+            ...(replayOnly && !request.fresh ? { replayOnly: true } : {}),
           },
           controller.signal,
           (event) => dispatch({ type: "event", event }),
@@ -59,7 +62,7 @@ export function useUndercardBuild(
         }
       }
     },
-    [festivalId, brief],
+    [festivalId, brief, replayOnly],
   );
 
   const markUnavailable = useCallback(

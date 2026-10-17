@@ -1,3 +1,4 @@
+import { CHECKED_TOWNS, type CheckedTown } from "./checked-towns";
 import type { Festival } from "./festival";
 import { SAGEBRUSH_SOUND } from "./sagebrush";
 
@@ -38,10 +39,35 @@ export function townOf(festival: Festival): Town {
   return TOWNS.find((town) => town.festival.id === festival.id) ?? TOWNS[0];
 }
 
+/** "Reykjavík" -> "reykjavik", "Kansas City" -> "kansas-city". */
+function slugOf(city: string): string {
+  return city
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+/**
+ * A checked town's festival (M6m): the same brief with the town's state or country, under its
+ * own id, so its saved build replays on its own. Boise is the demo festival.
+ */
+export function checkedFestival(town: CheckedTown): Festival {
+  if (town.city === SAGEBRUSH_SOUND.city && town.region === SAGEBRUSH_SOUND.region)
+    return SAGEBRUSH_SOUND;
+  return sameBriefIn(slugOf(town.city), town.city, town.region).festival;
+}
+
 /** A request's festival: none means Boise; an id that isn't one of the towns means none. */
 export function festivalById(id: string | undefined): Festival | null {
   if (id === undefined) return SAGEBRUSH_SOUND;
-  return TOWNS.find((town) => town.festival.id === id)?.festival ?? null;
+  const town = TOWNS.find((entry) => entry.festival.id === id);
+  if (town) return town.festival;
+  return (
+    CHECKED_TOWNS.map(checkedFestival).find((festival) => festival.id === id) ??
+    null
+  );
 }
 
 /** The festival a POST body names in its `festival` field. */

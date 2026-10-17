@@ -117,7 +117,9 @@ function RunNotice({
             ? "Qloo is busy right now"
             : code === "not-full"
               ? "Some slots stayed open"
-              : "This draft couldn't be finished"}
+              : code === "no-saved-build"
+                ? "No saved build for this town yet"
+                : "This draft couldn't be finished"}
       </h2>
       <p className="text-label">{message}</p>
       {code === "limit" ? (
@@ -145,6 +147,7 @@ export function FestivalScreen({
   firstBill = null,
   towns = ["boise"],
   custom,
+  checked,
 }: {
   festival: Festival;
   /** The latest saved build, read on the server; null falls back to the empty board. */
@@ -156,11 +159,17 @@ export function FestivalScreen({
    * no Without Qloo, refill or town switcher, and nothing is saved.
    */
   custom?: { brief: YourBrief; onEdit: () => void };
+  /**
+   * A checked town from Your festival (M6m): its saved build replays as soon as the screen
+   * opens, with the live run next to it; there's no town switcher, and a way back to the towns.
+   */
+  checked?: { onBack: () => void };
 }) {
   const { state, build, markUnavailable } = useUndercardBuild(
     firstBoard(firstBill),
     festival.id,
     custom?.brief,
+    checked !== undefined,
   );
   const llm = useLlmOnly(festival.id);
   const [mode, setMode] = useState<Mode>("qloo");
@@ -215,12 +224,12 @@ export function FestivalScreen({
     void build(request);
   }
 
-  // A judge's own brief runs once, as soon as its screen opens.
+  // A judge's own brief runs once, as soon as its screen opens; a checked town replays.
   const started = useRef(false);
   useEffect(() => {
-    if (!custom || started.current) return;
+    if ((!custom && !checked) || started.current) return;
     started.current = true;
-    runBuild({ fresh: true });
+    runBuild({ fresh: custom !== undefined });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -264,6 +273,15 @@ export function FestivalScreen({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          {checked && (
+            <button
+              type="button"
+              onClick={checked.onBack}
+              className="rounded-sm border-2 border-rule px-3 py-1 text-label font-semibold hover:bg-ink hover:text-surface"
+            >
+              Pick another town
+            </button>
+          )}
           {!custom && <ModeSwitch mode={mode} onChange={changeMode} />}
           {mode === "qloo" && bookedActs.length > 0 && (
             <button
@@ -324,13 +342,15 @@ export function FestivalScreen({
             }
           />
           <div className="flex flex-col gap-4">
-            {custom && state.status !== "building" && state.errorCode && (
-              <RunNotice
-                message={state.error ?? ""}
-                code={state.errorCode}
-                onEdit={custom.onEdit}
-              />
-            )}
+            {(custom || checked) &&
+              state.status !== "building" &&
+              state.errorCode && (
+                <RunNotice
+                  message={state.error ?? ""}
+                  code={state.errorCode}
+                  onEdit={custom?.onEdit ?? checked!.onBack}
+                />
+              )}
             {!openAct && rooms.length > 0 && (
               <RoomsRail
                 rooms={rooms}
@@ -356,7 +376,7 @@ export function FestivalScreen({
               onBuild={runBuild}
               buttonOnPhones={false}
             />
-            {!traceInUse && !custom && (
+            {!traceInUse && !custom && !checked && (
               <TownSwitcher current={townOf(festival).slug} onShow={towns} />
             )}
           </div>

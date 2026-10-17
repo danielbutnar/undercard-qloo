@@ -14,7 +14,10 @@ import { handleUndercardBuild, ndjsonResponse } from "@/server/undercard-build";
 // A fresh build makes up to 12 Qloo calls and a few model turns.
 export const maxDuration = 120;
 
-const Body = z.object({ fresh: z.boolean().optional() });
+const Body = z.object({
+  fresh: z.boolean().optional(),
+  replayOnly: z.boolean().optional(),
+});
 
 export async function POST(request: Request): Promise<Response> {
   const raw = await jsonBody(request);
@@ -50,6 +53,7 @@ export async function POST(request: Request): Promise<Response> {
     model: serverModel,
     store: serverBuildStore(),
     fresh: body.success ? (body.data.fresh ?? false) : false,
+    replayOnly: body.success ? (body.data.replayOnly ?? false) : false,
     limiter: serverLimiter(),
     ip: clientIp(request.headers),
   });

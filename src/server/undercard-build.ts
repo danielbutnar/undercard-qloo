@@ -115,6 +115,7 @@ export async function handleUndercardBuild({
   limiter,
   ip,
   save = true,
+  replayOnly = false,
 }: {
   festival: Festival;
   qloo: () => QlooClient | null;
@@ -129,10 +130,24 @@ export async function handleUndercardBuild({
    * bands the stream ends with an error naming why.
    */
   save?: boolean;
+  /**
+   * A checked town's button (M6m): replay the saved build or say there isn't one; never run
+   * the agent, so a click costs no Qloo or Claude call.
+   */
+  replayOnly?: boolean;
 }): Promise<Response> {
   const saved = fresh || !save ? null : await store.latest(festival.id);
   if (saved)
     return ndjsonResponse((emit) => replay(saved, emit, replayDelayMs));
+  if (replayOnly && !fresh)
+    return ndjsonResponse(async (emit) => {
+      emit({
+        type: "error",
+        message: `There's no saved build for ${festival.city} yet. Run the agent live to make one.`,
+        code: "no-saved-build",
+      });
+      emit({ type: "done", calls: 0, ms: 0 });
+    });
 
   const qlooClient = qloo();
   const agentModel = qlooClient ? model() : null;

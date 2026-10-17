@@ -49,7 +49,7 @@ describe("Your festival opens on the checked towns", () => {
       headers: { "content-type": "application/x-ndjson" },
     });
 
-  it("lists each town with its country, and one click runs it with the headliners in the form", async () => {
+  it("lists each town with its country, and one click replays its saved build (M6m)", async () => {
     const fetch = vi.fn(async () => ndjson());
     vi.stubGlobal("fetch", fetch);
     render(<YourFestival />);
@@ -65,10 +65,9 @@ describe("Your festival opens on the checked towns", () => {
     fireEvent.click(tallinn);
     await waitFor(() => expect(fetch).toHaveBeenCalled());
     const [, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
-    expect(JSON.parse(String(init.body)).brief).toEqual({
-      city: "Tallinn",
-      region: "Estonia",
-      headliners: ["Khruangbin", "Japanese Breakfast"],
+    expect(JSON.parse(String(init.body))).toMatchObject({
+      festival: "sagebrush-sound-tallinn",
+      replayOnly: true,
     });
   });
 

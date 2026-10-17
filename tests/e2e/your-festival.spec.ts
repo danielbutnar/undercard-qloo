@@ -177,22 +177,45 @@ test.describe("Your festival", () => {
   });
 });
 
-test.describe("Your festival's checked towns (M6k)", () => {
-  test("open first, and one click drafts a town with the headliners in the form", async ({
+test.describe("Your festival's checked towns (M6k, M6m)", () => {
+  // Three checked towns replay their saved builds. Against the deployed demo the replies are
+  // the real ones, and none may start a live run: each body asks for a replay only, and each
+  // reply opens with a replayed build.
+  const TOWNS = [
+    ["Austin, Texas, United States", "Austin", "Texas"],
+    ["Tallinn, Estonia", "Tallinn", "Estonia"],
+    ["Wrexham, Wales, United Kingdom", "Wrexham", "Wales"],
+  ] as const;
+
+  test("open first, and three towns replay their saved builds without a live run", async ({
     page,
   }) => {
+    test.setTimeout(120_000);
+    const live = Boolean(process.env.E2E_BASE_URL);
     const saved = syntheticSavedBuild();
-    const bodies = await answerBuilds(page, [
-      {
-        type: "build",
-        id: "yours-e2e",
-        createdAt: saved.createdAt,
-        replayed: false,
-      },
-      ...saved.trace.map((call) => ({ type: "call", call })),
-      { type: "lineup", lineup: { ...saved.lineup, festivalId: "yours-e2e" } },
-      { type: "done", calls: saved.trace.length, ms: 1500 },
-    ]);
+    const bodies: Record<string, unknown>[] = [];
+    const firsts: Record<string, unknown>[] = [];
+    await page.route("**/api/undercard", async (route) => {
+      bodies.push(route.request().postDataJSON());
+      const body = live
+        ? await (await route.fetch()).text()
+        : ndjson([
+            {
+              type: "build",
+              id: saved.id,
+              createdAt: saved.createdAt,
+              replayed: true,
+            },
+            ...saved.trace.map((call) => ({
+              type: "call",
+              call: { ...call, cached: true },
+            })),
+            { type: "lineup", lineup: saved.lineup },
+            { type: "done", calls: saved.trace.length, ms: 900 },
+          ]);
+      firsts.push(JSON.parse(body.split("\n")[0]));
+      await route.fulfill({ status: 200, contentType: NDJSON, body });
+    });
     await page.goto("/your-festival");
     const towns = page.getByRole("list", {
       name: "Towns Undercard has already read",
@@ -200,22 +223,25 @@ test.describe("Your festival's checked towns (M6k)", () => {
     await expect(
       towns.getByRole("button", { name: "Boise, Idaho, United States" }),
     ).toBeVisible();
-    await towns.getByRole("button", { name: "Tallinn, Estonia" }).click();
-    await expect(
-      page
-        .getByRole("region", { name: "Undercard draft" })
-        .getByRole("article"),
-    ).toHaveCount(10);
-    await expect(
-      page.getByText(/^Tallinn, Estonia · 3,000 capacity/),
-    ).toBeVisible();
-    expect(bodies[0]).toMatchObject({
-      fresh: true,
-      brief: {
-        city: "Tallinn",
-        region: "Estonia",
-        headliners: ["Khruangbin", "Japanese Breakfast"],
-      },
-    });
+    for (const [index, [label, city, region]] of TOWNS.entries()) {
+      await towns.getByRole("button", { name: label, exact: true }).click();
+      await expect(
+        page
+          .getByRole("region", { name: "Undercard draft" })
+          .getByRole("article"),
+      ).toHaveCount(10, { timeout: 30_000 });
+      await expect(
+        page.getByText(new RegExp(`^${city}, ${region} · `)),
+      ).toBeVisible();
+      await expect(page.getByText(/^Replayed the build saved/)).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "Run the agent live instead" }),
+      ).toBeVisible();
+      expect(bodies[index]).toMatchObject({ fresh: false, replayOnly: true });
+      expect(bodies[index].brief).toBeUndefined();
+      expect(firsts[index]).toMatchObject({ type: "build", replayed: true });
+      await page.getByRole("button", { name: "Pick another town" }).click();
+    }
+    expect(bodies).toHaveLength(TOWNS.length);
   });
 });
