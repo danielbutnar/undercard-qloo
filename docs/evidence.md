@@ -332,9 +332,11 @@ Written on 2026-10-18, before any of these calls. The rule doesn't change after 
 **The acts.**
 - Headliners: the first two names in the edition's list that Qloo's search resolves to an artist.
 - Booked acts: the names after them that Qloo's search resolves to an artist (the same name, after the Treefort check's normalising) with popularity inside one of the demo's bands (Mid 80th–92nd percentile, Opener 55th–80th), in list order, at most 12, from at most 40 searches per festival.
-- Random acts: for each band, as many as that band has booked acts, drawn with a fixed seed from Qloo's top 100 artists in that band's popularity range for the festival's own headliners, leaving out every name on the lineup. They're matched on band and on the headliners' taste, so the test asks what the town's venues add beyond the headliners.
+- Random acts: for each band, as many as that band has booked acts, drawn with a fixed seed from Qloo's top 50 artists in that band's popularity range (top 100 as first written; see the change below) for the festival's own headliners, leaving out every name on the lineup. They're matched on band and on the headliners' taste, so the test asks what the town's venues add beyond the headliners.
 
 **The measure.** For every booked and random act, Qloo's affinity with the headliners as the signal, and again with the headliners plus each venue, each call limited to these acts (filter.results.entities). An act's lift is its largest gain in affinity from any one venue. A festival supports the premise when its booked acts' mean lift is higher than its random acts' mean lift. A festival with fewer than 2 booked acts in the bands counts as not supporting it.
+
+**One change before any result, 2026-10-18.** The first run stopped on its first festival: Qloo takes at most 50 results per call ("take must be an integer value between 1 and 50"), so the random acts' pool asked for 100 got none. They are drawn from the top 50 instead. Nothing else changed, and no lift had been computed.
 
 **The bar.** The premise is supported if at least 8 of the 10 festivals support it (a one-sided sign test: 8 or more of 10 happens by chance about 5.5% of the time). Otherwise it isn't, and the result is reported either way. Counts and lifts only in this file; names stay in .design/.
 
