@@ -2,16 +2,21 @@ import { Redis } from "@upstash/redis";
 import { AiNotConfigured, createAgentModel } from "./ai";
 import { createBuildStore } from "./build-store";
 import { createQlooClient, type QlooClient } from "./qloo";
-import { createQlooCache } from "./qloo-cache";
+import { createQlooCache, syntheticMode } from "./qloo-cache";
 import {
   createMemoryLimiter,
   createUpstashLimiter,
   type RateLimiter,
 } from "./rate-limit";
 
-/** The route handlers' server wiring: keys from the environment, one shared cache. */
+/**
+ * The route handlers' server wiring: keys from the environment, one shared cache. In synthetic
+ * mode (local e2e runs and design shots) there is no Qloo client and no model, so a test run
+ * can't spend a Qloo or Claude call or replace the saved build.
+ */
 
 export function serverQloo(): QlooClient | null {
+  if (syntheticMode()) return null;
   const apiKey = process.env.QLOO_API_KEY;
   if (!apiKey) return null;
   return createQlooClient({
@@ -22,6 +27,7 @@ export function serverQloo(): QlooClient | null {
 }
 
 export function serverModel() {
+  if (syntheticMode()) return null;
   try {
     return createAgentModel();
   } catch (error) {
@@ -42,7 +48,8 @@ export function serverLimiter(
 ): RateLimiter {
   const url = env.UPSTASH_REDIS_REST_URL;
   const token = env.UPSTASH_REDIS_REST_TOKEN;
-  if (url && token) return createUpstashLimiter(new Redis({ url, token }));
+  if (url && token && !syntheticMode(env))
+    return createUpstashLimiter(new Redis({ url, token }));
   processLimiter ??= createMemoryLimiter();
   return processLimiter;
 }

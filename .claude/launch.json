@@ -6,6 +6,13 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["dev"],
       "port": 3000
+    },
+    {
+      "name": "undercard-synthetic",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev", "--port", "3100"],
+      "env": { "UNDERCARD_E2E_SYNTHETIC": "1" },
+      "port": 3100
     }
   ]
 }

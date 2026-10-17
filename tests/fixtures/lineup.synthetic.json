@@ -52,10 +52,10 @@
       "affinity": 0.89,
       "popularity": 0.85,
       "anchorVenue": {
-        "entityId": "00000000-0000-4000-8000-000000000203",
-        "name": "Cottonwood Social Hall"
+        "entityId": "00000000-0000-4000-8000-000000000201",
+        "name": "The Lantern Room"
       },
-      "reason": "Cottonwood Social Hall fans move it up 26 places.",
+      "reason": "The Lantern Room fans move it up 26 places.",
       "sharedTags": [
         {
           "id": "urn:tag:genre:music:surf_rock",
@@ -96,10 +96,10 @@
       "affinity": 0.9,
       "popularity": 0.79,
       "anchorVenue": {
-        "entityId": "00000000-0000-4000-8000-000000000203",
-        "name": "Cottonwood Social Hall"
+        "entityId": "00000000-0000-4000-8000-000000000201",
+        "name": "The Lantern Room"
       },
-      "reason": "Cottonwood Social Hall fans move it up 30 places.",
+      "reason": "The Lantern Room fans move it up 30 places.",
       "sharedTags": [
         {
           "id": "urn:tag:genre:music:shoegaze",
@@ -140,10 +140,10 @@
       "affinity": 0.86,
       "popularity": 0.7,
       "anchorVenue": {
-        "entityId": "00000000-0000-4000-8000-000000000204",
-        "name": "The Foothills Tavern"
+        "entityId": "00000000-0000-4000-8000-000000000201",
+        "name": "The Lantern Room"
       },
-      "reason": "The Foothills Tavern fans move it up 23 places.",
+      "reason": "The Lantern Room fans move it up 23 places.",
       "sharedTags": [
         {
           "id": "urn:tag:genre:music:indie_rock",
@@ -184,10 +184,10 @@
       "affinity": 0.82,
       "popularity": 0.61,
       "anchorVenue": {
-        "entityId": "00000000-0000-4000-8000-000000000204",
-        "name": "The Foothills Tavern"
+        "entityId": "00000000-0000-4000-8000-000000000201",
+        "name": "The Lantern Room"
       },
-      "reason": "The Foothills Tavern fans move it up 19 places.",
+      "reason": "The Lantern Room fans move it into the top 8.",
       "sharedTags": [
         {
           "id": "urn:tag:genre:music:indie_rock",

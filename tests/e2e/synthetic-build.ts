@@ -1,13 +1,21 @@
-// A synthetic POST /api/undercard stream for design shots: invented acts and venues from
+// A synthetic build for local e2e runs and design shots: invented acts and venues from
 // tests/fixtures/lineup.synthetic.json, shaped like a real build. No Qloo data.
-import { readFileSync } from "node:fs";
+// With UNDERCARD_E2E_SYNTHETIC=1 the server seeds its memory cache with syntheticSavedBuild()
+// and syntheticLlmOnly() (src/server/synthetic-seed.ts), so the first screen, the replay and
+// LLM only run on the server without Qloo, Claude or Upstash. Playwright intercepts the rest.
+import lineup from "../fixtures/lineup.synthetic.json";
+import type { SavedBuild } from "../../src/server/build-store";
 
-const lineup = JSON.parse(
-  readFileSync("tests/fixtures/lineup.synthetic.json", "utf8"),
-);
-
+export const SYNTHETIC_BUILD_ID = "synthetic-build";
+const CREATED_AT = "2026-10-15T14:02:00.000Z";
 const HEADLINERS = "Khruangbin, Japanese Breakfast";
-const VENUES = ["The Lantern Room", "Fort Street Ballroom"];
+const id = (n: number) =>
+  `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+
+// The rooms the synthetic agent tested: the first two lift every act, the third lifts none.
+const LANTERN = { entityId: id(201), name: "The Lantern Room" };
+const FORT = { entityId: id(202), name: "Fort Street Ballroom" };
+const COTTONWOOD = { entityId: id(203), name: "Cottonwood Social Hall" };
 
 function artistsCall(n: number, band: "Mid" | "Opener", venue?: string) {
   const [min, max] = band === "Mid" ? ["0.8", "0.92"] : ["0.55", "0.8"];
@@ -109,11 +117,64 @@ const calls = [
   },
   artistsCall(6, "Mid"),
   artistsCall(7, "Opener"),
-  artistsCall(8, "Mid", VENUES[0]),
-  artistsCall(9, "Opener", VENUES[0]),
-  artistsCall(10, "Mid", VENUES[1]),
-  artistsCall(11, "Opener", VENUES[1]),
+  artistsCall(8, "Mid", LANTERN.name),
+  artistsCall(9, "Opener", LANTERN.name),
+  artistsCall(10, "Mid", FORT.name),
+  artistsCall(11, "Opener", FORT.name),
+  artistsCall(12, "Mid", COTTONWOOD.name),
 ];
+
+// The headliners-only ranking per band: the band's acts that it already listed, padded to 50
+// with invented ids. An act whose Why Boise line says "into the top" isn't in it.
+function baseline(band: "mid" | "opener"): string[] {
+  const listed = lineup.acts
+    .filter((act) => act.band === band && !/into the top/.test(act.reason))
+    .map((act) => act.entityId);
+  const padding = Array.from({ length: 50 - listed.length }, (_, i) =>
+    id((band === "mid" ? 400 : 500) + i),
+  );
+  return [...padding.slice(0, 20), ...listed, ...padding.slice(20)];
+}
+
+/** The saved build the synthetic server replays: the fixture's lineup and the calls above. */
+export function syntheticSavedBuild(): SavedBuild {
+  return {
+    id: SYNTHETIC_BUILD_ID,
+    festivalId: "sagebrush-sound",
+    createdAt: CREATED_AT,
+    trace: calls,
+    lineup: lineup as SavedBuild["lineup"],
+    context: {
+      headliners: [
+        {
+          entityId: id(1),
+          name: "Khruangbin",
+          tags: [
+            {
+              id: "urn:tag:genre:music:psychedelic_rock",
+              name: "Psychedelic Rock",
+              type: "urn:tag:genre:music",
+            },
+          ],
+        },
+        {
+          entityId: id(2),
+          name: "Japanese Breakfast",
+          tags: [
+            {
+              id: "urn:tag:genre:music:dream_pop",
+              name: "Dream Pop",
+              type: "urn:tag:genre:music",
+            },
+          ],
+        },
+      ],
+      comparedTags: [{ name: "Indie Pop", score: 0.8 }],
+      baselines: { mid: baseline("mid"), opener: baseline("opener") },
+      anchors: { mid: [LANTERN, FORT, COTTONWOOD], opener: [LANTERN, FORT] },
+    },
+  };
+}
 
 const ndjson = (events: unknown[]) =>
   events.map((event) => JSON.stringify(event)).join("\n") + "\n";
@@ -123,12 +184,7 @@ export function syntheticBuildStream({
   replayed = false,
 }: { replayed?: boolean } = {}): string {
   return ndjson([
-    {
-      type: "build",
-      id: "synthetic-build",
-      createdAt: "2026-10-15T14:02:00.000Z",
-      replayed,
-    },
+    { type: "build", id: SYNTHETIC_BUILD_ID, createdAt: CREATED_AT, replayed },
     { type: "status", text: "Planning the Qloo calls" },
     ...calls.map((call) => ({
       type: "call",
@@ -152,28 +208,28 @@ export function syntheticLimitStream(): string {
 /** A synthetic refill: one Qloo call, then an invented act takes the slot. */
 export function syntheticRefillStream(replaces: string): string {
   const replacement = {
-    entityId: "00000000-0000-4000-8000-000000000111",
+    entityId: id(111),
     name: "Sego Lily",
     band: "mid",
     affinity: 0.86,
     popularity: 0.83,
-    anchorVenue: lineup.acts[0].anchorVenue,
-    reason: `${lineup.acts[0].anchorVenue.name} fans move it up 13 places.`,
+    anchorVenue: LANTERN,
+    reason: `${LANTERN.name} fans move it up 13 places.`,
     sharedTags: [
       { id: "urn:tag:genre:music:dream_pop", name: "Dream Pop" },
       { id: "urn:tag:genre:music:indie_rock", name: "Indie Rock" },
     ],
   };
   const call = {
-    ...artistsCall(1, "Mid", VENUES[0]),
+    ...artistsCall(1, "Mid", LANTERN.name),
     tool: "refill",
-    summary: `Refill: Mid-band artists for the headliners and ${VENUES[0]}, minus the board`,
+    summary: `Refill: Mid-band artists for the headliners and ${LANTERN.name}, minus the board`,
   };
   call.params = call.params.map((param) =>
     param.key === "filter.exclude.entities"
       ? {
           ...param,
-          value: `${HEADLINERS}, ${lineup.acts.map((act: { name: string }) => act.name).join(", ")}`,
+          value: `${HEADLINERS}, ${lineup.acts.map((act) => act.name).join(", ")}`,
         }
       : param,
   );
@@ -186,27 +242,42 @@ export function syntheticRefillStream(replaces: string): string {
 
 /** A synthetic LLM-only answer: invented acts, as the model alone might list them. */
 export function syntheticLlmOnly() {
-  const names = [
-    "Velvet Coyote",
-    "The Long Drives",
-    "Marigold Static",
-    "Paper Canyon",
-    "Dusk Arcade",
-    "Honey Basin",
-    "Lowland Choir",
-    "Silver Mesa",
-    "Fern & Fable",
-    "Night Orchard",
+  const picks: [string, string][] = [
+    [
+      "Velvet Coyote",
+      "Warm, groove-led desert rock that sits well beside both headliners.",
+    ],
+    [
+      "The Long Drives",
+      "Hazy road-trip indie with a strong following among listeners in their late twenties.",
+    ],
+    [
+      "Marigold Static",
+      "Dreamy synth pop that bridges Japanese Breakfast's melodies and Khruangbin's mood.",
+    ],
+    [
+      "Paper Canyon",
+      "A tight live band with funk-leaning rhythms that suit an early-evening slot.",
+    ],
+    ["Dusk Arcade", "Shimmering guitar pop with a growing festival profile."],
+    [
+      "Honey Basin",
+      "Soulful psych with the laid-back feel Khruangbin fans tend to like.",
+    ],
+    ["Lowland Choir", "Lush harmonies and a gentle set that opens a day well."],
+    ["Silver Mesa", "Instrumental grooves that echo the headliners' textures."],
+    [
+      "Fern & Fable",
+      "Bright folk pop that draws the same crowd as indie headliners.",
+    ],
+    ["Night Orchard", "Moody bedroom pop that suits a 25 to 34 audience."],
   ];
   return {
     cached: true,
     lineup: {
       festivalId: "sagebrush-sound",
-      createdAt: "2026-10-15T14:02:00.000Z",
-      picks: names.map((name) => ({
-        name,
-        note: `A popular indie act whose sound suits fans of both headliners.`,
-      })),
+      createdAt: CREATED_AT,
+      picks: picks.map(([name, note]) => ({ name, note })),
     },
   };
 }
