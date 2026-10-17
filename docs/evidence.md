@@ -240,6 +240,14 @@ Written on 2026-10-17, after the M6j build was committed and before any of these
 
 Brighton now resolves to Brighton's own rooms, but they lifted nothing: it stays thin. Wrexham and Cluj-Napoca, not run in section 9 because fewer than five places were in the town, fill both bands with the town and its country. Each bill came from one room, and Venue 197 is in Llay, outside Wrexham.
 
+## 13. Checked towns replay (M6m), written before the builds
+
+Written on 2026-10-17, before any of these builds. The rule doesn't change after the results are in.
+
+**The builds.** Every checked town in src/lib/checked-towns.ts without a saved build gets one: the demo's brief (Sagebrush Sound's headliners, capacity, crowd and fee bands) with the town and its state or country, under its own festival id, made fresh once on production through the build route, the way M6d made Austin's, one town at a time. The agent resolves each town with M6j's rule. Boise's saved build and its latest pointer are left alone; Austin, Denver and Nashville keep the builds M6d saved.
+
+**The rule.** A town stays in the checked list only if its saved build fills both bands. Only complete builds are saved, so a town whose fresh build leaves a band short has no saved build and leaves the list. This also settles the towns checked before M6j with plain names: each is now checked again with its state or country.
+
 ## What these numbers don't establish
 
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
