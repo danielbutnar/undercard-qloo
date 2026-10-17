@@ -14,7 +14,11 @@ Approved for this run: pushing redesign-first-screen and main (merged without sq
 - [x] At 390 px, Watch the agent build it sits under the headliners
 - [x] The display font's loading checked: latin subset, preloaded, display swap already; the one lever left (dropping the opsz axis) changes the type, so no change
 - [x] If there's time: the fallback screen in the bill's design, still with Build undercard
-- [ ] Deploy, live e2e again, a fresh cold reader (low effort) on the live 1280x800 shot
+- [x] Deploy, live e2e again, a fresh cold reader (low effort) on the live 1280x800 shot
+- [x] Found by the first live cold reader and fixed: the live build's top room is listed as "Venue 418 (V418)", so the marks read "V418( +N" (da434af)
+- [x] Two live cold readers said "local Boise crowds" and never venues: the rail and the key now name the rooms as Boise venues (a6250c9)
+
+Result (2026-10-17): live e2e 31 passed, 4 skipped (the fallback spec and its 3 shots, which need the empty seed and passed against it locally); live LCP 768 ms at 1280x800; the last cold reader: "a booking desk for a concert promoter or talent buyer (here, a Boise festival called Sagebrush Sound): an agent uses Qloo taste data about the headliners' fans and local venue crowds to draft the undercard", first click "Watch the agent build it". Largest gap now: Potential Impact (no buyer's words, no check against a real bill).
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
