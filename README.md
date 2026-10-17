@@ -24,14 +24,14 @@ Khruangbin and Japanese Breakfast booked and two fee bands, Mid (4 slots) and Op
 
 1. The page opens on the saved build as the buyer's draft bill: the headliners over 4 Mid and
    6 Opener acts, each marked with the Boise room whose crowd lifted it in Qloo's ranking and
-   by how many places. A rail counts what each tested room lifted, a zero included.
+   how far ("new" when it entered the top 50). A rail counts what each tested room lifted, a zero included.
 2. **Watch the agent build it**: the trace panel replays every Qloo call the agent made, with
    its parameters and result count, and the bill reprints. **Run the agent live instead**
    runs a fresh build.
 3. Click an act to open its card: Qloo affinity, its popularity percentile inside the band,
    a "Why Boise" line naming the local venue whose fans lift it, and two Qloo tags it shares
    with the headliners.
-4. Mark it **Unavailable**: the agent finds a replacement in the same fee band with a new Qloo
+4. Mark it **Unavailable**: Undercard finds a replacement in the same fee band with a new Qloo
    call, and the replacement prints into the slot.
 5. Flip to **Without Qloo: the model's picks** to see the same brief answered by the model
    alone, each pick with the model's reason, no Boise room and no fee band check. **Export
@@ -41,11 +41,11 @@ Khruangbin and Japanese Breakfast booked and two fee bands, Mid (4 slots) and Op
 
 ![How a build works: the page, the API routes, the planner, the five kinds of Qloo call, the lift rule, the refill, the model-only baseline and Upstash](docs/architecture.svg)
 
-- **The agent plans the Qloo calls.** Claude Sonnet 5.5 works through one tool per Qloo call
+- **The agent plans the Qloo calls.** Claude Sonnet 5.5 works through tools that each make one Qloo call, plus one to finish
   ([src/server/agent.ts](src/server/agent.ts), [src/server/agent-tools.ts](src/server/agent-tools.ts)).
   It resolves the headliners, finds the city's live music venues and picks the music rooms
   among them as anchors, gets the taste the headliners share, then asks for each band's
-  artists twice: for the headliners alone, and for the headliners plus each anchor venue. It
+  artists for the headliners alone, then once more for each anchor venue. It
   runs independent calls in parallel and stops at 12. In live builds it has changed course
   mid-build: when one anchor venue lifted no acts, it spent its last call on another room.
 - **The app books the acts.** [src/lib/assemble-lineup.ts](src/lib/assemble-lineup.ts) takes

@@ -18,7 +18,7 @@
     {
       "id": "card",
       "scene": "step",
-      "text": "Each act is marked with the venue whose crowd lifted it, and by how many places. Its card adds Qloo's affinity, its popularity inside the fee band, and two tags it shares with the headliners."
+      "text": "Each act is marked with the venue whose crowd lifted it in Qloo's ranking. Its card adds Qloo's affinity, its popularity inside the fee band, and two tags it shares with the headliners."
     },
     {
       "id": "refill",

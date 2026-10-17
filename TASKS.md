@@ -28,12 +28,26 @@ Copied from SPEC.md section 6, M4f. Closes: Technological Implementation: no CI 
 - [x] README.md shows the workflow's status badge
 - [x] The check runs green on main: run 39032906157 on 69c4ee4 (2026-10-17), after the merge; that push deployed production and the live e2e passed (31 passed, LCP 628 ms). The badge and the check show publicly only once the repository is public (M5). Largest gap now: Potential Impact, no buyer's words
 
+# TASKS: M5 Package
+
+Copied from SPEC.md section 6, M5. Done means: the video is rendered within the limit, docs/ holds the Devpost story and the architecture diagram, and the contradiction check has run.
+
+- [x] Judge script in f13b911 reported, nothing changed
+- [x] docs/research/festival-sites.md committed; the four private docs listed in .git/info/exclude, and no committed file links to them
+- [x] docs/devpost-story.md: 1,064 words; the opening tested on fresh low-effort readers. First draft: all right. After the fact-check fixes, one reader took radius clauses as a cause of dropouts; reworded, and the next reader got what, for whom, why Qloo and the stakes right
+- [x] docs/architecture.svg, by hand, in the brief's tokens
+- [x] video/: the skill's pipeline, capture on the live replay, the narration script
+- [ ] Voiceover with ElevenLabs: waits on video/.env.local (Daniel)
+- [ ] Render, frame checks, probe, video/out/upload.md
+- [x] Gallery stills and captions in .design/submission/ (3:2, 2400x1600)
+- [ ] Contradiction check fixed; pnpm gate, CI on main and the live e2e pass
+
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
 ## Before the repository goes public
 - [ ] Remove the Final scores and Weakest criterion bullets from SPEC.md section 9: all three AI judges docked them, and judges or an automated analysis may read self-scores as steering
 - [ ] Decide whether a private note stays public: it's contest strategy, and the judge script can read it from claude-master-setup with --field
 - [ ] Confirm the git history holds no sk-ant- key
-- [ ] Replace the README's "video still to come" line
+- [x] Replace the README's "video still to come" line
 - [ ] Check that the saved build replays on the live URL. If it's gone, run one fresh build before judging starts on 2026-11-02, because replays come from the saved build in Upstash, not from `pnpm seed`
 - [ ] If the organizers haven't answered about rate limits by 2026-10-27, decide whether to raise the per-IP limits for judging, keeping the shared daily caps as the cost ceiling

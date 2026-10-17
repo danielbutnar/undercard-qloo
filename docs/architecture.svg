@@ -82,9 +82,9 @@
   <text class="body" x="712" y="246">Picks the music rooms, decides</text>
   <text class="body" x="712" y="268">which Qloo call comes next, and</text>
   <text class="body" x="712" y="290">tries another room when one lifts</text>
-  <text class="body" x="712" y="312">nothing. Every tool is one Qloo</text>
-  <text class="body" x="712" y="334">call, and a build stops at 12. It</text>
-  <text class="body" x="712" y="356">never picks the acts.</text>
+  <text class="body" x="712" y="312">nothing. Every tool but finish is</text>
+  <text class="body" x="712" y="334">one Qloo call; a build stops at 12.</text>
+  <text class="body" x="712" y="356">It never picks the acts.</text>
 
   <rect class="panel" x="692" y="410" width="340" height="190"/>
   <text class="display" x="712" y="450" font-size="28">THE LIFT RULE</text>
