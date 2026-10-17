@@ -1,4 +1,5 @@
 import type Anthropic from "@anthropic-ai/sdk";
+import { ageBuckets } from "@/lib/ages";
 import { assembleLineup, type AssemblyInput } from "@/lib/assemble-lineup";
 import type { BuildEvent } from "@/lib/build-events";
 import type { Lineup } from "@/lib/lineup";
@@ -99,7 +100,7 @@ export async function runUndercardAgent({
     return {
       lineup: null,
       complete: false,
-      context: buildContext(assemblyInput(festival, toolbox.state)),
+      context: buildContext(assemblyInput(festival, toolbox.state), festival),
     };
   };
 
@@ -122,7 +123,7 @@ export async function runUndercardAgent({
 
       for (const block of response.content) {
         if (block.type === "text" && block.text.trim())
-          emit({ type: "status", text: block.text.trim() });
+          emit({ type: "status", text: block.text.trim(), planner: true });
       }
       const toolUses = response.content.filter(
         (block): block is Anthropic.ToolUseBlock => block.type === "tool_use",
@@ -171,11 +172,11 @@ export async function runUndercardAgent({
   return {
     lineup,
     complete: lineup !== null && missing === 0,
-    context: buildContext(input),
+    context: buildContext(input, festival),
   };
 }
 
-function buildContext(input: AssemblyInput): BuildContext {
+function buildContext(input: AssemblyInput, festival: Festival): BuildContext {
   const anchors: BuildContext["anchors"] = {};
   for (const run of input.venueRuns) {
     const list = (anchors[run.band] ??= []);
@@ -196,5 +197,6 @@ function buildContext(input: AssemblyInput): BuildContext {
     comparedTags: input.comparedTags,
     baselines,
     anchors,
+    ages: ageBuckets(festival.crowdAge.min, festival.crowdAge.max).buckets,
   };
 }

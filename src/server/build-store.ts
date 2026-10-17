@@ -31,6 +31,9 @@ export const BuildContextSchema = z.object({
   baselines: perBand(z.array(z.string())),
   /** Per band, the anchor venues the build ran, in the order it ran them. */
   anchors: perBand(z.array(VenueSchema)),
+  /** The Qloo age buckets the build's artist calls sent; a refill sends the same. Optional:
+   * builds saved before 2026-10-17 sent none. */
+  ages: z.array(z.string()).optional(),
 });
 
 export const SavedBuildSchema = z.object({
@@ -40,6 +43,13 @@ export const SavedBuildSchema = z.object({
   trace: z.array(TraceCallSchema),
   lineup: LineupSchema,
   context: BuildContextSchema,
+  /**
+   * The planner's lines, each with how many calls had come back when it was said, so a
+   * replay shows its decisions in order. Optional: builds saved before 2026-10-17 have none.
+   */
+  notes: z
+    .array(z.object({ at: z.number().int().nonnegative(), text: z.string() }))
+    .optional(),
 });
 
 export type BuildContext = z.infer<typeof BuildContextSchema>;

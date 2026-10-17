@@ -1,6 +1,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { liftsOver, MIN_LIFT } from "@/lib/assemble-lineup";
+import { ageBuckets } from "@/lib/ages";
 import type { BuildEvent } from "@/lib/build-events";
 import { FEE_BAND_IDS, type FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
@@ -171,6 +172,11 @@ export function createToolbox({
   emit: (event: BuildEvent) => void;
   cap?: number;
 }) {
+  // The crowd's age goes to every artist call as Qloo's age buckets.
+  const crowd = ageBuckets(festival.crowdAge.min, festival.crowdAge.max);
+  const ageNote = crowd.exact
+    ? ""
+    : " (the crowd's ages as Qloo's nearest buckets)";
   const state: AgentState = {
     headliners: new Map(),
     venues: [],
@@ -341,13 +347,14 @@ export function createToolbox({
       const artists = await callQloo(
         "baseline_artists",
         "/v2/insights",
-        `${bandLabel(band)}-band artists for the headliners alone`,
+        `${bandLabel(band)}-band artists for the headliners alone${ageNote}`,
         () =>
           qloo.artists({
             signalEntityIds: pair.map((headliner) => headliner.entityId),
             popularityMin: range.minPopularity,
             popularityMax: range.maxPopularity,
             excludeEntityIds: pair.map((headliner) => headliner.entityId),
+            ages: crowd.buckets,
           }),
       );
       state.baselines[band] = artists;
@@ -371,7 +378,7 @@ export function createToolbox({
       const artists = await callQloo(
         "venue_artists",
         "/v2/insights",
-        `${bandLabel(band)}-band artists for the headliners and ${venue.name}`,
+        `${bandLabel(band)}-band artists for the headliners and ${venue.name}${ageNote}`,
         () =>
           qloo.artists({
             signalEntityIds: [
@@ -381,6 +388,7 @@ export function createToolbox({
             popularityMin: range.minPopularity,
             popularityMax: range.maxPopularity,
             excludeEntityIds: pair.map((headliner) => headliner.entityId),
+            ages: crowd.buckets,
           }),
       );
       state.venueRuns.push({ venue, band, artists });

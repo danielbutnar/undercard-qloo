@@ -91,6 +91,8 @@ describe("agent tools: query parameters", () => {
       "filter.popularity.min": "0.8",
       "filter.popularity.max": "0.92",
       "filter.exclude.entities": `${syntheticId(1)},${syntheticId(2)}`,
+      // M4d: the festival's crowd (25–34) as Qloo's age buckets.
+      "signal.demographics.age": "25_to_29,30_to_34",
       take: "50",
     });
   });
@@ -109,6 +111,8 @@ describe("agent tools: query parameters", () => {
       "filter.popularity.min": "0.55",
       "filter.popularity.max": "0.8",
       "filter.exclude.entities": `${syntheticId(1)},${syntheticId(2)}`,
+      // M4d: the festival's crowd (25–34) as Qloo's age buckets.
+      "signal.demographics.age": "25_to_29,30_to_34",
       take: "50",
     });
     expect(Object.keys(sent).some((key) => key.includes("location"))).toBe(
