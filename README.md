@@ -39,6 +39,16 @@ Khruangbin and Japanese Breakfast booked and two fee bands, Mid (4 slots) and Op
    CSV** in the bar downloads the booking sheet; a replacement's row names the act it
    replaced and why.
 
+Beyond the demo path, one click from the bill:
+
+- **Same brief, other towns.** The rooms rail links Austin, Denver and Nashville: the same
+  headliners, capacity, crowd and fee bands, each drafted from that town's own rooms, saved and
+  replayed like Boise's.
+- **Your festival** (`/your-festival`). Name a town and two headliners, and the agent runs live
+  for them with Sagebrush Sound's crowd and fee bands. It counts against the same per-IP limit
+  as a fresh build, and nothing is saved. A headliner Qloo can't find, a town with too few
+  music rooms and the daily limit each have their own designed state.
+
 ## How it works
 
 ![How a build works: the page, the API routes, the planner, the five kinds of Qloo call, the lift rule, the refill, the model-only baseline and Upstash](docs/architecture.svg)

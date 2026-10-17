@@ -87,6 +87,16 @@ Copied from SPEC.md section 6, M6e. Closes: Quality of the Idea. Freeze: 2026-10
 - [x] The CSV gains replaces and unavailable_reason; a replacement's row names the act it replaced and why
 - [x] The e2e demo path picks a reason, and checks the trace line and the CSV row
 
+# TASKS: M6f Your festival
+
+Copied from SPEC.md section 6, M6f. Closes: Design and Potential Impact. Freeze: 2026-10-26. Done means: a spike's go or no-go in docs/evidence.md; on a go, a form one click deep runs the agent live under the per-IP limit, with designed states for a headliner not found, too few music rooms and the limit reached, each run under its own festival id and never saved as anyone's default.
+
+- [x] Spike: 8 of 10 US towns filled both bands within 12 Qloo calls (Richmond tested no room, Missoula's rooms lifted nothing): a go at the bar, in docs/evidence.md section 7
+- [x] src/lib/your-festival.ts: the brief (a town's name, two different headliners), its festival with its own id, and the diagnosis of a short run from its stream (tests/unit/m6f)
+- [x] POST /api/undercard takes a brief: a live run under the build limit, a festival id of its own, never saved; a short run ends with an error that names why
+- [x] /your-festival: the form, then the bill and trace, with no Without Qloo, refill or switcher; designed states for a headliner not found, too few rooms, open slots and the limit, each with a next step
+- [x] Linked from the town switcher; e2e tests/e2e/your-festival.spec.ts answers every build in the browser, so it never runs the agent on production
+
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
 ## Before judging starts (2026-11-02)
