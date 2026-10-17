@@ -6,7 +6,7 @@ Approved for this run: these engine changes, and one fresh build on production t
 
 - [x] The planner's lines are saved with the build (an optional field, so the Oct 15 build still parses) and replayed in order
 - [x] Spike: the crowd's age reaches Qloo as signal.demographics.age (docs: 24_and_younger, 25_to_29, 30_to_34, 35_to_44, 45_to_54, 55_and_older; 25–34 is 25_to_29,30_to_34). Kept: an offline Boise run with the age filled 4 Mid and 6 Opener in 12 calls, 8 tagged places, rooms lifting 8, 2 and 0 acts (scripts/agent-offline.ts, 2026-10-17)
-- [ ] The LLM-only baseline runs at high effort with max_tokens matching the planner's, and its cached answer is regenerated
+- [x] The LLM-only baseline runs at high effort with max_tokens matching the planner's, and its cached answer is regenerated
 - [ ] Deploy, then one fresh build on production through "Run the agent live instead"; stop if it's weaker than the Oct 15 build (a band not full, or fewer acts lifted by a room)
 - [ ] Live e2e passes; SPEC.md 2b updated; M4d ticked
 

@@ -9,6 +9,9 @@ import { LlmOnlyPickSchema, type LlmOnlyPick } from "@/lib/llm-only";
  */
 export const AI_MODEL = "claude-sonnet-5-5";
 
+/** The planner's token budget; the model-only baseline gets the same, so the contrast is fair. */
+const MAX_TOKENS = 16000;
+
 export interface AgentTurnRequest {
   system: string;
   tools: Anthropic.Tool[];
@@ -38,7 +41,7 @@ export function createAgentModel(
     nextTurn: ({ system, tools, messages }) =>
       client.messages.create({
         model: AI_MODEL,
-        max_tokens: 16000,
+        max_tokens: MAX_TOKENS,
         system,
         tools,
         messages,
@@ -67,12 +70,13 @@ export function createLlmOnlyModel({
     async suggest(brief) {
       const response = await anthropic.messages.parse({
         model: AI_MODEL,
-        max_tokens: 4000,
+        max_tokens: MAX_TOKENS,
         system: LLM_ONLY_SYSTEM,
         messages: [{ role: "user", content: brief }],
-        // A short list from memory: low effort is enough.
+        // A fair baseline: at least the effort the agent's planner gets (medium), so the model
+        // alone isn't handicapped against the agent with Qloo.
         output_config: {
-          effort: "low",
+          effort: "high",
           format: zodOutputFormat(LlmOnlyAnswerSchema),
         },
       });

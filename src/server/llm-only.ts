@@ -5,7 +5,9 @@ import type { LlmOnlyModel } from "./ai";
 import { cacheTtlSeconds, type QlooCache } from "./qloo-cache";
 import type { RateLimiter } from "./rate-limit";
 
-const PREFIX = "undercard:llm-only:v1:";
+// v2 since 2026-10-17: the baseline runs at high effort, so answers saved at low effort
+// under v1 aren't served again.
+const PREFIX = "undercard:llm-only:v2:";
 const SLOTS = 10;
 
 const json = (body: unknown, status = 200) =>
