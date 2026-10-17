@@ -31,8 +31,19 @@ function problemWith(values: { city: string; first: string; second: string }) {
  * "Your festival" (M6f): a judge's own town and two headliners. The agent runs live for them
  * with Sagebrush Sound's crowd and fee bands, under the same per-IP limit, and nothing is saved.
  */
-export function YourFestival() {
-  const [values, setValues] = useState({ city: "", first: "", second: "" });
+export function YourFestival({
+  linked = null,
+}: {
+  /**
+   * A pre-filled link's values (M6h), read on the server. They only fill the form: mail clients
+   * and link previews open links by themselves, so only the visitor's press starts the agent.
+   */
+  linked?: { city: string; first: string; second: string } | null;
+} = {}) {
+  const [values, setValues] = useState(
+    linked ?? { city: "", first: "", second: "" },
+  );
+  const fromLink = linked !== null;
   const [problem, setProblem] = useState<string | null>(null);
   const [brief, setBrief] = useState<YourBrief | null>(null);
   const [run, setRun] = useState(0);
@@ -107,6 +118,12 @@ export function YourFestival() {
             town&apos;s own music rooms through Qloo and drafts the undercard,
             with Sagebrush Sound&apos;s crowd (aged 25–34) and fee bands.
           </p>
+          {fromLink && (
+            <p className="text-label font-semibold">
+              Filled in from your link. Check it, then press Draft my
+              undercard to run it.
+            </p>
+          )}
           {field("city", "Town", "Such as Duluth")}
           {field("first", "First headliner", "Such as Khruangbin")}
           {field("second", "Second headliner", "Such as Japanese Breakfast")}

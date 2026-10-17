@@ -87,3 +87,28 @@ export function diagnoseRun(
     message: `The ${city} rooms the agent tested lifted too few acts to fill every slot; the open slots are marked.`,
   };
 }
+
+/**
+ * A link that opens Your festival with the form filled in (M6h): a booker can be sent one,
+ * and nothing runs until they press the button.
+ */
+export function yourFestivalHref(brief: YourBrief): string {
+  const search = new URLSearchParams([
+    ["town", brief.city],
+    ["headliner", brief.headliners[0]],
+    ["headliner", brief.headliners[1]],
+  ]);
+  return `/your-festival?${search}`;
+}
+
+/** The form's values from a link's query string, cut to the fields' lengths; null when empty. */
+export function briefFromSearch(
+  search: string,
+): { city: string; first: string; second: string } | null {
+  const params = new URLSearchParams(search);
+  const city = (params.get("town") ?? "").slice(0, 60);
+  const [first = "", second = ""] = params
+    .getAll("headliner")
+    .map((name) => name.slice(0, 80));
+  return city || first || second ? { city, first, second } : null;
+}
