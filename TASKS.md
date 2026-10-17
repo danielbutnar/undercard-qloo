@@ -187,6 +187,14 @@ Copied from SPEC.md section 6, M6o. Freeze: 2026-10-21. Done means: a go or no-g
 - [x] "festival" among a place's three most frequent Qloo keywords labels it "a festival", on the card and the trace line; label only (tests/unit/m6o)
 - [x] Place answers cached before the change aren't reused (new cache key)
 
+# TASKS: M8b A bill that covers the town (no-go)
+
+Copied from SPEC.md section 6, M8b. Freeze: 2026-10-22. Done means: an offline spike's go or no-go; on a go, applied and the saved towns rebuilt.
+
+- [x] The bar written first (docs/evidence.md section 16)
+- [x] Spike on the app's Qloo cache, 0 uncached calls, reassembly matches all four saved bills
+- [x] Rooms per bill rose in 0 of 4 towns (bar 3): no-go. The rooms that lift any act are already the rooms on each bill. Not shipped; no rebuilds
+
 # TASKS: for the 27-28 October redo (not now)
 
 - [ ] Fix the video's capture script for the reason picker (its refill step now stops at "Why is it unavailable?")

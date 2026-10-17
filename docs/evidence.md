@@ -301,6 +301,8 @@ Written on 2026-10-17, before any spike run. The rule doesn't change after the r
 
 **On a go.** The rule is applied, the saved towns are rebuilt on production one at a time (Boise included, its latest pointer moving), and the bill says how many of the town's rooms it draws from.
 
+**Results, 2026-10-17: no-go.** Offline on the app's Qloo cache: 0 uncached calls, and reassembling each saved build by today's rule gave back its saved bill exactly, in all four towns. The spread rule raised the rooms per bill in 0 of the 4 towns (Boise 2 to 2, Austin 1 to 1, Denver 2 to 2, Nashville 1 to 1), against a bar of 3. Every town still filled both bands, and band mean affinity moved by at most 0.2%. Why: in Austin and Nashville, only one room lifts any act past the bar in either band (2 of the 5 room-and-band runs lift anything, both the same room's); in Boise and Denver, every room that lifts an act already has one on the bill. A rule that chooses among acts that already pass the bar can't add rooms that lift none. Not shipped; the code is kept out of the repository.
+
 ## What these numbers don't establish
 
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
