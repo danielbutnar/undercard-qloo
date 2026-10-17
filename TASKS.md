@@ -60,6 +60,13 @@ Copied from SPEC.md section 6, M6b. Closes: Technological Implementation and Pot
 - [x] Results in docs/evidence.md section 5: every run filled both bands (5 of 5, 3 of 3, 3 of 3, 3 of 3); Boise, Denver and Nashville gave the same ten acts every run, Austin 8 to 10 in common
 - [x] Found: running towns in parallel, or the agent's own parallel calls, can meet Qloo's rate limit (HTTP 429); the agent then tests fewer rooms. Recorded in section 5
 
+# TASKS: M6c Local strength (no-go)
+
+Copied from SPEC.md section 6, M6c. Closes: Quality of the Idea, Potential Impact and Technological Implementation. Freeze: 2026-10-22. Done means: a spike's go or no-go in docs/evidence.md.
+
+- [x] Spike (scripts/local-strength-spike.ts, 28 calls): the heatmap by map cell gives a Boise affinity rank for 7 of the 10 acts on the bill; the heatmap by locality and popularity filtered by location give none
+- [x] No-go recorded in docs/evidence.md section 6: under the bar of 8 of 10, so nothing is added to the card and nothing is claimed
+
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
 ## Before judging starts (2026-11-02)
