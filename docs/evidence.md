@@ -319,6 +319,25 @@ Written on 2026-10-18, before any of these pairs was scored. The rule doesn't ch
 
 **Results, 2026-10-18: go.** Ten calls, one at a time, no retries; the pairs file's hash was unchanged. All 5 same-crowd pairs scored above every different-crowd pair (bar: 4 of 5). Same-crowd pairs scored 0.NN to 0.NN; different-crowd pairs 0.NN to 0.883. On these ten pairs the score agrees with a booker-style judgement of a shared crowd; that judgement was Claude's, so a working buyer's pairs would be the stronger test. It still isn't a count of shared ticket buyers, so the running order says how close two acts' fans' tastes are, ranked within the lineup, and keeps the raw score in the trace.
 
+## 18. Premise test on real festivals (M8d), written before the measurement
+
+Written on 2026-10-18, before any of these calls. The rule doesn't change after the results are in.
+
+**The question.** Do the acts real buyers booked show more lift from their own town's venues than band-matched random acts do?
+
+**The festivals.** Ten real festivals in towns where Undercard has a saved build, each with the lineup of one edition as published: Treefort Music Fest 2026 (Boise; the festival's lineup page, Wayback capture of 17 April 2026, 562 names), Levitation 2025 (Austin), Live on the Green 2022 (Nashville), Lollapalooza Chicago 2025, Rock the Garden 2022 (Minneapolis), Sled Island 2026 (Calgary), Pop Montreal 2024, Le Guess Who? 2014 (Utrecht; the latest year the article lists), Pitchfork Music Festival Paris 2025, and Electric Castle 2026 (Bonțida, 30 km from Cluj-Napoca). The nine non-Treefort lineups are the acts named in each edition's section of its English Wikipedia article, read 2026-10-18. Wikipedia names only some acts for most editions, and the better-known ones, so these are partial lineups.
+
+**The venues.** Each town's venues are the anchor venues of its saved Undercard build (the venues whose fans lifted its acts), fixed before this measurement.
+
+**The acts.**
+- Headliners: the first two names in the edition's list that Qloo's search resolves to an artist.
+- Booked acts: the names after them that Qloo's search resolves to an artist (the same name, after the Treefort check's normalising) with popularity inside one of the demo's bands (Mid 80th–92nd percentile, Opener 55th–80th), in list order, at most 12, from at most 40 searches per festival.
+- Random acts: for each band, as many as that band has booked acts, drawn with a fixed seed from Qloo's top 100 artists in that band's popularity range for the festival's own headliners, leaving out every name on the lineup. They're matched on band and on the headliners' taste, so the test asks what the town's venues add beyond the headliners.
+
+**The measure.** For every booked and random act, Qloo's affinity with the headliners as the signal, and again with the headliners plus each venue, each call limited to these acts (filter.results.entities). An act's lift is its largest gain in affinity from any one venue. A festival supports the premise when its booked acts' mean lift is higher than its random acts' mean lift. A festival with fewer than 2 booked acts in the bands counts as not supporting it.
+
+**The bar.** The premise is supported if at least 8 of the 10 festivals support it (a one-sided sign test: 8 or more of 10 happens by chance about 5.5% of the time). Otherwise it isn't, and the result is reported either way. Counts and lifts only in this file; names stay in .design/.
+
 ## What these numbers don't establish
 
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
