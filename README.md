@@ -192,6 +192,14 @@ A build needs a Qloo hackathon key and an Anthropic key; Upstash is optional (wi
 Qloo responses, saved builds and rate limits live in process memory). Copy `.env.example` to
 `.env.local` and fill in your own keys; never commit `.env.local`.
 
+`scripts/pilot.ts` drafts a bill for a buyer's own brief, offline: their town, two headliners
+and band sizes. It runs the agent without saving a build and writes a one-page draft (the bill,
+each act's room and lift, and the calls) to `.design/pilots/<town>.md`, which is gitignored:
+
+```bash
+node --experimental-transform-types --import ./scripts/register-ts.mjs scripts/pilot.ts --city Boise --region Idaho --headliner Khruangbin --headliner "Japanese Breakfast" --mid 4 --opener 6
+```
+
 `pnpm seed` writes the demo festival, Sagebrush Sound, with 30 days of synthetic presale
 to `seed/sagebrush-sound.json`, the file the app loads. It uses a fixed random seed, so every
 run writes the same bytes.

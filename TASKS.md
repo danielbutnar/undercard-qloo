@@ -42,6 +42,14 @@ Copied from SPEC.md section 6, M5. Done means: the video is rendered within the 
 - [x] Gallery stills and captions in .design/submission/ (3:2, 2400x1600)
 - [x] Contradiction check (a high-effort Claude subagent): 6 confirmed and 3 plausible findings; 8 fixed, 1 (the replay still) not a problem for the video, whose replay frames stream every call. pnpm gate, CI run 39035999543 on 07e8494 and the live e2e (31 passed, LCP 712 ms) pass
 
+# TASKS: M6a Pilot runner
+
+Copied from SPEC.md section 6, M6a. Closes: Potential Impact. Freeze: 2026-10-19. Done means: a script takes a town, two headliners and band sizes, runs the agent offline without saving a build, and writes a one-page draft to .design/pilots/<town>.md; the Boise page has been checked.
+
+- [x] src/lib/pilot.ts: the brief (the demo's crowd and fee ranges, the buyer's town, headliners and slots) and the one-page draft: the brief, the bill with each act's room and lift, open slots, the rooms tested with what each lifted, and the calls in call order with the planner's lines; no entity ids or scores (tests/unit/m6a)
+- [x] scripts/pilot.ts: runs the agent offline with a memory cache, saves no build, writes .design/pilots/<town>.md and prints counts only
+- [x] Boise checked: 12 Qloo calls, Mid 4 of 4, Opener 6 of 6; the page reads as one page
+
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
 ## Before judging starts (2026-11-02)
