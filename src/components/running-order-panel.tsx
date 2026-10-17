@@ -1,6 +1,5 @@
 "use client";
 
-import { formatAffinity } from "@/lib/format";
 import type { RunningSlot } from "@/lib/running-order";
 
 const ORDINAL = [
@@ -13,6 +12,22 @@ const ORDINAL = [
   "Seventh",
   "Eighth",
 ];
+/** 1 -> "closest" reads as "1st closest"; plain ordinals for the rank. */
+function ordinalOf(n: number): string {
+  const tens = n % 100;
+  const suffix =
+    tens >= 11 && tens <= 13
+      ? "th"
+      : n % 10 === 1
+        ? "st"
+        : n % 10 === 2
+          ? "nd"
+          : n % 10 === 3
+            ? "rd"
+            : "th";
+  return `${n}${suffix}`;
+}
+
 const PLAIN_BAND = { mid: "Mid-size acts", opener: "Opening acts" } as const;
 
 /**
@@ -46,8 +61,9 @@ export function RunningOrderPanel({
       </div>
       <p className="text-label text-muted">
         Two stages, opening acts first. The two acts on at the same time are the
-        pairing whose fans overlap least in Qloo&apos;s data, so few people have
-        to choose between them.
+        pair whose fans&apos; tastes are least alike in Qloo&apos;s data (how
+        much fans of one act also like the other). It&apos;s a measure of taste,
+        not a count of shared ticket buyers.
       </p>
       <ol className="flex flex-col divide-y divide-muted/50">
         {slots.map((slot, index) => (
@@ -67,9 +83,9 @@ export function RunningOrderPanel({
                 </p>
                 <p className="text-label text-accent">
                   {slot.main.name} plays against {slot.second.name}
-                  {slot.shared !== null
-                    ? `: their fans overlap ${formatAffinity(slot.shared)} (Qloo affinity)`
-                    : ": Qloo gave no overlap for this pair"}
+                  {slot.rank !== null && slot.pairs > 0
+                    ? `: their fans' tastes are the ${ordinalOf(slot.rank)} closest of ${slot.pairs} pairs on this lineup`
+                    : ": Qloo gave no score for this pair"}
                 </p>
               </>
             ) : (

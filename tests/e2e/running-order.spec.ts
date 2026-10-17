@@ -20,7 +20,11 @@ test("the running order puts two acts on at a time, each set saying who plays ag
       const { acts } = route.request().postDataJSON() as {
         acts: Parameters<typeof planRunningOrder>[0];
       };
-      const slots = planRunningOrder(acts, () => 0.85, SAGEBRUSH_SOUND.feeBands);
+      const slots = planRunningOrder(
+        acts,
+        () => 0.85,
+        SAGEBRUSH_SOUND.feeBands,
+      );
       await route.fulfill({
         status: 200,
         contentType: NDJSON,
@@ -31,7 +35,8 @@ test("the running order puts two acts on at a time, each set saying who plays ag
               n: 1,
               tool: "running_order",
               endpoint: "/v2/insights",
-              summary: "Running order: how much the first act's fans like the other Opener acts",
+              summary:
+                "Running order: how much the first act's fans like the other Opener acts",
               params: [],
               resultCount: 5,
               ms: 300,
@@ -54,7 +59,9 @@ test("the running order puts two acts on at a time, each set saying who plays ag
   await expect(sets).toHaveCount(5);
   for (const set of await sets.all()) {
     await expect(set).toContainText("Main stage:");
-    await expect(set).toContainText(/plays against .+: their fans overlap \d\.\d\d/);
+    await expect(set).toContainText(
+      /plays against .+: their fans' tastes are the \d+(st|nd|rd|th) closest of \d+ pairs on this lineup/,
+    );
   }
   await expect(sets.first()).toContainText("Opening acts");
   await expect(sets.last()).toContainText("Mid-size acts");

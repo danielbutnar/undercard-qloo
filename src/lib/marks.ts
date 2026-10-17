@@ -87,14 +87,14 @@ export function markKey(
     );
     if (others.some((other) => other?.kind === "new"))
       lines.push(
-        `new: not in that ${theTop(top)} until a room's crowd was added.`,
+        `new: not in that ${theTop(top)} until a venue's fans were added.`,
       );
   } else if (lift?.kind === "new") {
     lines.push(
       `${RANKING}; adding ${room} brings this act in from outside the ${theTop(top)}.`,
     );
     if (others.some((other) => other?.kind === "up"))
-      lines.push("+ and a number: the places a room's crowd lifts an act.");
+      lines.push("+ and a number: the places a venue's fans lift an act.");
   }
   lines.push(QLOO);
   return { example: markText(first), lines };

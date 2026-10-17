@@ -82,7 +82,7 @@ test.describe("Your festival", () => {
     });
     // No Without Qloo and no town switcher on a judge's own draft.
     await expect(
-      page.getByRole("button", { name: "Without Qloo: the model's picks" }),
+      page.getByRole("button", { name: "Without Qloo: an AI model's picks alone" }),
     ).toHaveCount(0);
     await expect(
       page.getByRole("navigation", { name: "Same brief, other towns" }),

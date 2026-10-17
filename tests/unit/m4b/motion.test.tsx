@@ -46,7 +46,7 @@ const bill = () => screen.getByRole("region", { name: "Undercard draft" });
 const acts = () => within(bill()).queryAllByRole("article");
 const lantern = () =>
   within(
-    screen.getByRole("region", { name: "Boise venue crowds behind this bill" }),
+    screen.getByRole("region", { name: "Boise venues whose fans shaped this lineup" }),
   )
     .getAllByRole("listitem")
     .find((item) => item.textContent?.startsWith("The Lantern Room"))!;

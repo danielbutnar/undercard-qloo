@@ -70,10 +70,10 @@ try {
   await shot("gallery-4-refill");
 
   await page
-    .getByRole("button", { name: "Without Qloo: the model's picks" })
+    .getByRole("button", { name: "Without Qloo: an AI model's picks alone" })
     .click();
   await page
-    .getByRole("region", { name: "Without Qloo: the model's picks" })
+    .getByRole("region", { name: "Without Qloo: an AI model's picks alone" })
     .getByRole("article")
     .first()
     .waitFor({ timeout: 60_000 });

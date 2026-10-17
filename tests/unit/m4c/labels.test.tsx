@@ -24,12 +24,12 @@ describe("the fee band", () => {
     bill();
     expect(
       screen.getByText(
-        "4 slots · fee band (Mid): Qloo popularity percentiles 80th–92nd",
+        "4 slots · fee range (Mid): acts at Qloo's 80th–92nd popularity percentile, standing in for their fee",
       ),
     ).toBeTruthy();
     expect(
       screen.getByText(
-        "6 slots · fee band (Opener): Qloo popularity percentiles 55th–80th",
+        "6 slots · fee range (Opener): acts at Qloo's 55th–80th popularity percentile, standing in for their fee",
       ),
     ).toBeTruthy();
     expect(screen.queryByText(/set by Qloo/)).toBeNull();
@@ -56,7 +56,7 @@ describe("the mark", () => {
       reason: "The Lantern Room fans move it into the top 8.",
     };
     expect(markKey(fresh, { acts: [fresh, acts[1]] }).lines).toContain(
-      "+ and a number: the places a room's crowd lifts an act.",
+      "+ and a number: the places a venue's fans lift an act.",
     );
   });
 });

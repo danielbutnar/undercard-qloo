@@ -84,16 +84,22 @@ export async function handleRunningOrder({
             seedId: seed.entityId,
             amongIds: among.map((act) => act.entityId),
           });
+          const raw: string[] = [];
           for (const entity of result.data)
-            if (entity.affinity !== null && names.has(entity.entityId))
+            if (entity.affinity !== null && names.has(entity.entityId)) {
               scores.set(key(seed.entityId, entity.entityId), entity.affinity);
+              raw.push(
+                `${names.get(entity.entityId)} ${entity.affinity.toFixed(3)}`,
+              );
+            }
           emit({
             type: "call",
             call: {
               n,
               tool: "running_order",
               endpoint: result.call.path,
-              summary,
+              // The raw Qloo affinities stay in the trace; the panel shows ranks (M6r).
+              summary: raw.length ? `${summary} · ${raw.join(", ")}` : summary,
               params: result.call.params.map(([param, value]) => ({
                 key: param,
                 value: value

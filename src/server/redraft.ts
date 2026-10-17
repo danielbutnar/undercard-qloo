@@ -203,8 +203,8 @@ export async function handleRedraft({
         type: "error",
         message:
           pairs.length === 0
-            ? `No other act that a ${festival.city} room lifts is left for these slots; they keep their acts.`
-            : `${left} ${left === 1 ? "slot keeps its act" : "slots keep their acts"}: no other act that a ${festival.city} room lifts was left for ${left === 1 ? "it" : "them"}.`,
+            ? `No other act that a ${festival.city} venue lifts is left for these slots; they keep their acts.`
+            : `${left} ${left === 1 ? "slot keeps its act" : "slots keep their acts"}: no other act that a ${festival.city} venue lifts was left for ${left === 1 ? "it" : "them"}.`,
       });
     emit({ type: "done", calls, ms: Date.now() - started });
   });

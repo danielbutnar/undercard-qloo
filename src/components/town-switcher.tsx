@@ -21,7 +21,7 @@ export function TownSwitcher({
     >
       <h2 className="text-body font-bold">Same brief, other towns</h2>
       <p className="text-label text-muted">
-        The same headliners and fee bands, with each town&apos;s own rooms
+        The same headliners and fee ranges, with each town&apos;s own venues
         drafting the undercard.
       </p>
       <ul className="flex flex-wrap gap-x-4 gap-y-1">

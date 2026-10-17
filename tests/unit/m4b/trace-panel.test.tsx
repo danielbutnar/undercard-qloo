@@ -23,7 +23,7 @@ describe("the trace behind Watch how it picked these acts", () => {
     render(<TracePanel state={saved} savedCalls={12} onBuild={vi.fn()} />);
     expect(
       screen.getByText(
-        "Replays the saved build: 12 Qloo calls, then the bill reprints.",
+        "Replays the saved build: 12 Qloo calls, then the lineup reprints.",
       ),
     ).toBeTruthy();
     expect(screen.queryByRole("list", { name: "Qloo calls" })).toBeNull();
@@ -91,7 +91,7 @@ describe("the trace behind Watch how it picked these acts", () => {
     );
     expect(
       screen.getByText(
-        "Replays the saved build: 12 Qloo calls, then the bill reprints.",
+        "Replays the saved build: 12 Qloo calls, then the lineup reprints.",
       ),
     ).toBeTruthy();
     expect(screen.getByText("1 refill call")).toBeTruthy();
@@ -108,7 +108,7 @@ describe("the trace behind Watch how it picked these acts", () => {
     expect(
       screen.getByRole("button", { name: "Build undercard" }),
     ).toBeTruthy();
-    expect(screen.getByText(/^Every Qloo call the agent makes/)).toBeTruthy();
+    expect(screen.getByText(/^Every Qloo call the AI agent makes/)).toBeTruthy();
     expect(
       screen.queryByRole("button", { name: "Run the agent live instead" }),
     ).toBeNull();

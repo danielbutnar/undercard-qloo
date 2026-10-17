@@ -95,17 +95,17 @@ export function diagnoseRun(
   if (venues && places === 0)
     return {
       code: "town-not-found",
-      message: `Qloo found no live-music places in ${city}, so there were no rooms to read.`,
+      message: `Qloo found no live-music places in ${city}, so there were no venues to read.`,
     };
   if (!venues || places < MIN_PLACES || !tested) {
     return {
       code: "too-few-rooms",
-      message: `Qloo lists only ${places} live-music ${places === 1 ? "place" : "places"} in ${city}, too few for the agent to compare rooms.`,
+      message: `Qloo lists only ${places} live-music ${places === 1 ? "place" : "places"} in ${city}, too few for the AI agent to compare venues.`,
     };
   }
   return {
     code: "not-full",
-    message: `The ${city} rooms the agent tested lifted too few acts to fill every slot; the open slots are marked.`,
+    message: `The ${city} venues the AI agent tested lifted too few acts to fill every slot; the open slots are marked.`,
   };
 }
 

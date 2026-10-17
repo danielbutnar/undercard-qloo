@@ -27,7 +27,7 @@ const never = () => new Promise<void>(() => {});
 
 async function liftedTotal(page: Page): Promise<number> {
   const rail = page.getByRole("region", {
-    name: "Boise venue crowds behind this bill",
+    name: "Boise venues whose fans shaped this lineup",
   });
   const text = (await rail.getByRole("list").textContent()) ?? "";
   return [...text.matchAll(/(\d+) (?:acts? lifted|lifted none)/g)].reduce(
@@ -127,10 +127,10 @@ const SCENES: {
     viewports: [WIDE, VIDEO, MOBILE],
     prepare: async (page) => {
       await page
-        .getByRole("button", { name: "Without Qloo: the model's picks" })
+        .getByRole("button", { name: "Without Qloo: an AI model's picks alone" })
         .click();
       await page
-        .getByRole("region", { name: "Without Qloo: the model's picks" })
+        .getByRole("region", { name: "Without Qloo: an AI model's picks alone" })
         .getByRole("article")
         .first()
         .waitFor();
@@ -143,7 +143,7 @@ const SCENES: {
     prepare: async (page) => {
       await page.route("**/api/llm-only", never);
       await page
-        .getByRole("button", { name: "Without Qloo: the model's picks" })
+        .getByRole("button", { name: "Without Qloo: an AI model's picks alone" })
         .click();
       await page.getByText("Asking the model, without Qloo…").waitFor();
     },
@@ -159,7 +159,7 @@ const SCENES: {
         }),
       );
       await page
-        .getByRole("button", { name: "Without Qloo: the model's picks" })
+        .getByRole("button", { name: "Without Qloo: an AI model's picks alone" })
         .click();
       await page.getByRole("button", { name: "Try again" }).waitFor();
     },

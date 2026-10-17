@@ -17,7 +17,7 @@ describe("the venues behind the bill", () => {
     );
     expect(
       screen.getByRole("region", {
-        name: "Boise venue crowds behind this bill",
+        name: "Boise venues whose fans shaped this lineup",
       }),
     ).toBeTruthy();
   });

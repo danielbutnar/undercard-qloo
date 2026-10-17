@@ -230,6 +230,6 @@ describe("Running order on the bill", () => {
     expect(sets).toHaveLength(5);
     expect(sets[0].textContent).toContain(slots[0].main.name);
     expect(sets[0].textContent).toContain(slots[0].second!.name);
-    expect(sets[0].textContent).toMatch(/0\.83/);
+    expect(sets[0].textContent).toMatch(/closest of \d+ pairs on this lineup/);
   });
 });

@@ -96,7 +96,7 @@ describe("the key beside the first mark", () => {
       /new/,
     );
     expect(markKey(up, { acts: [up, fresh], top: 50 }).lines).toContain(
-      "new: not in that top 50 until a room's crowd was added.",
+      "new: not in that top 50 until a venue's fans were added.",
     );
   });
 
@@ -107,7 +107,7 @@ describe("the key beside the first mark", () => {
       /^Qloo ranks artists for the headliners' fans; adding the crowd at The Lantern Room, a local venue, brings this act in from outside the top 50\.$/,
     );
     expect(key.lines).toContain(
-      "+ and a number: the places a room's crowd lifts an act.",
+      "+ and a number: the places a venue's fans lift an act.",
     );
   });
 
@@ -119,7 +119,7 @@ describe("the key beside the first mark", () => {
 
   it("leaves out the ranking's size when the build doesn't record it", () => {
     expect(markKey(up, { acts: [up, fresh] }).lines).toContain(
-      "new: not in that ranking until a room's crowd was added.",
+      "new: not in that ranking until a venue's fans were added.",
     );
   });
 });

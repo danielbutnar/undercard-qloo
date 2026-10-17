@@ -18,7 +18,7 @@ const band = (page: Page, name: RegExp) =>
 const traceRows = (page: Page) =>
   page.getByRole("list", { name: "Qloo calls" }).locator(":scope > li");
 const rooms = (page: Page) =>
-  page.getByRole("region", { name: "Boise venue crowds behind this bill" });
+  page.getByRole("region", { name: "Boise venues whose fans shaped this lineup" });
 // Each act's mark, read out in words (the + and the room's initials are hidden from it).
 const MARK = /crowd: (up \d+ places|new, from outside)/;
 
@@ -60,12 +60,12 @@ test.describe("demo path", () => {
     await expect(band(page, /^Opening acts/).getByRole("article")).toHaveCount(6);
     await expect(
       page.getByText(
-        "4 slots · fee band (Mid): Qloo popularity percentiles 80th–92nd",
+        "4 slots · fee range (Mid): acts at Qloo's 80th–92nd popularity percentile, standing in for their fee",
       ),
     ).toBeVisible();
     await expect(
       page.getByText(
-        "6 slots · fee band (Opener): Qloo popularity percentiles 55th–80th",
+        "6 slots · fee range (Opener): acts at Qloo's 55th–80th popularity percentile, standing in for their fee",
       ),
     ).toBeVisible();
     for (const act of await bill(page).getByRole("article").all()) {
@@ -91,7 +91,7 @@ test.describe("demo path", () => {
     await expect(page.locator('input[type="password"]')).toHaveCount(0);
   });
 
-  test("step 2: Watch how it picked these acts streams every Qloo call, then the bill reprints", async ({
+  test("step 2: Watch how it picked these acts streams every Qloo call, then the lineup reprints", async ({
     page,
   }) => {
     await page.goto("/");
@@ -231,23 +231,23 @@ test.describe("demo path", () => {
     await page.goto("/");
 
     await page
-      .getByRole("button", { name: "Without Qloo: the model's picks" })
+      .getByRole("button", { name: "Without Qloo: an AI model's picks alone" })
       .click();
     const model = page.getByRole("region", {
-      name: "Without Qloo: the model's picks",
+      name: "Without Qloo: an AI model's picks alone",
     });
     await expect(model.getByText("No Qloo data")).toBeVisible();
     const picks = model.getByRole("article");
     await expect(picks.first()).toBeVisible({ timeout: 60_000 });
     for (const pick of await picks.all()) {
-      await expect(pick).toContainText("No Boise room · fee band not checked");
+      await expect(pick).toContainText("No Boise venue · fee range not checked");
       await expect(pick).not.toContainText(/affinity/);
     }
     await expect(page.locator("main")).not.toContainText(/\d+\s*\/\s*\d+/);
     await expect(bill(page)).toHaveCount(0);
 
     await page
-      .getByRole("button", { name: "With Qloo: the agent's bill" })
+      .getByRole("button", { name: "With Qloo: the AI agent's lineup" })
       .click();
     await expect(band(page, /^Mid/).getByRole("article")).toHaveCount(4);
 

@@ -18,8 +18,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const WITH = "With Qloo: the agent's bill";
-const WITHOUT = "Without Qloo: the model's picks";
+const WITH = "With Qloo: the AI agent's lineup";
+const WITHOUT = "Without Qloo: an AI model's picks alone";
 const { lineup } = syntheticLlmOnly();
 
 function open(answer: () => Promise<Response>) {
@@ -33,7 +33,7 @@ const answered = () =>
 const flip = (name: string) =>
   fireEvent.click(screen.getByRole("button", { name }));
 const modelBill = () =>
-  screen.findByRole("region", { name: "Without Qloo: the model's picks" });
+  screen.findByRole("region", { name: "Without Qloo: an AI model's picks alone" });
 
 describe("the switch", () => {
   it("says what each side shows", () => {
@@ -81,7 +81,7 @@ describe("Without Qloo", () => {
     for (const [index, pick] of picks.entries()) {
       expect(within(pick).getByText(lineup.picks[index].note)).toBeTruthy();
       expect(
-        within(pick).getByText("No Boise room · fee band not checked"),
+        within(pick).getByText("No Boise venue · fee range not checked"),
       ).toBeTruthy();
     }
   });
@@ -102,7 +102,7 @@ describe("Without Qloo", () => {
     const note = screen.getByRole("complementary", { name: "The model alone" });
     expect(note.textContent).toMatch(/Claude Sonnet 5\.5 with no tools/);
     expect(
-      screen.queryByRole("region", { name: "Boise venue crowds behind this bill" }),
+      screen.queryByRole("region", { name: "Boise venues whose fans shaped this lineup" }),
     ).toBeNull();
     expect(
       screen.queryByRole("button", { name: "Watch how it picked these acts" }),

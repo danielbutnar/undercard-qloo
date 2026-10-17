@@ -36,13 +36,13 @@ export function RoomsRail({
       className={`flex flex-col border-2 border-rule bg-surface ${compact ? "gap-1 p-3" : "gap-2 p-4"}`}
     >
       <h2 id="rooms-title" className="text-body font-bold">
-        {city} venue crowds behind this bill
+        {city} venues whose fans shaped this lineup
       </h2>
       {!compact && (
         <p className="text-label text-muted">
           {placesListed !== null
-            ? `Qloo listed ${placesListed} ${city} live-music places; the agent tested ${tested} of their crowds against the headliners' fans.`
-            : `The agent tested ${tested} ${city} rooms' crowds against the headliners' fans.`}{" "}
+            ? `Qloo listed ${placesListed} ${city} live-music places; the AI agent compared the fans of ${tested} of them with the headliners' fans.`
+            : `The AI agent compared the fans of ${tested} ${city} venues with the headliners' fans.`}{" "}
           These venues stand for the town&apos;s taste: the acts won&apos;t
           necessarily play there.
         </p>

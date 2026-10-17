@@ -34,7 +34,7 @@ test.describe("the same brief in other towns", () => {
     ).toHaveText(["Khruangbin", "Japanese Breakfast"]);
     await expect(
       page.getByRole("heading", {
-        name: `${city} venue crowds behind this bill`,
+        name: `${city} venues whose fans shaped this lineup`,
       }),
     ).toBeVisible();
     const bill = page.getByRole("region", { name: "Undercard draft" });

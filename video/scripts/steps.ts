@@ -52,13 +52,13 @@ export const steps: Step[] = [
   {
     id: "without",
     target: (page) =>
-      page.getByRole("button", { name: "Without Qloo: the model's picks" }),
+      page.getByRole("button", { name: "Without Qloo: an AI model's picks alone" }),
     until: (page) =>
       page
-        .getByRole("region", { name: "Without Qloo: the model's picks" })
+        .getByRole("region", { name: "Without Qloo: an AI model's picks alone" })
         .getByRole("article")
         .first(),
     focus: (page) =>
-      page.getByRole("region", { name: "Without Qloo: the model's picks" }),
+      page.getByRole("region", { name: "Without Qloo: an AI model's picks alone" }),
   },
 ];

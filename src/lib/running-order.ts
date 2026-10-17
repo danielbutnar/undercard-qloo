@@ -18,8 +18,15 @@ export const RunningSlotSchema = z.object({
   main: OrderActSchema,
   /** Who plays against it on the second stage; null when the band has an odd act out. */
   second: OrderActSchema.nullable(),
-  /** How much the two share an audience: Qloo affinity, 0 to 1; null when Qloo gave none. */
+  /**
+   * How close the two acts' fans' tastes are: Qloo affinity (how much fans of one act also like
+   * the other), 0 to 1; null when Qloo gave none. Not a count of shared ticket buyers.
+   */
   shared: z.number().nullable(),
+  /** The pair's place among the lineup's scored pairs, 1 for the closest (M6r). */
+  rank: z.number().int().positive().nullable().default(null),
+  /** How many pairs on the lineup were scored. */
+  pairs: z.number().int().nonnegative().default(0),
 });
 
 export type RunningSlot = z.infer<typeof RunningSlotSchema>;
@@ -57,6 +64,18 @@ export function planRunningOrder(
   const order: FeeBandId[] = [...bands]
     .sort((a, b) => a.minPopularity - b.minPopularity)
     .map((band) => band.id);
+  // Every scored pair in a band, so each clash can be ranked within the lineup (M6r).
+  const scored: number[] = [];
+  for (const band of order) {
+    const inBand = acts.filter((act) => act.band === band);
+    for (let i = 0; i < inBand.length; i++)
+      for (let j = i + 1; j < inBand.length; j++) {
+        const score = shared(inBand[i].entityId, inBand[j].entityId);
+        if (score !== null) scored.push(score);
+      }
+  }
+  const rankOf = (score: number | null) =>
+    score === null ? null : 1 + scored.filter((other) => other > score).length;
   const slots: RunningSlot[] = [];
   for (const band of order) {
     const inBand = acts.filter((act) => act.band === band);
@@ -80,11 +99,14 @@ export function planRunningOrder(
         name,
         popularity,
       });
+      const score = second ? shared(main.entityId, second.entityId) : null;
       slots.push({
         band,
         main: pick(main),
         second: second ? pick(second) : null,
-        shared: second ? shared(main.entityId, second.entityId) : null,
+        shared: score,
+        rank: rankOf(score),
+        pairs: scored.length,
       });
     }
   }

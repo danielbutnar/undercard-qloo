@@ -215,7 +215,7 @@ Copied from SPEC.md section 6, M8a. Freeze: 2026-10-21. Done means: a spike's go
 - [x] Spike: 180 of 180 pairs scored in 10 calls per bill; pairs sharing 2+ genre tags 0.NN, none 0.NN: go
 - [x] src/lib/running-order.ts: per band, the pairing whose clashes share least; bigger draw on the main stage; openers first (tests/unit/m8a)
 - [x] POST /api/running-order: one call per act but the last in each band, limited to the acts after it (8 calls for 4 + 6), limited per IP and per day; calls in the trace
-- [x] Running order button on the bill; the panel says, set by set, who plays against whom and how much their fans overlap
+- [x] Running order button on the bill; the panel says, set by set, who plays against whom and how close their fans' tastes are (wording corrected in M6r: ranked within the lineup, not a ticket overlap)
 - [x] e2e on the live demo: five sets, each naming its clash, at most 10 calls
 
 # TASKS: M8c Keep and redraft
@@ -248,7 +248,7 @@ Moved 2026-10-18: the video and the gallery stills are re-shot on 26-27 October,
 
 - [ ] Shipped in M6q: the plain first line and the calmer bill; re-shoot every still and re-capture the video, whose narration and captions name "Watch the agent build it"
 
-- [ ] Shipped in M8a: Running order on the bill (two stages, clashes that share least); the story, a still and a capture step
+- [ ] Shipped in M8a: Running order on the bill (two stages, clashes whose fans' tastes are least alike, ranked within the lineup); the story, a still and a capture step
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 

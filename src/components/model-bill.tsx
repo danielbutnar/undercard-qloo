@@ -17,7 +17,7 @@ function Pick({ pick, city }: { pick: LlmOnlyPick; city: string }) {
       </h3>
       <p className="text-label">{pick.note}</p>
       <p className="text-label text-muted">
-        No {city} room · fee band not checked
+        No {city} venue · fee range not checked
       </p>
     </article>
   );
@@ -38,7 +38,7 @@ export function ModelBill({
   onRetry: () => void;
 }) {
   return (
-    <section aria-label="Without Qloo: the model's picks" className={SHEET}>
+    <section aria-label="Without Qloo: an AI model's picks alone" className={SHEET}>
       <BillHeader festival={festival} stamp="No Qloo data">
         Headliners booked. The same brief, answered by the model alone.
       </BillHeader>
@@ -54,7 +54,7 @@ export function ModelBill({
             The model&apos;s picks
           </h2>
           <p className="text-label text-muted">
-            no popularity data, so no fee band check
+            no popularity data, so no fee range check
           </p>
         </div>
         {state.status === "loading" && (

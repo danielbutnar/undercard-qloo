@@ -184,8 +184,8 @@ export function TracePanel({
           <div className="flex flex-col items-start gap-1">
             <p className="text-label">
               {savedCalls
-                ? `Replays the saved build: ${savedCalls} Qloo calls, then the bill reprints.`
-                : "Replays the saved build call by call, then the bill reprints."}
+                ? `Replays the saved build: ${savedCalls} Qloo calls, then the lineup reprints.`
+                : "Replays the saved build call by call, then the lineup reprints."}
             </p>
             {!state.refusal && (
               <button
@@ -210,8 +210,8 @@ export function TracePanel({
         )}
         {state.status === "idle" && !state.build && (
           <p className="text-label text-muted">
-            Every Qloo call the agent makes will list here, with its parameters
-            and result count.
+            Every Qloo call the AI agent makes will list here, with its
+            parameters and result count.
           </p>
         )}
         {building && (
@@ -246,7 +246,7 @@ export function TracePanel({
         )}
         {refillingName && (
           <p aria-live="polite" className="text-label">
-            Finding a replacement for {refillingName} in the same fee band…
+            Finding a replacement for {refillingName} in the same fee range…
           </p>
         )}
         {state.ordering && (

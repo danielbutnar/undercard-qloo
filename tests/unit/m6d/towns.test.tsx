@@ -99,7 +99,7 @@ describe("a town's screen", () => {
     render(<FestivalScreen festival={austin} firstBill={{ ...FIRST_BILL }} />);
     expect(
       screen.getByRole("heading", {
-        name: "Austin venue crowds behind this bill",
+        name: "Austin venues whose fans shaped this lineup",
       }),
     ).toBeTruthy();
     const bill = screen.getByRole("region", { name: "Undercard draft" });

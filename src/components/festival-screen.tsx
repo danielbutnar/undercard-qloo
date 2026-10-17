@@ -71,8 +71,8 @@ function ModeSwitch({
 }) {
   // Each side says what it shows (label fix 3).
   const options: { value: Mode; label: string }[] = [
-    { value: "qloo", label: "With Qloo: the agent's bill" },
-    { value: "llm", label: "Without Qloo: the model's picks" },
+    { value: "qloo", label: "With Qloo: the AI agent's lineup" },
+    { value: "llm", label: "Without Qloo: an AI model's picks alone" },
   ];
   return (
     <div
@@ -104,13 +104,13 @@ function LlmOnlyNote({ city }: { city: string }) {
       <h2 className="text-body font-bold">The model alone</h2>
       <p className="text-label">
         The same brief went to Claude Sonnet 5.5 with no tools: the festival,
-        its city, capacity and crowd, the headliners and the fee bands. It
+        its city, capacity and crowd, the headliners and the fee ranges. It
         answers from what it already knows, so no pick comes from a {city}
-        room&apos;s crowd, and with no popularity data no fee band can be
+        venue&apos;s fans, and with no popularity data no fee range can be
         checked.
       </p>
       <p className="text-label text-muted">
-        With Qloo brings back the agent&apos;s bill and its {city} rooms.
+        With Qloo brings back the AI agent&apos;s lineup and its {city} venues.
       </p>
     </aside>
   );
@@ -166,7 +166,7 @@ function RunNotice({
                 : code === "town-not-found"
                   ? "Qloo couldn't find this town"
                   : code === "too-few-rooms"
-                    ? "Too few rooms in this town"
+                    ? "Too few venues in this town"
                     : "This draft couldn't be finished"}
       </h2>
       <p className="text-label">{message}</p>
@@ -374,9 +374,11 @@ export function FestivalScreen({
       <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2 border-b-2 border-rule px-4 py-3 lg:px-6">
         <div className="flex max-w-4xl flex-col gap-0.5">
           <p className="text-body">
-            <strong className="font-bold">Undercard</strong> helps a music
-            festival choose the smaller acts that play before the stars, using
-            what the town&apos;s own music fans already like.
+            <strong className="font-bold">Undercard</strong> is an AI agent that
+            helps a music festival choose the smaller acts that play before the
+            stars, using what the town&apos;s own music fans already like, read
+            from Qloo, a taste-data service that maps what fans of one artist,
+            venue or film also like.
           </p>
           <p className="text-label text-muted">{exampleLine(festival)}</p>
         </div>
@@ -443,8 +445,9 @@ export function FestivalScreen({
                           : "Running order"}
                       </button>
                       <p className="text-label text-muted">
-                        Two stages, acts on at the same time chosen so their
-                        fans overlap least, from up to 10 Qloo calls.
+                        Two stages; the acts on at the same time are the pairs
+                        whose fans&apos; tastes are least alike, from up to 10
+                        Qloo calls.
                       </p>
                     </div>
                     {state.keeping.length > 0 && (
@@ -470,7 +473,7 @@ export function FestivalScreen({
                         <p className="text-label text-muted">
                           Keeps {state.keeping.length}{" "}
                           {state.keeping.length === 1 ? "act" : "acts"} and
-                          refills the other slots from the same rooms, in at
+                          refills the other slots from the same venues, in at
                           most 3 Qloo calls.
                         </p>
                       </div>
@@ -496,8 +499,8 @@ export function FestivalScreen({
                   </button>
                   <p className="text-label text-muted">
                     {state.build
-                      ? "Replays the saved build's Qloo calls; they list under the bill."
-                      : "Runs the agent; its Qloo calls list under the bill."}
+                      ? "Replays the saved build's Qloo calls; they list under the lineup."
+                      : "Runs the AI agent; its Qloo calls list under the lineup."}
                   </p>
                 </div>
               }

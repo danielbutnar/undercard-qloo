@@ -49,7 +49,9 @@ const same = (a: string, b: string) =>
 /** The headliners are still the demo's, in either order. */
 function demoHeadliners({ first, second }: { first: string; second: string }) {
   const [a, b] = SAGEBRUSH_SOUND.headliners;
-  return (same(first, a) && same(second, b)) || (same(first, b) && same(second, a));
+  return (
+    (same(first, a) && same(second, b)) || (same(first, b) && same(second, a))
+  );
 }
 
 /**
@@ -185,9 +187,11 @@ export function YourFestival({
             Your festival
           </h1>
           <p className="text-body">
-            Two booked headliners, then a town. The agent reads that town&apos;s
-            own music rooms through Qloo and drafts the undercard, with
-            Sagebrush Sound&apos;s crowd (aged 25–34) and fee bands.
+            Two booked headliners, then a town. The AI agent reads that
+            town&apos;s own music venues through Qloo, a taste-data service that
+            maps what fans of one artist, venue or film also like, and drafts
+            the undercard, with Sagebrush Sound&apos;s crowd (aged 25–34) and
+            fee ranges.
           </p>
           {fromLink && (
             <p className="text-label font-semibold">
@@ -256,7 +260,7 @@ export function YourFestival({
           <p className="text-label text-muted">
             Your own headliners or town run live: about 15 seconds and up to 12
             Qloo calls, limited to 5 runs a day from your address. Nothing is
-            saved, and Sagebrush Sound&apos;s bill stays as it is.
+            saved, and Sagebrush Sound&apos;s lineup stays as it is.
           </p>
           <Link
             href="/"

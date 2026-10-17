@@ -57,12 +57,12 @@ describe("the draft bill", () => {
     bill();
     expect(
       screen.getByText(
-        "4 slots · fee band (Mid): Qloo popularity percentiles 80th–92nd",
+        "4 slots · fee range (Mid): acts at Qloo's 80th–92nd popularity percentile, standing in for their fee",
       ),
     ).toBeTruthy();
     expect(
       screen.getByText(
-        "6 slots · fee band (Opener): Qloo popularity percentiles 55th–80th",
+        "6 slots · fee range (Opener): acts at Qloo's 55th–80th popularity percentile, standing in for their fee",
       ),
     ).toBeTruthy();
   });
@@ -110,7 +110,7 @@ describe("the draft bill", () => {
       "Qloo ranks artists for the headliners' fans; adding the crowd at The Lantern Room, a Boise venue, lifts this act 11 places.",
     );
     expect(key.textContent).toContain(
-      "new: not in that top 50 until a room's crowd was added.",
+      "new: not in that top 50 until a venue's fans were added.",
     );
     expect(key.textContent).toContain(
       "Qloo: data on what people like, across music, places and more.",
@@ -131,7 +131,7 @@ describe("the draft bill", () => {
     bill();
     expect(
       screen.getByText(
-        /^Drafted by the agent from 12 Qloo calls · saved Oct 15, 14:02 UTC/,
+        /^Drafted by the AI agent from 12 Qloo calls · saved Oct 15, 14:02 UTC/,
       ),
     ).toBeTruthy();
   });

@@ -40,6 +40,15 @@ const badgeOf = (act: Act) => {
   return lift?.kind === "up" ? `+${lift.places}` : lift ? "new" : "";
 };
 
+/** What the badge counts, in words beside it (M6r): never a bare +N. */
+const badgeWords = (act: Act, top?: number) => {
+  const lift = liftOf(act);
+  if (!lift) return "";
+  return lift.kind === "up"
+    ? "places higher in Qloo's ranking"
+    : `to Qloo's top ${top ?? lift.top}`;
+};
+
 /**
  * The club whose fans like the act, in plain words (M6q), then the places its crowd lifted the
  * act in Qloo's ranking, in the blue Qloo ink.
@@ -47,18 +56,18 @@ const badgeOf = (act: Act) => {
 function Mark({ act, top }: { act: Act; top?: number }) {
   const lift = liftOf(act);
   return (
-    <p className="flex flex-wrap items-baseline justify-center gap-x-1.5 text-label">
-      <span aria-hidden>{act.anchorVenue.name} fans like it</span>
+    <div className="flex flex-col items-center text-label">
+      <p aria-hidden>{act.anchorVenue.name} fans like it</p>
       {lift && (
-        <span
-          aria-hidden
-          className="rounded-sm border border-accent px-1 font-semibold text-accent"
-        >
-          {badgeOf(act)}
-        </span>
+        <p aria-hidden>
+          <span className="rounded-sm border border-accent px-1 font-semibold text-accent">
+            {badgeOf(act)}
+          </span>{" "}
+          {badgeWords(act, top)}
+        </p>
       )}
-      <span className="sr-only">{markLabel(act, top)}</span>
-    </p>
+      <p className="sr-only">{markLabel(act, top)}</p>
+    </div>
   );
 }
 
@@ -209,8 +218,9 @@ function BandTier({
           {PLAIN_BAND[band.id]}
         </h2>
         <p className="text-label text-muted">
-          {band.slots} slots · fee band ({band.label}): Qloo popularity
-          percentiles {formatBandRange(band)}
+          {band.slots} slots · fee range ({band.label}): acts at Qloo&apos;s{" "}
+          {formatBandRange(band)} popularity percentile, standing in for their
+          fee
         </p>
       </div>
       <ol className="mt-2.5 flex flex-wrap items-start justify-center gap-x-7 gap-y-3">
@@ -273,9 +283,8 @@ export function BillHeader({
     <>
       <div className="flex w-full flex-wrap-reverse items-center justify-center gap-x-6 gap-y-3 lg:justify-between">
         <p className="text-label text-muted">
-          {region ? `${city}, ${region}` : city} ·{" "}
-          {formatCount(capacity)} capacity · crowd aged{" "}
-          {crowdAge.min}–{crowdAge.max}
+          {region ? `${city}, ${region}` : city} · {formatCount(capacity)}{" "}
+          capacity · crowd aged {crowdAge.min}–{crowdAge.max}
         </p>
         <p className="-rotate-1 rounded-sm border border-danger px-2 text-label font-semibold text-danger">
           {stamp}
@@ -364,7 +373,8 @@ export function DraftBill({
   return (
     <section aria-label="Undercard draft" className={SHEET}>
       <BillHeader festival={festival} stamp="Draft, not announced">
-        The headliners are booked; Undercard picked the acts below.
+        This is the draft lineup (the bill): the headliners are booked, and the
+        AI agent picked the acts below.
         {onOpen &&
           acts.length > 0 &&
           " Click an act to see why, keep it or mark it unavailable."}
@@ -391,9 +401,9 @@ export function DraftBill({
       {redraft && <div className="mt-3 w-full">{redraft}</div>}
       <p className="mt-auto w-full border-t border-rule pt-2.5 text-label text-muted">
         {calls && createdAt
-          ? `Drafted by the agent from ${calls} Qloo calls · saved ${formatSavedAt(createdAt)} UTC`
+          ? `Drafted by the AI agent from ${calls} Qloo calls · saved ${formatSavedAt(createdAt)} UTC`
           : drafting
-            ? "The agent is drafting the undercard."
+            ? "The AI agent is drafting the undercard."
             : "No undercard drafted yet."}
       </p>
     </section>

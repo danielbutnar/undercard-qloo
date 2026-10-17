@@ -48,14 +48,14 @@ describe("the rooms rail", () => {
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
     );
     return screen.getByRole("region", {
-      name: "Boise venue crowds behind this bill",
+      name: "Boise venues whose fans shaped this lineup",
     });
   };
 
   it("says how many places Qloo listed and how many rooms the agent tested", () => {
     expect(
       within(rail()).getByText(
-        /^Qloo listed 8 Boise live-music places; the agent tested 3 of their crowds against the headliners' fans\./,
+        /^Qloo listed 8 Boise live-music places; the AI agent compared the fans of 3 of them with the headliners' fans\./,
       ),
     ).toBeTruthy();
   });
@@ -91,7 +91,7 @@ describe("the rooms rail", () => {
       ).getByRole("button", { name: "Watch how it picked these acts" }),
     );
     const compact = screen.getByRole("region", {
-      name: "Boise venue crowds behind this bill",
+      name: "Boise venues whose fans shaped this lineup",
     });
     expect(within(compact).queryByText(/not a stage/)).toBeNull();
     expect(within(compact).queryByText(/tested for/)).toBeNull();
@@ -106,7 +106,7 @@ describe("the rooms rail", () => {
       .click();
     return Promise.resolve().then(() => {
       expect(
-        screen.queryByRole("region", { name: "Boise venue crowds behind this bill" }),
+        screen.queryByRole("region", { name: "Boise venues whose fans shaped this lineup" }),
       ).toBeNull();
     });
   });

@@ -31,7 +31,7 @@ describe("the first screen with no saved build", () => {
     render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={null} />);
     expect(
       screen.queryByRole("region", {
-        name: "Boise venue crowds behind this bill",
+        name: "Boise venues whose fans shaped this lineup",
       }),
     ).toBeNull();
     expect(screen.queryByRole("region", { name: "Lineup board" })).toBeNull();
