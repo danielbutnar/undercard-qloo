@@ -1,24 +1,14 @@
-# TASKS: M4c Ship M4b, then polish
+# TASKS: M4d Make the engine honest
 
-Copied from SPEC.md section 6, M4c. Closes: Design. Freeze: 2026-10-21. Done means: the live e2e passes; a fresh cold reader of the live 1280x800 shot names the buyer, Boise's venues and "Watch the agent build it", and doesn't say the agent or Qloo sets the fee bands; LCP on the live first screen is under 2.5 s.
+Copied from SPEC.md section 6, M4d. Closes: Technological Implementation, Potential Impact, Quality of the Idea. Freeze: 2026-10-23. Done means: a replay shows the planner's lines; every field in the brief appears in a call's parameters or is gone from the screen; the baseline runs at high effort; `pnpm gate` and the live e2e pass.
 
-Approved for this run: pushing redesign-first-screen and main (merged without squashing) and letting Vercel deploy production, each deploy followed by the live e2e. No Vercel environment variable changes, no new package, no fresh build on production in M4c.
+Approved for this run: these engine changes, and one fresh build on production through "Run the agent live instead". No other fresh build on production; the store's latest pointer is not touched by hand.
 
-- [x] Push redesign-first-screen and main; Vercel deploys production (0bfec9f, 2026-10-17)
-- [x] UNDERCARD_E2E_SYNTHETIC isn't set on Vercel: the live page serves the real Oct 15 build, no synthetic names (no variable changed)
-- [x] Live e2e passes with no fresh agent run against production: 30 passed; the LCP spec failed at 3,644 ms only while it ran beside three workers
-- [x] LCP of the live first screen at 1280x800: 780, 696 and 688 ms, measured alone
-- [x] The fee band says the buyer sets it and Qloo supplies the popularity percentile
-- [x] The mark's ▲ comes from a font the page loads, or the mark uses text the fonts carry: now +, which Big Shoulders carries at full weight (it has no ▲, and its ↑ sets too small to read)
-- [x] The card's Close sits inside the card
-- [x] At 390 px, Watch the agent build it sits under the headliners
-- [x] The display font's loading checked: latin subset, preloaded, display swap already; the one lever left (dropping the opsz axis) changes the type, so no change
-- [x] If there's time: the fallback screen in the bill's design, still with Build undercard
-- [x] Deploy, live e2e again, a fresh cold reader (low effort) on the live 1280x800 shot
-- [x] Found by the first live cold reader and fixed: the live build's top room is listed as "Venue 418 (V418)", so the marks read "V418( +N" (da434af)
-- [x] Two live cold readers said "local Boise crowds" and never venues: the rail and the key now name the rooms as Boise venues (a6250c9)
-
-Result (2026-10-17): live e2e 31 passed, 4 skipped (the fallback spec and its 3 shots, which need the empty seed and passed against it locally); live LCP 768 ms at 1280x800; the last cold reader: "a booking desk for a concert promoter or talent buyer (here, a Boise festival called Sagebrush Sound): an agent uses Qloo taste data about the headliners' fans and local venue crowds to draft the undercard", first click "Watch the agent build it". Largest gap now: Potential Impact (no buyer's words, no check against a real bill).
+- [ ] The planner's lines are saved with the build (an optional field, so the Oct 15 build still parses) and replayed in order
+- [ ] Spike: the crowd's age reaches Qloo as signal.demographics.age (docs: 24_and_younger, 25_to_29, 30_to_34, 35_to_44, 45_to_54, 55_and_older; 25–34 is 25_to_29,30_to_34); kept if a build still fills 4 Mid and 6 Opener, otherwise the age leaves the screen
+- [ ] The LLM-only baseline runs at high effort with max_tokens matching the planner's, and its cached answer is regenerated
+- [ ] Deploy, then one fresh build on production through "Run the agent live instead"; stop if it's weaker than the Oct 15 build (a band not full, or fewer acts lifted by a room)
+- [ ] Live e2e passes; SPEC.md 2b updated; M4d ticked
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
