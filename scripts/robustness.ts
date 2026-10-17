@@ -102,6 +102,12 @@ for (let run = 1; run <= runs; run++) {
       (event) => event.type === "call" && /429/.test(event.call.error ?? ""),
     ).length,
     qlooCalls: events.filter((event) => event.type === "call").length,
+    taggedPlaces:
+      events.flatMap((event) =>
+        event.type === "call" && event.call.tool === "find_venues"
+          ? [event.call.resultCount]
+          : [],
+      )[0] ?? null,
     bothBandsFilled: result.complete,
     bands: Object.fromEntries(
       festival.feeBands.map((band) => [

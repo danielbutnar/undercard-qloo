@@ -93,6 +93,29 @@ The production build of 17 October 2026 matched Boise's row above: Venue 418 8, 
 
 **Verdict: no-go.** The best route gives a Boise signal for 7 of 10 acts, under the bar of 8, so nothing is added to the card and nothing is claimed. Whether a town's crowd knows the undercard acts stays open. Counts only: the ranks themselves are Qloo data and stay in `.design/evidence/`.
 
+## 7. Ten US towns, for "Your festival": go (M6f)
+
+**The question.** Would a form that lets a judge pick any town work often enough to show? The rule: go only if at least 8 of 10 US towns of different sizes fill both bands within 12 Qloo calls, offline, with the same headliners.
+
+**The method.** `scripts/robustness.ts`, one run per town, section 3's brief with only the town changed, the plain city name as Qloo's place query, no saved build. A run that met Qloo's rate limit was redone, up to three attempts. Runs finished between 15:56 and 16:09 UTC on 2026-10-17.
+
+| Town | Both bands filled | Qloo calls | Rooms tested, and acts each lifted |
+|---|---|---|---|
+| Chicago, Illinois | yes | 11 | Venue 193 9, Venue 211 1 |
+| Seattle, Washington | yes | 12 | Venue 226 6, Venue 30 4, Venue 385 0 |
+| Minneapolis, Minnesota | yes | 12 | Venue 112 6, Venue 110 4 |
+| Kansas City, Missouri | yes | 12 | Venue 384 9, Venue 167 1 |
+| Richmond, Virginia | no | 7 | none tested |
+| Asheville, North Carolina | yes | 12 | Venue 21 9, Venue 352 1, Venue 366 0 |
+| Missoula, Montana | no | 11 | Zootown Arts Community Center 0, The Wilma 0 |
+| Burlington, Vermont | yes | 10 | Venue 432 10 |
+| Bozeman, Montana | yes | 10 | Venue 272 10 (the only tagged place) |
+| Duluth, Minnesota | yes | 12 | Venue 34 10, Venue 280 0, Venue 113 0 |
+
+**Verdict: go, exactly at the bar.** 8 of 10 towns filled both bands within 12 calls. In Richmond the agent stopped after 7 calls without testing a room; in Missoula both rooms it tested lifted nothing. In Minneapolis and Kansas City, even the third attempt met two refused calls, and both bands still filled.
+
+**What it doesn't show.** Whether a "room" is a club: Duluth's bill came from Venue 34, an outdoor site, and Bozeman's from its only tagged place. One run per town; section 5 shows a bill can change when the planner picks other rooms. A live form will meet towns that fail like Richmond and Missoula, so it needs designed states for them.
+
 ## What these numbers don't establish
 
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
