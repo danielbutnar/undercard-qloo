@@ -159,6 +159,34 @@ Copied from SPEC.md section 6, M6l. Closes: Quality of the Idea and Design. Free
 - [x] A whole scripted build books the same acts with the label as without it
 - [x] Real check, offline: Duluth's trace names Venue 34 "(an outdoor festival site)"
 
+# TASKS: M6m Checked towns replay
+
+Copied from SPEC.md section 6, M6m. Freeze: 2026-10-18 23:00 Bucharest. Done means: every listed town replays a full bill; an e2e clicks three without starting a live run.
+
+- [x] The bar written first (docs/evidence.md section 13)
+- [x] Every checked town has its own festival id; a replay-only request never runs the agent (tests/unit/m6m)
+- [x] A checked-town button replays its saved build, marked as a replay, with the live run next to it; edited headliners run live
+- [x] Per-IP build limit raised to 30 for one deploy; 25 fresh production builds, one at a time: 25 of 25 full; limit back to 5
+- [x] Replay-only check: all 29 towns stream a full bill; none leaves the list
+- [x] e2e: Austin, Tallinn and Wrexham replay on the live demo with no live run
+
+# TASKS: M6n A better thin-town answer
+
+Copied from SPEC.md section 6, M6n. Freeze: 2026-10-20. Done means: one sentence on what happened, the checked towns in the same country (or all) offered one click each; shots at 1440x810 and 390 wide.
+
+- [x] One sentence each for a town Qloo finds no places in and a town too thin to compare rooms (tests/unit/m6n)
+- [x] The checked towns in the typed region's country, or all of them, one click each (a click replays, or runs live with the judge's headliners)
+- [x] Shots at 1440x810 and 390 wide; the design scan passes in the gate
+
+# TASKS: M6o Festivals filed as places
+
+Copied from SPEC.md section 6, M6o. Freeze: 2026-10-21. Done means: a go or no-go in docs/evidence.md; on a go, the label.
+
+- [x] The bar written first (docs/evidence.md section 14)
+- [x] Spike: 29 towns, 33 calls; four rules label Venue 156 and no other anchor room: a go
+- [x] "festival" among a place's three most frequent Qloo keywords labels it "a festival", on the card and the trace line; label only (tests/unit/m6o)
+- [x] Place answers cached before the change aren't reused (new cache key)
+
 # TASKS: for the 27-28 October redo (not now)
 
 - [ ] Fix the video's capture script for the reason picker (its refill step now stops at "Why is it unavailable?")
@@ -174,6 +202,8 @@ Copied from SPEC.md section 6, M6l. Closes: Quality of the Idea and Design. Free
 - [ ] Shipped in M6m: checked-town buttons replay saved builds (marked as replays, the live run next to them); show it in the story, a still and the video
 - [ ] Shipped in M6n: a typed town that can't be found or is too thin says so in one sentence and offers the checked towns in its country; one still
 - [ ] Shipped in M8c: Keep on the act card and Redraft the rest on the bill; the capture script, a still and a line in the story
+
+- [ ] Shipped in M6o: Venue 156 is labelled a festival, not a club; Cluj-Napoca's saved build predates the label, so it shows after that town's next build
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
