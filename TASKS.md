@@ -27,17 +27,28 @@ Decided for this run (2026-10-17): Direction 1, the draft bill, built on the bra
 - [x] README: What it does, How it works and AI usage match the new first screen
 
 ## Screens (ticked when their shots pass Pass 2 step 5)
-- [ ] First screen: the draft bill (1440x810, 1280x800 judge, 390 mobile)
-- [ ] Watching the build: trace streaming, then the bill reprinted
-- [ ] An act's card open
-- [ ] Refilling, then refilled
-- [ ] Without Qloo: the model's picks
-- [ ] Fallback: no saved build, today's empty board
-- [ ] Rate-limit refusal of a live run
+- [x] First screen: the draft bill (1440x810, 1280x800 judge, 390 mobile)
+- [x] Watching the build: trace streaming, then the bill reprinted
+- [x] An act's card open
+- [x] Refilling, then refilled
+- [x] Without Qloo: the model's picks, with its loading and error states
+- [x] Fallback: no saved build, today's empty board
+- [x] Rate-limit refusal of a live run
+
+### The written look (Pass 2 step 5, 2026-10-17, synthetic data)
+- **First screen.** No A, B or C pattern: kraft page, 2px-radius buttons, sentence-case 16px labels, two typefaces. The eye lands on the headliners, then the Mid names and their blue room marks; Qloo's output (the marks and the rooms' counts) is the only blue besides Watch the agent build it. No text under 16px, every pair passes contrast, no sideways scroll at 390. Instead of a hero, the working bill; instead of KPI tiles, one rail with three counts. Polish 4: a distinctive identity, consistent type and spacing. Below 5 because the ▲ falls back to a sans face with loose spacing, and at 1920 the bill leaves bare kraft under it.
+- **Watching and watched.** The eye lands on the newest trace row (the blue rule and the 28px result count) beside the open slots; after the reprint, on the bill and the counts 7, 3 and 0. The rooms compact while the trace is in use, so the trace and the bill's footer stay in frame at 810 tall. Polish 4.
+- **An act's card.** The card takes the rail; its 36px blue affinity and popularity are the largest Qloo numbers on screen. Close sits just above the card, a little detached from it. Polish 4.
+- **Refilling and refilled.** The red stamp and muted name mark the act; the key stays in its slot; the replacement prints in with its mark and the refill call shows in the trace. Polish 4.
+- **Without Qloo.** Black ink only under the red No Qloo data stamp, three picks across at 1440, each with the model's reason and the two facts; no score or tally. The loading line and the error with Try again use the same sheet. Polish 4.
+- **Refused live run.** The bill stays; the limit message in red and Replay the saved build sit in the rail, in frame. Polish 4.
+- **Fallback.** Today's empty board and Build undercard, unchanged apart from presale leaving it: still the 3 the critique gave an empty state. It shows only when no build is saved or the store fails.
+- **Since the shots before the fixes:** Watch the agent build it fits on one line, the rooms compact during the trace, the key takes its own row and holds it through a refill, the model's picks set three across at 1440, the click hint waits for acts, and the bill no longer gives way to the old board while a replay starts.
+- **Cold reader** (a fresh subagent, the 1280x800 shot under a neutral file name, the skill's prompt): "a booking desk for festival talent buyers", using "Qloo taste data about local venue crowds" in Boise; first click "Watch the agent build it". Pass.
 
 ## Done means
-- [ ] Pass 2: the scan passes, design shots updated (SCENES), the written look, the cold-reader test on the 1280x800 judge shot
-- [ ] LCP on the first screen under 2.5 s on a production build
+- [x] Pass 2: the scan passes, design shots updated (SCENES), the written look, the cold-reader test on the 1280x800 judge shot
+- [x] LCP on the first screen under 2.5 s on a production build: 308 ms at 1280x800 (`next start` of a synthetic build, unthrottled, 2026-10-17)
 - [ ] The demo path runs end to end; every e2e spec and `pnpm gate` pass; M4b ticked in SPEC.md
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
