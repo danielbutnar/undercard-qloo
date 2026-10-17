@@ -6,6 +6,7 @@ import { DraftBill } from "@/components/draft-bill";
 import { FestivalHeader } from "@/components/festival-header";
 import { LineupBoard } from "@/components/lineup-board";
 import { LlmOnlyBoard } from "@/components/llm-only-board";
+import { RoomsRail } from "@/components/rooms-rail";
 import { TracePanel } from "@/components/trace-panel";
 import { useLlmOnly } from "@/components/use-llm-only";
 import { useUndercardBuild } from "@/components/use-undercard-build";
@@ -13,6 +14,7 @@ import { firstBoard } from "@/lib/build-state";
 import { lineupCsv } from "@/lib/csv";
 import type { Festival } from "@/lib/festival";
 import type { FirstBill } from "@/lib/first-bill";
+import { roomsBehind } from "@/lib/rooms";
 
 type Mode = "qloo" | "llm";
 
@@ -103,6 +105,11 @@ export function FestivalScreen({
   // The bill once there is a build to show: the saved one, or one streaming in now.
   const onBill = state.build !== null || state.acts.length > 0;
   const calls = state.summary?.calls ?? firstBill?.calls;
+  // A replay streams the venue search again; until then, the server read's count.
+  const placesListed =
+    state.calls.find((call) => call.tool === "find_venues")?.resultCount ??
+    firstBill?.placesListed ??
+    null;
 
   function changeMode(next: Mode) {
     setMode(next);
@@ -165,6 +172,17 @@ export function FestivalScreen({
             onOpen={(act) => setOpenId(act.entityId)}
           />
           <div className="flex flex-col gap-4">
+            {!openAct && (
+              <RoomsRail
+                rooms={roomsBehind(
+                  state.acts,
+                  firstBill?.anchors ?? {},
+                  state.unavailable,
+                )}
+                bands={festival.feeBands}
+                placesListed={placesListed}
+              />
+            )}
             {openAct && (
               <ActCardPanel
                 act={openAct}
