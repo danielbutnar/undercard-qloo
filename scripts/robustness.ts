@@ -133,7 +133,8 @@ const countsOnly = {
   ranAt: new Date().toISOString(),
   runs,
   bothBandsFilled: results.filter((run) => run.bothBandsFilled).length,
-  perRun: results.map(({ acts: _acts, ...rest }) => rest),
+  // Counts only on the console: act names and ids stay in the --out file.
+  perRun: results.map((run) => Object.fromEntries(Object.entries(run).filter(([key]) => key !== "acts"))),
   repeats: stats,
 };
 console.log(JSON.stringify(countsOnly, null, 2));
