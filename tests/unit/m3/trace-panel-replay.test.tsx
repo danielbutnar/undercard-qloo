@@ -24,13 +24,13 @@ describe("TracePanel with a replayed build", () => {
   it("offers a fresh run of the agent", () => {
     const onBuild = vi.fn();
     render(<TracePanel state={replayed} onBuild={onBuild} />);
-    fireEvent.click(screen.getByRole("button", { name: "Run the agent again" }));
+    fireEvent.click(screen.getByRole("button", { name: "Run the agent live instead" }));
     expect(onBuild).toHaveBeenCalledWith({ fresh: true });
   });
 
   it("doesn't offer a fresh run after a fresh build", () => {
     render(<TracePanel state={{ ...replayed, build: { ...replayed.build, replayed: false } }} onBuild={vi.fn()} />);
-    expect(screen.queryByRole("button", { name: "Run the agent again" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Run the agent live instead" })).toBeNull();
     expect(screen.getByText("Built with 11 Qloo calls in 1.4 s.")).toBeTruthy();
   });
 });

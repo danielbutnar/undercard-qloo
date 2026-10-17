@@ -7,7 +7,7 @@ Decided for this run (2026-10-17): Direction 1, the draft bill, built on the bra
 ## Shared work
 - [x] Server read: `/` reads the latest saved build through the build store's `latest()`, cached briefly so it is served as static HTML; with no saved build, or Upstash unreachable, today's empty board and "Build undercard"; never an error
 - [x] Synthetic saved build for local e2e and design shots, seeded from tests/e2e/synthetic-build.ts behind a test-only environment variable that production never sets
-- [ ] The trace behind "Watch the agent build it" (replays the saved build as today); "Run the agent live instead" replaces "Run the agent again", still rate-limited
+- [x] The trace behind "Watch the agent build it" (replays the saved build as today); "Run the agent live instead" replaces "Run the agent again", still rate-limited
 - [x] Presale off the first screen; the seed and the component stay
 - [x] An act's card opens on click, reusing `ActCard` and its Unavailable button
 - [x] Label fix 1: the fee band says Qloo's popularity percentile sets it

@@ -192,7 +192,11 @@ export function FestivalScreen({
                 onClose={() => setOpenId(null)}
               />
             )}
-            <TracePanel state={state} onBuild={build} />
+            <TracePanel
+              state={state}
+              savedCalls={firstBill?.calls}
+              onBuild={build}
+            />
           </div>
         </main>
       ) : (

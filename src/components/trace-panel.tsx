@@ -83,13 +83,19 @@ function CallRow({
  */
 export function TracePanel({
   state,
+  savedCalls,
   onBuild,
 }: {
   state: BuildState;
+  /** Qloo calls in the saved build the first screen shows, for the replay's description. */
+  savedCalls?: number;
   onBuild: (request?: BuildRequest) => void;
 }) {
   const listRef = useRef<HTMLOListElement>(null);
   const building = state.status === "building";
+  // The first screen shows a saved build; its trace stays folded until it is replayed.
+  const folded =
+    state.status === "idle" && state.build !== null && state.calls.length === 0;
   const busy = building || state.refilling !== null;
   const buildCalls = state.calls.filter(
     (call) => call.tool !== "refill",
@@ -107,7 +113,7 @@ export function TracePanel({
 
   return (
     <aside
-      aria-labelledby="trace-title"
+      aria-label="Qloo calls"
       className="flex flex-col border-2 border-rule bg-surface"
     >
       <div className="border-b-2 border-rule p-4">
@@ -117,24 +123,45 @@ export function TracePanel({
           disabled={busy}
           className="w-full rounded-sm border-2 border-accent bg-accent px-4 py-2 font-display text-figure font-extrabold uppercase text-on-accent hover:border-ink hover:bg-ink disabled:cursor-wait disabled:border-muted disabled:bg-surface disabled:text-muted"
         >
-          {building ? "Building…" : "Build undercard"}
+          {building
+            ? "Building…"
+            : state.build
+              ? "Watch the agent build it"
+              : "Build undercard"}
         </button>
       </div>
       <div className="flex min-h-0 flex-col gap-2 p-4">
-        <div className="flex items-baseline justify-between gap-4">
-          <h2
-            id="trace-title"
-            className="font-display text-name font-extrabold uppercase"
-          >
-            Qloo calls
-          </h2>
-          <p className="text-label text-muted">
-            {buildCalls} of {CALL_CAP}
-            {refillCalls > 0 &&
-              ` · ${refillCalls} refill ${refillCalls === 1 ? "call" : "calls"}`}
-          </p>
-        </div>
-        {state.status === "idle" && (
+        {folded && (
+          <div className="flex flex-col items-start gap-1">
+            <p className="text-label">
+              {savedCalls
+                ? `Replays the saved build: ${savedCalls} Qloo calls, then the bill reprints.`
+                : "Replays the saved build call by call, then the bill reprints."}
+            </p>
+            {!state.refusal && (
+              <button
+                type="button"
+                onClick={() => onBuild({ fresh: true })}
+                className="text-label text-ink underline underline-offset-2 hover:text-accent"
+              >
+                Run the agent live instead
+              </button>
+            )}
+          </div>
+        )}
+        {!folded && (
+          <div className="flex items-baseline justify-between gap-4">
+            <h2 className="font-display text-name font-extrabold uppercase">
+              Qloo calls
+            </h2>
+            <p className="text-label text-muted">
+              {buildCalls} of {CALL_CAP}
+              {refillCalls > 0 &&
+                ` · ${refillCalls} refill ${refillCalls === 1 ? "call" : "calls"}`}
+            </p>
+          </div>
+        )}
+        {state.status === "idle" && !state.build && (
           <p className="text-label text-muted">
             Every Qloo call the agent makes will list here, with its parameters
             and result count.
@@ -159,7 +186,7 @@ export function TracePanel({
                 onClick={() => onBuild({ fresh: true })}
                 className="text-label text-ink underline underline-offset-2 hover:text-accent"
               >
-                Run the agent again
+                Run the agent live instead
               </button>
             )}
           </div>
