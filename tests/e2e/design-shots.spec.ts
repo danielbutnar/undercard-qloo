@@ -50,6 +50,7 @@ async function markFirstActUnavailable(page: Page) {
     .getByRole("region", { name: "Act card" })
     .getByRole("button", { name: "Unavailable" })
     .click();
+  await page.getByRole("button", { name: "Radius clause" }).click();
 }
 
 // The demo-path screens from SPEC.md section 3, in order, each at the viewports it's judged

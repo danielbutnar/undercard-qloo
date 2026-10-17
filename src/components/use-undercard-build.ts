@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { buildReducer, IDLE_BUILD, type BuildState } from "@/lib/build-state";
 import type { Act } from "@/lib/lineup";
+import type { UnavailableReason } from "@/lib/unavailable";
 import { streamEvents } from "./stream-events";
 import type { BuildRequest } from "./trace-panel";
 
@@ -48,12 +49,13 @@ export function useUndercardBuild(initial: BuildState = IDLE_BUILD) {
     }
   }, []);
 
-  const markUnavailable = useCallback(async (act: Act) => {
+  const markUnavailable = useCallback(
+    async (act: Act, reason?: UnavailableReason) => {
     const current = stateRef.current;
     if (!current.build || current.refilling) return;
     const controller = new AbortController();
     refillController.current = controller;
-    dispatch({ type: "markUnavailable", entityId: act.entityId });
+    dispatch({ type: "markUnavailable", entityId: act.entityId, reason });
     try {
       await streamEvents(
         "/api/refill",
@@ -68,6 +70,7 @@ export function useUndercardBuild(initial: BuildState = IDLE_BUILD) {
               ...current.unavailable,
             ]),
           ],
+          ...(reason ? { reason } : {}),
         },
         controller.signal,
         (event) => dispatch({ type: "refillEvent", event }),
@@ -81,7 +84,9 @@ export function useUndercardBuild(initial: BuildState = IDLE_BUILD) {
         });
       }
     }
-  }, []);
+    },
+    [],
+  );
 
   return { state, build, markUnavailable };
 }

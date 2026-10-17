@@ -2,6 +2,7 @@ import { z } from "zod";
 import { assembleLineup, type VenueRef } from "@/lib/assemble-lineup";
 import { FEE_BAND_IDS } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
+import { UNAVAILABLE_REASON_IDS, UNAVAILABLE_REASONS } from "@/lib/unavailable";
 import type { BuildStore } from "./build-store";
 import { QlooError, type QlooClient } from "./qloo";
 import type { RateLimiter } from "./rate-limit";
@@ -18,6 +19,8 @@ export const RefillRequestSchema = z.object({
   anchorVenueId: z.string().nullable(),
   /** Every act on the board and every act marked unavailable, so none comes back. */
   excludeIds: z.array(z.string().min(1)).max(60),
+  /** Why the act dropped out, in the buyer's words; the refill's trace line names it. */
+  reason: z.enum(UNAVAILABLE_REASON_IDS).optional(),
 });
 
 /**
@@ -56,6 +59,7 @@ export async function handleRefill({
     band: bandId,
     anchorVenueId,
     excludeIds,
+    reason,
   } = request.data;
   const saved = await store.byId(buildId);
   if (!saved || saved.festivalId !== festival.id) {
@@ -108,7 +112,8 @@ export async function handleRefill({
 
     for (const venue of venues) {
       const n = ++calls;
-      const summary = `Refill: ${band.label}-band artists for the headliners and ${venue.name}, minus the board`;
+      const why = reason ? ` (${UNAVAILABLE_REASONS[reason]})` : "";
+      const summary = `Refill${why}: ${band.label}-band artists for the headliners and ${venue.name}, minus the board`;
       names.set(venue.entityId, venue.name);
       let artists;
       try {

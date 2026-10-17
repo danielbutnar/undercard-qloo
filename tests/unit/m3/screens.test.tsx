@@ -22,7 +22,9 @@ describe("ActCard with Unavailable", () => {
     const onUnavailable = vi.fn();
     render(<ActCard act={acts[0]} onUnavailable={onUnavailable} />);
     fireEvent.click(screen.getByRole("button", { name: "Unavailable" }));
-    expect(onUnavailable).toHaveBeenCalledWith(acts[0]);
+    // M6e: the card asks why before it refills.
+    fireEvent.click(screen.getByRole("button", { name: "Routing" }));
+    expect(onUnavailable).toHaveBeenCalledWith(acts[0], "routing");
   });
 
   it("stamps an unavailable act and takes its button away", () => {

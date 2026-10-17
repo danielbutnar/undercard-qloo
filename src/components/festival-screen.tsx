@@ -18,6 +18,7 @@ import type { Festival } from "@/lib/festival";
 import type { FirstBill } from "@/lib/first-bill";
 import type { Act } from "@/lib/lineup";
 import { roomsBehind } from "@/lib/rooms";
+import type { UnavailableReason } from "@/lib/unavailable";
 
 type Mode = "qloo" | "llm";
 
@@ -154,9 +155,9 @@ export function FestivalScreen({
     void build(request);
   }
 
-  function refill(act: Act) {
+  function refill(act: Act, reason: UnavailableReason) {
     setPrinting("refill");
-    void markUnavailable(act);
+    void markUnavailable(act, reason);
   }
 
   function onPrinted(entityId: string) {
@@ -177,7 +178,7 @@ export function FestivalScreen({
   function exportCsv() {
     downloadText(
       `${festival.id}-undercard.csv`,
-      lineupCsv(bookedActs, festival.feeBands),
+      lineupCsv(bookedActs, festival.feeBands, state.replaced),
       "text/csv;charset=utf-8",
     );
   }

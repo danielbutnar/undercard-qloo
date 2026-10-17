@@ -1,5 +1,6 @@
 import type { FeeBand } from "./fee-bands";
 import type { Act } from "./lineup";
+import { UNAVAILABLE_REASONS, type Replacement } from "./unavailable";
 
 const COLUMNS = [
   "act",
@@ -8,6 +9,8 @@ const COLUMNS = [
   "popularity",
   "anchor_venue",
   "reason",
+  "replaces",
+  "unavailable_reason",
 ] as const;
 
 function cell(value: string): string {
@@ -16,10 +19,14 @@ function cell(value: string): string {
   return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 }
 
-/** The lineup as CSV (RFC 4180, CRLF line ends), bands in the buyer's order. */
+/**
+ * The lineup as CSV (RFC 4180, CRLF line ends), bands in the buyer's order. A replacement's
+ * row names the act whose slot it took and why that act dropped out.
+ */
 export function lineupCsv(
   acts: readonly Act[],
   bands: readonly FeeBand[],
+  replaced: Readonly<Record<string, Replacement>> = {},
 ): string {
   const rows = bands.flatMap((band) =>
     acts
@@ -31,6 +38,10 @@ export function lineupCsv(
         act.popularity.toFixed(2),
         act.anchorVenue.name,
         act.reason,
+        replaced[act.entityId]?.name ?? "",
+        replaced[act.entityId]?.reason
+          ? UNAVAILABLE_REASONS[replaced[act.entityId].reason!]
+          : "",
       ]),
   );
   return (
