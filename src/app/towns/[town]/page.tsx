@@ -19,6 +19,10 @@ async function townPage(slug: string) {
   return { festival: town.festival, firstBill, towns: await townsOnShow(store) };
 }
 
+// The town comes from the URL, so a navigation waits for its bill rather than showing an
+// empty shell first (Next.js: instant-shell-url-data). Unknown towns end in notFound().
+export const instant = false;
+
 export function generateStaticParams() {
   return TOWNS.slice(1).map((town) => ({ town: town.slug }));
 }
