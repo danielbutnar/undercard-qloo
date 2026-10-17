@@ -36,7 +36,7 @@ export function RoomsRail({
         id="rooms-title"
         className="font-display text-name font-extrabold uppercase"
       >
-        Boise crowds behind this bill
+        Boise venue crowds behind this bill
       </h2>
       {!compact && (
         <p className="text-label text-muted">

@@ -105,7 +105,7 @@ describe("the draft bill", () => {
     ).toBeTruthy();
     expect(key.textContent).toContain("The Lantern Room +11");
     expect(key.textContent).toContain(
-      "Qloo ranks artists for the headliners' fans; adding The Lantern Room's crowd lifts this act 11 places.",
+      "Qloo ranks artists for the headliners' fans; adding the crowd at The Lantern Room, a Boise venue, lifts this act 11 places.",
     );
     expect(key.textContent).toContain(
       "new: not in that top 50 until a room's crowd was added.",

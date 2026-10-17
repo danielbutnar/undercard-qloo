@@ -318,7 +318,11 @@ export function DraftBill({
   const firstMarked = billed.find((act) => liftOf(act));
   const keyed = firstMarked && {
     act: firstMarked,
-    ...markKey(firstMarked, { acts, top: top[firstMarked.band] }),
+    ...markKey(firstMarked, {
+      acts,
+      top: top[firstMarked.band],
+      city: festival.city,
+    }),
   };
   return (
     <section aria-label="Undercard draft" className={SHEET}>

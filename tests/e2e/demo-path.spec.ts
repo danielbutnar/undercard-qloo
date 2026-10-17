@@ -18,7 +18,7 @@ const band = (page: Page, name: RegExp) =>
 const traceRows = (page: Page) =>
   page.getByRole("list", { name: "Qloo calls" }).locator(":scope > li");
 const rooms = (page: Page) =>
-  page.getByRole("region", { name: "Boise crowds behind this bill" });
+  page.getByRole("region", { name: "Boise venue crowds behind this bill" });
 // Each act's mark, read out in words (the + and the room's initials are hidden from it).
 const MARK = /crowd: (up \d+ places|new, from outside)/;
 

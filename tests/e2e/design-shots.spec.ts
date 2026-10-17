@@ -25,7 +25,7 @@ const never = () => new Promise<void>(() => {});
 
 async function liftedTotal(page: Page): Promise<number> {
   const rail = page.getByRole("region", {
-    name: "Boise crowds behind this bill",
+    name: "Boise venue crowds behind this bill",
   });
   const text = (await rail.getByRole("list").textContent()) ?? "";
   return [...text.matchAll(/(\d+) (?:acts? lifted|lifted none)/g)].reduce(
