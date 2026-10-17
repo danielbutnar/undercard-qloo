@@ -136,6 +136,7 @@ Copied from SPEC.md section 6, M6i. Closes: Quality of the Idea and Design. Free
 - [ ] Fix the video's capture script for the reason picker (its refill step now stops at "Why is it unavailable?")
 - [ ] Story: M6b's runs per town; M6c as a stated limit ("a Boise heatmap gave a local signal for 7 of the 10 acts, so Undercard doesn't claim the town knows every act"); the town switcher and Your festival
 - [ ] Gallery stills that show the town switcher and the reason picker
+- [ ] Story and README: the corrected Your festival count, how towns are resolved, and that Brighton, Wrexham and Cluj-Napoca were thin
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
