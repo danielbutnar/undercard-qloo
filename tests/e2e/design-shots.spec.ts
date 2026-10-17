@@ -2,7 +2,7 @@
 // Run: pnpm e2e tests/e2e/design-shots.spec.ts   Output: .design/shots (the run before: .design/previous)
 // The local server runs in synthetic mode, so the bill is the synthetic saved build. The
 // fallback (no saved build) is shot against a server seeded with UNDERCARD_E2E_SYNTHETIC=empty:
-// see README, Testing. That run adds its shots without moving the others to .design/previous.
+// see README, Running locally. That run adds its shots without moving the others to .design/previous.
 import { existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
 import { test, type Page } from "@playwright/test";
 import { SYNTHETIC } from "./env";

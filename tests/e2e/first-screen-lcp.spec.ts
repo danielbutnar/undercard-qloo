@@ -1,5 +1,5 @@
 // Largest Contentful Paint of the first screen at a judge's 1280x800, on a production build:
-// a deployment, or `next start` of your own (README, Testing). The dev server compiles on
+// a deployment, or `next start` of your own (README, Running locally). The dev server compiles on
 // demand, so it isn't measured.
 import { expect, test } from "@playwright/test";
 import { SYNTHETIC } from "./env";

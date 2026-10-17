@@ -20,16 +20,20 @@ why for each one.
 The demo festival is Sagebrush Sound: fictional, 3,000 capacity, in Boise, Idaho, with
 Khruangbin and Japanese Breakfast booked and two fee bands, Mid (4 slots) and Opener (6 slots).
 
-1. **Build undercard**: the trace panel lists every Qloo call the agent makes, with its
-   parameters and result count.
-2. The board fills with 4 Mid and 6 Opener acts. Each card shows the act's Qloo affinity, its
-   popularity percentile inside the band, a "Why Boise" line naming the local venue whose fans
-   lift it, and two Qloo tags it shares with the headliners.
-3. Mark an act **Unavailable**: the agent finds a replacement in the same fee band with a new
-   Qloo call, and the new card takes the slot.
-4. Flip to **LLM only** to see the same brief answered by the model alone: no affinity, no fee
-   band, no local link.
-5. Open **Poster** for the lineup set as a show bill, and **Export CSV** for the booking sheet.
+1. The page opens on the saved build as the buyer's draft bill: the headliners over 4 Mid and
+   6 Opener acts, each marked with the Boise room whose crowd lifted it in Qloo's ranking and
+   by how many places. A rail counts what each tested room lifted, a zero included.
+2. **Watch the agent build it**: the trace panel replays every Qloo call the agent made, with
+   its parameters and result count, and the bill reprints. **Run the agent live instead**
+   runs a fresh build.
+3. Click an act to open its card: Qloo affinity, its popularity percentile inside the band,
+   a "Why Boise" line naming the local venue whose fans lift it, and two Qloo tags it shares
+   with the headliners.
+4. Mark it **Unavailable**: the agent finds a replacement in the same fee band with a new Qloo
+   call, and the replacement prints into the slot.
+5. Flip to **Without Qloo: the model's picks** to see the same brief answered by the model
+   alone, each pick with the model's reason, no Boise room and no fee band check. **Export
+   CSV** in the bar downloads the booking sheet.
 
 ## How it works
 
@@ -48,10 +52,17 @@ Khruangbin and Japanese Breakfast booked and two fee bands, Mid (4 slots) and Op
   band with every act on the board excluded, in at most 3 calls, and applies the same bar.
 - **Saved builds.** A complete build is saved ([src/server/build-store.ts](src/server/build-store.ts))
   and replayed to later visitors; the trace says when a board is a replay.
+- **The first screen** ([src/app/page.tsx](src/app/page.tsx)) reads the latest saved build on
+  the server and caches it for a minute, so the page is static HTML with the whole bill on
+  first paint. With no saved build, or no answer from the store within 2 seconds, it falls
+  back to the empty board and Build undercard. Each act's mark is read from its Why Boise line
+  ([src/lib/marks.ts](src/lib/marks.ts)), so older saved builds need no new field.
 - **Checks.** Unit tests in [tests/unit](tests/unit) run against a synthetic Qloo: each tool's
   query parameters, the 12-call cap, the refill's exclusions and 3-call cap, the rate limits.
   The demo path in [tests/e2e/demo-path.spec.ts](tests/e2e/demo-path.spec.ts) (all five steps,
-  plus a replayed board in under 5 seconds) passed against the live demo on 2026-10-15.
+  plus a first-paint check) passed against the live demo on 2026-10-15 in its earlier form,
+  and in this form against a local production build with a synthetic saved build on
+  2026-10-17.
 
 ## Sponsor technology
 
@@ -85,13 +96,14 @@ build's other anchors), with the headliners and every act on the board in
 `filter.exclude.entities`. The first act that venue lifts past the same bar takes the slot,
 and the call appears in the trace.
 
-**LLM only** sends the same festival brief to the model with no Qloo and no tools, for
-comparison: its picks carry no affinity, no popularity to map to a fee band and no local link.
+**Without Qloo: the model's picks** sends the same festival brief to the model with no Qloo
+and no tools, for comparison: each pick shows the model's own reason, with no Boise room behind
+it and no popularity to check it against a fee band.
 
 Qloo responses are cached server-side in Upstash Redis until at least 2026-11-18, past the end
 of judging, and never committed. A complete build is saved the same way, so the next visitor
-gets the board replayed in about 2 seconds, marked as a replay; "Run the agent again" starts a
-fresh build. [docs/qloo-spike.md](docs/qloo-spike.md) records what the first live calls
+opens on it and "Watch the agent build it" replays its calls in about 2 seconds, marked as a
+replay; "Run the agent live instead" starts a fresh build. [docs/qloo-spike.md](docs/qloo-spike.md) records what the first live calls
 returned, as counts only.
 
 ## AI usage
@@ -107,11 +119,17 @@ returned, as counts only.
 - M3: Claude (Opus 5.5) wrote the saved-build replay, the refill, the LLM-only baseline, the
   Poster, the CSV export and their tests, and checked the screens in design screenshots,
   including the filled board at 1920x1080.
+- M4b: Claude (Opus 5.5) critiqued the first screen, drafted three redesign directions with
+  mockups and ran cold-reader checks on them with fresh Claude subagents; I chose the draft
+  bill. Claude then wrote the server read of the saved build, the bill with each act's room
+  and lift, the rooms rail, the act card on click, the Without Qloo reprint, the print-in
+  motion, the synthetic test server and their tests, and checked the screens in design
+  screenshots and with a fresh cold reader.
 - In the product, Claude Sonnet 5.5 (`claude-sonnet-5-5`, called only from
   `src/server/ai.ts`) does two jobs. It is the agent's planner: it decides which Qloo calls to
   make, which venues to anchor on and when to try another, but doesn't choose acts or write
-  numbers; the app books the acts from Qloo's responses. It also answers the LLM-only
-  baseline, from its own knowledge with no tools; those picks are labeled "No Qloo data".
+  numbers; the app books the acts from Qloo's responses. It also answers the Without Qloo
+  baseline, from its own knowledge with no tools; those picks are stamped "No Qloo data".
   Refills don't use the model.
 - The festival, its presale numbers, and the acts and venues in the test fixture are invented.
   The two headliners are real artists, named so the agent can look them up on Qloo.
@@ -147,7 +165,9 @@ pnpm install
 pnpm dev
 ```
 
-Open http://localhost:3000 to see Sagebrush Sound and press Build undercard.
+Open http://localhost:3000 to see Sagebrush Sound. With no saved build yet, the page shows the
+empty board: press Build undercard. Once a build is saved, the page opens on it as the draft
+bill.
 
 A build needs a Qloo hackathon key and an Anthropic key; Upstash is optional (without it,
 Qloo responses, saved builds and rate limits live in process memory). Copy `.env.example` to
@@ -160,12 +180,21 @@ run writes the same bytes.
 Checks:
 
 - `pnpm gate`: typecheck, lint, every unit test and the design-ban scan.
-- `pnpm e2e`: the Playwright demo path in `tests/e2e`. Run `pnpm exec playwright install chromium`
-  once first. Set `E2E_BASE_URL` to test a deployed preview instead of the local dev server.
-  The first build on a fresh cache runs the agent (Qloo and Claude), the refill calls Qloo,
-  and LLM only calls Claude once; after that, builds replay the saved one.
-- `DESIGN_LIVE=1 pnpm e2e tests/e2e/design-shots.spec.ts`: design screenshots in `.design/shots`,
-  including one taken mid-way through a real build.
+- `pnpm e2e`: the Playwright specs in `tests/e2e`. Run `pnpm exec playwright install chromium`
+  once first. Playwright starts its own dev server on port 3100 in synthetic mode
+  (`UNDERCARD_E2E_SYNTHETIC=1`): the server serves the synthetic saved build and model answer
+  from `tests/e2e/synthetic-build.ts` and never calls Qloo, Claude or Upstash, and the refill
+  is answered in the browser. Never set `UNDERCARD_E2E_SYNTHETIC` on Vercel.
+- `E2E_BASE_URL=<url> pnpm e2e`: the same specs against a deployment. There the refill calls
+  Qloo and Without Qloo calls Claude once; the first screen and the replay use the saved
+  build.
+- On a production build of your own: `UNDERCARD_E2E_SYNTHETIC=1 pnpm build`, then
+  `UNDERCARD_E2E_SYNTHETIC=1 pnpm start -p 3200`, then
+  `E2E_BASE_URL=http://localhost:3200 UNDERCARD_E2E_SYNTHETIC=1 pnpm e2e`, which adds the LCP
+  check. Build and start with `UNDERCARD_E2E_SYNTHETIC=empty` instead (and pass the same value
+  to `pnpm e2e`) to run the fallback spec and shoot the fallback: no saved build.
+- `pnpm e2e tests/e2e/design-shots.spec.ts`: design screenshots in `.design/shots` for every
+  screen of the demo path and its loading, empty and error states.
 - `LIVE_UPSTASH=1 pnpm vitest run tests/unit/m4/rate-limit-upstash.test.ts`: checks the rate
   limiter against the Upstash database in `.env.local`, under its own key prefix.
 

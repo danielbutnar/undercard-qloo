@@ -1,6 +1,6 @@
 // The first screen with no saved build: the server read finds nothing, so the page falls back
 // to the empty board and Build undercard, never an error. It runs against a server seeded with
-// UNDERCARD_E2E_SYNTHETIC=empty (a production build of your own; see README, Testing).
+// UNDERCARD_E2E_SYNTHETIC=empty (a production build of your own; see README, Running locally).
 import { expect, test } from "@playwright/test";
 import { SYNTHETIC } from "./env";
 

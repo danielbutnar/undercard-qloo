@@ -24,7 +24,7 @@ Decided for this run (2026-10-17): Direction 1, the draft bill, built on the bra
 - [x] The rooms rail, from the acts' anchor venues and the build's venue runs
 - [x] The motion moment: the undercard prints in and the rooms' counts tick up on "Watch the agent build it"; the end state under reduced motion
 - [x] "Without Qloo" reprints the bill with the model's picks, each with the model's own reason and two facts (no Boise room, fee band not checked); no score, tally or 0/10
-- [ ] README: What it does, How it works and AI usage match the new first screen
+- [x] README: What it does, How it works and AI usage match the new first screen
 
 ## Screens (ticked when their shots pass Pass 2 step 5)
 - [ ] First screen: the draft bill (1440x810, 1280x800 judge, 390 mobile)

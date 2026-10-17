@@ -89,9 +89,10 @@ Redrawn on 2026-10-17 from the approved draft-bill mockup, for M4b. Tokens and t
 
 - **The bill** is the sheet from the Poster, now the board. Fact line 16px, red stamp 22px, festival 36px, headliners 48px on one line, band names 22px, Mid act names 36px, Opener act names 28px, all Big Shoulders 800. Each band stays a region of `<article>`s, so the tests' selectors hold.
 - **The mark** under each act: the room's short name (its initials when the name has three or more words, the full name otherwise) and the places it gained, "▲11", in 22px blue Big Shoulders inside a 2px blue rule. An act that was outside the headliners-only top 50 reads "new" instead of a count. The places come from the act's Why Boise line, so the build saved on Oct 15 needs no new field.
-- **The key** sits beside the first Mid act, in 16px Libre Franklin: what the first mark means, what "new" means when an act on the bill carries it, and what Qloo is (what people like, across music, places and more).
+- **The key** sits beside the first Mid act, the two on a row of their own, in 16px Libre Franklin: what the first mark means, what "new" means when an act on the bill carries it, and what Qloo is (what people like, across music, places and more). It stays in that slot while the act is refilled, so nothing jumps.
 - **Each act is a button:** a pointer, an underline on hover and on keyboard focus, and the act's name as its accessible name. No hover-scale (B7).
-- **The rooms rail** counts what each tested room lifted, a 48px blue number per room and a muted 0 for a room that lifted none, and says the rooms are crowds, not stages.
+- **The rooms rail** counts what each tested room lifted, a 48px blue number per room and a muted 0 for a room that lifted none, and says the rooms are crowds, not stages. While the trace is in use (streaming, listing calls, refilling or showing a refusal) it compacts to names and 28px counts, so the trace stays in frame at 810 tall.
+- **The rail** is 336px, so "Watch the agent build it" sets on one line at 28px.
 - Presale is off the first screen; the component and the seed stay.
 
 **Step 2: "Watch the agent build it".** `[Q]` The trace panel opens in the rail under the rooms and replays the saved build's calls, the newest row with the 4px blue rule. The bill's undercard clears to dashed open slots while the calls stream. When the lineup lands, the acts print in one at a time (0.38 s each, 0.12 s apart), each with its mark, and the rooms' counts tick up with them. This is the screen's one motion moment; under `prefers-reduced-motion` the end state shows at once. Afterwards the panel reads "Replayed the build saved Oct 15, 14:02 UTC: 12 Qloo calls, served from the cache.", and "Run the agent live instead" offers a fresh, rate-limited run.
@@ -112,11 +113,11 @@ Redrawn on 2026-10-17 from the approved draft-bill mockup, for M4b. Tokens and t
 
 **Step 4: "Unavailable".** The card and the act on the bill take the red "Unavailable" stamp and muted ink. `[Q]` The refill call joins the trace with the blue rule, and the replacement prints into the same slot with its mark; the card closes.
 
-**Step 5: "Without Qloo: the model's picks".** The sheet reprints with the model's ten picks under the same headliners, in black ink only. A red "No Qloo data" stamp replaces the draft stamp. Each pick shows its name (28px), the model's own reason (16px), and two plain facts: "No Boise room · fee band not checked". There is no score or tally. The rail says what the model got (the same brief, no tools) in place of the rooms and the trace. "With Qloo: the agent's bill" brings back the blue, and "Export CSV" in the bar downloads the agent's bill.
+**Step 5: "Without Qloo: the model's picks".** The sheet reprints with the model's ten picks under the same headliners, in black ink only, three across at 1400px and wider, two below. A red "No Qloo data" stamp replaces the draft stamp. Each pick shows its name (28px), the model's own reason (16px), and two plain facts: "No Boise room · fee band not checked". There is no score or tally. The rail says what the model got (the same brief, no tools) in place of the rooms and the trace. "With Qloo: the agent's bill" brings back the blue, and "Export CSV" in the bar downloads the agent's bill.
 
 **No saved build, or the store can't be reached.** Today's empty board loads instead, never an error: the festival block with the 72px headliners, ten dashed "Open slot" boxes in Mid and Opener, and the trace panel with "Build undercard". Once a build starts, the screen becomes the bill.
 
-**1280x800 (a judge's laptop):** the same layout; the bill fills the left column and the rail stays 320px.
+**1280x800 (a judge's laptop):** the same layout; the bill fills the left column and the rail stays 336px.
 
 **Mobile (390 wide):** one column. The bar wraps (the wordmark, then the switch and Export CSV), then the bill with its acts centred and the key under the first act, then the rooms, the Watch button and the trace. An opened card sits under the bill and takes focus.
 
