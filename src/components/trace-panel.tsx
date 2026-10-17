@@ -94,13 +94,16 @@ export function TracePanel({
   const listRef = useRef<HTMLOListElement>(null);
   const building = state.status === "building";
   // The first screen shows a saved build; its trace stays folded until it is replayed.
-  const folded =
-    state.status === "idle" && state.build !== null && state.calls.length === 0;
   const busy = building || state.refilling !== null;
   const buildCalls = state.calls.filter(
     (call) => call.tool !== "refill",
   ).length;
+  // The first screen shows a saved build: the panel pitches its replay until one runs. A
+  // refill's calls list below the pitch.
+  const folded =
+    state.status === "idle" && state.build !== null && buildCalls === 0;
   const refillCalls = state.calls.length - buildCalls;
+  const refillCount = `${refillCalls} refill ${refillCalls === 1 ? "call" : "calls"}`;
   const refillingName = state.acts.find(
     (act) => act.entityId === state.refilling,
   )?.name;
@@ -149,15 +152,15 @@ export function TracePanel({
             )}
           </div>
         )}
-        {!folded && (
+        {(!folded || refillCalls > 0) && (
           <div className="flex items-baseline justify-between gap-4">
             <h2 className="font-display text-name font-extrabold uppercase">
               Qloo calls
             </h2>
             <p className="text-label text-muted">
-              {buildCalls} of {CALL_CAP}
-              {refillCalls > 0 &&
-                ` · ${refillCalls} refill ${refillCalls === 1 ? "call" : "calls"}`}
+              {folded
+                ? refillCount
+                : `${buildCalls} of ${CALL_CAP}${refillCalls > 0 ? ` · ${refillCount}` : ""}`}
             </p>
           </div>
         )}

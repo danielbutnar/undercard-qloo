@@ -65,6 +65,44 @@ describe("the trace behind Watch the agent build it", () => {
     ).toBeNull();
   });
 
+  it("keeps the replay's pitch when a refill runs before any replay, and counts only the refill", () => {
+    render(
+      <TracePanel
+        state={{
+          ...saved,
+          refilling: FIRST_BILL.acts[0].entityId,
+          calls: [
+            {
+              n: 1,
+              tool: "refill",
+              endpoint: "/v2/insights",
+              summary:
+                "Refill: Mid-band artists for the headliners and The Lantern Room, minus the board",
+              params: [],
+              resultCount: 50,
+              ms: 900,
+              cached: false,
+            },
+          ],
+        }}
+        savedCalls={12}
+        onBuild={vi.fn()}
+      />,
+    );
+    expect(
+      screen.getByText(
+        "Replays the saved build: 12 Qloo calls, then the bill reprints.",
+      ),
+    ).toBeTruthy();
+    expect(screen.getByText("1 refill call")).toBeTruthy();
+    expect(screen.queryByText(/of 12/)).toBeNull();
+    expect(
+      screen
+        .getByRole("list", { name: "Qloo calls" })
+        .querySelectorAll(":scope > li"),
+    ).toHaveLength(1);
+  });
+
   it("keeps Build undercard and the empty trace when no build is saved", () => {
     render(<TracePanel state={IDLE_BUILD} onBuild={vi.fn()} />);
     expect(
