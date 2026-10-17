@@ -171,6 +171,10 @@ Copied from SPEC.md section 6, M6l. Closes: Quality of the Idea and Design. Free
 - [ ] From M7a: re-shoot the gallery stills; render a silent draft of the video with captions (the voiceover follows once the ElevenLabs key is in video/.env.local)
 - [ ] From M7a: a fresh high-effort check of every claim in the story, README and captions against docs/evidence.md, with what it finds fixed
 
+- [ ] Shipped in M6m: checked-town buttons replay saved builds (marked as replays, the live run next to them); show it in the story, a still and the video
+- [ ] Shipped in M6n: a typed town that can't be found or is too thin says so in one sentence and offers the checked towns in its country; one still
+- [ ] Shipped in M8c: Keep on the act card and Redraft the rest on the bill; the capture script, a still and a line in the story
+
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
 ## Before judging starts (2026-11-02)

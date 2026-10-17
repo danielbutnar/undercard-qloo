@@ -202,6 +202,25 @@ const SCENES: {
     },
   },
   {
+    // M8c: three acts kept, Redraft the rest under the bands.
+    name: "home-kept",
+    viewports: [VIDEO, MOBILE],
+    prepare: async (page) => {
+      const names = await bill(page)
+        .getByRole("article")
+        .evaluateAll((nodes) =>
+          nodes.map((node) => node.getAttribute("aria-label")!),
+        );
+      for (const name of [names[0], names[4], names[5]]) {
+        await bill(page).getByRole("button", { name, exact: true }).click();
+        await page
+          .getByRole("region", { name: "Act card" })
+          .getByRole("button", { name: "Keep" })
+          .click();
+      }
+    },
+  },
+  {
     // M6n: a typed town too thin to draft offers the checked towns in its country.
     name: "your-festival-thin",
     path: "/your-festival",
