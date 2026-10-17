@@ -287,6 +287,7 @@ export function DraftBill({
   printing = null,
   onPrinted,
   phoneAction,
+  drafting = false,
 }: {
   festival: Festival;
   acts: readonly Act[];
@@ -305,6 +306,8 @@ export function DraftBill({
   onPrinted?: (entityId: string) => void;
   /** Shown under the headliners on phones only, where the rail sits below the whole bill. */
   phoneAction?: ReactNode;
+  /** A build is streaming; the footer says the agent is drafting. */
+  drafting?: boolean;
 }) {
   const billed = festival.feeBands.flatMap((band) =>
     acts.filter((act) => act.band === band.id),
@@ -346,7 +349,9 @@ export function DraftBill({
       <p className="mt-auto w-full border-t border-rule pt-2.5 text-label text-muted">
         {calls && createdAt
           ? `Drafted by the agent from ${calls} Qloo calls · saved ${formatSavedAt(createdAt)} UTC`
-          : "The agent is drafting the undercard."}
+          : drafting
+            ? "The agent is drafting the undercard."
+            : "No undercard drafted yet."}
       </p>
     </section>
   );

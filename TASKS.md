@@ -12,8 +12,8 @@ Approved for this run: pushing redesign-first-screen and main (merged without sq
 - [x] The mark's ▲ comes from a font the page loads, or the mark uses text the fonts carry: now ↑, which Big Shoulders carries
 - [x] The card's Close sits inside the card
 - [x] At 390 px, Watch the agent build it sits under the headliners
-- [ ] The display font's loading checked (subset, preload, display); changed only if small and safe
-- [ ] If there's time: the fallback screen in the bill's design, still with Build undercard
+- [x] The display font's loading checked: latin subset, preloaded, display swap already; the one lever left (dropping the opsz axis) changes the type, so no change
+- [x] If there's time: the fallback screen in the bill's design, still with Build undercard
 - [ ] Deploy, live e2e again, a fresh cold reader (low effort) on the live 1280x800 shot
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
