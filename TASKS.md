@@ -40,7 +40,7 @@ Copied from SPEC.md section 6, M5. Done means: the video is rendered within the 
 - [ ] Voiceover with ElevenLabs: waits on video/.env.local (Daniel)
 - [ ] Render, frame checks, probe, video/out/upload.md
 - [x] Gallery stills and captions in .design/submission/ (3:2, 2400x1600)
-- [ ] Contradiction check fixed; pnpm gate, CI on main and the live e2e pass
+- [x] Contradiction check (a high-effort Claude subagent): 6 confirmed and 3 plausible findings; 8 fixed, 1 (the replay still) not a problem for the video, whose replay frames stream every call. pnpm gate, CI run 39035999543 on 07e8494 and the live e2e (31 passed, LCP 712 ms) pass
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
