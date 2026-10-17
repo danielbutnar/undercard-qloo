@@ -285,6 +285,8 @@ Written on 2026-10-17, before any spike call. The rule doesn't change after the 
 
 **On a go.** One click from the bill, a running order on two stages: Openers early, Mid acts later, arranged so the acts playing at the same time share the least audience. Each slot says who it plays against and how much they share, and the trace lists the calls.
 
+**Results, 2026-10-17: go.** Qloo's insights call takes filter.results.entities: seeded by one act and limited to the bill's other nine, every call answered with those nine and nothing else. 40 calls, 10 per bill, no retries. All 180 pairs were scored (100%). Pairs sharing two or more genre tags (94) scored 0.NN on average; pairs sharing one (49), 0.NN; pairs sharing none (37), 0.873. Within a bill the scores run from about 0.NN to 0.NN (Boise 0.NN to 0.NN, Austin 0.NN to 0.NN, Denver 0.NN to 0.NN, Nashville 0.NN to 0.NN), so the order has real choices to make. The gap between genre-sharing and unrelated pairs is small: the scores rank clashes, they don't measure ticket overlap.
+
 ## 16. A bill that covers the town (M8b), written before the spike
 
 Written on 2026-10-17, before any spike run. The rule doesn't change after the results are in.
