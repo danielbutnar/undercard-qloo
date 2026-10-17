@@ -16,7 +16,7 @@ export interface ActionLimit {
 export const LIMITS: Record<LimitedAction, ActionLimit> = {
   // A fresh build runs the agent: up to 12 Qloo calls and a few Claude turns.
   build: {
-    perIp: 30, // M6m: raised for the 25 checked-town builds, then back to 5
+    perIp: 5,
     perDay: 60,
     noun: "fresh builds",
     hint: " The saved build still replays instantly.",

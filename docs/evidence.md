@@ -248,6 +248,8 @@ Written on 2026-10-17, before any of these builds. The rule doesn't change after
 
 **The rule.** A town stays in the checked list only if its saved build fills both bands. Only complete builds are saved, so a town whose fresh build leaves a band short has no saved build and leaves the list. This also settles the towns checked before M6j with plain names: each is now checked again with its state or country.
 
+**Results, 2026-10-17.** 25 fresh builds on production, one at a time with a 30-second pause, between 19:59 and 20:17 UTC. All 25 filled both bands (4 Mid, 6 Opener), with 11 or 12 Qloo calls each and no call retried. A replay-only check of all 29 checked towns afterwards (no Qloo or Claude calls) streamed a full bill for every one. No town leaves the list: 29 of 29 stay. Boise's saved build wasn't touched. The per-IP fresh-build limit was raised to 30 for these builds in one deploy and set back to 5 in the next.
+
 ## 14. Festivals filed as places (M6o), written before the spike
 
 Written on 2026-10-17, before any spike call. The rule doesn't change after the results are in.
