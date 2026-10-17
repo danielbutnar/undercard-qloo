@@ -49,7 +49,7 @@ Decided for this run (2026-10-17): Direction 1, the draft bill, built on the bra
 ## Done means
 - [x] Pass 2: the scan passes, design shots updated (SCENES), the written look, the cold-reader test on the 1280x800 judge shot
 - [x] LCP on the first screen under 2.5 s on a production build: 308 ms at 1280x800 (`next start` of a synthetic build, unthrottled, 2026-10-17)
-- [ ] The demo path runs end to end; every e2e spec and `pnpm gate` pass; M4b ticked in SPEC.md
+- [x] The demo path runs end to end; every e2e spec and `pnpm gate` pass; M4b ticked in SPEC.md. On the synthetic dev server: 30 passed, 5 skipped (the LCP spec, the fallback spec and its 3 shots, which need a production build). On synthetic production builds: the demo path, the limit state and LCP passed (8 of 8 with `=1`), and the fallback spec and its shots passed (with `=empty`). Not yet run against the deployed URL: this branch isn't deployed.
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
