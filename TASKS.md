@@ -239,6 +239,15 @@ Copied from SPEC.md section 6, M6r. Closes: Design, Quality of the Idea. Deploy 
 - [x] Lay readers C and D (fresh, M6q prompt plus the four terms, production shots of the final version): each says what the page does and explains fee range, a badge number, AI agent and Qloo. Still hard for them: the fee-range sentence and "percentile", "lifted" and "tested for" in the venue box, "build" and "calls", AI agent against AI model, act names that don't look clickable
 - [x] Buyer cold reader: "an AI agent for music festival bookers ... based on what fans of the town's music venues already like"; first click Watch how it picked these acts
 
+# TASKS: M8d Premise test on real festivals
+
+Copied from SPEC.md section 6, M8d. Freeze: 2026-10-24. Done means: ten real festivals in towns Undercard reads, the measure and the bar written first, reported either way, counts only in committed files.
+
+- [x] Ten lineups (Treefort's own page; nine from Wikipedia edition sections), names kept in .design/m8d
+- [x] The measure and the bar written and committed first (docs/evidence.md section 18); one change before any result (take 50, Qloo's maximum), recorded
+- [x] scripts/premise-test.ts: 287 Qloo calls, one at a time
+- [x] Result: 7 of 10 festivals support it, bar 8: not supported. 7 of the 8 that could be scored favour the booked acts, by 0.001 to 0.044 affinity
+
 # TASKS: for the 26-27 October redo (not now)
 
 Moved 2026-10-18: the video and the gallery stills are re-shot on 26-27 October, after a UI freeze at the end of 25 October; 28 October is buffer. Protected windows (no deploys, no offline Qloo runs): Monday 19 October 09:00-21:00 and Tuesday 20 October 09:00-22:00 Bucharest. The live e2e makes no Qloo calls by default; the redraft, running-order and refill steps run with E2E_LIVE_QLOO=1 once after each deploy, outside those windows.
@@ -262,6 +271,8 @@ Moved 2026-10-18: the video and the gallery stills are re-shot on 26-27 October,
 - [ ] Shipped in M6q: the plain first line and the calmer bill; re-shoot every still and re-capture the video, whose narration and captions name "Watch the agent build it"
 
 - [ ] Shipped in M8a: Running order on the bill (two stages, clashes whose fans' tastes are least alike, ranked within the lineup); the story, a still and a capture step
+
+- [ ] Story: M8d's test on ten real festivals as a stated near miss (7 of 10, bar 8), with the lineups' partiality as its limit
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 

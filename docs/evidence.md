@@ -340,6 +340,23 @@ Written on 2026-10-18, before any of these calls. The rule doesn't change after 
 
 **The bar.** The premise is supported if at least 8 of the 10 festivals support it (a one-sided sign test: 8 or more of 10 happens by chance about 5.5% of the time). Otherwise it isn't, and the result is reported either way. Counts and lifts only in this file; names stay in .design/.
 
+**Results, 2026-10-18: not supported at the bar (7 of 10; the bar was 8).** 287 Qloo calls, one at a time. (A first attempt was stopped after its first festival, and for about two minutes two runs overlapped; their output was discarded and this is one clean run.) Lift is the largest gain in Qloo affinity from one of the town's venues, booked acts against random band- and taste-matched acts:
+
+| Festival | Venues | Booked acts in the bands (Mid / Opener) | Booked mean lift | Random mean lift | Supports |
+|---|---|---|---|---|---|
+| Treefort Music Fest 2026, Boise | 2 | 10 (7 / 3) | −0.002 | −0.013 | yes |
+| Levitation 2025, Austin | 1 | 6 (5 / 1) | +0.035 | −0.007 | yes |
+| Live on the Green 2022, Nashville | 1 | 8 (4 / 4) | +0.050 | +0.006 | yes |
+| Lollapalooza Chicago 2025 | 2 | 12 (8 / 4) | +0.006 | −0.014 | yes |
+| Rock the Garden 2022, Minneapolis | 2 | 1 (0 / 1) | not scored | not scored | no (fewer than 2) |
+| Sled Island 2026, Calgary | 2 | 5 (4 / 1) | −0.016 | −0.018 | yes |
+| Pop Montreal 2024 | 2 | 12 (8 / 4) | +0.017 | −0.015 | yes |
+| Le Guess Who? 2014, Utrecht | 2 | 1 (0 / 1) | not scored | not scored | no (fewer than 2) |
+| Pitchfork Music Festival Paris 2025 | 2 | 10 (5 / 5) | −0.007 | −0.005 | no |
+| Electric Castle 2026, Bonțida (Cluj) | 1 | 2 (2 / 0) | +0.007 | −0.015 | yes |
+
+**What it says.** At the bar written first, the premise is not supported: 7 of 10 festivals, and 8 were needed. Two of the three misses are festivals whose Wikipedia-named lineup had only one act inside the demo's bands, so they couldn't be scored; of the 8 that could be, 7 favour the booked acts. The differences are small: the booked acts' mean lift beats the random acts' by 0.001 to 0.044 in affinity, and in Sled Island's case by 0.001. Nothing here is claimed as a finding; the write-up states it as a near miss, with the lineups' partiality (Wikipedia names the better-known acts) as the main limit.
+
 ## 19. The lift, visible (M9a), written before the spike and the readers
 
 Written on 2026-10-18, before either measurement. The rules don't change after the results are in.
@@ -354,6 +371,7 @@ Written on 2026-10-18, before either measurement. The rules don't change after t
 - That a town's crowd knows the undercard acts: section 6 found no usable measure of it.
 - That every room behind a bill is a club: a festival park or an arena can still draft one (section 10).
 - That a room's crowd predicts a festival's bookings. Section 2's check against Treefort was a no-go; its counts (0 to 2 of 50) are too small to show the signal either way.
+- That a town's venues pick out what its festivals book. Section 18's test on ten real festivals fell one short of its bar (7 of 10 against 8), with small differences.
 - Stability beyond the runs in section 5: five in Boise and three in each other town, all on one day, with one pair of headliners.
 
 ## Sources
