@@ -4,10 +4,10 @@ Copied from SPEC.md section 6, M4c. Closes: Design. Freeze: 2026-10-21. Done mea
 
 Approved for this run: pushing redesign-first-screen and main (merged without squashing) and letting Vercel deploy production, each deploy followed by the live e2e. No Vercel environment variable changes, no new package, no fresh build on production in M4c.
 
-- [ ] Push redesign-first-screen and main; Vercel deploys production
-- [ ] UNDERCARD_E2E_SYNTHETIC isn't set on Vercel (read from the live page; no variable changed)
-- [ ] Live e2e passes with no fresh agent run against production
-- [ ] LCP of the live first screen at 1280x800
+- [x] Push redesign-first-screen and main; Vercel deploys production (0bfec9f, 2026-10-17)
+- [x] UNDERCARD_E2E_SYNTHETIC isn't set on Vercel: the live page serves the real Oct 15 build, no synthetic names (no variable changed)
+- [x] Live e2e passes with no fresh agent run against production: 30 passed; the LCP spec failed at 3,644 ms only while it ran beside three workers
+- [x] LCP of the live first screen at 1280x800: 780, 696 and 688 ms, measured alone
 - [ ] The fee band says the buyer sets it and Qloo supplies the popularity percentile
 - [ ] The mark's ▲ comes from a font the page loads, or the mark uses text the fonts carry
 - [ ] The card's Close sits inside the card
