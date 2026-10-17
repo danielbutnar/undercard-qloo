@@ -53,9 +53,9 @@ export function markLabel(act: Act, top?: number): string {
     : `${crowd}: new, from outside ${outsideTop(top)}`;
 }
 
-const RANKING =
-  "Qloo ranks artists by how much the headliners' fans like them.";
+const RANKING = "Qloo ranks artists for the headliners' fans";
 const QLOO = "Qloo: data on what people like, across music, places and more.";
+const theTop = (top?: number) => (top ? `top ${top}` : "ranking");
 
 /**
  * The key set beside the first mark on the bill: the first mark as its example, what it means,
@@ -67,29 +67,22 @@ export function markKey(
 ): { example: string; lines: string[] } {
   const room = first.anchorVenue.name;
   const lift = liftOf(first);
+  const others = acts.filter((act) => act !== first).map(liftOf);
   const lines: string[] = [];
   if (lift?.kind === "up") {
     lines.push(
-      `${RANKING} Adding ${room}'s crowd moves this act up ${lift.places} places.`,
+      `${RANKING}; adding ${room}'s crowd lifts this act ${lift.places} places.`,
     );
+    if (others.some((other) => other?.kind === "new"))
+      lines.push(
+        `new: not in that ${theTop(top)} until a room's crowd was added.`,
+      );
   } else if (lift?.kind === "new") {
     lines.push(
-      `${RANKING} This act was outside ${outsideTop(top)}; adding ${room}'s crowd moves it into the top ${lift.top}.`,
+      `${RANKING}; adding ${room}'s crowd brings this act in from outside the ${theTop(top)}.`,
     );
-  }
-  const otherNew = acts.some(
-    (act) => act !== first && liftOf(act)?.kind === "new",
-  );
-  if (lift?.kind === "up" && otherNew) {
-    lines.push(
-      `new: outside ${outsideTop(top)} until a room's crowd was added.`,
-    );
-  }
-  const otherUp = acts.some(
-    (act) => act !== first && liftOf(act)?.kind === "up",
-  );
-  if (lift?.kind === "new" && otherUp) {
-    lines.push("▲ and a number: the places a room's crowd moves an act up.");
+    if (others.some((other) => other?.kind === "up"))
+      lines.push("▲ and a number: the places a room's crowd lifts an act.");
   }
   lines.push(QLOO);
   return { example: markText(first), lines };

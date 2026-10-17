@@ -87,7 +87,7 @@ describe("the key beside the first mark", () => {
     const key = markKey(up, { acts: [up], top: 50 });
     expect(key.example).toBe("The Lantern Room ▲11");
     expect(key.lines[0]).toBe(
-      "Qloo ranks artists by how much the headliners' fans like them. Adding The Lantern Room's crowd moves this act up 11 places.",
+      "Qloo ranks artists for the headliners' fans; adding The Lantern Room's crowd lifts this act 11 places.",
     );
   });
 
@@ -96,7 +96,7 @@ describe("the key beside the first mark", () => {
       /new/,
     );
     expect(markKey(up, { acts: [up, fresh], top: 50 }).lines).toContain(
-      "new: outside the headliners-only top 50 until a room's crowd was added.",
+      "new: not in that top 50 until a room's crowd was added.",
     );
   });
 
@@ -104,10 +104,10 @@ describe("the key beside the first mark", () => {
     const key = markKey(fresh, { acts: [fresh, up], top: 50 });
     expect(key.example).toBe("The Lantern Room new");
     expect(key.lines[0]).toMatch(
-      /This act was outside the headliners-only top 50; adding The Lantern Room's crowd moves it into the top 8\.$/,
+      /^Qloo ranks artists for the headliners' fans; adding The Lantern Room's crowd brings this act in from outside the top 50\.$/,
     );
     expect(key.lines).toContain(
-      "▲ and a number: the places a room's crowd moves an act up.",
+      "▲ and a number: the places a room's crowd lifts an act.",
     );
   });
 
@@ -119,7 +119,7 @@ describe("the key beside the first mark", () => {
 
   it("leaves out the ranking's size when the build doesn't record it", () => {
     expect(markKey(up, { acts: [up, fresh] }).lines).toContain(
-      "new: outside the headliners-only ranking until a room's crowd was added.",
+      "new: not in that ranking until a room's crowd was added.",
     );
   });
 });

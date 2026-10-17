@@ -90,6 +90,31 @@ describe("the draft bill", () => {
     ).toBeTruthy();
   });
 
+  it("explains the marks beside the first mark, and says what Qloo is", () => {
+    bill({ top: { mid: 50, opener: 50 } });
+    const keys = screen.getAllByRole("note", { name: "How to read the marks" });
+    expect(keys).toHaveLength(1);
+    const key = keys[0];
+    // Beside the first act on the bill: in the same slot of the Mid tier.
+    const firstSlot = within(
+      screen.getByRole("region", { name: "Mid" }),
+    ).getAllByRole("listitem")[0];
+    expect(firstSlot.contains(key)).toBe(true);
+    expect(
+      within(firstSlot).getByRole("article", { name: "Hollow Pines" }),
+    ).toBeTruthy();
+    expect(key.textContent).toContain("The Lantern Room ▲11");
+    expect(key.textContent).toContain(
+      "Qloo ranks artists for the headliners' fans; adding The Lantern Room's crowd lifts this act 11 places.",
+    );
+    expect(key.textContent).toContain(
+      "new: not in that top 50 until a room's crowd was added.",
+    );
+    expect(key.textContent).toContain(
+      "Qloo: data on what people like, across music, places and more.",
+    );
+  });
+
   it("says how many Qloo calls drafted it and when the build was saved", () => {
     bill();
     expect(

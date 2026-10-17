@@ -2,7 +2,7 @@ import type { FeeBand, FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import { formatBandRange, formatCount } from "@/lib/format";
 import type { Act } from "@/lib/lineup";
-import { markLabel, markText } from "@/lib/marks";
+import { liftOf, markKey, markLabel, markText } from "@/lib/marks";
 
 // Billing by band, as on a printed bill: headliners largest, then Mid, then Openers.
 const BILLING = {
@@ -77,6 +77,31 @@ function BillAct({
   );
 }
 
+/** The key to the marks, set beside the first one: what it means and what Qloo is. */
+function MarkKey({ example, lines }: { example: string; lines: string[] }) {
+  const [first, ...rest] = lines;
+  return (
+    <div
+      role="note"
+      aria-label="How to read the marks"
+      className="flex max-w-lg flex-col gap-1 border-l-2 border-rule pl-3 text-left text-label"
+    >
+      <p>
+        <span
+          aria-hidden
+          className="mr-1.5 inline-block rounded-sm border-2 border-accent px-1 pt-0.5 font-display text-body leading-none font-bold text-accent"
+        >
+          {example}
+        </span>
+        {first}
+      </p>
+      {rest.map((line) => (
+        <p key={line}>{line}</p>
+      ))}
+    </div>
+  );
+}
+
 function OpenSlot() {
   return (
     <p className="border-2 border-dashed border-muted px-6 py-2 text-label text-muted">
@@ -93,6 +118,7 @@ function BandTier({
   top,
   openId,
   onOpen,
+  keyed,
 }: {
   band: FeeBand;
   acts: readonly Act[];
@@ -100,6 +126,8 @@ function BandTier({
   top?: number;
   openId: string | null;
   onOpen?: (act: Act) => void;
+  /** The act whose mark carries the key, and the key. */
+  keyed?: { act: Act; example: string; lines: string[] };
 }) {
   const billed = acts.filter((act) => act.band === band.id);
   const slots = Array.from(
@@ -110,7 +138,7 @@ function BandTier({
   return (
     <section
       aria-labelledby={headingId}
-      className="mt-4 flex w-full flex-col items-center border-t-2 border-rule pt-2.5"
+      className="mt-3 flex w-full flex-col items-center border-t-2 border-rule pt-2"
     >
       <div className="flex flex-wrap items-baseline justify-center gap-x-3">
         <h2
@@ -124,9 +152,16 @@ function BandTier({
           percentile: {formatBandRange(band)}
         </p>
       </div>
-      <ol className="mt-3 flex flex-wrap items-start justify-center gap-x-7 gap-y-4">
+      <ol className="mt-2.5 flex flex-wrap items-start justify-center gap-x-7 gap-y-3">
         {slots.map((act, index) => (
-          <li key={act?.entityId ?? `open-${index}`}>
+          <li
+            key={act?.entityId ?? `open-${index}`}
+            className={
+              act && act === keyed?.act
+                ? "flex flex-wrap items-center justify-center gap-x-6 gap-y-3"
+                : undefined
+            }
+          >
             {act ? (
               <BillAct
                 act={act}
@@ -137,6 +172,9 @@ function BandTier({
               />
             ) : (
               <OpenSlot />
+            )}
+            {act && act === keyed?.act && (
+              <MarkKey example={keyed.example} lines={keyed.lines} />
             )}
           </li>
         ))}
@@ -172,6 +210,14 @@ export function DraftBill({
   onOpen?: (act: Act) => void;
 }) {
   const { city, region, capacity, crowdAge } = festival;
+  // The key sits beside the first mark on the bill, in billing order.
+  const firstMarked = festival.feeBands
+    .flatMap((band) => acts.filter((act) => act.band === band.id))
+    .find((act) => !unavailable.includes(act.entityId) && liftOf(act));
+  const keyed = firstMarked && {
+    act: firstMarked,
+    ...markKey(firstMarked, { acts, top: top[firstMarked.band] }),
+  };
   return (
     <section
       aria-label="Undercard draft"
@@ -216,6 +262,7 @@ export function DraftBill({
           top={top[band.id]}
           openId={openId}
           onOpen={onOpen}
+          keyed={keyed?.act.band === band.id ? keyed : undefined}
         />
       ))}
       <p className="mt-auto w-full border-t border-rule pt-2.5 text-label text-muted">
