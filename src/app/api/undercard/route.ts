@@ -5,6 +5,7 @@ import {
   jsonBody,
   serverBuildStore,
   serverLimiter,
+  serverCachedQloo,
   serverModel,
   serverQloo,
 } from "@/server/deps";
@@ -54,6 +55,7 @@ export async function POST(request: Request): Promise<Response> {
     store: serverBuildStore(),
     fresh: body.success ? (body.data.fresh ?? false) : false,
     replayOnly: body.success ? (body.data.replayOnly ?? false) : false,
+    cachedQloo: serverCachedQloo,
     limiter: serverLimiter(),
     ip: clientIp(request.headers),
   });

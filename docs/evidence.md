@@ -363,6 +363,8 @@ Written on 2026-10-18, before either measurement. The rules don't change after t
 
 **The spike.** A replay rebuilds each band's list for the headliners alone and after each venue from the app's Qloo cache only, so it never calls Qloo. Go if, read through a cache-only client, the Boise saved build's climb rebuilds fully (both bands' headliners-only lists and every venue run in its trace), with 0 Qloo calls. The other 28 saved builds are counted and reported either way; one whose cache has expired simply replays without the climb.
 
+**Spike result, 2026-10-18: go.** Read through a cache-only client whose fetch throws, all 29 saved builds rebuilt their full climb (4 to 7 lists each, every headliners-only list and venue run in the trace), with 0 Qloo calls. The cache holds these answers through 2026-11-18.
+
 **The readers.** Two fresh cold readers, each shown one thing only. One sees five frames from 10 seconds of the live replay of the first screen after "Watch how it picked these acts"; the other sees the reduced-motion end state. It passes if each says, in their own words, that the town's venue crowds move acts up the list.
 
 ## What these numbers don't establish

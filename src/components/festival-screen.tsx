@@ -8,8 +8,9 @@ import {
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { formatCount } from "@/lib/format";
 import { RunningOrderPanel } from "@/components/running-order-panel";
+import { LiftClimb } from "@/components/lift-climb";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ActCardPanel } from "@/components/act-card-panel";
 import { DraftBill, type Printing } from "@/components/draft-bill";
 import { ModelBill } from "@/components/model-bill";
@@ -278,6 +279,10 @@ export function FestivalScreen({
   // The motion moment: a replay's acts print in one at a time, and the rooms' counts tick up
   // as each act's print-in starts. Under reduced motion the counts show the end state.
   const [printing, setPrinting] = useState<Printing>(null);
+  // M9a: the climb plays before the lineup prints; a skip or its end lets the bill print.
+  const [climbDone, setClimbDone] = useState(false);
+  const finishClimb = useCallback(() => setClimbDone(true), []);
+  const showClimb = !climbDone && state.climbs.length > 0;
   const [printed, setPrinted] = useState<ReadonlySet<string> | null>(null);
   const rooms = roomsBehind(
     state.acts,
@@ -309,6 +314,7 @@ export function FestivalScreen({
     state.refillError !== null;
 
   function runBuild(request: BuildRequest = {}) {
+    setClimbDone(false);
     setPrinting("run");
     // A fresh run may be refused and keep the bill on screen, so only a replay ticks.
     setPrinted(request.fresh || prefersReducedMotion() ? null : new Set());
@@ -377,8 +383,8 @@ export function FestivalScreen({
             <strong className="font-bold">Undercard</strong> is an AI agent that
             helps a music festival choose the smaller acts that play before the
             stars, using what fans of the town&apos;s own music venues already
-            like, read from Qloo, a taste-data service that maps what fans of one artist,
-            venue or film also like.
+            like, read from Qloo, a taste-data service that maps what fans of
+            one artist, venue or film also like.
           </p>
           <p className="text-label text-muted">{exampleLine(festival)}</p>
         </div>
@@ -421,6 +427,16 @@ export function FestivalScreen({
               printing={printing}
               onPrinted={onPrinted}
               drafting={state.status === "building"}
+              climb={
+                showClimb ? (
+                  <LiftClimb
+                    steps={state.climbs}
+                    bands={festival.feeBands}
+                    live={state.status === "building"}
+                    onDone={finishClimb}
+                  />
+                ) : undefined
+              }
               keeping={state.keeping}
               redraft={
                 !custom && state.build ? (

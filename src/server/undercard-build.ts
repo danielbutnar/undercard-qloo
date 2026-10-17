@@ -1,10 +1,12 @@
+import type { RankedArtist } from "@/lib/assemble-lineup";
+import { climbAfter, climbBaseline, type ClimbEvent } from "@/lib/lift-climb";
 import type { BuildEvent, TraceCall } from "@/lib/build-events";
 import type { Festival } from "@/lib/festival";
 import { diagnoseRun } from "@/lib/your-festival";
 import { runUndercardAgent } from "./agent";
 import type { AgentModel } from "./ai";
 import type { BuildStore, SavedBuild } from "./build-store";
-import type { QlooClient } from "./qloo";
+import { QlooCacheMiss, type QlooClient } from "./qloo";
 import type { LimitResult, RateLimiter } from "./rate-limit";
 
 type Emit = (event: BuildEvent) => void;
@@ -70,8 +72,64 @@ const savedAt = new Intl.DateTimeFormat("en-US", {
 });
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** Streams a saved build again: same trace and lineup, no Qloo or model calls. */
-async function replay(saved: SavedBuild, emit: Emit, delayMs: number) {
+/**
+ * The climb behind a saved build (M9a), rebuilt from the Qloo cache only: each band's list for
+ * the headliners alone and for each venue, keyed by the trace call it follows. A call the cache
+ * can't answer is left out; a replay never calls Qloo.
+ */
+export async function replayClimbs(
+  saved: SavedBuild,
+  festival: Festival,
+  qloo: QlooClient | null,
+): Promise<Map<number, ClimbEvent>> {
+  const out = new Map<number, ClimbEvent>();
+  if (!qloo) return out;
+  const { context } = saved;
+  const pair = context.headliners.map((headliner) => headliner.entityId);
+  const baselines = new Map<string, RankedArtist[]>();
+  for (const [index, call] of saved.trace.entries()) {
+    if (call.tool !== "baseline_artists" && call.tool !== "venue_artists")
+      continue;
+    const band = festival.feeBands.find((entry) =>
+      call.summary.startsWith(`${entry.label}-band`),
+    );
+    if (!band) continue;
+    const venue =
+      call.tool === "venue_artists"
+        ? (context.anchors[band.id] ?? []).find((anchor) =>
+            call.summary.includes(`headliners and ${anchor.name}`),
+          )
+        : undefined;
+    if (call.tool === "venue_artists" && !venue) continue;
+    try {
+      const { data } = await qloo.artists({
+        signalEntityIds: venue ? [...pair, venue.entityId] : pair,
+        popularityMin: band.minPopularity,
+        popularityMax: band.maxPopularity,
+        excludeEntityIds: pair,
+        ages: context.ages ?? [],
+      });
+      if (!venue) {
+        baselines.set(band.id, data);
+        out.set(index, climbBaseline(band.id, data));
+      } else {
+        const base = baselines.get(band.id);
+        if (base) out.set(index, climbAfter(band.id, band, venue, base, data));
+      }
+    } catch (error) {
+      if (!(error instanceof QlooCacheMiss)) throw error;
+    }
+  }
+  return out;
+}
+
+/** Streams a saved build again: same trace and lineup, no Qloo or Claude calls. */
+async function replay(
+  saved: SavedBuild,
+  emit: Emit,
+  delayMs: number,
+  climbs: Map<number, ClimbEvent> = new Map(),
+) {
   const started = Date.now();
   emit({
     type: "build",
@@ -93,6 +151,8 @@ async function replay(saved: SavedBuild, emit: Emit, delayMs: number) {
     sayNotes((at) => at === index);
     await sleep(delayMs);
     emit({ type: "call", call: { ...call, cached: true } });
+    const climb = climbs.get(index);
+    if (climb) emit(climb);
   }
   sayNotes((at) => at >= saved.trace.length);
   emit({ type: "lineup", lineup: saved.lineup });
@@ -116,6 +176,7 @@ export async function handleUndercardBuild({
   ip,
   save = true,
   replayOnly = false,
+  cachedQloo = () => null,
 }: {
   festival: Festival;
   qloo: () => QlooClient | null;
@@ -135,10 +196,19 @@ export async function handleUndercardBuild({
    * the agent, so a click costs no Qloo or Claude call.
    */
   replayOnly?: boolean;
+  /** A cache-only Qloo client, so a replay can show the climb without a Qloo call (M9a). */
+  cachedQloo?: () => QlooClient | null;
 }): Promise<Response> {
   const saved = fresh || !save ? null : await store.latest(festival.id);
   if (saved)
-    return ndjsonResponse((emit) => replay(saved, emit, replayDelayMs));
+    return ndjsonResponse(async (emit) =>
+      replay(
+        saved,
+        emit,
+        replayDelayMs,
+        await replayClimbs(saved, festival, cachedQloo()),
+      ),
+    );
   if (replayOnly && !fresh)
     return ndjsonResponse(async (emit) => {
       emit({

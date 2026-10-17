@@ -218,8 +218,8 @@ function BandTier({
           {PLAIN_BAND[band.id]}
         </h2>
         <p className="text-label text-muted">
-          {band.slots} slots · fee range ({band.label}): with no real fees to
-          go on, how popular an act is on Qloo stands in for what it charges{" "}
+          {band.slots} slots · fee range ({band.label}): with no real fees to go
+          on, how popular an act is on Qloo stands in for what it charges{" "}
           {`(${formatBandRange(band)} percentile)`}
         </p>
       </div>
@@ -328,6 +328,7 @@ export function DraftBill({
   drafting = false,
   keeping = [],
   redraft,
+  climb,
 }: {
   festival: Festival;
   acts: readonly Act[];
@@ -352,6 +353,8 @@ export function DraftBill({
   keeping?: readonly string[];
   /** Redraft the rest, under the bands once an act is kept (M8c). */
   redraft?: ReactNode;
+  /** The lift, visible (M9a): while it plays, it takes the bands' place. */
+  climb?: ReactNode;
 }) {
   const billed = festival.feeBands.flatMap((band) =>
     acts.filter((act) => act.band === band.id),
@@ -382,22 +385,24 @@ export function DraftBill({
       {phoneAction && (
         <div className="mt-3 w-full lg:hidden">{phoneAction}</div>
       )}
-      {festival.feeBands.map((band) => (
-        <BandTier
-          key={band.id}
-          band={band}
-          acts={acts}
-          unavailable={unavailable}
-          keeping={keeping}
-          top={top[band.id]}
-          openId={openId}
-          onOpen={onOpen}
-          keyed={keyed?.act.band === band.id ? keyed : undefined}
-          printing={printing}
-          order={order}
-          onPrinted={onPrinted}
-        />
-      ))}
+      {climb}
+      {!climb &&
+        festival.feeBands.map((band) => (
+          <BandTier
+            key={band.id}
+            band={band}
+            acts={acts}
+            unavailable={unavailable}
+            keeping={keeping}
+            top={top[band.id]}
+            openId={openId}
+            onOpen={onOpen}
+            keyed={keyed?.act.band === band.id ? keyed : undefined}
+            printing={printing}
+            order={order}
+            onPrinted={onPrinted}
+          />
+        ))}
       {redraft && <div className="mt-3 w-full">{redraft}</div>}
       <p className="mt-auto w-full border-t border-rule pt-2.5 text-label text-muted">
         {calls && createdAt

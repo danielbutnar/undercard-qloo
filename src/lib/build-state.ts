@@ -1,3 +1,4 @@
+import type { ClimbEvent } from "./lift-climb";
 import type { RunningSlot } from "./running-order";
 import type { BuildEvent, TraceCall } from "./build-events";
 import type { FirstBill } from "./first-bill";
@@ -47,6 +48,8 @@ export interface BuildState {
   order: RunningSlot[] | null;
   /** A running order is being scored; it shares the refill's trace numbering. */
   ordering: boolean;
+  /** The lift, visible (M9a): each band's list after each baseline and venue call. */
+  climbs: ClimbEvent[];
 }
 
 export const IDLE_BUILD: BuildState = {
@@ -72,6 +75,7 @@ export const IDLE_BUILD: BuildState = {
   redrafting: false,
   order: null,
   ordering: false,
+  climbs: [],
 };
 
 /** The board the first screen opens on: the saved build's acts, ready to replay or refill. */
@@ -170,7 +174,12 @@ export function buildReducer(
   switch (action.type) {
     case "start": {
       if (action.fresh && state.acts.length > 0) {
-        const board: BuildState = { ...state, kept: null, refusal: null };
+        const board: BuildState = {
+          ...state,
+          kept: null,
+          refusal: null,
+          climbs: [],
+        };
         return { ...board, status: "building", kept: board };
       }
       return { ...IDLE_BUILD, status: "building" };
@@ -274,6 +283,8 @@ export function buildReducer(
           };
         case "call":
           return withCall(state, event.call);
+        case "climb":
+          return { ...state, climbs: [...state.climbs, event] };
         case "status":
           return {
             ...state,

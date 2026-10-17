@@ -1,3 +1,4 @@
+import { climbAfter, climbBaseline } from "@/lib/lift-climb";
 import type Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { liftsOver, MIN_LIFT } from "@/lib/assemble-lineup";
@@ -414,6 +415,8 @@ export function createToolbox({
           }),
       );
       state.baselines[band] = artists;
+      // M9a: the band's list for the headliners alone, the start of the climb.
+      emit(climbBaseline(band, artists));
       return {
         band,
         count: artists.length,
@@ -450,6 +453,9 @@ export function createToolbox({
             ages: crowd.buckets,
           }),
       );
+      const climbBase = state.baselines[band];
+      if (climbBase)
+        emit(climbAfter(band, range, venue, climbBase, artists));
       state.venueRuns.push({
         venue: kind ? { ...venue, kind } : venue,
         band,

@@ -192,6 +192,14 @@ export const QLOO_RETRY: QlooRetryPolicy = {
 const RETRYABLE = new Set([429, 500, 502, 503, 504]);
 
 /** Qloo stayed busy past the client's time budget: the build ends in its own designed state. */
+/** A cache-only client found no cached answer (M9a): it never calls Qloo. */
+export class QlooCacheMiss extends Error {
+  constructor() {
+    super("No cached Qloo answer.");
+    this.name = "QlooCacheMiss";
+  }
+}
+
 export class QlooBusy extends QlooError {
   constructor() {
     super(429, "Qloo is busy right now. Try again in a minute.");
@@ -219,6 +227,8 @@ export interface QlooClientOptions {
   sleep?: (ms: number) => Promise<void>;
   clock?: () => number;
   random?: () => number;
+  /** Answer only from the cache (M9a's replays): a miss throws QlooCacheMiss, never fetches. */
+  cacheOnly?: boolean;
 }
 
 export type QlooClient = ReturnType<typeof createQlooClient>;
@@ -233,6 +243,7 @@ export function createQlooClient({
   sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   clock = Date.now,
   random = Math.random,
+  cacheOnly = false,
 }: QlooClientOptions) {
   const deadline = clock() + retry.budgetMs;
   let inFlight = 0;
@@ -273,6 +284,7 @@ export function createQlooClient({
 
     const hit = await cache.get<T>(cacheKey);
     if (hit !== null) return { data: hit, call: call(hit, true) };
+    if (cacheOnly) throw new QlooCacheMiss();
 
     const url = new URL(path, baseUrl);
     for (const [key, value] of entries) url.searchParams.set(key, value);

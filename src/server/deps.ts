@@ -26,6 +26,17 @@ export function serverQloo(): QlooClient | null {
   });
 }
 
+/** Reads the Qloo cache only (M9a's replays): it never calls Qloo, so a replay stays free. */
+export function serverCachedQloo(): QlooClient | null {
+  if (syntheticMode()) return null;
+  return createQlooClient({
+    apiKey: process.env.QLOO_API_KEY ?? "",
+    cache: createQlooCache(),
+    baseUrl: process.env.QLOO_BASE_URL || undefined,
+    cacheOnly: true,
+  });
+}
+
 export function serverModel() {
   if (syntheticMode()) return null;
   try {
