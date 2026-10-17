@@ -105,7 +105,7 @@ it and no popularity to check it against a fee band.
 
 Qloo responses are cached server-side in Upstash Redis until at least 2026-11-18, past the end
 of judging, and never committed. A complete build is saved the same way, so the next visitor
-opens on it and "Watch the agent build it" replays its calls in about 2 seconds, marked as a
+opens on it and "Watch the agent build it" replays its calls in 2 to 3 seconds, marked as a
 replay; "Run the agent live instead" starts a fresh build. [docs/qloo-spike.md](docs/qloo-spike.md) records what the first live calls
 returned, as counts only.
 

@@ -1,6 +1,6 @@
 # Hackathon entry: project rules
 
-This repository is one hackathon entry, built on my public starter kit. Three files define the work:
+This repository is one hackathon entry. There is no starter kit: it began from create-next-app, credited in README.md. Three files define the work:
 - RULES.md: the event's rules, extracted before the build. It overrides everything else, including SPEC.md.
 - SPEC.md: the brief, the demo path, the milestones and what "done" means for each.
 - TASKS.md: the live checklist for the current milestone.
@@ -34,7 +34,7 @@ Node 22, pnpm, TypeScript (strict), Next.js App Router, Tailwind CSS, Vitest, Pl
 3. The milestone is done when its "Done means" line is true and `pnpm gate` passes. Tick it in SPEC.md and stop.
 
 ## Rules that protect the entry
-- Submit only code written during the event, plus the public starter kit credited in README.md.
+- Submit only code written during the event, plus the create-next-app scaffold credited in README.md.
 - Commit after every ticked task. Never squash, amend pushed commits or rewrite history: the log shows the work was done during the event.
 - Use the sponsor technology named in RULES.md in the core flow, visibly, never as a bolt-on.
 - Keep the "AI usage" section of README.md current: what Claude wrote, and which tools generated media, including the AI voiceover.

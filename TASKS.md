@@ -44,10 +44,6 @@ Copied from SPEC.md section 6, M5. Done means: the video is rendered within the 
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
-## Before the repository goes public
-- [ ] Remove the Final scores and Weakest criterion bullets from SPEC.md section 9: all three AI judges docked them, and judges or an automated analysis may read self-scores as steering
-- [ ] Decide whether a private note stays public: it's contest strategy, and the judge script can read it from claude-master-setup with --field
-- [ ] Confirm the git history holds no sk-ant- key
-- [x] Replace the README's "video still to come" line
-- [ ] Check that the saved build replays on the live URL. If it's gone, run one fresh build before judging starts on 2026-11-02, because replays come from the saved build in Upstash, not from `pnpm seed`
+## Before judging starts (2026-11-02)
+- [ ] Check that the saved build replays on the live URL. If it's gone, run one fresh build before 2026-11-02, because replays come from the saved build in Upstash, not from `pnpm seed`
 - [ ] If the organizers haven't answered about rate limits by 2026-10-27, decide whether to raise the per-IP limits for judging, keeping the shared daily caps as the cost ceiling
