@@ -207,6 +207,25 @@ Copied from SPEC.md section 6, M6q. Closes: Design. Deploy by 2026-10-19 08:30 B
 - [x] Deployed 2026-10-17 23:50 Bucharest; live e2e 44 passed
 - [x] Lay cold reader after (production shots): said what it does "within a few seconds", that Khruangbin and Japanese Breakfast are bands, and would click Watch how it picked these acts first. Still unclear to it: Qloo explained late, "fee band", the bare +N badges, "room", "agent" and "bill"
 
+# TASKS: M8a Running order
+
+Copied from SPEC.md section 6, M8a. Freeze: 2026-10-21. Done means: a spike's go or no-go; on a go, a running order one click from the bill.
+
+- [x] The bar written first (docs/evidence.md section 15)
+- [x] Spike: 180 of 180 pairs scored in 10 calls per bill; pairs sharing 2+ genre tags 0.NN, none 0.NN: go
+- [x] src/lib/running-order.ts: per band, the pairing whose clashes share least; bigger draw on the main stage; openers first (tests/unit/m8a)
+- [x] POST /api/running-order: one call per act but the last in each band, limited to the acts after it (8 calls for 4 + 6), limited per IP and per day; calls in the trace
+- [x] Running order button on the bill; the panel says, set by set, who plays against whom and how much their fans overlap
+- [x] e2e on the live demo: five sets, each naming its clash, at most 10 calls
+
+# TASKS: M8c Keep and redraft
+
+Copied from SPEC.md section 6, M8c. Freeze: 2026-10-23. Done means: kept acts stay and the rest refill in at most 3 Qloo calls; an e2e keeps three acts, redrafts and sees only the other slots change.
+
+- [x] POST /api/redraft: every slot not kept, the same bar, the board and unavailable acts excluded, at most 3 calls across the bands (tests/unit/m8c)
+- [x] Keep on the act card; Kept on the bill; Redraft the rest on the bill once an act is kept
+- [x] e2e on the live demo: three kept acts stay, the other slots change, 1 to 3 redraft calls in the trace
+
 # TASKS: for the 27-28 October redo (not now)
 
 - [ ] Fix the video's capture script for the reason picker (its refill step now stops at "Why is it unavailable?")
@@ -226,6 +245,8 @@ Copied from SPEC.md section 6, M6q. Closes: Design. Deploy by 2026-10-19 08:30 B
 - [ ] Shipped in M6o: Venue 156 is labelled a festival, not a club; Cluj-Napoca's saved build predates the label, so it shows after that town's next build
 
 - [ ] Shipped in M6q: the plain first line and the calmer bill; re-shoot every still and re-capture the video, whose narration and captions name "Watch the agent build it"
+
+- [ ] Shipped in M8a: Running order on the bill (two stages, clashes that share least); the story, a still and a capture step
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
