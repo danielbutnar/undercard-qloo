@@ -9,7 +9,7 @@ Approved for this run: pushing redesign-first-screen and main (merged without sq
 - [x] Live e2e passes with no fresh agent run against production: 30 passed; the LCP spec failed at 3,644 ms only while it ran beside three workers
 - [x] LCP of the live first screen at 1280x800: 780, 696 and 688 ms, measured alone
 - [x] The fee band says the buyer sets it and Qloo supplies the popularity percentile
-- [x] The mark's ▲ comes from a font the page loads, or the mark uses text the fonts carry: now ↑, which Big Shoulders carries
+- [x] The mark's ▲ comes from a font the page loads, or the mark uses text the fonts carry: now +, which Big Shoulders carries at full weight (it has no ▲, and its ↑ sets too small to read)
 - [x] The card's Close sits inside the card
 - [x] At 390 px, Watch the agent build it sits under the headliners
 - [x] The display font's loading checked: latin subset, preloaded, display swap already; the one lever left (dropping the opsz axis) changes the type, so no change

@@ -71,13 +71,13 @@ describe("the draft bill", () => {
     bill({ top: { mid: 50, opener: 50 } });
     const act = (name: string) => screen.getByRole("article", { name });
     expect(
-      within(act("Hollow Pines")).getByText("The Lantern Room ↑11"),
+      within(act("Hollow Pines")).getByText("The Lantern Room +11"),
     ).toBeTruthy();
-    expect(within(act("Marisol Vey")).getByText("FSB ↑7")).toBeTruthy();
+    expect(within(act("Marisol Vey")).getByText("FSB +7")).toBeTruthy();
     expect(
       within(act("Low Bench Choir")).getByText("The Lantern Room new"),
     ).toBeTruthy();
-    // Read out in words: the ↑ and the initials stay off the accessibility tree.
+    // Read out in words: the + and the initials stay off the accessibility tree.
     expect(
       within(act("Marisol Vey")).getByText(
         "Fort Street Ballroom's crowd: up 7 places",
@@ -103,7 +103,7 @@ describe("the draft bill", () => {
     expect(
       within(firstSlot).getByRole("article", { name: "Hollow Pines" }),
     ).toBeTruthy();
-    expect(key.textContent).toContain("The Lantern Room ↑11");
+    expect(key.textContent).toContain("The Lantern Room +11");
     expect(key.textContent).toContain(
       "Qloo ranks artists for the headliners' fans; adding The Lantern Room's crowd lifts this act 11 places.",
     );

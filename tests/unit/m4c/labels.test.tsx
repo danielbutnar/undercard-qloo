@@ -37,15 +37,15 @@ describe("the fee band", () => {
 });
 
 describe("the mark", () => {
-  // Big Shoulders carries ↑ (U+2191, in Google's latin subset) but not ▲, which fell back
-  // to another face with loose spacing.
-  it("counts places gained with ↑, a glyph the display font carries", () => {
+  // Big Shoulders carries + at full weight; it has no ▲ (which fell back to another face)
+  // and sets ↑ too small to read.
+  it("counts places gained with +, a glyph the display font carries", () => {
     expect(
       markText({
         ...acts[1],
         reason: "Fort Street Ballroom fans move it up 7 places.",
       }),
-    ).toBe("FSB ↑7");
+    ).toBe("FSB +7");
   });
 
   it("leaves no ▲ on the bill or in the key", () => {
@@ -56,7 +56,7 @@ describe("the mark", () => {
       reason: "The Lantern Room fans move it into the top 8.",
     };
     expect(markKey(fresh, { acts: [fresh, acts[1]] }).lines).toContain(
-      "↑ and a number: the places a room's crowd lifts an act.",
+      "+ and a number: the places a room's crowd lifts an act.",
     );
   });
 });

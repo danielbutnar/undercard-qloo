@@ -118,7 +118,7 @@ describe("Without Qloo", () => {
     expect(
       within(
         within(bill).getByRole("article", { name: "Hollow Pines" }),
-      ).getByText("The Lantern Room ↑11"),
+      ).getByText("The Lantern Room +11"),
     ).toBeTruthy();
   });
 
