@@ -20,13 +20,9 @@ export function useUndercardBuild(initial: BuildState = IDLE_BUILD) {
     stateRef.current = state;
   }, [state]);
 
-  useEffect(
-    () => () => {
-      buildController.current?.abort();
-      refillController.current?.abort();
-    },
-    [],
-  );
+  // No abort on cleanup: Next.js can clean up effects without unmounting the screen (a hidden
+  // Activity, a Fast Refresh), and an aborted replay would leave the board building forever.
+  // A new build still cancels the one before it.
 
   const build = useCallback(async (request: BuildRequest = {}) => {
     buildController.current?.abort();
