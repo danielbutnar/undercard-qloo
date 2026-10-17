@@ -16,6 +16,8 @@ export function ActCardPanel({
   onUnavailable,
   onClose,
   city,
+  kept,
+  onKeep,
 }: {
   act: Act;
   unavailable: boolean;
@@ -24,6 +26,8 @@ export function ActCardPanel({
   onUnavailable?: (act: Act, reason: UnavailableReason) => void;
   onClose: () => void;
   city?: string;
+  kept?: boolean;
+  onKeep?: (act: Act) => void;
 }) {
   const ref = useRef<HTMLElement>(null);
 
@@ -47,6 +51,8 @@ export function ActCardPanel({
         onUnavailable={onUnavailable}
         onClose={onClose}
         city={city}
+        kept={kept}
+        onKeep={onKeep}
       />
     </section>
   );

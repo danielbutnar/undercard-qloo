@@ -42,6 +42,7 @@ function Mark({ act, top }: { act: Act; top?: number }) {
 // focus, and the act's name as its accessible name. No hover-scale (B7).
 function BillAct({
   act,
+  kept = false,
   gone,
   top,
   open,
@@ -51,6 +52,8 @@ function BillAct({
   onPrinted,
 }: {
   act: Act;
+  /** The buyer keeps it (M8c). */
+  kept?: boolean;
   gone: boolean;
   top?: number;
   open: boolean;
@@ -98,6 +101,9 @@ function BillAct({
       ) : (
         <Mark act={act} top={top} />
       )}
+      {kept && !gone && (
+        <p className="text-label font-semibold text-accent">Kept</p>
+      )}
     </article>
   );
 }
@@ -140,6 +146,7 @@ function BandTier({
   band,
   acts,
   unavailable,
+  keeping,
   top,
   openId,
   onOpen,
@@ -151,6 +158,7 @@ function BandTier({
   band: FeeBand;
   acts: readonly Act[];
   unavailable: readonly string[];
+  keeping: readonly string[];
   top?: number;
   openId: string | null;
   onOpen?: (act: Act) => void;
@@ -197,6 +205,7 @@ function BandTier({
             {act ? (
               <BillAct
                 act={act}
+                kept={keeping.includes(act.entityId)}
                 gone={unavailable.includes(act.entityId)}
                 top={top}
                 open={openId === act.entityId}
@@ -289,6 +298,8 @@ export function DraftBill({
   onPrinted,
   phoneAction,
   drafting = false,
+  keeping = [],
+  redraft,
 }: {
   festival: Festival;
   acts: readonly Act[];
@@ -309,6 +320,10 @@ export function DraftBill({
   phoneAction?: ReactNode;
   /** A build is streaming; the footer says the agent is drafting. */
   drafting?: boolean;
+  /** Acts the buyer keeps (M8c), marked on the bill. */
+  keeping?: readonly string[];
+  /** Redraft the rest, under the bands once an act is kept (M8c). */
+  redraft?: ReactNode;
 }) {
   const billed = festival.feeBands.flatMap((band) =>
     acts.filter((act) => act.band === band.id),
@@ -331,7 +346,7 @@ export function DraftBill({
         Headliners booked.
         {onOpen &&
           acts.length > 0 &&
-          " Click an act to open its card, where you can mark it unavailable."}
+          " Click an act to open its card, where you can keep it or mark it unavailable."}
       </BillHeader>
       {phoneAction && (
         <div className="mt-3 w-full lg:hidden">{phoneAction}</div>
@@ -342,6 +357,7 @@ export function DraftBill({
           band={band}
           acts={acts}
           unavailable={unavailable}
+          keeping={keeping}
           top={top[band.id]}
           openId={openId}
           onOpen={onOpen}
@@ -351,6 +367,7 @@ export function DraftBill({
           onPrinted={onPrinted}
         />
       ))}
+      {redraft && <div className="mt-3 w-full">{redraft}</div>}
       <p className="mt-auto w-full border-t border-rule pt-2.5 text-label text-muted">
         {calls && createdAt
           ? `Drafted by the agent from ${calls} Qloo calls · saved ${formatSavedAt(createdAt)} UTC`

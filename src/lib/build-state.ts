@@ -38,6 +38,10 @@ export interface BuildState {
   kept: BuildState | null;
   /** Why the last fresh build was refused; the trace shows it with the replay as next step. */
   refusal: string | null;
+  /** Acts the buyer keeps (M8c): a redraft refills every other slot. */
+  keeping: string[];
+  /** A redraft is running; it shares the refill's trace numbering and error line. */
+  redrafting: boolean;
 }
 
 export const IDLE_BUILD: BuildState = {
@@ -59,6 +63,8 @@ export const IDLE_BUILD: BuildState = {
   replaced: {},
   kept: null,
   refusal: null,
+  keeping: [],
+  redrafting: false,
 };
 
 /** The board the first screen opens on: the saved build's acts, ready to replay or refill. */
@@ -79,7 +85,9 @@ export type BuildAction =
   | { type: "markUnavailable"; entityId: string; reason?: UnavailableReason }
   | { type: "refillEvent"; event: BuildEvent }
   | { type: "refillEnd" }
-  | { type: "refillFail"; message: string };
+  | { type: "refillFail"; message: string }
+  | { type: "toggleKeep"; entityId: string }
+  | { type: "startRedraft" };
 
 function withCall(state: BuildState, call: TraceCall): BuildState {
   return {
@@ -121,10 +129,23 @@ function applyRefillEvent(state: BuildState, event: BuildEvent): BuildState {
         },
       };
     }
+    case "redraft": {
+      let acts = state.acts;
+      const replaced = { ...state.replaced };
+      for (const { replaces, act } of event.pairs) {
+        const gone = acts.find((entry) => entry.entityId === replaces);
+        acts = replaceAct(acts, replaces, act);
+        replaced[act.entityId] = {
+          name: gone?.name ?? state.replaced[replaces]?.name ?? "",
+          reason: null,
+        };
+      }
+      return { ...state, acts, replaced };
+    }
     case "error":
       return { ...state, refillError: event.message };
     case "done":
-      return { ...state, refilling: null };
+      return { ...state, refilling: null, redrafting: false };
     default:
       return state;
   }
@@ -159,9 +180,25 @@ export function buildReducer(
               state.error ?? "The build stopped before it finished. Try again.",
           }
         : state;
+    case "toggleKeep":
+      return {
+        ...state,
+        keeping: state.keeping.includes(action.entityId)
+          ? state.keeping.filter((id) => id !== action.entityId)
+          : [...state.keeping, action.entityId],
+      };
+    case "startRedraft":
+      return {
+        ...state,
+        redrafting: true,
+        refillBase: state.calls.length,
+        refillError: null,
+        refillReason: null,
+      };
     case "markUnavailable":
       return {
         ...state,
+        keeping: state.keeping.filter((id) => id !== action.entityId),
         unavailable: [...new Set([...state.unavailable, action.entityId])],
         refilling: action.entityId,
         refillBase: state.calls.length,
@@ -171,17 +208,23 @@ export function buildReducer(
     case "refillEvent":
       return applyRefillEvent(state, action.event);
     case "refillEnd":
-      return state.refilling
+      return state.refilling || state.redrafting
         ? {
             ...state,
             refilling: null,
+            redrafting: false,
             refillError:
               state.refillError ??
               "The refill stopped before it finished. Try again.",
           }
         : state;
     case "refillFail":
-      return { ...state, refilling: null, refillError: action.message };
+      return {
+        ...state,
+        refilling: null,
+        redrafting: false,
+        refillError: action.message,
+      };
     case "event": {
       const { event } = action;
       switch (event.type) {
@@ -223,6 +266,8 @@ export function buildReducer(
             ...state,
             acts: replaceAct(state.acts, event.replaces, event.act),
           };
+        case "redraft":
+          return applyRefillEvent(state, event);
         case "error":
           if (state.kept) return { ...state, refusal: event.message };
           return {

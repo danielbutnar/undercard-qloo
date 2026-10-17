@@ -35,6 +35,11 @@ export const BuildEventSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("lineup"), lineup: LineupSchema }),
   /** A refill's result: the act that takes the unavailable act's slot. */
   z.object({ type: z.literal("refill"), replaces: z.string(), act: ActSchema }),
+  /** A redraft's result (M8c): each slot not kept, with the act that now takes it. */
+  z.object({
+    type: z.literal("redraft"),
+    pairs: z.array(z.object({ replaces: z.string(), act: ActSchema })),
+  }),
   /** An error; code, when set, names a state the page designs for (M6f). */
   z.object({
     type: z.literal("error"),

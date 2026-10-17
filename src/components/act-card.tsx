@@ -23,6 +23,8 @@ export function ActCard({
   onUnavailable,
   onClose,
   city = "Boise",
+  kept = false,
+  onKeep,
 }: {
   act: Act;
   /** Stamped and printed in worn ink while its slot is refilled, or when no refill was found. */
@@ -34,6 +36,9 @@ export function ActCard({
   onClose?: () => void;
   /** The festival's town, which names the Why line. */
   city?: string;
+  /** The buyer keeps this act (M8c); a redraft refills every other slot. */
+  kept?: boolean;
+  onKeep?: (act: Act) => void;
 }) {
   const [asking, setAsking] = useState(false);
   const billing = BILLING[act.band];
@@ -101,6 +106,17 @@ export function ActCard({
           </li>
         ))}
       </ul>
+      {onKeep && !unavailable && !asking && (
+        <button
+          type="button"
+          aria-pressed={kept}
+          disabled={disabled}
+          onClick={() => onKeep(act)}
+          className="self-start rounded-sm border-2 border-accent px-3 py-0.5 text-label font-semibold text-accent hover:bg-accent hover:text-on-accent aria-pressed:bg-accent aria-pressed:text-on-accent disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          Keep
+        </button>
+      )}
       {onUnavailable && !unavailable && !asking && (
         <button
           type="button"

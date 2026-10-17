@@ -41,7 +41,7 @@ describe("an act on the bill", () => {
     open();
     expect(
       within(bill()).getByText(
-        /Click an act to open its card, where you can mark it unavailable\./,
+        /Click an act to open its card, where you can keep it or mark it unavailable./,
       ),
     ).toBeTruthy();
   });

@@ -105,5 +105,48 @@ export function useUndercardBuild(
     [festivalId],
   );
 
-  return { state, build, markUnavailable };
+  const toggleKeep = useCallback(
+    (act: Act) => dispatch({ type: "toggleKeep", entityId: act.entityId }),
+    [],
+  );
+
+  // M8c: every slot not kept is refilled from the build's rooms, at most 3 Qloo calls.
+  const redraft = useCallback(async () => {
+    const current = stateRef.current;
+    if (!current.build || current.refilling || current.redrafting) return;
+    const replace = current.acts
+      .filter((act) => !current.keeping.includes(act.entityId))
+      .map((act) => ({ entityId: act.entityId, band: act.band }));
+    if (current.keeping.length === 0 || replace.length === 0) return;
+    const controller = new AbortController();
+    refillController.current = controller;
+    dispatch({ type: "startRedraft" });
+    try {
+      await streamEvents(
+        "/api/redraft",
+        {
+          festival: festivalId,
+          buildId: current.build.id,
+          replace,
+          excludeIds: [
+            ...new Set([
+              ...current.acts.map((onBoard) => onBoard.entityId),
+              ...current.unavailable,
+            ]),
+          ],
+        },
+        controller.signal,
+        (event) => dispatch({ type: "refillEvent", event }),
+      );
+      dispatch({ type: "refillEnd" });
+    } catch {
+      if (!controller.signal.aborted)
+        dispatch({
+          type: "refillFail",
+          message: "Couldn't reach the redraft service. Try again.",
+        });
+    }
+  }, [festivalId]);
+
+  return { state, build, markUnavailable, toggleKeep, redraft };
 }

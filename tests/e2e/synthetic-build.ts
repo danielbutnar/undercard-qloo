@@ -311,3 +311,36 @@ export function syntheticLlmOnly() {
     },
   };
 }
+
+/** A synthetic redraft (M8c): each slot not kept gets an invented act from the same band. */
+export function syntheticRedraftStream(
+  replace: { entityId: string; band: "mid" | "opener" }[],
+): string {
+  const names = ["Juniper Static", "Owyhee Lights", "Table Rock Choir", "Basque Block", "Foothill Radio", "Payette Bloom", "Snake River Sun"];
+  const pairs = replace.map((slot, index) => ({
+    replaces: slot.entityId,
+    act: {
+      entityId: id(600 + index),
+      name: names[index % names.length],
+      band: slot.band,
+      affinity: 0.8 - index * 0.01,
+      popularity: slot.band === "mid" ? 0.84 : 0.7,
+      anchorVenue: LANTERN,
+      reason: `${LANTERN.name} fans move it up 9 places.`,
+      sharedTags: [
+        { id: "urn:tag:genre:music:dream_pop", name: "Dream Pop" },
+        { id: "urn:tag:genre:music:indie_rock", name: "Indie Rock" },
+      ],
+    },
+  }));
+  const call = {
+    ...artistsCall(1, "Mid", LANTERN.name),
+    tool: "redraft",
+    summary: `Redraft: Mid-band artists for the headliners and ${LANTERN.name}, minus the board`,
+  };
+  return ndjson([
+    { type: "call", call },
+    { type: "redraft", pairs },
+    { type: "done", calls: 1, ms: 1200 },
+  ]);
+}

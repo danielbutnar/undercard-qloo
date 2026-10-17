@@ -230,7 +230,7 @@ export function FestivalScreen({
    */
   checked?: { onBack: () => void };
 }) {
-  const { state, build, markUnavailable } = useUndercardBuild(
+  const { state, build, markUnavailable, toggleKeep, redraft } = useUndercardBuild(
     firstBoard(firstBill),
     festival.id,
     custom?.brief,
@@ -280,6 +280,7 @@ export function FestivalScreen({
     state.calls.length > 0 ||
     state.refusal !== null ||
     state.refilling !== null ||
+    state.redrafting ||
     state.refillError !== null;
 
   function runBuild(request: BuildRequest = {}) {
@@ -382,6 +383,35 @@ export function FestivalScreen({
             printing={printing}
             onPrinted={onPrinted}
             drafting={state.status === "building"}
+            keeping={state.keeping}
+            redraft={
+              !custom && state.keeping.length > 0 ? (
+                <div className="flex flex-col items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPrinting("refill");
+                      setOpenId(null);
+                      void redraft();
+                    }}
+                    disabled={
+                      state.status === "building" ||
+                      state.refilling !== null ||
+                      state.redrafting
+                    }
+                    className="rounded-sm border-2 border-accent bg-accent px-4 py-1.5 font-display text-name font-extrabold uppercase text-on-accent hover:bg-ink disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {state.redrafting ? "Redrafting…" : "Redraft the rest"}
+                  </button>
+                  <p className="text-label text-muted">
+                    Keeps {state.keeping.length}{" "}
+                    {state.keeping.length === 1 ? "act" : "acts"} and refills
+                    the other slots from the same rooms, in at most 3 Qloo
+                    calls.
+                  </p>
+                </div>
+              ) : undefined
+            }
             phoneAction={
               <div className="flex flex-col items-center gap-1">
                 <button
@@ -431,8 +461,12 @@ export function FestivalScreen({
               <ActCardPanel
                 act={openAct}
                 unavailable={state.unavailable.includes(openAct.entityId)}
-                disabled={state.refilling !== null || !state.build}
+                disabled={
+                  state.refilling !== null || state.redrafting || !state.build
+                }
                 onUnavailable={custom ? undefined : refill}
+                kept={state.keeping.includes(openAct.entityId)}
+                onKeep={custom ? undefined : toggleKeep}
                 onClose={() => setOpenId(null)}
                 city={festival.city}
               />
