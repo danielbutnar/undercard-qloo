@@ -1,31 +1,41 @@
-// The demo path from SPEC.md section 3, step by step, against a running app. A build replays
-// the saved build when there is one; otherwise it runs the agent, which calls Qloo and Claude.
-// The refill (step 4) calls Qloo; LLM only (step 5) calls Claude the first time.
+// The demo path from SPEC.md section 3, step by step, against a running app: the local
+// synthetic server (playwright.config.ts) or a deployment (E2E_BASE_URL). The first screen and
+// the replay come from the server's latest saved build. On a deployment the refill (step 4)
+// calls Qloo, and Without Qloo (step 5) calls Claude the first time; on the synthetic server,
+// which has no Qloo client, the refill is answered in the browser.
 import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
+import { SYNTHETIC } from "./env";
+import { syntheticRefillStream } from "./synthetic-build";
 
-const BUILD_TIMEOUT = 140_000;
+const NDJSON = "application/x-ndjson; charset=utf-8";
+const REPLAY_TIMEOUT = 30_000;
 
-async function buildBoard(page: Page) {
-  await page.goto("/");
-  await page.getByRole("button", { name: "Build undercard" }).click();
-  await expect(page.getByRole("article")).toHaveCount(10, {
-    timeout: BUILD_TIMEOUT,
-  });
-  await expect(
-    page.getByText(/^(Built with \d+ Qloo calls|Replayed the build saved)/),
-  ).toBeVisible({
-    timeout: BUILD_TIMEOUT,
-  });
-}
-
+const bill = (page: Page) =>
+  page.getByRole("region", { name: "Undercard draft" });
+const band = (page: Page, name: RegExp) =>
+  bill(page).getByRole("region", { name });
 const traceRows = (page: Page) =>
   page.getByRole("list", { name: "Qloo calls" }).locator(":scope > li");
+const rooms = (page: Page) =>
+  page.getByRole("region", { name: "Boise crowds behind this bill" });
+// Each act's mark, read out in words (the ▲ and the room's initials are hidden from it).
+const MARK = /crowd: (up \d+ places|new, from outside)/;
+
+/** The acts each room lifted, from the rail: their sum is the acts on the bill. */
+async function liftedTotal(page: Page): Promise<number> {
+  const text = (await rooms(page).getByRole("list").textContent()) ?? "";
+  return [...text.matchAll(/(\d+) (?:acts? lifted|lifted none)/g)].reduce(
+    (total, match) => total + Number(match[1]),
+    0,
+  );
+}
 
 test.describe("demo path", () => {
+  test.skip(SYNTHETIC === "empty", "needs a saved build");
   test.describe.configure({ mode: "serial" });
 
-  test("step 1: Sagebrush Sound loads with its headliners, fee bands and presale, no login", async ({
+  test("step 1: the saved draft bill loads, each act marked with its Boise room and lift, no login", async ({
     page,
   }) => {
     await page.goto("/");
@@ -36,54 +46,74 @@ test.describe("demo path", () => {
     await expect(
       page.getByText("Boise, Idaho · 3,000 capacity · crowd aged 25–34"),
     ).toBeVisible();
-
-    const headliners = page.getByRole("list", { name: "Booked headliners" });
-    await expect(headliners.getByRole("listitem")).toHaveText([
-      "Khruangbin",
-      "Japanese Breakfast",
-    ]);
-
-    await expect(page.getByRole("region", { name: /^Mid/ })).toBeVisible();
-    await expect(page.getByRole("region", { name: /^Opener/ })).toBeVisible();
     await expect(
-      page.getByText("4 slots · popularity 80th–92nd percentile"),
-    ).toBeVisible();
+      page
+        .getByRole("list", { name: "Booked headliners" })
+        .getByRole("listitem"),
+    ).toHaveText(["Khruangbin", "Japanese Breakfast"]);
     await expect(
-      page.getByText("6 slots · popularity 55th–80th percentile"),
+      bill(page).getByText("Undercard draft · not announced"),
     ).toBeVisible();
 
-    const sparkline = page.getByRole("img", {
-      name: /Presale over the last 30 days/,
-    });
-    await expect(sparkline).toBeVisible();
-    await expect(sparkline.locator("polyline")).toHaveCount(1);
+    // Every act is on the bill at first paint, in its fee band, with its mark.
+    await expect(band(page, /^Mid/).getByRole("article")).toHaveCount(4);
+    await expect(band(page, /^Opener/).getByRole("article")).toHaveCount(6);
+    await expect(
+      page.getByText(
+        "4 slots · fee band set by Qloo's popularity percentile: 80th–92nd",
+      ),
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        "6 slots · fee band set by Qloo's popularity percentile: 55th–80th",
+      ),
+    ).toBeVisible();
+    for (const act of await bill(page).getByRole("article").all()) {
+      await expect(act).toContainText(MARK);
+      await expect(act.getByRole("button")).toHaveCount(1);
+    }
+
+    // The key beside the first mark, and the rooms behind the bill.
+    await expect(
+      page.getByRole("note", { name: "How to read the marks" }),
+    ).toContainText(
+      "Qloo: data on what people like, across music, places and more.",
+    );
+    await expect(rooms(page)).toContainText(
+      "A room here means its crowd, not a stage the acts will play.",
+    );
+    expect(await liftedTotal(page)).toBe(10);
 
     await expect(
-      page.getByRole("button", { name: "Build undercard" }),
+      page.getByRole("button", { name: "Watch the agent build it" }),
     ).toBeVisible();
+    await expect(page.getByRole("img", { name: /Presale/ })).toHaveCount(0);
     await expect(page.locator('input[type="password"]')).toHaveCount(0);
   });
 
-  test("steps 2 and 3: Build undercard traces every Qloo call, then fills 4 Mid and 6 Opener slots", async ({
+  test("step 2: Watch the agent build it streams every Qloo call, then the bill reprints", async ({
     page,
   }) => {
-    test.setTimeout(150_000);
-    await buildBoard(page);
+    await page.goto("/");
+    await page
+      .getByRole("button", { name: "Watch the agent build it" })
+      .click();
 
-    // Step 2: the trace lists the agent's Qloo calls with parameters and result counts.
     const trace = page.getByRole("list", { name: "Qloo calls" });
-    const rows = traceRows(page);
+    await expect(page.getByText(/^Replayed the build saved/)).toBeVisible({
+      timeout: REPLAY_TIMEOUT,
+    });
     await expect(trace).toContainText('Search for "Khruangbin"');
     await expect(trace).toContainText('Search for "Japanese Breakfast"');
     await expect(trace).toContainText("Boise places tagged");
     await expect(trace).toContainText("artists for the headliners alone");
     await expect(trace).toContainText("artists for the headliners and");
-    const callCount = await rows.count();
+    const callCount = await traceRows(page).count();
     expect(callCount).toBeGreaterThanOrEqual(9);
     expect(callCount).toBeLessThanOrEqual(12);
     await expect(trace.getByLabel(/^\d+ results$/)).toHaveCount(callCount);
 
-    const venueRow = rows
+    const venueRow = traceRows(page)
       .filter({ hasText: "artists for the headliners and" })
       .first();
     await venueRow.getByRole("button", { name: "Parameters" }).click();
@@ -92,54 +122,81 @@ test.describe("demo path", () => {
       "signal.interests.entities=Khruangbin, Japanese Breakfast, ",
     );
 
-    // Step 3: the board fills; every card carries Qloo's numbers and its local link.
+    // The bill reprints, and the rooms' counts end at every act on it.
+    await expect(bill(page).getByRole("article")).toHaveCount(10);
+    await expect.poll(() => liftedTotal(page)).toBe(10);
     await expect(
-      page.getByRole("region", { name: /^Mid/ }).getByRole("article"),
-    ).toHaveCount(4);
-    await expect(
-      page.getByRole("region", { name: /^Opener/ }).getByRole("article"),
-    ).toHaveCount(6);
-    for (const card of await page.getByRole("article").all()) {
-      // Card text runs together ("affinity0.94Popularity86th"), so no word boundaries.
-      await expect(card).toContainText(/affinity0\.\d\d/);
-      await expect(card).toContainText(/Popularity\d{1,2}(st|nd|rd|th)/);
-      await expect(card).toContainText(
+      page.getByRole("button", { name: "Run the agent live instead" }),
+    ).toBeVisible();
+  });
+
+  test("step 3: an act's card opens with its Why Boise line, Qloo's numbers and two shared tags", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const card = page.getByRole("region", { name: "Act card" });
+    for (const act of await bill(page).getByRole("article").all()) {
+      const name = (await act.getAttribute("aria-label"))!;
+      await act.getByRole("button", { name, exact: true }).click();
+      const opened = card.getByRole("article", { name, exact: true });
+      // Card text runs together ("Qloo affinity0.94Popularity86th"), so no word boundaries.
+      await expect(opened).toContainText(/affinity0\.\d\d/);
+      await expect(opened).toContainText(/Popularity\d{1,2}(st|nd|rd|th)/);
+      await expect(opened).toContainText(
         /Why Boise: .+ fans move it (up \d+ places|into the top \d+)\./,
       );
       await expect(
-        card
+        opened
           .getByRole("list", { name: "Tags shared with the headliners" })
           .getByRole("listitem"),
       ).toHaveCount(2);
+      await expect(
+        opened.getByRole("button", { name: "Unavailable" }),
+      ).toBeVisible();
+      await card.getByRole("button", { name: "Close the card" }).click();
+      await expect(card).toHaveCount(0);
     }
   });
 
-  test("step 4: Unavailable refills the slot from the same fee band with a new Qloo call", async ({
+  test("step 4: Unavailable on the card refills the slot from the same fee band with a new Qloo call", async ({
     page,
   }) => {
-    test.setTimeout(150_000);
-    await buildBoard(page);
-    const mid = page.getByRole("region", { name: /^Mid/ });
+    test.setTimeout(90_000);
+    if (SYNTHETIC) {
+      await page.route("**/api/refill", async (route) => {
+        const body = route.request().postDataJSON() as {
+          unavailableId: string;
+        };
+        await route.fulfill({
+          status: 200,
+          contentType: NDJSON,
+          body: syntheticRefillStream(body.unavailableId),
+        });
+      });
+    }
+    await page.goto("/");
+    const mid = band(page, /^Mid/);
     const first = mid.getByRole("article").first();
     const gone = (await first.getAttribute("aria-label"))!;
-    const before = await traceRows(page).count();
 
-    await first.getByRole("button", { name: "Unavailable" }).click();
+    await first.getByRole("button", { name: gone, exact: true }).click();
+    await page
+      .getByRole("region", { name: "Act card" })
+      .getByRole("button", { name: "Unavailable" })
+      .click();
 
-    // The new card swaps into the same slot, in the same band.
+    // The replacement prints into the same slot, in the same band, with its mark.
     await expect(
-      page.getByRole("article", { name: gone, exact: true }),
+      bill(page).getByRole("article", { name: gone, exact: true }),
     ).toHaveCount(0, { timeout: 60_000 });
     await expect(mid.getByRole("article")).toHaveCount(4);
-    await expect(mid.getByRole("article").first()).toContainText(
-      /Why Boise: .+ fans move it/,
-    );
+    await expect(mid.getByRole("article").first()).toContainText(MARK);
 
     // The refill shows in the trace: at most 3 new Qloo calls, excluding the board.
-    const added = (await traceRows(page).count()) - before;
+    const added = await traceRows(page).count();
     expect(added).toBeGreaterThanOrEqual(1);
     expect(added).toBeLessThanOrEqual(3);
-    await expect(page.getByText(/· [123] refill calls?$/)).toBeVisible();
+    await expect(page.getByText(/^[123] refill calls?$/)).toBeVisible();
     const refillRow = traceRows(page)
       .filter({ hasText: "Refill: Mid-band artists" })
       .last();
@@ -148,39 +205,38 @@ test.describe("demo path", () => {
     await expect(refillRow).toContainText(gone);
   });
 
-  test("step 5: LLM only shows a lineup labeled No Qloo data; the Poster typesets by band and exports CSV", async ({
+  test("step 5: Without Qloo reprints the bill with the model's picks; Export CSV in the bar downloads the agent's bill", async ({
     page,
   }) => {
-    test.setTimeout(150_000);
-    await buildBoard(page);
+    test.setTimeout(90_000);
+    await page.goto("/");
 
-    await page.getByRole("button", { name: "LLM only" }).click();
-    const llm = page.getByRole("region", { name: /LLM only/ });
-    await expect(llm.getByText("No Qloo data")).toBeVisible();
-    const picks = llm.getByRole("article");
+    await page
+      .getByRole("button", { name: "Without Qloo: the model's picks" })
+      .click();
+    const model = page.getByRole("region", {
+      name: "Without Qloo: the model's picks",
+    });
+    await expect(model.getByText("No Qloo data")).toBeVisible();
+    const picks = model.getByRole("article");
     await expect(picks.first()).toBeVisible({ timeout: 60_000 });
     for (const pick of await picks.all()) {
-      await expect(pick).toContainText("Why Boise: No local link.");
-      await expect(pick).not.toContainText(/affinity0\.\d\d/);
+      await expect(pick).toContainText("No Boise room · fee band not checked");
+      await expect(pick).not.toContainText(/affinity/);
     }
-    await expect(page.getByRole("region", { name: /^Mid/ })).toHaveCount(0);
+    await expect(page.locator("main")).not.toContainText(/\d+\s*\/\s*\d+/);
+    await expect(bill(page)).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Qloo" }).click();
-    await expect(
-      page.getByRole("region", { name: /^Mid/ }).getByRole("article"),
-    ).toHaveCount(4);
-
-    await page.getByRole("button", { name: "Poster" }).click();
-    const poster = page.getByRole("region", { name: "Poster" });
-    await expect(
-      poster.getByRole("list", { name: "Mid" }).getByRole("listitem"),
-    ).toHaveCount(4);
-    await expect(
-      poster.getByRole("list", { name: "Opener" }).getByRole("listitem"),
-    ).toHaveCount(6);
+    await page
+      .getByRole("button", { name: "With Qloo: the agent's bill" })
+      .click();
+    await expect(band(page, /^Mid/).getByRole("article")).toHaveCount(4);
 
     const download = page.waitForEvent("download");
-    await poster.getByRole("button", { name: "Export CSV" }).click();
+    await page
+      .getByRole("banner")
+      .getByRole("button", { name: "Export CSV" })
+      .click();
     const file = await download;
     expect(file.suggestedFilename()).toBe("sagebrush-sound-undercard.csv");
     const lines = (await readFile(await file.path(), "utf8"))
@@ -190,17 +246,17 @@ test.describe("demo path", () => {
     expect(lines).toHaveLength(11);
   });
 
-  test("the cached Sagebrush build renders the full board in under 5 seconds", async ({
+  test("first paint: the server sends the whole bill, on screen in under 5 seconds with no click", async ({
     page,
   }) => {
-    test.setTimeout(150_000);
-    await buildBoard(page); // saves a build if none is saved yet
-    await page.reload();
+    const html = await (await page.request.get("/")).text();
+    expect(html.match(/<article\b/g) ?? []).toHaveLength(10);
 
     const started = Date.now();
-    await page.getByRole("button", { name: "Build undercard" }).click();
-    await expect(page.getByRole("article")).toHaveCount(10, { timeout: 5_000 });
+    await page.goto("/");
+    await expect(bill(page).getByRole("article")).toHaveCount(10, {
+      timeout: 5_000,
+    });
     expect(Date.now() - started).toBeLessThan(5_000);
-    await expect(page.getByText(/^Replayed the build saved/)).toBeVisible();
   });
 });

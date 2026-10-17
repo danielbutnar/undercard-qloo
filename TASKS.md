@@ -15,7 +15,7 @@ Decided for this run (2026-10-17): Direction 1, the draft bill, built on the bra
 - [x] Label fix 3: "Without Qloo" says what it shows
 - [x] Label fix 4: the rooms rail doesn't read as where the acts will play
 - [x] Label fix 5: a few words on what Qloo is (what people like, across music, places and more), where the marks are explained; no tagline, no claim beyond what the app does
-- [ ] E2E specs: new selectors and assertions for the new demo path; the 5-second test becomes a first-paint check
+- [x] E2E specs: new selectors and assertions for the new demo path; the 5-second test becomes a first-paint check
 
 ## Draft bill (Direction 1)
 - [x] The bill as the board, built from `poster.tsx`: act lines with room marks; each act stays an `<article>` inside regions named Mid and Opener
