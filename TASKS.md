@@ -150,6 +150,15 @@ Copied from SPEC.md section 6, M6k. Closes: Design and Potential Impact. Freeze:
 - [x] e2e: a checked town runs in one click with the headliners in the form
 - [x] Shots at 1440x810 (the towns above the fold, three columns) and 390 wide (two columns, no sideways scroll); the design scan passes in the gate
 
+# TASKS: M6l Say what a room is
+
+Copied from SPEC.md section 6, M6l. Closes: Quality of the Idea and Design. Freeze: 2026-10-24. Done means: when an anchor is a park, arena, stadium or sports ground, its card and its trace line say so; which acts are booked doesn't change.
+
+- [x] src/lib/place-kinds.ts: M6i's rule as a label ("an outdoor festival site", "an arena", "a stadium", "a sports ground"); museums aren't named (tests/unit/m6l)
+- [x] The label rides on the venue run and the act's anchor venue (optional, so saved builds parse); the venue call's trace line names it; the card says "X is an outdoor festival site, not a club."
+- [x] A whole scripted build books the same acts with the label as without it
+- [x] Real check, offline: Duluth's trace names Venue 34 "(an outdoor festival site)"
+
 # TASKS: for the 27-28 October redo (not now)
 
 - [ ] Fix the video's capture script for the reason picker (its refill step now stops at "Why is it unavailable?")
