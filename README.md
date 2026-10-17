@@ -47,7 +47,9 @@ Beyond the demo path, one click from the bill:
 - **Your festival** (`/your-festival`). Name a town and two headliners, and the agent runs live
   for them with Sagebrush Sound's crowd and fee bands. It counts against the same per-IP limit
   as a fresh build, and nothing is saved. A headliner Qloo can't find, a town with too few
-  music rooms and the daily limit each have their own designed state.
+  music rooms and the daily limit each have their own designed state. A link can fill the form
+  in: `/your-festival?town=Tallinn&headliner=Khruangbin&headliner=Japanese%20Breakfast`. It never
+  runs on load, because mail clients and link previews open links by themselves.
 
 ## How it works
 

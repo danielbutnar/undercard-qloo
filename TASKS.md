@@ -115,6 +115,14 @@ Copied from SPEC.md section 6, M6g. Closes: Technological Implementation and Des
 - [x] Not run: Cluj-Napoca (3 places), Brighton (0), Wrexham (2 in town), Burlington, Vermont (the name reads Burlington, Ontario; Winooski returns 1)
 - [x] docs/evidence.md section 9, with a correction to section 7: its Burlington row was Burlington, Ontario, so the M6f spike was 7 of 10 US towns
 
+# TASKS: M6h A pre-filled Your festival link
+
+Copied from SPEC.md section 6, M6h. Closes: Potential Impact. Freeze: 2026-10-20. Done means: /your-festival reads the town and two headliners from the URL and fills the form without running; an e2e opens a pre-filled link, sees the fields filled and sees no run start.
+
+- [x] yourFestivalHref and briefFromSearch in src/lib/your-festival.ts: town and two headliner parameters, cut to the fields' lengths (tests/unit/m6h)
+- [x] The page reads the query on the server and hands the form its values; a line says they came from the link; nothing runs until the visitor presses Draft my undercard
+- [x] e2e tests/e2e/prefilled-link.spec.ts: the fields are filled, no request reaches /api/undercard in 2 seconds, no bill appears
+
 # TASKS: for the 27-28 October redo (not now)
 
 - [ ] Fix the video's capture script for the reason picker (its refill step now stops at "Why is it unavailable?")
