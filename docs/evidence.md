@@ -315,6 +315,8 @@ Written on 2026-10-18, before any of these pairs was scored. The rule doesn't ch
 
 **The bar.** Go if at least 4 of the 5 same-crowd pairs score above every different-crowd pair. Random scores pass that 6 times in 252, about 2.4% (every way of ranking the ten pairs counted). On a no-go, the running order stays in the app but leaves the demo path and the video.
 
+**Results, 2026-10-18: go.** Ten calls, one at a time, no retries; the pairs file's hash was unchanged. All 5 same-crowd pairs scored above every different-crowd pair (bar: 4 of 5). Same-crowd pairs scored 0.NN to 0.NN; different-crowd pairs 0.NN to 0.883. The score agrees with a booker's sense of a shared crowd on these ten pairs. It still isn't a count of shared ticket buyers, so the running order says how close two acts' fans' tastes are, ranked within the lineup, and keeps the raw score in the trace.
+
 ## What these numbers don't establish
 
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
