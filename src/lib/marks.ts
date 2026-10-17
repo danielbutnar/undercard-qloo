@@ -22,14 +22,24 @@ export function liftOf(act: Pick<Act, "reason">): Lift | null {
 
 const ARTICLES = new Set(["the", "a", "an"]);
 
-/** A room's name for its mark: its initials when it has three or more words, else the name. */
+/**
+ * A room's name for its mark: the abbreviation its name gives in brackets, else its initials
+ * when it has three or more words, else the name. Venue names come from Qloo as listed, so a
+ * bracketed note is dropped and only words that start with a letter or digit count.
+ */
 export function roomShortName(name: string): string {
-  const words = name
+  const given = /\(([A-Z0-9&]{2,6})\)\s*$/.exec(name);
+  if (given) return given[1];
+  const plain = name.replace(/\s*\([^)]*\)/g, "").trim();
+  const words = plain
     .split(/\s+/)
-    .filter((word) => word && !ARTICLES.has(word.toLowerCase()));
+    .filter(
+      (word) =>
+        /^[\p{L}\p{N}]/u.test(word) && !ARTICLES.has(word.toLowerCase()),
+    );
   return words.length >= 3
     ? words.map((word) => word[0].toUpperCase()).join("")
-    : name;
+    : plain;
 }
 
 /** The mark under an act on the bill, such as "FSB +7" or "The Lantern Room new". The display
