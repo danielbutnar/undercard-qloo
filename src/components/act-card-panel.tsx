@@ -14,12 +14,14 @@ export function ActCardPanel({
   disabled,
   onUnavailable,
   onClose,
+  city,
 }: {
   act: Act;
   unavailable: boolean;
   disabled: boolean;
   onUnavailable: (act: Act) => void;
   onClose: () => void;
+  city?: string;
 }) {
   const ref = useRef<HTMLElement>(null);
 
@@ -42,6 +44,7 @@ export function ActCardPanel({
         disabled={disabled}
         onUnavailable={onUnavailable}
         onClose={onClose}
+        city={city}
       />
     </section>
   );

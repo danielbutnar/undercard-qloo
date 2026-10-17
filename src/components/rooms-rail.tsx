@@ -17,12 +17,15 @@ export function RoomsRail({
   rooms,
   bands,
   placesListed,
+  city = "Boise",
   compact = false,
 }: {
   rooms: readonly RoomLine[];
   bands: readonly FeeBand[];
   /** Boise live-music places Qloo listed; null when the build didn't record it. */
   placesListed: number | null;
+  /** The festival's town, which the rooms are in. */
+  city?: string;
   /** Names and counts only, while the trace below needs the room. */
   compact?: boolean;
 }) {
@@ -36,13 +39,13 @@ export function RoomsRail({
         id="rooms-title"
         className="font-display text-name font-extrabold uppercase"
       >
-        Boise venue crowds behind this bill
+        {city} venue crowds behind this bill
       </h2>
       {!compact && (
         <p className="text-label text-muted">
           {placesListed !== null
-            ? `Qloo listed ${placesListed} Boise live-music places; the agent tested ${tested} of their crowds against the headliners' fans.`
-            : `The agent tested ${tested} Boise rooms' crowds against the headliners' fans.`}{" "}
+            ? `Qloo listed ${placesListed} ${city} live-music places; the agent tested ${tested} of their crowds against the headliners' fans.`
+            : `The agent tested ${tested} ${city} rooms' crowds against the headliners' fans.`}{" "}
           A room here means its crowd, not a stage the acts will play.
         </p>
       )}

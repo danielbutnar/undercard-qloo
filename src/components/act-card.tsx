@@ -14,6 +14,7 @@ export function ActCard({
   disabled = false,
   onUnavailable,
   onClose,
+  city = "Boise",
 }: {
   act: Act;
   /** Stamped and printed in worn ink while its slot is refilled, or when no refill was found. */
@@ -22,6 +23,8 @@ export function ActCard({
   onUnavailable?: (act: Act) => void;
   /** Shown as Close beside the name when the card is opened from the bill. */
   onClose?: () => void;
+  /** The festival's town, which names the Why line. */
+  city?: string;
 }) {
   const billing = BILLING[act.band];
   const ink = unavailable ? "text-muted" : "text-accent";
@@ -67,7 +70,7 @@ export function ActCard({
         </div>
       </dl>
       <p className={`text-label ${unavailable ? "text-muted" : ""}`}>
-        <span className="font-semibold">Why Boise: </span>
+        <span className="font-semibold">Why {city}: </span>
         {act.reason}
       </p>
       <ul

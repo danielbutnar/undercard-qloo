@@ -5,7 +5,7 @@ import { LlmOnlyLineupSchema } from "@/lib/llm-only";
 import type { LlmOnlyState } from "./model-bill";
 
 /** Loads the LLM-only lineup once, the first time the board flips to it. */
-export function useLlmOnly() {
+export function useLlmOnly(festivalId?: string) {
   const [state, setState] = useState<LlmOnlyState>({
     status: "idle",
     lineup: null,
@@ -19,7 +19,11 @@ export function useLlmOnly() {
         : { ...current, status: "loading", error: null },
     );
     try {
-      const response = await fetch("/api/llm-only", { method: "POST" });
+      const response = await fetch("/api/llm-only", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ festival: festivalId }),
+      });
       const body = await response.json();
       const lineup = LlmOnlyLineupSchema.safeParse(body?.lineup);
       if (!response.ok || !lineup.success) {
@@ -38,7 +42,7 @@ export function useLlmOnly() {
         error: "Couldn't reach the model. Try again.",
       });
     }
-  }, []);
+  }, [festivalId]);
 
   return { state, load };
 }

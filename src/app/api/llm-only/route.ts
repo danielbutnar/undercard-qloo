@@ -1,15 +1,22 @@
-import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
+import { festivalFromBody } from "@/lib/towns";
 import { AiNotConfigured, createLlmOnlyModel } from "@/server/ai";
-import { serverLimiter } from "@/server/deps";
+import { jsonBody, serverLimiter } from "@/server/deps";
 import { handleLlmOnly } from "@/server/llm-only";
 import { createQlooCache } from "@/server/qloo-cache";
 import { clientIp } from "@/server/rate-limit";
 
 export const maxDuration = 60;
 
-export function POST(request: Request): Promise<Response> {
+export async function POST(request: Request): Promise<Response> {
+  // The body names the festival whose brief the model answers; Boise when it doesn't.
+  const festival = festivalFromBody(await jsonBody(request));
+  if (!festival)
+    return Response.json(
+      { error: "That festival isn't one of Undercard's." },
+      { status: 400 },
+    );
   return handleLlmOnly({
-    festival: SAGEBRUSH_SOUND,
+    festival,
     cache: createQlooCache(),
     limiter: serverLimiter(),
     ip: clientIp(request.headers),

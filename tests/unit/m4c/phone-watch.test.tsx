@@ -56,7 +56,7 @@ describe("Watch the agent build it on a phone", () => {
     fireEvent.click(within(bill()).getByRole("button", WATCH));
     expect(fetch).toHaveBeenCalledWith(
       "/api/undercard",
-      expect.objectContaining({ body: JSON.stringify({ fresh: false }) }),
+      expect.objectContaining({ body: JSON.stringify({ fresh: false, festival: "sagebrush-sound" }) }),
     );
     expect(
       within(bill()).getByRole("button", { name: "Building…" }),
