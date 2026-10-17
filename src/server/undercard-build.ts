@@ -188,7 +188,12 @@ export async function handleUndercardBuild({
       );
       const problem = busy
         ? null
-        : diagnoseRun(seen, result.complete, festival.city);
+        : diagnoseRun(
+            seen,
+            result.complete,
+            festival.city,
+            result.places?.length,
+          );
       if (problem) emit({ type: "error", ...problem });
       return;
     }

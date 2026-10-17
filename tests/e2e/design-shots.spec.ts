@@ -60,6 +60,8 @@ const SCENES: {
   viewports: (typeof VIDEO)[];
   /** The server these shots need: one with the saved build, or one with none. */
   server?: "bill" | "empty";
+  /** The page to open; the home page when unset. */
+  path?: string;
   prepare?: (page: Page) => Promise<void>;
 }[] = [
   { name: "home", viewports: [JUDGE, VIDEO, MOBILE] },
@@ -199,6 +201,48 @@ const SCENES: {
         .waitFor();
     },
   },
+  {
+    // M6n: a typed town too thin to draft offers the checked towns in its country.
+    name: "your-festival-thin",
+    path: "/your-festival",
+    viewports: [VIDEO, MOBILE],
+    prepare: async (page) => {
+      await page.route("**/api/undercard", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: NDJSON,
+          body: [
+            {
+              type: "build",
+              id: "yours-shot",
+              createdAt: "2026-10-17T10:00:00.000Z",
+              replayed: false,
+            },
+            {
+              type: "error",
+              code: "too-few-rooms",
+              message:
+                "Qloo lists only 1 live-music place in Brighton, too few for the agent to compare rooms.",
+            },
+            { type: "done", calls: 3, ms: 900 },
+          ]
+            .map((event) => JSON.stringify(event))
+            .join("\n"),
+        }),
+      );
+      const form = page.locator("form");
+      await form.getByLabel("Town", { exact: true }).fill("Brighton");
+      await form
+        .getByLabel("State or country", { exact: true })
+        .fill("England");
+      await form.getByRole("button", { name: "Draft my undercard" }).click();
+      await page
+        .getByRole("list", {
+          name: "Towns Undercard has already read in the United Kingdom",
+        })
+        .waitFor();
+    },
+  },
   // Empty: no saved build, or the store can't be reached.
   { name: "home-empty", server: "empty", viewports: [JUDGE, VIDEO, MOBILE] },
 ];
@@ -226,7 +270,7 @@ for (const scene of SCENES) {
         width: viewport.width,
         height: viewport.height,
       });
-      await page.goto("/", { waitUntil: "load" });
+      await page.goto(scene.path ?? "/", { waitUntil: "load" });
       await page.evaluate(async () => {
         await document.fonts.ready;
       });

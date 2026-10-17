@@ -53,7 +53,7 @@ export function yourFestival(brief: YourBrief, id: string): Festival {
 
 /** Why a run left the bill short, in a form the page can design a state for. */
 export type RunProblem = {
-  code: "headliner-not-found" | "too-few-rooms" | "not-full";
+  code: "headliner-not-found" | "town-not-found" | "too-few-rooms" | "not-full";
   message: string;
 };
 
@@ -68,6 +68,8 @@ export function diagnoseRun(
   events: readonly BuildEvent[],
   complete: boolean,
   city: string,
+  /** The places the venue search kept (M6n); without it, the first venue call's count. */
+  placesKept?: number,
 ): RunProblem | null {
   if (complete) return null;
   const calls = events.flatMap((event) =>
@@ -88,10 +90,17 @@ export function diagnoseRun(
   const tested = calls.some(
     (call) => call.tool === "venue_artists" && !call.error,
   );
-  if (!venues || (venues.resultCount ?? 0) < MIN_PLACES || !tested) {
+  const places = placesKept ?? venues?.resultCount ?? 0;
+  // One sentence each (M6n); the checked towns offered below the sentence are the next step.
+  if (venues && places === 0)
+    return {
+      code: "town-not-found",
+      message: `Qloo found no live-music places in ${city}, so there were no rooms to read.`,
+    };
+  if (!venues || places < MIN_PLACES || !tested) {
     return {
       code: "too-few-rooms",
-      message: `Qloo lists too few live-music places in ${city} for the agent to compare rooms. Try a larger town nearby.`,
+      message: `Qloo lists only ${places} live-music ${places === 1 ? "place" : "places"} in ${city}, too few for the agent to compare rooms.`,
     };
   }
   return {

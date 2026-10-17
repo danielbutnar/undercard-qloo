@@ -101,7 +101,14 @@ export function YourFestival({
       <FestivalScreen
         key={run}
         festival={yourFestival(brief, `yours-draft-${run}`)}
-        custom={{ brief, onEdit: () => setBrief(null) }}
+        custom={{
+          brief,
+          onEdit: () => setBrief(null),
+          onPick: (town) => {
+            setBrief(null);
+            runTown(town);
+          },
+        }}
       />
     );
 

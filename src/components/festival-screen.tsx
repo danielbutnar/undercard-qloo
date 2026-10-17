@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  checkedTownLabel,
+  townsNear,
+  type CheckedTown,
+} from "@/lib/checked-towns";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ActCardPanel } from "@/components/act-card-panel";
@@ -95,18 +100,41 @@ function LlmOnlyNote({ city }: { city: string }) {
   );
 }
 
+/** A typed town that can't be found or is too thin (M6n): the checked towns are the next step. */
+const THIN = new Set(["town-not-found", "too-few-rooms", "not-full"]);
+
 /** Why a judge's own draft couldn't be finished, and the next step (M6f). */
 function RunNotice({
   message,
   code,
   onEdit,
+  region,
+  onPick,
 }: {
   message: string;
   code: string;
   onEdit: () => void;
+  /** The typed state or country, to offer the checked towns in its country (M6n). */
+  region?: string;
+  onPick?: (town: CheckedTown) => void;
 }) {
+  const near = onPick && THIN.has(code) ? townsNear(region ?? "") : null;
+  const country = near?.country
+    ? `${/^United /.test(near.country) ? "the " : ""}${near.country}`
+    : null;
+  const offerName = country
+    ? `Towns Undercard has already read in ${country}`
+    : "Towns Undercard has already read";
+  // On a phone the notice sits below the open slots; bring it into view once.
+  const notice = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const box = notice.current?.getBoundingClientRect();
+    if (box && box.top > window.innerHeight)
+      notice.current?.scrollIntoView({ block: "start" });
+  }, []);
   return (
     <section
+      ref={notice}
       aria-label="This draft couldn't be finished"
       className="flex flex-col gap-2 border-2 border-danger bg-surface p-4"
     >
@@ -119,9 +147,41 @@ function RunNotice({
               ? "Some slots stayed open"
               : code === "no-saved-build"
                 ? "No saved build for this town yet"
-                : "This draft couldn't be finished"}
+                : code === "town-not-found"
+                  ? "Qloo couldn't find this town"
+                  : code === "too-few-rooms"
+                    ? "Too few rooms in this town"
+                    : "This draft couldn't be finished"}
       </h2>
       <p className="text-label">{message}</p>
+      {near && (
+        <>
+          <h3 className="mt-1 text-label font-semibold">
+            {country
+              ? `Try one Undercard has already read in ${country}:`
+              : "Try a town Undercard has already read:"}
+          </h3>
+          <ul aria-label={offerName} className="grid grid-cols-2 gap-2">
+            {near.towns.map((town) => (
+              <li key={`${town.city}|${town.region}`}>
+                <button
+                  type="button"
+                  onClick={() => onPick?.(town)}
+                  aria-label={checkedTownLabel(town)}
+                  className="group flex h-full w-full flex-col rounded-sm border-2 border-rule bg-page px-3 py-1.5 text-left hover:bg-ink hover:text-surface"
+                >
+                  <span className="text-label font-semibold">{town.city}</span>
+                  <span className="text-label text-muted group-hover:text-surface">
+                    {town.region === town.country
+                      ? town.country
+                      : `${town.region}, ${town.country}`}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
       {code === "limit" ? (
         <Link
           href="/"
@@ -158,7 +218,12 @@ export function FestivalScreen({
    * A judge's own brief (M6f): the agent runs live for it as soon as the screen opens. There is
    * no Without Qloo, refill or town switcher, and nothing is saved.
    */
-  custom?: { brief: YourBrief; onEdit: () => void };
+  custom?: {
+    brief: YourBrief;
+    onEdit: () => void;
+    /** A checked town picked from a thin town's state (M6n). */
+    onPick?: (town: CheckedTown) => void;
+  };
   /**
    * A checked town from Your festival (M6m): its saved build replays as soon as the screen
    * opens, with the live run next to it; there's no town switcher, and a way back to the towns.
@@ -349,6 +414,8 @@ export function FestivalScreen({
                   message={state.error ?? ""}
                   code={state.errorCode}
                   onEdit={custom?.onEdit ?? checked!.onBack}
+                  region={custom?.brief.region}
+                  onPick={custom?.onPick}
                 />
               )}
             {!openAct && rooms.length > 0 && (

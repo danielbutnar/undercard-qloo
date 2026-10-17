@@ -44,6 +44,7 @@ export const BuildEventSchema = z.discriminatedUnion("type", [
         "limit",
         "qloo-busy",
         "headliner-not-found",
+        "town-not-found",
         "too-few-rooms",
         "not-full",
         "no-saved-build",
