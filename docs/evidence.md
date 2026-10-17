@@ -367,6 +367,8 @@ Written on 2026-10-18, before either measurement. The rules don't change after t
 
 **The readers.** Two fresh cold readers, each shown one thing only. One sees five frames from 10 seconds of the live replay of the first screen after "Watch how it picked these acts"; the other sees the reduced-motion end state. It passes if each says, in their own words, that the town's venue crowds move acts up the list.
 
+**Readers' result, 2026-10-18: pass.** The frames reader: "each venue's local crowd taste re-weights Qloo's ranking, which pushes some acts up the list". The end-state reader: the labelled acts "moved up Qloo's ranking once that venue's fans were counted", the number being "how many places the act climbed". The frames reader also caught the venues rail showing no lifts during the climb; the rail now steps aside while the climb plays.
+
 ## What these numbers don't establish
 
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.

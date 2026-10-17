@@ -542,7 +542,7 @@ export function FestivalScreen({
                 onClose={closeOrder}
               />
             )}
-            {!openAct && rooms.length > 0 && (
+            {!openAct && !showClimb && rooms.length > 0 && (
               <RoomsRail
                 rooms={rooms}
                 compact={traceInUse}

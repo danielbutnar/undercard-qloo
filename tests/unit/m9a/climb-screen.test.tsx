@@ -124,3 +124,29 @@ describe("the lift, visible, on the screen (M9a)", () => {
     );
   });
 });
+
+describe("the venues rail during the climb", () => {
+  it("steps aside, so it never shows zero lifts beside a climb that shows them", async () => {
+    const { events, saved } = await liveEvents();
+    vi.stubGlobal("fetch", stream(events));
+    render(
+      <FestivalScreen
+        festival={SAGEBRUSH_SOUND}
+        firstBill={{
+          build: { id: saved.id, createdAt: saved.createdAt },
+          acts: saved.lineup.acts,
+          calls: saved.trace.length,
+          placesListed: null,
+          anchors: saved.context.anchors,
+          baselineTop: {},
+        }}
+      />,
+    );
+    expect(screen.getByRole("region", { name: /venues whose fans shaped this lineup/ })).toBeTruthy();
+    fireEvent.click(screen.getAllByRole("button", { name: "Watch how it picked these acts" })[0]);
+    await waitFor(() =>
+      expect(screen.getByText(/How the town's venue crowds move acts up/)).toBeTruthy(),
+    );
+    expect(screen.queryByRole("region", { name: /venues whose fans shaped this lineup/ })).toBeNull();
+  });
+});

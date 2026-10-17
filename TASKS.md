@@ -248,6 +248,17 @@ Copied from SPEC.md section 6, M8d. Freeze: 2026-10-24. Done means: ten real fes
 - [x] scripts/premise-test.ts: 287 Qloo calls, one at a time
 - [x] Result: 7 of 10 festivals support it, bar 8: not supported. 7 of the 8 that could be scored favour the booked acts, by 0.001 to 0.044 affinity
 
+# TASKS: M9a The lift, visible
+
+Copied from SPEC.md section 6, M9a. Freeze: 2026-10-23. Done means: venues' results re-sort the band and lifted acts climb with the real move; replays watchable with a skip; CSS and Web Animations only; reduced motion shows the end state; two cold readers pass.
+
+- [x] Bars written first (docs/evidence.md section 19)
+- [x] src/lib/lift-climb.ts: a band's list for the headliners alone, then each venue's re-sort with real moves (tests/unit/m9a)
+- [x] Live builds emit a climb step after each baseline and venue call; replays rebuild them from the Qloo cache through a cache-only client that never calls Qloo
+- [x] Spike: all 29 saved builds rebuild their full climb, 0 Qloo calls
+- [x] The climb takes the bands' place while it plays (Web Animations FLIP), 0.9 s per headliners-only list and 1.8 s per venue, Skip to the lineup; reduced motion shows the end state; the venues rail steps aside meanwhile
+- [x] Live e2e passes (it sees the climb, then skips); both cold readers pass
+
 # TASKS: for the 26-27 October redo (not now)
 
 Moved 2026-10-18: the video and the gallery stills are re-shot on 26-27 October, after a UI freeze at the end of 25 October; 28 October is buffer. Protected windows (no deploys, no offline Qloo runs): Monday 19 October 09:00-21:00 and Tuesday 20 October 09:00-22:00 Bucharest. The live e2e makes no Qloo calls by default; the redraft, running-order and refill steps run with E2E_LIVE_QLOO=1 once after each deploy, outside those windows.
@@ -273,6 +284,8 @@ Moved 2026-10-18: the video and the gallery stills are re-shot on 26-27 October,
 - [ ] Shipped in M8a: Running order on the bill (two stages, clashes whose fans' tastes are least alike, ranked within the lineup); the story, a still and a capture step
 
 - [ ] Story: M8d's test on ten real festivals as a stated near miss (7 of 10, bar 8), with the lineups' partiality as its limit
+
+- [ ] Shipped in M9a: the climb after Watch; the capture script must wait for it or press Skip, and the video should show it (it is the product's moment)
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
