@@ -258,6 +258,32 @@ Written on 2026-10-17, before any spike call. The rule doesn't change after the 
 
 **How.** One town at a time, the same places call the agent makes, with M6j's resolution. Counts only here; names and raw answers stay in .design/.
 
+## 15. Running order (M8a), written before the spike
+
+Written on 2026-10-17, before any spike call. The rule doesn't change after the results are in.
+
+**The question.** Can Qloo score how much each pair of acts on a bill shares an audience, within 10 extra calls per bill? The pattern to try first: for each of the bill's 10 acts, one artist insights call seeded by that act, with the results limited to the bill's other acts (Qloo's filter.results.entities, if the hackathon API takes it). A pair counts as scored when either direction returns an affinity for it; its score is the mean of the directions returned.
+
+**The bills.** The saved builds of Boise, Austin, Denver and Nashville: 45 pairs each, 180 in all, at most 40 calls, one bill at a time.
+
+**The bar.** Go if at least 90% of the pairs are scored within 10 calls per bill, and pairs whose acts share two or more genre tags (Qloo's genre tags on the two artists) score higher on average than pairs sharing none. Otherwise it's a no-go, recorded here.
+
+**On a go.** One click from the bill, a running order on two stages: Openers early, Mid acts later, arranged so the acts playing at the same time share the least audience. Each slot says who it plays against and how much they share, and the trace lists the calls.
+
+## 16. A bill that covers the town (M8b), written before the spike
+
+Written on 2026-10-17, before any spike run. The rule doesn't change after the results are in.
+
+**Today's rule.** Each band takes the acts that pass the bar (lifted at least N places by an anchor room, in the band's popularity range, two shared genre tags), strongest Qloo affinity first. One room can supply a whole bill: Venue 213 Austin lifted all 10.
+
+**The spread rule tried.** Among the acts that already pass the bar, and only those whose affinity is at least 90% of the weakest act today's rule books in that band: first one act from each anchor room it passes the bar for, rooms in order of their strongest act; then acts whose first shared genre tag isn't in the band yet; then the strongest left. An act is credited to the room it was chosen for, a room where it passes the bar. Nothing outside today's bar is booked.
+
+**The data.** Offline, on cached responses: each saved build's context (its anchor rooms, baselines, headliners and crowd ages), with each room's artist list re-read through the app's Qloo cache. Any call the cache can't answer is counted and reported.
+
+**The bar.** Go if the rooms represented per bill rise in at least 3 of the 4 saved towns (Boise, Austin, Denver, Nashville), each band's mean affinity falls by at most 10% in each of the four, and every one of them still fills both bands. Otherwise it's a no-go, recorded here.
+
+**On a go.** The rule is applied, the saved towns are rebuilt on production one at a time (Boise included, its latest pointer moving), and the bill says how many of the town's rooms it draws from.
+
 ## What these numbers don't establish
 
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
