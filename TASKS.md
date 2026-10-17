@@ -12,7 +12,7 @@ Decided for this run (2026-10-17): Direction 1, the draft bill, built on the bra
 - [x] An act's card opens on click, reusing `ActCard` and its Unavailable button
 - [x] Label fix 1: the fee band says Qloo's popularity percentile sets it
 - [x] Label fix 2: the lift counts places gained throughout; an act from outside the headliners-only top 50 reads "new"
-- [ ] Label fix 3: "Without Qloo" says what it shows
+- [x] Label fix 3: "Without Qloo" says what it shows
 - [x] Label fix 4: the rooms rail doesn't read as where the acts will play
 - [x] Label fix 5: a few words on what Qloo is (what people like, across music, places and more), where the marks are explained; no tagline, no claim beyond what the app does
 - [ ] E2E specs: new selectors and assertions for the new demo path; the 5-second test becomes a first-paint check
@@ -23,7 +23,7 @@ Decided for this run (2026-10-17): Direction 1, the draft bill, built on the bra
 - [x] Every act on the bill looks and works like a button (pointer, underline on hover and keyboard focus, accessible name); the hint says a click opens the act's card, where it can be marked unavailable; no hover-scale
 - [x] The rooms rail, from the acts' anchor venues and the build's venue runs
 - [ ] The motion moment: the undercard prints in and the rooms' counts tick up on "Watch the agent build it"; the end state under reduced motion
-- [ ] "Without Qloo" reprints the bill with the model's picks, each with the model's own reason and two facts (no Boise room, fee band not checked); no score, tally or 0/10
+- [x] "Without Qloo" reprints the bill with the model's picks, each with the model's own reason and two facts (no Boise room, fee band not checked); no score, tally or 0/10
 - [ ] README: What it does, How it works and AI usage match the new first screen
 
 ## Screens (ticked when their shots pass Pass 2 step 5)

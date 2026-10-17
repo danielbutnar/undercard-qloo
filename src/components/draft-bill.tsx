@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { FeeBand, FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import { formatBandRange, formatCount } from "@/lib/format";
@@ -183,6 +184,59 @@ function BandTier({
   );
 }
 
+/** The bill's stock: lighter poster board with an ink rule and an inner hairline. */
+export const SHEET =
+  "relative flex flex-col items-center border-2 border-rule bg-surface px-4 pt-5 pb-4 text-center after:pointer-events-none after:absolute after:inset-1.5 after:border after:border-rule lg:px-9";
+
+/** When a build or an answer was saved, as "Oct 15, 14:02". */
+export const formatSavedAt = (iso: string) => savedAt.format(new Date(iso));
+
+/**
+ * The top of a bill: the festival's facts and a stamp, its name, the booked headliners, and a
+ * line under them.
+ */
+export function BillHeader({
+  festival,
+  stamp,
+  children,
+}: {
+  festival: Festival;
+  stamp: string;
+  children: ReactNode;
+}) {
+  const { city, region, capacity, crowdAge } = festival;
+  return (
+    <>
+      <div className="flex w-full flex-wrap-reverse items-center justify-center gap-x-6 gap-y-3 lg:justify-between">
+        <p className="text-label text-muted">
+          {city}, {region} · {formatCount(capacity)} capacity · crowd aged{" "}
+          {crowdAge.min}–{crowdAge.max}
+        </p>
+        <p className="-rotate-2 rounded-sm border-2 border-danger px-2.5 pt-1 pb-0.5 font-display text-name leading-none font-extrabold text-danger uppercase">
+          {stamp}
+        </p>
+      </div>
+      <h1 className="mt-2 font-display text-band font-extrabold uppercase">
+        {festival.name}
+      </h1>
+      <ul
+        aria-label="Booked headliners"
+        className="mt-1.5 flex flex-col items-center font-display text-title font-extrabold uppercase lg:flex-row lg:flex-wrap lg:justify-center"
+      >
+        {festival.headliners.map((headliner) => (
+          <li
+            key={headliner}
+            className="lg:not-first:before:mx-4 lg:not-first:before:content-['·']"
+          >
+            {headliner}
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2 text-label text-muted">{children}</p>
+    </>
+  );
+}
+
 /**
  * The buyer's draft of the festival bill: the booked headliners over the undercard the agent
  * drafted, each act marked with the Boise room whose crowd lifted it in Qloo's ranking.
@@ -209,7 +263,6 @@ export function DraftBill({
   openId?: string | null;
   onOpen?: (act: Act) => void;
 }) {
-  const { city, region, capacity, crowdAge } = festival;
   // The key sits beside the first mark on the bill, in billing order.
   const firstMarked = festival.feeBands
     .flatMap((band) => acts.filter((act) => act.band === band.id))
@@ -219,40 +272,12 @@ export function DraftBill({
     ...markKey(firstMarked, { acts, top: top[firstMarked.band] }),
   };
   return (
-    <section
-      aria-label="Undercard draft"
-      className="relative flex flex-col items-center border-2 border-rule bg-surface px-4 pt-5 pb-4 text-center after:pointer-events-none after:absolute after:inset-1.5 after:border after:border-rule lg:px-9"
-    >
-      <div className="flex w-full flex-wrap-reverse items-center justify-center gap-x-6 gap-y-3 lg:justify-between">
-        <p className="text-label text-muted">
-          {city}, {region} · {formatCount(capacity)} capacity · crowd aged{" "}
-          {crowdAge.min}–{crowdAge.max}
-        </p>
-        <p className="-rotate-2 rounded-sm border-2 border-danger px-2.5 pt-1 pb-0.5 font-display text-name leading-none font-extrabold text-danger uppercase">
-          Undercard draft · not announced
-        </p>
-      </div>
-      <h1 className="mt-2 font-display text-band font-extrabold uppercase">
-        {festival.name}
-      </h1>
-      <ul
-        aria-label="Booked headliners"
-        className="mt-1.5 flex flex-col items-center font-display text-title font-extrabold uppercase lg:flex-row lg:flex-wrap lg:justify-center"
-      >
-        {festival.headliners.map((headliner) => (
-          <li
-            key={headliner}
-            className="lg:not-first:before:mx-4 lg:not-first:before:content-['·']"
-          >
-            {headliner}
-          </li>
-        ))}
-      </ul>
-      <p className="mt-2 text-label text-muted">
+    <section aria-label="Undercard draft" className={SHEET}>
+      <BillHeader festival={festival} stamp="Undercard draft · not announced">
         Headliners booked.
         {onOpen &&
           " Click an act to open its card, where you can mark it unavailable."}
-      </p>
+      </BillHeader>
       {festival.feeBands.map((band) => (
         <BandTier
           key={band.id}
@@ -267,7 +292,7 @@ export function DraftBill({
       ))}
       <p className="mt-auto w-full border-t border-rule pt-2.5 text-label text-muted">
         {calls && createdAt
-          ? `Drafted by the agent from ${calls} Qloo calls · saved ${savedAt.format(new Date(createdAt))} UTC`
+          ? `Drafted by the agent from ${calls} Qloo calls · saved ${formatSavedAt(createdAt)} UTC`
           : "The agent is drafting the undercard."}
       </p>
     </section>

@@ -5,7 +5,7 @@ import { ActCardPanel } from "@/components/act-card-panel";
 import { DraftBill } from "@/components/draft-bill";
 import { FestivalHeader } from "@/components/festival-header";
 import { LineupBoard } from "@/components/lineup-board";
-import { LlmOnlyBoard } from "@/components/llm-only-board";
+import { ModelBill } from "@/components/model-bill";
 import { RoomsRail } from "@/components/rooms-rail";
 import { TracePanel } from "@/components/trace-panel";
 import { useLlmOnly } from "@/components/use-llm-only";
@@ -34,15 +34,16 @@ function ModeSwitch({
   mode: Mode;
   onChange: (mode: Mode) => void;
 }) {
+  // Each side says what it shows (label fix 3).
   const options: { value: Mode; label: string }[] = [
-    { value: "qloo", label: "Qloo" },
-    { value: "llm", label: "LLM only" },
+    { value: "qloo", label: "With Qloo: the agent's bill" },
+    { value: "llm", label: "Without Qloo: the model's picks" },
   ];
   return (
     <div
       role="group"
-      aria-label="Lineup source"
-      className="flex rounded-sm border-2 border-rule"
+      aria-label="Which bill"
+      className="flex flex-wrap rounded-sm border-2 border-rule"
     >
       {options.map((option) => (
         <button
@@ -62,22 +63,21 @@ function ModeSwitch({
 function LlmOnlyNote() {
   return (
     <aside
-      aria-labelledby="llm-note-title"
-      className="flex flex-col gap-2 border-2 border-rule bg-surface p-4"
+      aria-label="The model alone"
+      className="flex flex-col gap-2 self-start border-2 border-rule bg-surface p-4"
     >
-      <h2
-        id="llm-note-title"
-        className="font-display text-name font-extrabold uppercase"
-      >
-        No Qloo calls
+      <h2 className="font-display text-name font-extrabold uppercase">
+        The model alone
       </h2>
       <p className="text-label">
-        LLM only sends the same brief to Claude Sonnet 5.5 with no tools.
-        Without Qloo there is no affinity, no popularity to map to a fee band
-        and no local link.
+        The same brief went to Claude Sonnet 5.5 with no tools: the festival,
+        its city, capacity and crowd, the headliners and the fee bands. It
+        answers from what it already knows, so no pick comes from a Boise
+        room&apos;s crowd, and with no popularity data no fee band can be
+        checked.
       </p>
       <p className="text-label text-muted">
-        Flip back to Qloo for the agent&apos;s board.
+        With Qloo brings back the agent&apos;s bill and its Boise rooms.
       </p>
     </aside>
   );
@@ -141,7 +141,7 @@ export function FestivalScreen({
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <ModeSwitch mode={mode} onChange={changeMode} />
-          {bookedActs.length > 0 && (
+          {mode === "qloo" && bookedActs.length > 0 && (
             <button
               type="button"
               onClick={exportCsv}
@@ -153,10 +153,12 @@ export function FestivalScreen({
         </div>
       </header>
       {mode === "llm" ? (
-        <main className="grid flex-1 grid-cols-1 content-start gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:px-6">
-          <section aria-label="Lineup board">
-            <LlmOnlyBoard state={llm.state} />
-          </section>
+        <main className="grid flex-1 grid-cols-1 gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:px-6">
+          <ModelBill
+            festival={festival}
+            state={llm.state}
+            onRetry={() => void llm.load()}
+          />
           <LlmOnlyNote />
         </main>
       ) : onBill ? (

@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { LlmOnlyLineupSchema } from "@/lib/llm-only";
-import type { LlmOnlyState } from "./llm-only-board";
+import type { LlmOnlyState } from "./model-bill";
 
 /** Loads the LLM-only lineup once, the first time the board flips to it. */
 export function useLlmOnly() {
