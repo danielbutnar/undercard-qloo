@@ -19,7 +19,7 @@ const traceRows = (page: Page) =>
   page.getByRole("list", { name: "Qloo calls" }).locator(":scope > li");
 const rooms = (page: Page) =>
   page.getByRole("region", { name: "Boise crowds behind this bill" });
-// Each act's mark, read out in words (the ▲ and the room's initials are hidden from it).
+// Each act's mark, read out in words (the ↑ and the room's initials are hidden from it).
 const MARK = /crowd: (up \d+ places|new, from outside)/;
 
 /** The acts each room lifted, from the rail: their sum is the acts on the bill. */
@@ -60,12 +60,12 @@ test.describe("demo path", () => {
     await expect(band(page, /^Opener/).getByRole("article")).toHaveCount(6);
     await expect(
       page.getByText(
-        "4 slots · fee band set by Qloo's popularity percentile: 80th–92nd",
+        "4 slots · the buyer's fee band, in Qloo popularity percentiles: 80th–92nd",
       ),
     ).toBeVisible();
     await expect(
       page.getByText(
-        "6 slots · fee band set by Qloo's popularity percentile: 55th–80th",
+        "6 slots · the buyer's fee band, in Qloo popularity percentiles: 55th–80th",
       ),
     ).toBeVisible();
     for (const act of await bill(page).getByRole("article").all()) {

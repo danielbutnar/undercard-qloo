@@ -180,8 +180,8 @@ function BandTier({
           {band.label}
         </h2>
         <p className="text-label text-muted">
-          {band.slots} slots · fee band set by Qloo&apos;s popularity
-          percentile: {formatBandRange(band)}
+          {band.slots} slots · the buyer&apos;s fee band, in Qloo popularity
+          percentiles: {formatBandRange(band)}
         </p>
       </div>
       <ol className="mt-2.5 flex flex-wrap items-start justify-center gap-x-7 gap-y-3">
