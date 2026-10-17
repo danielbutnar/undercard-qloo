@@ -97,6 +97,12 @@ Copied from SPEC.md section 6, M6f. Closes: Design and Potential Impact. Freeze:
 - [x] /your-festival: the form, then the bill and trace, with no Without Qloo, refill or switcher; designed states for a headliner not found, too few rooms, open slots and the limit, each with a next step
 - [x] Linked from the town switcher; e2e tests/e2e/your-festival.spec.ts answers every build in the browser, so it never runs the agent on production
 
+# TASKS: for the 27-28 October redo (not now)
+
+- [ ] Fix the video's capture script for the reason picker (its refill step now stops at "Why is it unavailable?")
+- [ ] Story: M6b's runs per town; M6c as a stated limit ("a Boise heatmap gave a local signal for 7 of the 10 acts, so Undercard doesn't claim the town knows every act"); the town switcher and Your festival
+- [ ] Gallery stills that show the town switcher and the reason picker
+
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
 ## Before judging starts (2026-11-02)
