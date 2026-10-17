@@ -195,6 +195,18 @@ Copied from SPEC.md section 6, M8b. Freeze: 2026-10-22. Done means: an offline s
 - [x] Spike on the app's Qloo cache, 0 uncached calls, reassembly matches all four saved bills
 - [x] Rooms per bill rose in 0 of 4 towns (bar 3): no-go. The rooms that lift any act are already the rooms on each bill. Not shipped; no rebuilds
 
+# TASKS: M6q First screen for a lay reader
+
+Copied from SPEC.md section 6, M6q. Closes: Design. Deploy by 2026-10-19 08:30 Bucharest. Done means: a plain first line and example; switch and Export CSV below the bill; plain words first, precise terms smaller; one display line; a lay cold reader before and after.
+
+- [x] Lay cold reader before (production shots, 2026-10-17): couldn't say in a sentence what the page does; took the headliners for "performers", not sure they were bands; first click Watch the agent build it; lost on fee band, percentiles, Qloo and the +N badges; read it as a gig poster or a boxing fight card
+- [x] First line: what Undercard does, in plain words; then the example, the headliners named as bands (only the demo's are called bands) (tests/unit/m6q)
+- [x] With Qloo / Without Qloo and Export CSV below the bill
+- [x] "Mid-size acts" and "Opening acts" with the fee band in a smaller line; "Watch how it picked these acts"; each act says "<club> fans like it" with its +N badge; the rooms note in plain words
+- [x] One display line (the headliners); stamp smaller and in sentence case; act names, band and panel headings in the body face
+- [x] Deployed 2026-10-17 23:50 Bucharest; live e2e 44 passed
+- [x] Lay cold reader after (production shots): said what it does "within a few seconds", that Khruangbin and Japanese Breakfast are bands, and would click Watch how it picked these acts first. Still unclear to it: Qloo explained late, "fee band", the bare +N badges, "room", "agent" and "bill"
+
 # TASKS: for the 27-28 October redo (not now)
 
 - [ ] Fix the video's capture script for the reason picker (its refill step now stops at "Why is it unavailable?")
@@ -212,6 +224,8 @@ Copied from SPEC.md section 6, M8b. Freeze: 2026-10-22. Done means: an offline s
 - [ ] Shipped in M8c: Keep on the act card and Redraft the rest on the bill; the capture script, a still and a line in the story
 
 - [ ] Shipped in M6o: Venue 156 is labelled a festival, not a club; Cluj-Napoca's saved build predates the label, so it shows after that town's next build
+
+- [ ] Shipped in M6q: the plain first line and the calmer bill; re-shoot every still and re-capture the video, whose narration and captions name "Watch the agent build it"
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
