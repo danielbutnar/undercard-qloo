@@ -103,6 +103,19 @@ describe("pilotFestival", () => {
   });
 });
 
+describe("pilotFestival ids", () => {
+  it("drops accents from the town in its id, so the draft's file name stays plain", () => {
+    const festival = pilotFestival({
+      city: "Reykjavík",
+      region: "Iceland",
+      headliners: ["A", "B"],
+      slots: { mid: 4, opener: 6 },
+    });
+    expect(festival.id).toBe("pilot-reykjavik");
+    expect(festival.city).toBe("Reykjavík");
+  });
+});
+
 describe("pilotDraft", () => {
   const page = pilotDraft(run());
 

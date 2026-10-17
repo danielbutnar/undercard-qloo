@@ -50,18 +50,35 @@ const festival = pilotFestival({
   headliners: [headliners[0], headliners[1]],
   slots,
 });
-const events: BuildEvent[] = [];
-const ranAt = new Date().toISOString();
-const result = await runUndercardAgent({
-  festival,
-  qloo: createQlooClient({
-    apiKey,
-    cache: createMemoryCache(),
-    baseUrl: process.env.QLOO_BASE_URL || undefined,
-  }),
-  model: createAgentModel(),
-  emit: (event) => events.push(event),
-});
+// A call Qloo refuses with HTTP 429 (its rate limit) costs the agent a call and a room; such a
+// run is redone after a pause, up to three times, so a draft never reflects a rate limit.
+const rateLimited = (seen: BuildEvent[]) =>
+  seen.some(
+    (event) =>
+      (event.type === "error" && /HTTP 429/.test(event.message)) ||
+      (event.type === "call" && /429/.test(event.call.error ?? "")),
+  );
+let events: BuildEvent[] = [];
+let ranAt = "";
+let result!: Awaited<ReturnType<typeof runUndercardAgent>>;
+for (let attempt = 1; attempt <= 3; attempt++) {
+  if (attempt > 1) await new Promise((resolve) => setTimeout(resolve, 30_000));
+  const attemptEvents: BuildEvent[] = [];
+  events = attemptEvents;
+  ranAt = new Date().toISOString();
+  result = await runUndercardAgent({
+    festival,
+    qloo: createQlooClient({
+      apiKey,
+      cache: createMemoryCache(),
+      baseUrl: process.env.QLOO_BASE_URL || undefined,
+    }),
+    model: createAgentModel(),
+    emit: (event) => attemptEvents.push(event),
+  });
+  if (!rateLimited(events)) break;
+  console.error(`  attempt ${attempt} met Qloo's rate limit`);
+}
 
 const log: PilotLogEntry[] = events.flatMap((event): PilotLogEntry[] => {
   if (event.type === "call")
@@ -96,6 +113,17 @@ console.log(
     {
       town: `${festival.city}, ${festival.region}`,
       qlooCalls: log.filter((entry) => entry.kind === "call").length,
+      taggedPlaces:
+        events.flatMap((event) =>
+          event.type === "call" && event.call.tool === "find_venues"
+            ? [event.call.resultCount]
+            : [],
+        )[0] ?? null,
+      roomsTestedPerBand: roomsTested,
+      rooms: [...new Set(Object.values(roomsTested).flat())].map((room) => ({
+        room,
+        actsLifted: acts.filter((act) => act.anchorVenue.name === room).length,
+      })),
       bands: Object.fromEntries(
         festival.feeBands.map((band) => [
           band.id,

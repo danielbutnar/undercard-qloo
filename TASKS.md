@@ -49,6 +49,7 @@ Copied from SPEC.md section 6, M6a. Closes: Potential Impact. Freeze: 2026-10-19
 - [x] src/lib/pilot.ts: the brief (the demo's crowd and fee ranges, the buyer's town, headliners and slots) and the one-page draft: the brief, the bill with each act's room and lift, open slots, the rooms tested with what each lifted, and the calls in call order with the planner's lines; no entity ids or scores (tests/unit/m6a)
 - [x] scripts/pilot.ts: runs the agent offline with a memory cache, saves no build, writes .design/pilots/<town>.md and prints counts only
 - [x] Boise checked: 12 Qloo calls, Mid 4 of 4, Opener 6 of 6; the page reads as one page
+- [x] Pilot towns, added 2026-10-17: Calgary, Raleigh and Reykjavík with the demo's brief, plain city names, no saved builds. All three filled both bands (20, 18 and 5 live-music places); a go for pilots, in docs/evidence.md section 4. A run that meets Qloo's rate limit (HTTP 429) is redone
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
