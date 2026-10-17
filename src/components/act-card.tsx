@@ -13,12 +13,15 @@ export function ActCard({
   unavailable = false,
   disabled = false,
   onUnavailable,
+  onClose,
 }: {
   act: Act;
   /** Stamped and printed in worn ink while its slot is refilled, or when no refill was found. */
   unavailable?: boolean;
   disabled?: boolean;
   onUnavailable?: (act: Act) => void;
+  /** Shown as Close beside the name when the card is opened from the bill. */
+  onClose?: () => void;
 }) {
   const billing = BILLING[act.band];
   const ink = unavailable ? "text-muted" : "text-accent";
@@ -32,11 +35,23 @@ export function ActCard({
           Unavailable
         </p>
       )}
-      <h4
-        className={`font-display font-extrabold uppercase ${billing.name} ${unavailable ? "text-muted" : ""}`}
-      >
-        {act.name}
-      </h4>
+      <div className="flex items-start justify-between gap-3">
+        <h4
+          className={`font-display font-extrabold uppercase ${billing.name} ${unavailable ? "text-muted" : ""}`}
+        >
+          {act.name}
+        </h4>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close the card"
+            className="shrink-0 text-label text-ink underline underline-offset-2 hover:text-accent"
+          >
+            Close
+          </button>
+        )}
+      </div>
       <dl className="flex flex-wrap gap-x-4 gap-y-2">
         <div className="flex flex-col-reverse">
           <dt className="text-label text-muted">Qloo affinity</dt>

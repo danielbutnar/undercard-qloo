@@ -10,7 +10,7 @@ Approved for this run: pushing redesign-first-screen and main (merged without sq
 - [x] LCP of the live first screen at 1280x800: 780, 696 and 688 ms, measured alone
 - [x] The fee band says the buyer sets it and Qloo supplies the popularity percentile
 - [x] The mark's ▲ comes from a font the page loads, or the mark uses text the fonts carry: now ↑, which Big Shoulders carries
-- [ ] The card's Close sits inside the card
+- [x] The card's Close sits inside the card
 - [ ] At 390 px, Watch the agent build it sits under the headliners
 - [ ] The display font's loading checked (subset, preload, display); changed only if small and safe
 - [ ] If there's time: the fallback screen in the bill's design, still with Build undercard
