@@ -218,9 +218,9 @@ function BandTier({
           {PLAIN_BAND[band.id]}
         </h2>
         <p className="text-label text-muted">
-          {band.slots} slots · fee range ({band.label}): acts at Qloo&apos;s{" "}
-          {formatBandRange(band)} popularity percentile, standing in for their
-          fee
+          {band.slots} slots · fee range ({band.label}): with no real fees to
+          go on, how popular an act is on Qloo stands in for what it charges{" "}
+          {`(${formatBandRange(band)} percentile)`}
         </p>
       </div>
       <ol className="mt-2.5 flex flex-wrap items-start justify-center gap-x-7 gap-y-3">

@@ -376,8 +376,8 @@ export function FestivalScreen({
           <p className="text-body">
             <strong className="font-bold">Undercard</strong> is an AI agent that
             helps a music festival choose the smaller acts that play before the
-            stars, using what the town&apos;s own music fans already like, read
-            from Qloo, a taste-data service that maps what fans of one artist,
+            stars, using what fans of the town&apos;s own music venues already
+            like, read from Qloo, a taste-data service that maps what fans of one artist,
             venue or film also like.
           </p>
           <p className="text-label text-muted">{exampleLine(festival)}</p>

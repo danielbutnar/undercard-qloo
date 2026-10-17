@@ -57,12 +57,12 @@ describe("the draft bill", () => {
     bill();
     expect(
       screen.getByText(
-        "4 slots · fee range (Mid): acts at Qloo's 80th–92nd popularity percentile, standing in for their fee",
+        "4 slots · fee range (Mid): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (80th–92nd percentile)",
       ),
     ).toBeTruthy();
     expect(
       screen.getByText(
-        "6 slots · fee range (Opener): acts at Qloo's 55th–80th popularity percentile, standing in for their fee",
+        "6 slots · fee range (Opener): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (55th–80th percentile)",
       ),
     ).toBeTruthy();
   });

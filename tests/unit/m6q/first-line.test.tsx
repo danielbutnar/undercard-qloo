@@ -13,7 +13,7 @@ describe("the first screen for a lay reader (M6q)", () => {
     const banner = screen.getByRole("banner");
     const lines = [...banner.querySelectorAll("p")].map((p) => p.textContent);
     expect(lines[0]).toBe(
-      "Undercard is an AI agent that helps a music festival choose the smaller acts that play before the stars, using what the town's own music fans already like, read from Qloo, a taste-data service that maps what fans of one artist, venue or film also like.",
+      "Undercard is an AI agent that helps a music festival choose the smaller acts that play before the stars, using what fans of the town's own music venues already like, read from Qloo, a taste-data service that maps what fans of one artist, venue or film also like.",
     );
     expect(lines[1]).toBe(
       "Example: a 3,000-person festival in Boise, Idaho. Its headliners, Khruangbin and Japanese Breakfast, are bands.",
