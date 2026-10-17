@@ -175,6 +175,31 @@ The production build of 17 October 2026 matched Boise's row above: Venue 418 8, 
 
 **Verdict: no-go.** The rule does what it should on the data, but the agent then fills fewer towns, under the bar. Nothing ships. The live agent still treats every place Qloo tags as a live music venue as a room, and a park or an arena can still draft a whole bill.
 
+## 11. Towns resolve to the right place: spike, go (M6j)
+
+**The question.** A plain town name can read the wrong town: "Burlington" reads Burlington, Ontario, "Richmond" returned one place and "Brighton" none (section 9). Can the Qloo API alone resolve a town to the intended place?
+
+**The rule, written before the spike.** Go if Burlington (Vermont), Richmond (Virginia) and Brighton (England) each resolve correctly with at most one extra Qloo call, and Boise, Austin, Denver and Nashville resolve to the same places as today.
+
+**What was tried** (2026-10-17, `scripts/resolve-spike.ts` and `scripts/town-check.ts`, one call at a time):
+- **A fuller name in the place query** ("Burlington, Vermont"; no extra call). It resolved the three hard towns: Burlington, Vermont (7 places, all in Chittenden County, Vermont), Richmond, Virginia (16, all in Virginia; one in Henrico County, outside the city) and Brighton, England (20, all in Brighton and Hove). Austin, Denver and Nashville gave the same places as their plain names. But "Boise, Idaho" returned no places at all.
+- **Qloo's own locality search, then places by that locality's id** (one extra call). It gave the same places as today for Boise, Austin, Denver and Nashville, and found Burlington, Vermont and Richmond, Virginia. But England's Brighton wasn't among the 10 Brightons it returned.
+- **A point and a radius** wasn't needed.
+
+**The route that passes.** Every place Qloo returns carries its own geocode, so checking where it is costs no call. Ask with the plain name, as today. If fewer than 5 of the places it returns are in the intended state or country, or any is outside it, ask once more with "town, state or country", and keep the answer with more places in the region. Places outside the region are left out, and the trace says so.
+
+| Town | Plain name | Full name | Extra calls | Resolves to |
+|---|---|---|---|---|
+| Burlington, Vermont | 4 places, all in Ontario | 7, all in Vermont | 1 | Vermont |
+| Richmond, Virginia | 1 place | 16, all in Virginia | 1 | Virginia |
+| Brighton, England | none | 20, all in Brighton and Hove | 1 | England |
+| Boise, Idaho | 8, all in Idaho | none | 0 | today's 8 |
+| Austin, Texas | 20, in Texas | the same 20 | 0 | today's 20 |
+| Denver, Colorado | 20, in Colorado | the same 20 | 0 | today's 20 |
+| Nashville, Tennessee | 20, in Tennessee | the same 20 | 0 | today's 20 |
+
+**Verdict: go.** Each of the three resolves correctly with one extra call, and the four demo towns keep today's places with none. The extra call counts against the build's 12, so the cap stays true.
+
 ## What these numbers don't establish
 
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
