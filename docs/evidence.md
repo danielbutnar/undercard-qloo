@@ -260,6 +260,19 @@ Written on 2026-10-17, before any spike call. The rule doesn't change after the 
 
 **How.** One town at a time, the same places call the agent makes, with M6j's resolution. Counts only here; names and raw answers stay in .design/.
 
+**Results, 2026-10-17: go.** The places call for all 29 checked towns, one town at a time: 33 Qloo calls, N places kept. The saved builds of the 29 towns anchor on 50 rooms, Venue 156 among them, and every one was among the places fetched. Qloo marks Venue 156 as a festival in its own data: two tags no other fetched place carries (a main-stages amenity and a festival-chic decor tag) and "festival" as its most frequent review keyword. Each candidate rule, with the other 49 anchor rooms it touches:
+
+| Rule on Qloo's data | Venue 156 | Other anchor rooms touched | Places touched, of 431 |
+|---|---|---|---|
+| "festival" among the place's 3 most frequent keywords | labelled | 0 | 1 |
+| "festival" as its most frequent keyword | labelled | 0 | 1 |
+| the main-stages amenity tag | labelled | 0 | 1 |
+| the festival-chic decor tag | labelled | 0 | 1 |
+| "festival" anywhere in its keywords | labelled | 1 | 4 |
+| "festival" in its descriptions | labelled | 4 | 16 |
+
+Four rules clear the bar. The shipped one is the first: it reads the word reviewers use most for the place, not one rare tag. It was chosen after seeing these counts, so it fits this one case; a new festival filed as a place may carry the word lower in its keywords, and then it stays unlabelled. Label only: the card says "Venue 156 is a festival, not a club." and the venue's trace line says "(a festival)"; booking doesn't read it. Place answers cached before this change have no keywords, so the places call has a new cache key. Cluj-Napoca's saved build was made before the label, so its replay shows the label only once that town is built again.
+
 ## 15. Running order (M8a), written before the spike
 
 Written on 2026-10-17, before any spike call. The rule doesn't change after the results are in.

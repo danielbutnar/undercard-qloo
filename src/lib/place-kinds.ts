@@ -22,8 +22,23 @@ const KINDS: [label: string, categories: string[]][] = [
 
 const CATEGORY = "urn:tag:category:place:";
 
-/** "an arena", "a stadium", "an outdoor festival site" or "a sports ground"; null for a club. */
-export function roomKind(tags: readonly { id: string }[]): string | null {
+/**
+ * A festival brand filed as a place (M6o; docs/evidence.md section 14): "festival" is among
+ * the three words Qloo's keywords for it use most. Venue 156 in Cluj-Napoca is one;
+ * none of the other rooms in the saved builds is.
+ */
+const FESTIVAL_KEYWORD_RANK = 3;
+
+/**
+ * "a festival", "an arena", "a stadium", "an outdoor festival site" or "a sports ground";
+ * null for a club. Keywords are Qloo's for the place, most frequent first.
+ */
+export function roomKind(
+  tags: readonly { id: string }[],
+  keywords: readonly string[] = [],
+): string | null {
+  if (keywords.slice(0, FESTIVAL_KEYWORD_RANK).includes("festival"))
+    return "a festival";
   const categories = new Set(
     tags
       .filter((tag) => tag.id.startsWith(CATEGORY))

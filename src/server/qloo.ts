@@ -27,6 +27,8 @@ export interface QlooEntity {
   tags: QlooTag[];
   /** Where a place is, from Qloo's geocode; absent on artists and on older cached answers. */
   where?: PlaceWhere;
+  /** A place's Qloo keywords, most frequent first (M6o); absent when Qloo gives none. */
+  keywords?: string[];
 }
 
 export interface QlooCall {
@@ -84,6 +86,11 @@ const RawEntity = z.object({
         })
         .partial()
         .nullish(),
+      // Words from a place's reviews, with how often they come up (M6o).
+      keywords: z
+        .array(z.object({ name: z.string(), count: z.number().optional() }))
+        .nullish()
+        .catch(null),
     })
     .partial()
     .passthrough()
@@ -122,6 +129,18 @@ function toEntity(raw: z.infer<typeof RawEntity>): QlooEntity {
     affinity: raw.query?.affinity ?? null,
     tags: (raw.tags ?? []).map(toTag).filter(usable),
     ...placeWhere(raw.properties?.geocode),
+    ...keywordsOf(raw.properties?.keywords),
+  };
+}
+
+function keywordsOf(
+  keywords: { name: string; count?: number }[] | null | undefined,
+): { keywords?: string[] } {
+  if (!keywords?.length) return {};
+  return {
+    keywords: [...keywords]
+      .sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
+      .map((keyword) => keyword.name),
   };
 }
 
@@ -233,11 +252,13 @@ export function createQlooClient({
     path: QlooPath,
     params: Record<string, string | number>,
     parse: (body: unknown) => T,
+    /** Bumped when the parsed shape gains a field, so older cached answers aren't reused. */
+    keyVersion = "",
   ): Promise<QlooResult<T>> {
     const entries = Object.entries(params).map(
       ([key, value]): [string, string] => [key, String(value)],
     );
-    const cacheKey = `${CACHE_PREFIX}${path}?${new URLSearchParams([...entries].sort()).toString()}`;
+    const cacheKey = `${CACHE_PREFIX}${keyVersion}${path}?${new URLSearchParams([...entries].sort()).toString()}`;
     const started = Date.now();
     // A retry isn't a new call: it rides on this call's line in the trace.
     const retried: number[] = [];
@@ -344,6 +365,8 @@ export function createQlooClient({
           take,
         },
         (body) => InsightsBody.parse(body).results.entities.map(toEntity),
+        // M6o: places carry their keywords; answers cached before then don't.
+        "k1:",
       );
     },
 

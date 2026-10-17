@@ -431,7 +431,7 @@ export function createToolbox({
           `Unknown venue ${venue_id}: pick an entity_id from find_venues.`,
         );
       // A park, arena or stadium is named on its line (M6l); booking doesn't read the label.
-      const kind = roomKind(venue.tags);
+      const kind = roomKind(venue.tags, venue.keywords);
       const kindNote = kind ? ` (${kind})` : "";
       const range = festival.feeBands.find((entry) => entry.id === band)!;
       const artists = await callQloo(
