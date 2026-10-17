@@ -6,6 +6,7 @@ import type { BuildEvent } from "@/lib/build-events";
 import { FEE_BAND_IDS, type FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import {
+  QlooBusy,
   QlooError,
   type QlooCall,
   type QlooClient,
@@ -243,6 +244,8 @@ export function createToolbox({
           error: message,
         },
       });
+      // Qloo stayed busy past the build's budget: the whole build stops, not just this tool.
+      if (error instanceof QlooBusy) throw error;
       throw new ToolMisuse(message);
     }
   }
@@ -260,6 +263,7 @@ export function createToolbox({
       resultCount: call.resultCount,
       ms: call.ms,
       cached: call.cached,
+      ...(call.retried ? { retried: call.retried } : {}),
     };
   }
 

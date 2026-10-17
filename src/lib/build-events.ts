@@ -11,6 +11,8 @@ export const TraceCallSchema = z.object({
   resultCount: z.number().int().nonnegative().nullable(),
   ms: z.number().nonnegative(),
   cached: z.boolean(),
+  /** Busy answers (429, 5xx) the call was retried after; a retry isn't a new call. */
+  retried: z.array(z.number().int()).optional(),
   error: z.string().optional(),
 });
 
@@ -38,7 +40,13 @@ export const BuildEventSchema = z.discriminatedUnion("type", [
     type: z.literal("error"),
     message: z.string(),
     code: z
-      .enum(["limit", "headliner-not-found", "too-few-rooms", "not-full"])
+      .enum([
+        "limit",
+        "qloo-busy",
+        "headliner-not-found",
+        "too-few-rooms",
+        "not-full",
+      ])
       .optional(),
   }),
   z.object({

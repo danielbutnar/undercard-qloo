@@ -199,15 +199,16 @@ describe("Qloo client", () => {
   });
 
   it("throws a QlooError on a failed request and caches nothing", async () => {
+    // A 404 isn't retried; 429s and 5xx are (M6g, tests/unit/m6g).
     const { client, requests } = clientWith(
-      () => new Response("{}", { status: 429 }),
+      () => new Response("{}", { status: 404 }),
     );
     await expect(
       client.search({ query: "Hollow Pines" }),
     ).rejects.toBeInstanceOf(QlooError);
     await expect(
       client.search({ query: "Hollow Pines" }),
-    ).rejects.toMatchObject({ status: 429 });
+    ).rejects.toMatchObject({ status: 404 });
     expect(requests).toHaveLength(2);
   });
 

@@ -32,6 +32,8 @@ export interface QlooCall {
   resultCount: number;
   ms: number;
   cached: boolean;
+  /** The busy answers (429, 5xx) this call was retried after; absent when there were none. */
+  retried?: number[];
 }
 
 export interface QlooResult<T> {
@@ -101,12 +103,66 @@ function toEntity(raw: z.infer<typeof RawEntity>): QlooEntity {
   };
 }
 
+/**
+ * How the client rides out Qloo's rate limit (M6g; docs/evidence.md section 8). The hackathon
+ * key is shared by every visitor and every build, and Qloo answers HTTP 429 when calls come
+ * too fast, so the client keeps few calls in flight and retries busy answers with backoff.
+ */
+export interface QlooRetryPolicy {
+  /** Calls one client (one build or refill) keeps in flight at once. */
+  maxInFlight: number;
+  /** Retries of one call after a 429 or 5xx, before the client gives up. */
+  maxRetries: number;
+  /** The first backoff ceiling; it doubles each retry up to maxDelayMs (full jitter). */
+  baseDelayMs: number;
+  maxDelayMs: number;
+  /**
+   * The time from the client's creation that retries may run into. A build's function may run
+   * 120 s (src/app/api/undercard/route.ts); 45 s of waiting leaves room for the planner's turns
+   * and Qloo's own answers.
+   */
+  budgetMs: number;
+}
+
+export const QLOO_RETRY: QlooRetryPolicy = {
+  maxInFlight: 2,
+  maxRetries: 5,
+  baseDelayMs: 500,
+  maxDelayMs: 8_000,
+  budgetMs: 45_000,
+};
+
+/** Answers worth retrying: the rate limit and Qloo's own transient errors. */
+const RETRYABLE = new Set([429, 500, 502, 503, 504]);
+
+/** Qloo stayed busy past the client's time budget: the build ends in its own designed state. */
+export class QlooBusy extends QlooError {
+  constructor() {
+    super(429, "Qloo is busy right now. Try again in a minute.");
+    this.name = "QlooBusy";
+  }
+}
+
+/** Retry-After in milliseconds: seconds, or an HTTP date; 0 when absent or unreadable. */
+function retryAfterMs(header: string | null, now: number): number {
+  if (!header) return 0;
+  const seconds = Number(header);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+  const at = Date.parse(header);
+  return Number.isFinite(at) ? Math.max(0, at - now) : 0;
+}
+
 export interface QlooClientOptions {
   apiKey: string;
   cache: QlooCache;
   baseUrl?: string;
   fetch?: typeof globalThis.fetch;
   now?: () => number;
+  retry?: QlooRetryPolicy;
+  /** Injected in tests, so backoff runs instantly; clock and sleep advance together there. */
+  sleep?: (ms: number) => Promise<void>;
+  clock?: () => number;
+  random?: () => number;
 }
 
 export type QlooClient = ReturnType<typeof createQlooClient>;
@@ -117,7 +173,24 @@ export function createQlooClient({
   baseUrl = QLOO_BASE_URL,
   fetch = globalThis.fetch,
   now = Date.now,
+  retry = QLOO_RETRY,
+  sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+  clock = Date.now,
+  random = Math.random,
 }: QlooClientOptions) {
+  const deadline = clock() + retry.budgetMs;
+  let inFlight = 0;
+  const waiting: (() => void)[] = [];
+  async function slot() {
+    if (inFlight >= retry.maxInFlight)
+      await new Promise<void>((resolve) => waiting.push(resolve));
+    inFlight++;
+  }
+  function release() {
+    inFlight--;
+    waiting.shift()?.();
+  }
+
   // Every result is a list, so its length is the result count the trace shows.
   async function get<T extends unknown[]>(
     path: QlooPath,
@@ -129,12 +202,15 @@ export function createQlooClient({
     );
     const cacheKey = `${CACHE_PREFIX}${path}?${new URLSearchParams([...entries].sort()).toString()}`;
     const started = Date.now();
+    // A retry isn't a new call: it rides on this call's line in the trace.
+    const retried: number[] = [];
     const call = (data: T, cached: boolean): QlooCall => ({
       path,
       params: entries,
       resultCount: data.length,
       ms: Date.now() - started,
       cached,
+      ...(retried.length ? { retried: [...retried] } : {}),
     });
 
     const hit = await cache.get<T>(cacheKey);
@@ -142,21 +218,40 @@ export function createQlooClient({
 
     const url = new URL(path, baseUrl);
     for (const [key, value] of entries) url.searchParams.set(key, value);
-    const response = await fetch(url, {
-      method: "GET",
-      headers: { "X-Api-Key": apiKey, Accept: "application/json" },
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-    });
-    if (!response.ok) {
-      throw new QlooError(
-        response.status,
-        `Qloo ${path} answered HTTP ${response.status}`,
+    for (let attempt = 0; ; attempt++) {
+      await slot();
+      let response: Response;
+      try {
+        response = await fetch(url, {
+          method: "GET",
+          headers: { "X-Api-Key": apiKey, Accept: "application/json" },
+          signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        });
+      } finally {
+        release();
+      }
+      if (response.ok) {
+        const data = parse(await response.json());
+        await cache.set(cacheKey, data, cacheTtlSeconds(now()));
+        return { data, call: call(data, false) };
+      }
+      if (!RETRYABLE.has(response.status))
+        throw new QlooError(
+          response.status,
+          `Qloo ${path} answered HTTP ${response.status}`,
+        );
+      if (attempt >= retry.maxRetries) throw new QlooBusy();
+      // Full jitter on an exponential ceiling, and never sooner than Qloo asked.
+      const backoff =
+        random() * Math.min(retry.maxDelayMs, retry.baseDelayMs * 2 ** attempt);
+      const delay = Math.max(
+        retryAfterMs(response.headers.get("retry-after"), clock()),
+        backoff,
       );
+      if (clock() + delay > deadline) throw new QlooBusy();
+      retried.push(response.status);
+      await sleep(delay);
     }
-
-    const data = parse(await response.json());
-    await cache.set(cacheKey, data, cacheTtlSeconds(now()));
-    return { data, call: call(data, false) };
   }
 
   return {

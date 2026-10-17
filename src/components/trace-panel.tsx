@@ -76,6 +76,9 @@ function CallRow({
         <p className="text-label text-muted">
           GET {call.endpoint} · {seconds(call.ms)}
           {call.cached ? " · cached" : ""}
+          {call.retried?.length
+            ? ` · retried${call.retried.length > 1 ? ` ${call.retried.length}×` : ""} after ${[...new Set(call.retried)].join(", ")}`
+            : ""}
         </p>
         {!highlighted && call.params.length > 0 && (
           <button
@@ -250,9 +253,21 @@ export function TracePanel({
           </p>
         )}
         {state.error && (
-          <p role="alert" className="text-label font-semibold text-danger">
-            {state.error}
-          </p>
+          <div className="flex flex-col items-start gap-1">
+            <p role="alert" className="text-label font-semibold text-danger">
+              {state.error}
+            </p>
+            {/* A busy Qloo (M6g): the saved build still replays, with no Qloo call. */}
+            {state.errorCode === "qloo-busy" && savedCalls ? (
+              <button
+                type="button"
+                onClick={() => onBuild()}
+                className="text-label text-ink underline underline-offset-2 hover:text-accent"
+              >
+                Watch the saved build instead
+              </button>
+            ) : null}
+          </div>
         )}
         {state.refusal && (
           <div className="flex flex-col items-start gap-1">

@@ -113,9 +113,11 @@ function RunNotice({
       <h2 className="font-display text-name font-extrabold uppercase text-danger">
         {code === "limit"
           ? "Today's live runs are used"
-          : code === "not-full"
-            ? "Some slots stayed open"
-            : "This draft couldn't be finished"}
+          : code === "qloo-busy"
+            ? "Qloo is busy right now"
+            : code === "not-full"
+              ? "Some slots stayed open"
+              : "This draft couldn't be finished"}
       </h2>
       <p className="text-label">{message}</p>
       {code === "limit" ? (

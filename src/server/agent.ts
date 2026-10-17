@@ -9,7 +9,7 @@ import { formatCount } from "@/lib/format";
 import { createToolbox, type AgentState } from "./agent-tools";
 import type { AgentModel } from "./ai";
 import type { BuildContext } from "./build-store";
-import type { QlooClient } from "./qloo";
+import { QlooBusy, type QlooClient } from "./qloo";
 
 /** Model turns per build; a plan needs about five. */
 export const MAX_AGENT_TURNS = 8;
@@ -145,12 +145,16 @@ export async function runUndercardAgent({
       });
       if (toolbox.state.finished || toolbox.callsUsed() >= toolbox.cap) break;
     }
-  } catch {
-    emit({
-      type: "error",
-      message:
-        "The planning model is unavailable right now. Try again in a minute.",
-    });
+  } catch (error) {
+    emit(
+      error instanceof QlooBusy
+        ? { type: "error", code: "qloo-busy", message: error.message }
+        : {
+            type: "error",
+            message:
+              "The planning model is unavailable right now. Try again in a minute.",
+          },
+    );
     return failed();
   }
 

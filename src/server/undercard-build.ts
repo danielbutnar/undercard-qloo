@@ -167,7 +167,13 @@ export async function handleUndercardBuild({
       },
     });
     if (!save) {
-      const problem = diagnoseRun(seen, result.complete, festival.city);
+      // A busy Qloo already said why; a second diagnosis would only blur it.
+      const busy = seen.some(
+        (event) => event.type === "error" && event.code === "qloo-busy",
+      );
+      const problem = busy
+        ? null
+        : diagnoseRun(seen, result.complete, festival.city);
       if (problem) emit({ type: "error", ...problem });
       return;
     }
