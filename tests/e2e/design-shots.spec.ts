@@ -71,7 +71,7 @@ const SCENES: {
     viewports: [VIDEO, MOBILE],
     prepare: async (page) => {
       await page
-        .getByRole("button", { name: "Watch the agent build it" })
+        .getByRole("button", { name: "Watch how it picked these acts" })
         .click();
       await page
         .getByRole("list", { name: "Qloo calls" })
@@ -85,7 +85,7 @@ const SCENES: {
     viewports: [WIDE, VIDEO, MOBILE],
     prepare: async (page) => {
       await page
-        .getByRole("button", { name: "Watch the agent build it" })
+        .getByRole("button", { name: "Watch how it picked these acts" })
         .click();
       await page.getByText(/^Replayed the build saved/).waitFor();
       await test.expect.poll(() => liftedTotal(page)).toBe(10);
@@ -169,7 +169,7 @@ const SCENES: {
     prepare: async (page) => {
       await page.route("**/api/undercard", never);
       await page
-        .getByRole("button", { name: "Watch the agent build it" })
+        .getByRole("button", { name: "Watch how it picked these acts" })
         .click();
       await page.getByText("Open slot").first().waitFor();
     },

@@ -7,14 +7,14 @@ import { FIRST_BILL } from "./first-bill-fixture";
 
 afterEach(cleanup);
 
-describe("the trace behind Watch the agent build it", () => {
+describe("the trace behind Watch how it picked these acts", () => {
   const saved = firstBoard(FIRST_BILL);
 
-  it("replays the saved build from Watch the agent build it", () => {
+  it("replays the saved build from Watch how it picked these acts", () => {
     const onBuild = vi.fn();
     render(<TracePanel state={saved} savedCalls={12} onBuild={onBuild} />);
     fireEvent.click(
-      screen.getByRole("button", { name: "Watch the agent build it" }),
+      screen.getByRole("button", { name: "Watch how it picked these acts" }),
     );
     expect(onBuild).toHaveBeenCalledWith();
   });

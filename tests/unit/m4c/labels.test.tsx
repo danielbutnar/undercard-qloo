@@ -24,12 +24,12 @@ describe("the fee band", () => {
     bill();
     expect(
       screen.getByText(
-        "4 slots · the buyer's fee band, in Qloo popularity percentiles: 80th–92nd",
+        "4 slots · fee band (Mid): Qloo popularity percentiles 80th–92nd",
       ),
     ).toBeTruthy();
     expect(
       screen.getByText(
-        "6 slots · the buyer's fee band, in Qloo popularity percentiles: 55th–80th",
+        "6 slots · fee band (Opener): Qloo popularity percentiles 55th–80th",
       ),
     ).toBeTruthy();
     expect(screen.queryByText(/set by Qloo/)).toBeNull();

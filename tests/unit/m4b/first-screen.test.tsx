@@ -45,15 +45,16 @@ describe("the first screen", () => {
     }
   });
 
-  it("puts Export CSV in the bar once there's a lineup, and none on the empty board", () => {
+  it("puts Export CSV below the bill once there's a lineup, and none on the empty board (M6q)", () => {
     render(
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
     );
     expect(
-      within(screen.getByRole("banner")).getByRole("button", {
+      within(screen.getByRole("banner")).queryByRole("button", {
         name: "Export CSV",
       }),
-    ).toBeTruthy();
+    ).toBeNull();
+    expect(screen.getByRole("button", { name: "Export CSV" })).toBeTruthy();
     cleanup();
     render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={null} />);
     expect(screen.queryByRole("button", { name: "Export CSV" })).toBeNull();
@@ -70,7 +71,7 @@ describe("the first screen", () => {
     fireEvent.click(
       within(
         screen.getByRole("complementary", { name: "Qloo calls" }),
-      ).getByRole("button", { name: "Watch the agent build it" }),
+      ).getByRole("button", { name: "Watch how it picked these acts" }),
     );
     expect(
       screen.getByRole("region", { name: "Undercard draft" }),

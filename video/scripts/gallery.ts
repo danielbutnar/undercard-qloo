@@ -41,7 +41,7 @@ try {
   await bill(page).getByRole("article").nth(9).waitFor();
   await shot("gallery-1-first-screen");
 
-  await page.getByRole("button", { name: "Watch the agent build it" }).click();
+  await page.getByRole("button", { name: "Watch how it picked these acts" }).click();
   await page
     .getByText(/^Replayed the build saved/)
     .waitFor({ timeout: 30_000 });

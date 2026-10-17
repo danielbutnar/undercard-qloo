@@ -32,7 +32,7 @@ describe("the draft bill", () => {
         .querySelectorAll("li"),
     ).toHaveLength(2);
     expect(
-      within(sheet).getByText("Undercard draft · not announced"),
+      within(sheet).getByText("Draft, not announced"),
     ).toBeTruthy();
     expect(
       within(sheet).getByText(
@@ -47,22 +47,22 @@ describe("the draft bill", () => {
       within(screen.getByRole("region", { name: band }))
         .getAllByRole("article")
         .map((article) => article.getAttribute("aria-label"));
-    expect(names("Mid")).toEqual(
+    expect(names("Mid-size acts")).toEqual(
       acts.filter((act) => act.band === "mid").map((act) => act.name),
     );
-    expect(names("Opener")).toHaveLength(6);
+    expect(names("Opening acts")).toHaveLength(6);
   });
 
   it("says Qloo's popularity percentile sets each fee band", () => {
     bill();
     expect(
       screen.getByText(
-        "4 slots · the buyer's fee band, in Qloo popularity percentiles: 80th–92nd",
+        "4 slots · fee band (Mid): Qloo popularity percentiles 80th–92nd",
       ),
     ).toBeTruthy();
     expect(
       screen.getByText(
-        "6 slots · the buyer's fee band, in Qloo popularity percentiles: 55th–80th",
+        "6 slots · fee band (Opener): Qloo popularity percentiles 55th–80th",
       ),
     ).toBeTruthy();
   });
@@ -71,12 +71,14 @@ describe("the draft bill", () => {
     bill({ top: { mid: 50, opener: 50 } });
     const act = (name: string) => screen.getByRole("article", { name });
     expect(
-      within(act("Hollow Pines")).getByText("The Lantern Room +11"),
+      within(act("Hollow Pines")).getByText("The Lantern Room fans like it"),
     ).toBeTruthy();
-    expect(within(act("Marisol Vey")).getByText("FSB +7")).toBeTruthy();
+    // M6q: the club whose fans like it, in plain words, then the blue badge.
     expect(
-      within(act("Low Bench Choir")).getByText("The Lantern Room new"),
+      within(act("Marisol Vey")).getByText("Fort Street Ballroom fans like it"),
     ).toBeTruthy();
+    expect(within(act("Marisol Vey")).getByText("+7")).toBeTruthy();
+    expect(within(act("Low Bench Choir")).getByText("new")).toBeTruthy();
     // Read out in words: the + and the initials stay off the accessibility tree.
     expect(
       within(act("Marisol Vey")).getByText(
@@ -97,13 +99,13 @@ describe("the draft bill", () => {
     const key = keys[0];
     // Beside the first act on the bill: in the same slot of the Mid tier.
     const firstSlot = within(
-      screen.getByRole("region", { name: "Mid" }),
+      screen.getByRole("region", { name: "Mid-size acts" }),
     ).getAllByRole("listitem")[0];
     expect(firstSlot.contains(key)).toBe(true);
     expect(
       within(firstSlot).getByRole("article", { name: "Hollow Pines" }),
     ).toBeTruthy();
-    expect(key.textContent).toContain("The Lantern Room +11");
+    expect(key.textContent).toContain("+11");
     expect(key.textContent).toContain(
       "Qloo ranks artists for the headliners' fans; adding the crowd at The Lantern Room, a Boise venue, lifts this act 11 places.",
     );
@@ -118,7 +120,7 @@ describe("the draft bill", () => {
   it("keeps the key in the first slot while that act is refilled, so nothing jumps", () => {
     bill({ unavailable: [acts[0].entityId] });
     const firstSlot = within(
-      screen.getByRole("region", { name: "Mid" }),
+      screen.getByRole("region", { name: "Mid-size acts" }),
     ).getAllByRole("listitem")[0];
     expect(
       within(firstSlot).getByRole("note", { name: "How to read the marks" }),

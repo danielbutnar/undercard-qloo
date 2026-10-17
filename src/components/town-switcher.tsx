@@ -19,9 +19,7 @@ export function TownSwitcher({
       aria-label="Same brief, other towns"
       className="flex flex-col gap-1 border-2 border-rule bg-surface p-4"
     >
-      <h2 className="font-display text-name font-extrabold uppercase">
-        Same brief, other towns
-      </h2>
+      <h2 className="text-body font-bold">Same brief, other towns</h2>
       <p className="text-label text-muted">
         The same headliners and fee bands, with each town&apos;s own rooms
         drafting the undercard.

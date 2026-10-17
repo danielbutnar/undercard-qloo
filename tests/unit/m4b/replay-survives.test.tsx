@@ -47,7 +47,7 @@ describe("a replay in flight", () => {
     fireEvent.click(
       within(
         screen.getByRole("complementary", { name: "Qloo calls" }),
-      ).getByRole("button", { name: "Watch the agent build it" }),
+      ).getByRole("button", { name: "Watch how it picked these acts" }),
     );
     rerender(screenIn("hidden"));
     rerender(screenIn("visible"));

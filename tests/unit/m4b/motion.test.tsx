@@ -58,7 +58,7 @@ async function watch() {
   fireEvent.click(
     within(screen.getByRole("complementary", { name: "Qloo calls" })).getByRole(
       "button",
-      { name: "Watch the agent build it" },
+      { name: "Watch how it picked these acts" },
     ),
   );
   await waitFor(() => expect(acts()).toHaveLength(10));

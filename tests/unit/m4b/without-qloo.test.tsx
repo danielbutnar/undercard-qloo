@@ -105,7 +105,7 @@ describe("Without Qloo", () => {
       screen.queryByRole("region", { name: "Boise venue crowds behind this bill" }),
     ).toBeNull();
     expect(
-      screen.queryByRole("button", { name: "Watch the agent build it" }),
+      screen.queryByRole("button", { name: "Watch how it picked these acts" }),
     ).toBeNull();
   });
 
@@ -118,7 +118,7 @@ describe("Without Qloo", () => {
     expect(
       within(
         within(bill).getByRole("article", { name: "Hollow Pines" }),
-      ).getByText("The Lantern Room +11"),
+      ).getByText("The Lantern Room fans like it"),
     ).toBeTruthy();
   });
 

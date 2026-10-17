@@ -16,7 +16,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const WATCH = { name: "Watch the agent build it" };
+const WATCH = { name: "Watch how it picked these acts" };
 const open = () =>
   render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />);
 const bill = () => screen.getByRole("region", { name: "Undercard draft" });
@@ -24,7 +24,7 @@ const rail = () => screen.getByRole("complementary", { name: "Qloo calls" });
 
 // jsdom applies no CSS, so these check the classes that decide which copy shows: on phones
 // the bill's own button under the headliners, from lg up the rail's.
-describe("Watch the agent build it on a phone", () => {
+describe("Watch how it picked these acts on a phone", () => {
   it("sits in the bill, right under the headliners, on phones only", () => {
     open();
     const button = within(bill()).getByRole("button", WATCH);
@@ -36,7 +36,7 @@ describe("Watch the agent build it on a phone", () => {
       headliners.compareDocumentPosition(button) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
-    const firstBand = within(bill()).getByRole("region", { name: "Mid" });
+    const firstBand = within(bill()).getByRole("region", { name: "Mid-size acts" });
     expect(
       button.compareDocumentPosition(firstBand) &
         Node.DOCUMENT_POSITION_FOLLOWING,

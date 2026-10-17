@@ -41,7 +41,7 @@ describe("an act on the bill", () => {
     open();
     expect(
       within(bill()).getByText(
-        /Click an act to open its card, where you can keep it or mark it unavailable./,
+        /Click an act to see why, keep it or mark it unavailable./,
       ),
     ).toBeTruthy();
   });
@@ -110,7 +110,7 @@ describe("an act on the bill", () => {
       reason: "radius",
     });
     await waitFor(() => expect(actButton("Sego Lily")).toBeTruthy());
-    const mid = within(bill()).getByRole("region", { name: "Mid" });
+    const mid = within(bill()).getByRole("region", { name: "Mid-size acts" });
     expect(
       within(mid)
         .getAllByRole("article")

@@ -35,10 +35,7 @@ export function RoomsRail({
       aria-labelledby="rooms-title"
       className={`flex flex-col border-2 border-rule bg-surface ${compact ? "gap-1 p-3" : "gap-2 p-4"}`}
     >
-      <h2
-        id="rooms-title"
-        className="font-display text-name font-extrabold uppercase"
-      >
+      <h2 id="rooms-title" className="text-body font-bold">
         {city} venue crowds behind this bill
       </h2>
       {!compact && (
@@ -46,7 +43,8 @@ export function RoomsRail({
           {placesListed !== null
             ? `Qloo listed ${placesListed} ${city} live-music places; the agent tested ${tested} of their crowds against the headliners' fans.`
             : `The agent tested ${tested} ${city} rooms' crowds against the headliners' fans.`}{" "}
-          A room here means its crowd, not a stage the acts will play.
+          These venues stand for the town&apos;s taste: the acts won&apos;t
+          necessarily play there.
         </p>
       )}
       <ul className="flex flex-col divide-y divide-muted/50">
@@ -62,7 +60,7 @@ export function RoomsRail({
               className={`flex items-end ${compact ? "flex-row items-baseline gap-1.5" : "row-span-2 flex-col"}`}
             >
               <span
-                className={`font-display leading-none font-extrabold ${compact ? "text-figure" : "text-title"} ${room.lifted ? "text-accent" : "text-muted"}`}
+                className={`leading-none font-bold ${compact ? "text-name" : "text-figure"} ${room.lifted ? "text-accent" : "text-muted"}`}
               >
                 {room.lifted}
               </span>{" "}

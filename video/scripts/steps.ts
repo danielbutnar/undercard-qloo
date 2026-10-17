@@ -28,7 +28,7 @@ export const steps: Step[] = [
     id: "replay",
     url: "/",
     target: (page) =>
-      page.getByRole("button", { name: "Watch the agent build it" }),
+      page.getByRole("button", { name: "Watch how it picked these acts" }),
     until: (page) => page.getByText(/^Replayed the build saved/),
     focus: (page) => page.getByRole("list", { name: "Qloo calls" }),
     frames: 6,

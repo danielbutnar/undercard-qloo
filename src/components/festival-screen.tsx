@@ -5,6 +5,8 @@ import {
   townsNear,
   type CheckedTown,
 } from "@/lib/checked-towns";
+import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
+import { formatCount } from "@/lib/format";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ActCardPanel } from "@/components/act-card-panel";
@@ -42,6 +44,21 @@ function downloadText(filename: string, text: string, type: string) {
   link.download = filename;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/**
+ * The example under the first line (M6q), in words a non-musician follows. The demo's headliners
+ * are bands; a judge's own may not be, so theirs are only named.
+ */
+function exampleLine(festival: Festival): string {
+  const [first, second] = festival.headliners;
+  const where = festival.region
+    ? `${festival.city}, ${festival.region}`
+    : festival.city;
+  const bands =
+    first === SAGEBRUSH_SOUND.headliners[0] &&
+    second === SAGEBRUSH_SOUND.headliners[1];
+  return `Example: a ${formatCount(festival.capacity)}-person festival in ${where}. Its headliners, ${first} and ${second}, ${bands ? "are bands" : "are already booked"}.`;
 }
 
 function ModeSwitch({
@@ -83,9 +100,7 @@ function LlmOnlyNote({ city }: { city: string }) {
       aria-label="The model alone"
       className="flex flex-col gap-2 self-start border-2 border-rule bg-surface p-4"
     >
-      <h2 className="font-display text-name font-extrabold uppercase">
-        The model alone
-      </h2>
+      <h2 className="text-body font-bold">The model alone</h2>
       <p className="text-label">
         The same brief went to Claude Sonnet 5.5 with no tools: the festival,
         its city, capacity and crowd, the headliners and the fee bands. It
@@ -230,12 +245,13 @@ export function FestivalScreen({
    */
   checked?: { onBack: () => void };
 }) {
-  const { state, build, markUnavailable, toggleKeep, redraft } = useUndercardBuild(
-    firstBoard(firstBill),
-    festival.id,
-    custom?.brief,
-    checked !== undefined,
-  );
+  const { state, build, markUnavailable, toggleKeep, redraft } =
+    useUndercardBuild(
+      firstBoard(firstBill),
+      festival.id,
+      custom?.brief,
+      checked !== undefined,
+    );
   const llm = useLlmOnly(festival.id);
   const [mode, setMode] = useState<Mode>("qloo");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -327,16 +343,33 @@ export function FestivalScreen({
     );
   }
 
+  // Below the bill (M6q): the comparison and the export, out of the first line's way.
+  const billControls =
+    !custom || (mode === "qloo" && bookedActs.length > 0) ? (
+      <div className="flex flex-wrap items-center gap-3">
+        {!custom && <ModeSwitch mode={mode} onChange={changeMode} />}
+        {mode === "qloo" && bookedActs.length > 0 && (
+          <button
+            type="button"
+            onClick={exportCsv}
+            className="rounded-sm border-2 border-rule px-3 py-1 text-label font-semibold hover:bg-ink hover:text-surface"
+          >
+            Export CSV
+          </button>
+        )}
+      </div>
+    ) : null;
+
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b-2 border-rule px-4 py-2 lg:px-6">
-        <div className="flex flex-wrap items-baseline gap-x-3.5">
-          <p className="font-display text-name font-extrabold uppercase">
-            Undercard
+      <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2 border-b-2 border-rule px-4 py-3 lg:px-6">
+        <div className="flex max-w-4xl flex-col gap-0.5">
+          <p className="text-body">
+            <strong className="font-bold">Undercard</strong> helps a music
+            festival choose the smaller acts that play before the stars, using
+            what the town&apos;s own music fans already like.
           </p>
-          <p className="text-label text-muted">
-            Booking desk · {festival.name}
-          </p>
+          <p className="text-label text-muted">{exampleLine(festival)}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           {checked && (
@@ -348,94 +381,90 @@ export function FestivalScreen({
               Pick another town
             </button>
           )}
-          {!custom && <ModeSwitch mode={mode} onChange={changeMode} />}
-          {mode === "qloo" && bookedActs.length > 0 && (
-            <button
-              type="button"
-              onClick={exportCsv}
-              className="rounded-sm border-2 border-rule px-3 py-1 text-label font-semibold hover:bg-ink hover:text-surface"
-            >
-              Export CSV
-            </button>
-          )}
         </div>
       </header>
       {mode === "llm" ? (
         <main className="grid flex-1 grid-cols-1 gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_336px] lg:px-6">
-          <ModelBill
-            festival={festival}
-            state={llm.state}
-            onRetry={() => void llm.load()}
-          />
+          <div className="flex min-w-0 flex-col gap-3">
+            <ModelBill
+              festival={festival}
+              state={llm.state}
+              onRetry={() => void llm.load()}
+            />
+            {billControls}
+          </div>
           <LlmOnlyNote city={festival.city} />
         </main>
       ) : (
         <main className="grid flex-1 grid-cols-1 gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_336px] lg:items-start lg:px-6">
-          <DraftBill
-            festival={festival}
-            acts={state.acts}
-            calls={calls}
-            createdAt={state.build?.createdAt}
-            top={firstBill?.baselineTop}
-            unavailable={state.unavailable}
-            openId={openAct?.entityId ?? null}
-            onOpen={(act) => setOpenId(act.entityId)}
-            printing={printing}
-            onPrinted={onPrinted}
-            drafting={state.status === "building"}
-            keeping={state.keeping}
-            redraft={
-              !custom && state.keeping.length > 0 ? (
+          <div className="flex min-w-0 flex-col gap-3">
+            <DraftBill
+              festival={festival}
+              acts={state.acts}
+              calls={calls}
+              createdAt={state.build?.createdAt}
+              top={firstBill?.baselineTop}
+              unavailable={state.unavailable}
+              openId={openAct?.entityId ?? null}
+              onOpen={(act) => setOpenId(act.entityId)}
+              printing={printing}
+              onPrinted={onPrinted}
+              drafting={state.status === "building"}
+              keeping={state.keeping}
+              redraft={
+                !custom && state.keeping.length > 0 ? (
+                  <div className="flex flex-col items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPrinting("refill");
+                        setOpenId(null);
+                        void redraft();
+                      }}
+                      disabled={
+                        state.status === "building" ||
+                        state.refilling !== null ||
+                        state.redrafting
+                      }
+                      className="rounded-sm border-2 border-accent bg-accent px-4 py-1.5 text-body font-bold text-on-accent hover:bg-ink disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {state.redrafting ? "Redrafting…" : "Redraft the rest"}
+                    </button>
+                    <p className="text-label text-muted">
+                      Keeps {state.keeping.length}{" "}
+                      {state.keeping.length === 1 ? "act" : "acts"} and refills
+                      the other slots from the same rooms, in at most 3 Qloo
+                      calls.
+                    </p>
+                  </div>
+                ) : undefined
+              }
+              phoneAction={
                 <div className="flex flex-col items-center gap-1">
                   <button
                     type="button"
-                    onClick={() => {
-                      setPrinting("refill");
-                      setOpenId(null);
-                      void redraft();
-                    }}
+                    onClick={() => runBuild()}
                     disabled={
-                      state.status === "building" ||
-                      state.refilling !== null ||
-                      state.redrafting
+                      state.status === "building" || state.refilling !== null
                     }
-                    className="rounded-sm border-2 border-accent bg-accent px-4 py-1.5 font-display text-name font-extrabold uppercase text-on-accent hover:bg-ink disabled:cursor-not-allowed disabled:opacity-60"
+                    className={WATCH_BUTTON}
                   >
-                    {state.redrafting ? "Redrafting…" : "Redraft the rest"}
+                    {state.status === "building"
+                      ? "Building…"
+                      : state.build
+                        ? "Watch how it picked these acts"
+                        : "Build undercard"}
                   </button>
                   <p className="text-label text-muted">
-                    Keeps {state.keeping.length}{" "}
-                    {state.keeping.length === 1 ? "act" : "acts"} and refills
-                    the other slots from the same rooms, in at most 3 Qloo
-                    calls.
+                    {state.build
+                      ? "Replays the saved build's Qloo calls; they list under the bill."
+                      : "Runs the agent; its Qloo calls list under the bill."}
                   </p>
                 </div>
-              ) : undefined
-            }
-            phoneAction={
-              <div className="flex flex-col items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => runBuild()}
-                  disabled={
-                    state.status === "building" || state.refilling !== null
-                  }
-                  className={WATCH_BUTTON}
-                >
-                  {state.status === "building"
-                    ? "Building…"
-                    : state.build
-                      ? "Watch the agent build it"
-                      : "Build undercard"}
-                </button>
-                <p className="text-label text-muted">
-                  {state.build
-                    ? "Replays the saved build's Qloo calls; they list under the bill."
-                    : "Runs the agent; its Qloo calls list under the bill."}
-                </p>
-              </div>
-            }
-          />
+              }
+            />
+            {billControls}
+          </div>
           <div className="flex flex-col gap-4">
             {(custom || checked) &&
               state.status !== "building" &&

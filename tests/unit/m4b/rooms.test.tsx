@@ -63,7 +63,7 @@ describe("the rooms rail", () => {
   it("says a room stands for its crowd, not a stage the acts will play", () => {
     expect(
       within(rail()).getByText(
-        /A room here means its crowd, not a stage the acts will play\./,
+        /These venues stand for the town's taste: the acts won't necessarily play there\./,
       ),
     ).toBeTruthy();
   });
@@ -88,7 +88,7 @@ describe("the rooms rail", () => {
     fireEvent.click(
       within(
         screen.getByRole("complementary", { name: "Qloo calls" }),
-      ).getByRole("button", { name: "Watch the agent build it" }),
+      ).getByRole("button", { name: "Watch how it picked these acts" }),
     );
     const compact = screen.getByRole("region", {
       name: "Boise venue crowds behind this bill",

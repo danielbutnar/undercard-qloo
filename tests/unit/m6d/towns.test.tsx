@@ -119,7 +119,7 @@ describe("a town's screen", () => {
     vi.stubGlobal("fetch", fetch);
     render(<FestivalScreen festival={austin} firstBill={FIRST_BILL} />);
     fireEvent.click(
-      screen.getAllByRole("button", { name: "Watch the agent build it" })[0],
+      screen.getAllByRole("button", { name: "Watch how it picked these acts" })[0],
     );
     expect(fetch).toHaveBeenCalledWith(
       "/api/undercard",

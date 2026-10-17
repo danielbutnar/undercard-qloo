@@ -166,7 +166,7 @@ describe("the Your festival page", () => {
       },
     });
     expect(screen.queryByRole("group", { name: "Which bill" })).toBeNull();
-    expect(screen.getByText(/Duluth/)).toBeTruthy();
+    expect(screen.getAllByText(/Duluth/).length).toBeGreaterThan(0);
   });
 
   it("shows a headliner Qloo can't find, and takes the buyer back to the brief with it kept", async () => {

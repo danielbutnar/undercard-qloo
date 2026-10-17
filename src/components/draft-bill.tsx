@@ -5,12 +5,19 @@ import type { FeeBand, FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import { formatBandRange, formatCount } from "@/lib/format";
 import type { Act } from "@/lib/lineup";
-import { liftOf, markKey, markLabel, markText } from "@/lib/marks";
+import { liftOf, markKey, markLabel } from "@/lib/marks";
 
-// Billing by band, as on a printed bill: headliners largest, then Mid, then Openers.
+// Billing by band, as on a printed bill: headliners largest, then Mid, then Openers. The
+// headliners are the page's one display line (M6q); the acts are set in the body face.
 const BILLING = {
-  mid: "text-band",
-  opener: "text-figure",
+  mid: "text-figure",
+  opener: "text-name",
+} satisfies Record<FeeBandId, string>;
+
+/** Each band in plain words first (M6q); the fee band's precise terms follow, smaller. */
+const PLAIN_BAND = {
+  mid: "Mid-size acts",
+  opener: "Opening acts",
 } satisfies Record<FeeBandId, string>;
 
 /** A print run's acts start 0.12 s apart, each taking 0.38 s (src/app/globals.css). */
@@ -28,11 +35,28 @@ const savedAt = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
 });
 
-/** The room whose crowd lifted the act and the places it gained, in the blue Qloo ink. */
+const badgeOf = (act: Act) => {
+  const lift = liftOf(act);
+  return lift?.kind === "up" ? `+${lift.places}` : lift ? "new" : "";
+};
+
+/**
+ * The club whose fans like the act, in plain words (M6q), then the places its crowd lifted the
+ * act in Qloo's ranking, in the blue Qloo ink.
+ */
 function Mark({ act, top }: { act: Act; top?: number }) {
+  const lift = liftOf(act);
   return (
-    <p className="rounded-sm border-2 border-accent px-1.5 pt-1 pb-0.5 font-display text-name leading-none font-bold text-accent">
-      <span aria-hidden>{markText(act)}</span>
+    <p className="flex flex-wrap items-baseline justify-center gap-x-1.5 text-label">
+      <span aria-hidden>{act.anchorVenue.name} fans like it</span>
+      {lift && (
+        <span
+          aria-hidden
+          className="rounded-sm border border-accent px-1 font-semibold text-accent"
+        >
+          {badgeOf(act)}
+        </span>
+      )}
       <span className="sr-only">{markLabel(act, top)}</span>
     </p>
   );
@@ -78,7 +102,7 @@ function BillAct({
       onAnimationStart={() => onPrinted?.(act.entityId)}
     >
       <h3
-        className={`font-display font-extrabold uppercase ${BILLING[act.band]} ${gone ? "text-muted" : ""}`}
+        className={`font-bold ${BILLING[act.band]} ${gone ? "text-muted" : ""}`}
       >
         {onOpen ? (
           <button
@@ -86,7 +110,7 @@ function BillAct({
             aria-expanded={open}
             aria-controls={open ? "act-card" : undefined}
             onClick={() => onOpen(act)}
-            className="cursor-pointer uppercase decoration-2 underline-offset-4 hover:underline focus-visible:underline aria-expanded:underline"
+            className="cursor-pointer decoration-2 underline-offset-4 hover:underline focus-visible:underline aria-expanded:underline"
           >
             {act.name}
           </button>
@@ -95,7 +119,7 @@ function BillAct({
         )}
       </h3>
       {gone ? (
-        <p className="rounded-sm border-2 border-danger px-1.5 pt-1 pb-0.5 font-display text-name leading-none font-extrabold text-danger uppercase">
+        <p className="rounded-sm border-2 border-danger px-1.5 text-label font-semibold text-danger">
           Unavailable
         </p>
       ) : (
@@ -120,7 +144,7 @@ function MarkKey({ example, lines }: { example: string; lines: string[] }) {
       <p>
         <span
           aria-hidden
-          className="mr-1.5 inline-block rounded-sm border-2 border-accent px-1 pt-0.5 font-display text-body leading-none font-bold text-accent"
+          className="mr-1.5 inline-block rounded-sm border border-accent px-1 font-semibold text-accent"
         >
           {example}
         </span>
@@ -181,15 +205,12 @@ function BandTier({
       className="mt-3 flex w-full flex-col items-center border-t-2 border-rule pt-2"
     >
       <div className="flex flex-wrap items-baseline justify-center gap-x-3">
-        <h2
-          id={headingId}
-          className="font-display text-name font-extrabold uppercase"
-        >
-          {band.label}
+        <h2 id={headingId} className="text-body font-bold">
+          {PLAIN_BAND[band.id]}
         </h2>
         <p className="text-label text-muted">
-          {band.slots} slots · the buyer&apos;s fee band, in Qloo popularity
-          percentiles: {formatBandRange(band)}
+          {band.slots} slots · fee band ({band.label}): Qloo popularity
+          percentiles {formatBandRange(band)}
         </p>
       </div>
       <ol className="mt-2.5 flex flex-wrap items-start justify-center gap-x-7 gap-y-3">
@@ -256,13 +277,11 @@ export function BillHeader({
           {formatCount(capacity)} capacity · crowd aged{" "}
           {crowdAge.min}–{crowdAge.max}
         </p>
-        <p className="-rotate-2 rounded-sm border-2 border-danger px-2.5 pt-1 pb-0.5 font-display text-name leading-none font-extrabold text-danger uppercase">
+        <p className="-rotate-1 rounded-sm border border-danger px-2 text-label font-semibold text-danger">
           {stamp}
         </p>
       </div>
-      <h1 className="mt-2 font-display text-band font-extrabold uppercase">
-        {festival.name}
-      </h1>
+      <h1 className="mt-2 text-figure font-bold">{festival.name}</h1>
       <ul
         aria-label="Booked headliners"
         className="mt-1.5 flex flex-col items-center font-display text-title font-extrabold uppercase lg:flex-row lg:flex-wrap lg:justify-center"
@@ -339,14 +358,16 @@ export function DraftBill({
       top: top[firstMarked.band],
       city: festival.city,
     }),
+    // The key's example is the mark's blue badge, as the bill now shows it (M6q).
+    example: badgeOf(firstMarked),
   };
   return (
     <section aria-label="Undercard draft" className={SHEET}>
-      <BillHeader festival={festival} stamp="Undercard draft · not announced">
-        Headliners booked.
+      <BillHeader festival={festival} stamp="Draft, not announced">
+        The headliners are booked; Undercard picked the acts below.
         {onOpen &&
           acts.length > 0 &&
-          " Click an act to open its card, where you can keep it or mark it unavailable."}
+          " Click an act to see why, keep it or mark it unavailable."}
       </BillHeader>
       {phoneAction && (
         <div className="mt-3 w-full lg:hidden">{phoneAction}</div>

@@ -52,20 +52,20 @@ test.describe("demo path", () => {
         .getByRole("listitem"),
     ).toHaveText(["Khruangbin", "Japanese Breakfast"]);
     await expect(
-      bill(page).getByText("Undercard draft · not announced"),
+      bill(page).getByText("Draft, not announced"),
     ).toBeVisible();
 
     // Every act is on the bill at first paint, in its fee band, with its mark.
     await expect(band(page, /^Mid/).getByRole("article")).toHaveCount(4);
-    await expect(band(page, /^Opener/).getByRole("article")).toHaveCount(6);
+    await expect(band(page, /^Opening acts/).getByRole("article")).toHaveCount(6);
     await expect(
       page.getByText(
-        "4 slots · the buyer's fee band, in Qloo popularity percentiles: 80th–92nd",
+        "4 slots · fee band (Mid): Qloo popularity percentiles 80th–92nd",
       ),
     ).toBeVisible();
     await expect(
       page.getByText(
-        "6 slots · the buyer's fee band, in Qloo popularity percentiles: 55th–80th",
+        "6 slots · fee band (Opener): Qloo popularity percentiles 55th–80th",
       ),
     ).toBeVisible();
     for (const act of await bill(page).getByRole("article").all()) {
@@ -80,23 +80,23 @@ test.describe("demo path", () => {
       "Qloo: data on what people like, across music, places and more.",
     );
     await expect(rooms(page)).toContainText(
-      "A room here means its crowd, not a stage the acts will play.",
+      "These venues stand for the town's taste: the acts won't necessarily play there.",
     );
     expect(await liftedTotal(page)).toBe(10);
 
     await expect(
-      page.getByRole("button", { name: "Watch the agent build it" }),
+      page.getByRole("button", { name: "Watch how it picked these acts" }),
     ).toBeVisible();
     await expect(page.getByRole("img", { name: /Presale/ })).toHaveCount(0);
     await expect(page.locator('input[type="password"]')).toHaveCount(0);
   });
 
-  test("step 2: Watch the agent build it streams every Qloo call, then the bill reprints", async ({
+  test("step 2: Watch how it picked these acts streams every Qloo call, then the bill reprints", async ({
     page,
   }) => {
     await page.goto("/");
     await page
-      .getByRole("button", { name: "Watch the agent build it" })
+      .getByRole("button", { name: "Watch how it picked these acts" })
       .click();
 
     const trace = page.getByRole("list", { name: "Qloo calls" });
@@ -214,10 +214,8 @@ test.describe("demo path", () => {
 
     // The CSV names the act the replacement took over from, and why.
     const download = page.waitForEvent("download");
-    await page
-      .getByRole("banner")
-      .getByRole("button", { name: "Export CSV" })
-      .click();
+    // M6q: Export CSV sits below the bill.
+    await page.getByRole("button", { name: "Export CSV" }).click();
     const csv = await readFile(await (await download).path(), "utf8");
     const replacementRow = csv
       .split("\r\n")
@@ -253,10 +251,8 @@ test.describe("demo path", () => {
     await expect(band(page, /^Mid/).getByRole("article")).toHaveCount(4);
 
     const download = page.waitForEvent("download");
-    await page
-      .getByRole("banner")
-      .getByRole("button", { name: "Export CSV" })
-      .click();
+    // M6q: Export CSV sits below the bill.
+    await page.getByRole("button", { name: "Export CSV" }).click();
     const file = await download;
     expect(file.suggestedFilename()).toBe("sagebrush-sound-undercard.csv");
     const lines = (await readFile(await file.path(), "utf8"))

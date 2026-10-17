@@ -31,7 +31,7 @@ describe("FestivalScreen for Sagebrush Sound", () => {
   it("shows both fee bands", () => {
     render(<FestivalScreen festival={SAGEBRUSH_SOUND} />);
     expect(screen.getByRole("region", { name: /^Mid/ })).toBeTruthy();
-    expect(screen.getByRole("region", { name: /^Opener/ })).toBeTruthy();
+    expect(screen.getByRole("region", { name: /^Opening acts/ })).toBeTruthy();
   });
 
   // Presale left the first screen in M4b; the component stays.
