@@ -116,6 +116,22 @@ The production build of 17 October 2026 matched Boise's row above: Venue 418 8, 
 
 **What it doesn't show.** Whether a "room" is a club: Duluth's bill came from Venue 34, an outdoor site, and Bozeman's from its only tagged place. One run per town; section 5 shows a bill can change when the planner picks other rooms. A live form will meet towns that fail like Richmond and Missoula, so it needs designed states for them.
 
+## 8. Riding out Qloo's rate limit (M6g)
+
+**Why.** Section 5 found that when Qloo answers HTTP 429, the agent spends its 12 calls re-asking and tests fewer rooms. The demo's link goes to 20 organisations on 19 October, judges may run Your festival at the same time, and every build and refill shares one Qloo key. Qloo doesn't publish the limit; its hackathon guide says only that keys have "rate and monthly quota limits".
+
+**The settings** (`QLOO_RETRY` in src/server/qloo.ts; one client per build or refill):
+- **At most 2 calls in flight.** The agent asks for up to 4 at once, and parallel bursts drew the 429s in section 5. A real offline Boise build with the cap, on 2026-10-17, took 20 seconds for its 12 calls and tested the same rooms with the same lifts as section 5's runs.
+- **Retried:** 429, 500, 502, 503 and 504, up to 5 times per call. Other answers, such as 400 or 404, won't change on a retry and fail at once.
+- **Backoff:** a random wait up to a ceiling that starts at 0.5 s and doubles to at most 8 s ("full jitter", so many clients don't retry in step), and never sooner than Qloo's Retry-After asks.
+- **Budget:** 45 seconds from the build's start. The build's function may run 120 seconds, and a clean build's planner turns and Qloo answers take about 15 to 20 seconds (sections 3 and 5). A refill's function may run 60 seconds.
+- **A retry isn't a new call.** It doesn't count against the 12; the call's own line in the trace says "retried after 429".
+- **When the budget would run out,** the build ends with "Qloo is busy right now. Try again in a minute." The trace offers the saved build's replay where one exists; Your festival has its own state for it.
+
+**Tested** (tests/unit/m6g, a synthetic Qloo): when every request fails once, alternating 429 and 503, a build tests the same rooms, books the same bill and makes the same number of calls as without the failures. When every artist call answers 429, the build ends in the busy state within the 45-second budget and the 12 calls. Retry-After, the backoff ceiling, the 2-call cap and a 400 that isn't retried each have a test.
+
+**Not tested:** real concurrent load. No load test was run against the real key.
+
 ## What these numbers don't establish
 
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
@@ -128,5 +144,6 @@ The production build of 17 October 2026 matched Boise's row above: Venue 418 8, 
 - "Treefort 2026 guide: Hundreds of artists and events taking over downtown Boise", KIVI (Idaho News 6), 23 March 2026. https://www.kivitv.com/downtown-boise/your-guide-to-treefort-2026-music-comedy-art-and-more (read 2026-10-17)
 - Treefort Music Fest 2026 lineup, Wayback Machine capture of 17 April 2026. https://web.archive.org/web/20260417060044/https://treefortmusicfest.com/lineup/ (read 2026-10-17)
 - Qloo's Parameter Reference: `signal.demographics.age`, `signal.location.query`, `output.heatmap.boundary`. https://docs.qloo.com/reference/parameters (read 2026-10-17)
+- Qloo's hackathon developer guide, on rate and quota limits. https://docs.qloo.com/reference/qloo-llm-hackathon-developer-guide (read 2026-10-17)
 - Qloo's heatmap guide, on affinity rank. https://docs.qloo.com/reference/heatmaps (read 2026-10-17)
 - The runs: `scripts/agent-offline.ts`, `scripts/treefort-check.ts`, `scripts/pilot.ts`, `scripts/robustness.ts` and `scripts/local-strength-spike.ts`, 2026-10-17; their full outputs stay in `.design/evidence/`, which is gitignored.

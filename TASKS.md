@@ -97,6 +97,17 @@ Copied from SPEC.md section 6, M6f. Closes: Design and Potential Impact. Freeze:
 - [x] /your-festival: the form, then the bill and trace, with no Without Qloo, refill or switcher; designed states for a headliner not found, too few rooms, open slots and the limit, each with a next step
 - [x] Linked from the town switcher; e2e tests/e2e/your-festival.spec.ts answers every build in the browser, so it never runs the agent on production
 
+# TASKS: M6g Qloo rate-limit resilience
+
+Copied from SPEC.md section 6, M6g. Closes: Technological Implementation and Design. Freeze: 2026-10-18 23:00 Bucharest. Done means: the cap, retries and budget in the Qloo client, retries on their call's line, a designed busy state with the replay where one exists, tests with a synthetic Qloo, the live e2e, and the settings in docs/evidence.md.
+
+- [x] src/server/qloo.ts: 2 calls in flight per client; 429 and 5xx retried up to 5 times with full-jitter backoff (0.5 s doubling to 8 s), never sooner than Retry-After; a 45-second budget per build or refill, then QlooBusy
+- [x] A retry isn't a new call: the 12-call cap counts tool calls, and the trace line says "retried after 429"
+- [x] QlooBusy ends the build with code qloo-busy; the trace panel offers "Watch the saved build instead"; Your festival shows "Qloo is busy right now" with the brief kept
+- [x] tests/unit/m6g: same rooms, bill and call count through alternating 429s and 503s; the budget and the cap hold; Retry-After, backoff and the cap each tested. The M2 failure test now uses a 404, which isn't retried
+- [x] A real offline Boise build with the new client: 20 s, 12 calls, both bands full, the same rooms
+- [x] Settings and reasons in docs/evidence.md section 8
+
 # TASKS: for the 27-28 October redo (not now)
 
 - [ ] Fix the video's capture script for the reason picker (its refill step now stops at "Why is it unavailable?")
