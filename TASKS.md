@@ -166,6 +166,11 @@ Copied from SPEC.md section 6, M6l. Closes: Quality of the Idea and Design. Free
 - [ ] Gallery stills that show the town switcher and the reason picker
 - [ ] Story and README: the corrected Your festival count (7 of 10 with plain names; 8 of 10 once towns resolve), how towns are resolved, and that Brighton stayed thin while Wrexham and Cluj-Napoca filled once resolved
 
+- [ ] From M7a: the capture script handles the town buttons and the checked-town replays as well as the reason picker
+- [ ] From M7a: docs/devpost-story.md with the corrected counts (free text 8 of 10; M6c 7 of 10), how towns are resolved, the checked towns, what a room is and the stated limits; keep the line for a buyer's words
+- [ ] From M7a: re-shoot the gallery stills; render a silent draft of the video with captions (the voiceover follows once the ElevenLabs key is in video/.env.local)
+- [ ] From M7a: a fresh high-effort check of every claim in the story, README and captions against docs/evidence.md, with what it finds fixed
+
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
 ## Before judging starts (2026-11-02)
