@@ -248,6 +248,16 @@ Written on 2026-10-17, before any of these builds. The rule doesn't change after
 
 **The rule.** A town stays in the checked list only if its saved build fills both bands. Only complete builds are saved, so a town whose fresh build leaves a band short has no saved build and leaves the list. This also settles the towns checked before M6j with plain names: each is now checked again with its state or country.
 
+## 14. Festivals filed as places (M6o), written before the spike
+
+Written on 2026-10-17, before any spike call. The rule doesn't change after the results are in.
+
+**The question.** Does Qloo mark a festival brand among the places the agent already fetches: the places answer for a town's live-music-venue tag, with each place's tags and properties as Qloo returns them? The case is Venue 156 in Cluj-Napoca, a festival filed as a place, which anchored all 10 acts in section 12's Cluj-Napoca run.
+
+**The bar.** Go if one rule on that data (a tag, a category, a keyword or a property Qloo returns, not the place's name) labels Venue 156 and labels none of the other anchor rooms in the saved builds, meaning every town with a saved build once M6m's builds are in. Otherwise it's a no-go: recorded here, and M6o ends. On a go, the place is labelled like M6l ("a festival, not a club"), label only: booking doesn't read it.
+
+**How.** One town at a time, the same places call the agent makes, with M6j's resolution. Counts only here; names and raw answers stay in .design/.
+
 ## What these numbers don't establish
 
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
