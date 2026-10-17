@@ -11,6 +11,8 @@ export const TagSchema = z.object({
 export const VenueSchema = z.object({
   entityId: z.string().min(1),
   name: z.string().min(1),
+  /** "an arena", "an outdoor festival site"…, when the room isn't a club (M6l); a label only. */
+  kind: z.string().optional(),
 });
 
 export const ActSchema = z.object({

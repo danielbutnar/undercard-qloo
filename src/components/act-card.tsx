@@ -83,6 +83,11 @@ export function ActCard({
         <span className="font-semibold">Why {city}: </span>
         {act.reason}
       </p>
+      {act.anchorVenue.kind && (
+        <p className="text-label text-muted">
+          {act.anchorVenue.name} is {act.anchorVenue.kind}, not a club.
+        </p>
+      )}
       <ul
         aria-label="Tags shared with the headliners"
         className="mt-auto flex flex-wrap gap-2"
@@ -112,7 +117,10 @@ export function ActCard({
           aria-labelledby={`why-${act.entityId}`}
           className="flex flex-wrap items-center gap-2"
         >
-          <p id={`why-${act.entityId}`} className="w-full text-label font-semibold">
+          <p
+            id={`why-${act.entityId}`}
+            className="w-full text-label font-semibold"
+          >
             Why is it unavailable?
           </p>
           {UNAVAILABLE_REASON_IDS.map((reason) => (

@@ -55,7 +55,11 @@ function assemblyInput(festival: Festival, state: AgentState): AssemblyInput {
       .map(({ tag, score }) => ({ name: tag.name, score })),
     baselines: state.baselines,
     venueRuns: state.venueRuns.map(({ venue, band, artists }) => ({
-      venue: { entityId: venue.entityId, name: venue.name },
+      venue: {
+        entityId: venue.entityId,
+        name: venue.name,
+        ...(venue.kind ? { kind: venue.kind } : {}),
+      },
       band,
       artists,
     })),

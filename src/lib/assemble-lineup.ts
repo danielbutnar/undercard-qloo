@@ -22,6 +22,8 @@ export interface RankedArtist {
 export interface VenueRef {
   entityId: string;
   name: string;
+  /** What the room is when it isn't a club (M6l): carried to the act, never used to book. */
+  kind?: string;
 }
 
 export interface VenueRun {
@@ -181,7 +183,11 @@ export function assembleLineup(input: AssemblyInput): {
         band: band.id,
         affinity: lift.artist.affinity ?? 0,
         popularity: lift.artist.popularity,
-        anchorVenue: { entityId: venue.entityId, name: venue.name },
+        anchorVenue: {
+          entityId: venue.entityId,
+          name: venue.name,
+          ...(venue.kind ? { kind: venue.kind } : {}),
+        },
         reason: whyBoise(venue, lift),
         sharedTags: [tags[0], tags[1]],
       });

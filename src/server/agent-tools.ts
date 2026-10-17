@@ -4,6 +4,7 @@ import { liftsOver, MIN_LIFT } from "@/lib/assemble-lineup";
 import { ageBuckets } from "@/lib/ages";
 import type { BuildEvent } from "@/lib/build-events";
 import { FEE_BAND_IDS, type FeeBandId } from "@/lib/fee-bands";
+import { roomKind } from "@/lib/place-kinds";
 import {
   needsFullName,
   placesInRegion,
@@ -34,7 +35,12 @@ export interface AgentState {
   venues: QlooEntity[];
   comparedTags: { tag: QlooTag; score: number }[];
   baselines: Partial<Record<FeeBandId, QlooEntity[]>>;
-  venueRuns: { venue: QlooEntity; band: FeeBandId; artists: QlooEntity[] }[];
+  /** A run's venue carries kind when it isn't a club (M6l), a label for the card and the trace. */
+  venueRuns: {
+    venue: QlooEntity & { kind?: string };
+    band: FeeBandId;
+    artists: QlooEntity[];
+  }[];
   finished: { anchorVenueIds: string[]; summary: string } | null;
 }
 
@@ -424,11 +430,14 @@ export function createToolbox({
         throw new ToolMisuse(
           `Unknown venue ${venue_id}: pick an entity_id from find_venues.`,
         );
+      // A park, arena or stadium is named on its line (M6l); booking doesn't read the label.
+      const kind = roomKind(venue.tags);
+      const kindNote = kind ? ` (${kind})` : "";
       const range = festival.feeBands.find((entry) => entry.id === band)!;
       const artists = await callQloo(
         "venue_artists",
         "/v2/insights",
-        `${bandLabel(band)}-band artists for the headliners and ${venue.name}${ageNote}`,
+        `${bandLabel(band)}-band artists for the headliners and ${venue.name}${kindNote}${ageNote}`,
         () =>
           qloo.artists({
             signalEntityIds: [
@@ -441,7 +450,11 @@ export function createToolbox({
             ages: crowd.buckets,
           }),
       );
-      state.venueRuns.push({ venue, band, artists });
+      state.venueRuns.push({
+        venue: kind ? { ...venue, kind } : venue,
+        band,
+        artists,
+      });
       const baseline = state.baselines[band];
       if (!baseline)
         return {
