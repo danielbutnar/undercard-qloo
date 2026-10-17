@@ -20,6 +20,14 @@ Copied from SPEC.md section 6, M4e. Closes: Potential Impact, Quality of the Ide
 - [x] Buyer message drafted in docs/outreach-draft.md (96 words, the live link, two questions); not sent
 - [x] docs/evidence.md holds each result, fact-checked against the sources and the run outputs
 
+# TASKS: M4f CI
+
+Copied from SPEC.md section 6, M4f. Closes: Technological Implementation: no CI check. Freeze: 2026-10-23. Done means: a GitHub Actions run of `pnpm gate` is green on main, with a status badge in README.md.
+
+- [x] .github/workflows/gate.yml runs `pnpm gate` on every push to main and on pull requests, on Node 22 with pnpm, read-only and with no secrets
+- [x] README.md shows the workflow's status badge
+- [ ] The check runs green on main
+
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
 ## Before the repository goes public

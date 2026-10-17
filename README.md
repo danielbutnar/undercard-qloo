@@ -2,6 +2,8 @@
 
 This repository's history is filtered from Undercard's private development repository: the same commits, with their dates and messages, with some files and quotes removed and data from Qloo's answers redacted, as Qloo's developer guide requires.
 
+[![gate](https://github.com/danielbutnar/undercard/actions/workflows/gate.yml/badge.svg?branch=main)](https://github.com/danielbutnar/undercard/actions/workflows/gate.yml)
+
 A festival talent buyer fills the undercard from acts the town's own venue crowds favour,
 inside the buyer's fee bands, and refills a slot when an act drops out; Undercard finds each
 act through Qloo and shows why.
@@ -179,7 +181,7 @@ run writes the same bytes.
 
 Checks:
 
-- `pnpm gate`: typecheck, lint, every unit test and the design-ban scan.
+- `pnpm gate`: typecheck, lint, every unit test and the design-ban scan. GitHub Actions runs it on every push to main and on pull requests (`.github/workflows/gate.yml`, no secrets).
 - `pnpm e2e`: the Playwright specs in `tests/e2e`. Run `pnpm exec playwright install chromium`
   once first. Playwright starts its own dev server on port 3100 in synthetic mode
   (`UNDERCARD_E2E_SYNTHETIC=1`): the server serves the synthetic saved build and model answer
