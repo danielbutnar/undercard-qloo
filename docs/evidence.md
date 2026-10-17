@@ -311,13 +311,13 @@ Written on 2026-10-18, before any of these pairs was scored. The rule doesn't ch
 
 **Why.** M8a's spike showed the score ranks pairs, and that genre-sharing pairs score a little higher. It didn't show the score agrees with a booker. The score is Qloo affinity: how much fans of one act also like the other. It isn't a count of shared ticket buyers.
 
-**The pairs.** Ten pairs of acts that already appear in the saved builds, chosen by booker judgement alone before any was scored: 5 a booker would call the same crowd, 5 they would call different crowds. The list is in .design/m6r/pairs.json (gitignored, SHA-256 starting 25cd127d6a52974f), fixed at 00:40 Bucharest.
+**The pairs.** Ten pairs of acts that already appear in the saved builds, chosen before any was scored by Claude, standing in for a booker's judgement (not a working buyer's): 5 a booker would call the same crowd, 5 they would call different crowds. The list is in .design/m6r/pairs.json (gitignored, SHA-256 starting 25cd127d6a52974f), fixed at 00:40 Bucharest.
 
 **How.** Each pair is scored the way the running order scores it: one Qloo insights call seeded by the first act, results limited to the second; the score is the second act's affinity. Ten calls, one at a time.
 
 **The bar.** Go if at least 4 of the 5 same-crowd pairs score above every different-crowd pair. Random scores pass that 6 times in 252, about 2.4% (every way of ranking the ten pairs counted). On a no-go, the running order stays in the app but leaves the demo path and the video.
 
-**Results, 2026-10-18: go.** Ten calls, one at a time, no retries; the pairs file's hash was unchanged. All 5 same-crowd pairs scored above every different-crowd pair (bar: 4 of 5). Same-crowd pairs scored 0.NN to 0.NN; different-crowd pairs 0.NN to 0.883. The score agrees with a booker's sense of a shared crowd on these ten pairs. It still isn't a count of shared ticket buyers, so the running order says how close two acts' fans' tastes are, ranked within the lineup, and keeps the raw score in the trace.
+**Results, 2026-10-18: go.** Ten calls, one at a time, no retries; the pairs file's hash was unchanged. All 5 same-crowd pairs scored above every different-crowd pair (bar: 4 of 5). Same-crowd pairs scored 0.NN to 0.NN; different-crowd pairs 0.NN to 0.883. On these ten pairs the score agrees with a booker-style judgement of a shared crowd; that judgement was Claude's, so a working buyer's pairs would be the stronger test. It still isn't a count of shared ticket buyers, so the running order says how close two acts' fans' tastes are, ranked within the lineup, and keeps the raw score in the trace.
 
 ## What these numbers don't establish
 
