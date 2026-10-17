@@ -29,14 +29,20 @@ function Mark({ act, top }: { act: Act; top?: number }) {
   );
 }
 
+// Each act is a button that opens its card: a pointer, an underline on hover and on keyboard
+// focus, and the act's name as its accessible name. No hover-scale (B7).
 function BillAct({
   act,
   gone,
   top,
+  open,
+  onOpen,
 }: {
   act: Act;
   gone: boolean;
   top?: number;
+  open: boolean;
+  onOpen?: (act: Act) => void;
 }) {
   return (
     <article
@@ -46,7 +52,19 @@ function BillAct({
       <h3
         className={`font-display font-extrabold uppercase ${BILLING[act.band]} ${gone ? "text-muted" : ""}`}
       >
-        {act.name}
+        {onOpen ? (
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={open ? "act-card" : undefined}
+            onClick={() => onOpen(act)}
+            className="cursor-pointer uppercase decoration-2 underline-offset-4 hover:underline focus-visible:underline aria-expanded:underline"
+          >
+            {act.name}
+          </button>
+        ) : (
+          act.name
+        )}
       </h3>
       {gone ? (
         <p className="rounded-sm border-2 border-danger px-1.5 pt-1 pb-0.5 font-display text-name leading-none font-extrabold text-danger uppercase">
@@ -73,11 +91,15 @@ function BandTier({
   acts,
   unavailable,
   top,
+  openId,
+  onOpen,
 }: {
   band: FeeBand;
   acts: readonly Act[];
   unavailable: readonly string[];
   top?: number;
+  openId: string | null;
+  onOpen?: (act: Act) => void;
 }) {
   const billed = acts.filter((act) => act.band === band.id);
   const slots = Array.from(
@@ -110,6 +132,8 @@ function BandTier({
                 act={act}
                 gone={unavailable.includes(act.entityId)}
                 top={top}
+                open={openId === act.entityId}
+                onOpen={onOpen}
               />
             ) : (
               <OpenSlot />
@@ -132,6 +156,8 @@ export function DraftBill({
   createdAt,
   top = {},
   unavailable = [],
+  openId = null,
+  onOpen,
 }: {
   festival: Festival;
   acts: readonly Act[];
@@ -141,6 +167,9 @@ export function DraftBill({
   /** Per band, how many acts the headliners-only ranking listed. */
   top?: Partial<Record<FeeBandId, number>>;
   unavailable?: readonly string[];
+  /** The act whose card is open. */
+  openId?: string | null;
+  onOpen?: (act: Act) => void;
 }) {
   const { city, region, capacity, crowdAge } = festival;
   return (
@@ -174,7 +203,9 @@ export function DraftBill({
         ))}
       </ul>
       <p className="mt-2 text-label text-muted">
-        Headliners booked. The agent drafted the undercard below.
+        Headliners booked.
+        {onOpen &&
+          " Click an act to open its card, where you can mark it unavailable."}
       </p>
       {festival.feeBands.map((band) => (
         <BandTier
@@ -183,6 +214,8 @@ export function DraftBill({
           acts={acts}
           unavailable={unavailable}
           top={top[band.id]}
+          openId={openId}
+          onOpen={onOpen}
         />
       ))}
       <p className="mt-auto w-full border-t border-rule pt-2.5 text-label text-muted">

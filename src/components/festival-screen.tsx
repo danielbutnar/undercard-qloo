@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { ActCardPanel } from "@/components/act-card-panel";
+import { DraftBill } from "@/components/draft-bill";
 import { FestivalHeader } from "@/components/festival-header";
 import { LineupBoard } from "@/components/lineup-board";
 import { LlmOnlyBoard } from "@/components/llm-only-board";
-import { DraftBill } from "@/components/draft-bill";
 import { TracePanel } from "@/components/trace-panel";
 import { useLlmOnly } from "@/components/use-llm-only";
 import { useUndercardBuild } from "@/components/use-undercard-build";
@@ -93,6 +94,9 @@ export function FestivalScreen({
   );
   const llm = useLlmOnly();
   const [mode, setMode] = useState<Mode>("qloo");
+  const [openId, setOpenId] = useState<string | null>(null);
+  // A refill replaces the act, which closes its card; the replacement prints into the slot.
+  const openAct = state.acts.find((act) => act.entityId === openId) ?? null;
   const bookedActs = state.acts.filter(
     (act) => !state.unavailable.includes(act.entityId),
   );
@@ -157,8 +161,19 @@ export function FestivalScreen({
             createdAt={state.build?.createdAt}
             top={firstBill?.baselineTop}
             unavailable={state.unavailable}
+            openId={openAct?.entityId ?? null}
+            onOpen={(act) => setOpenId(act.entityId)}
           />
           <div className="flex flex-col gap-4">
+            {openAct && (
+              <ActCardPanel
+                act={openAct}
+                unavailable={state.unavailable.includes(openAct.entityId)}
+                disabled={state.refilling !== null || !state.build}
+                onUnavailable={markUnavailable}
+                onClose={() => setOpenId(null)}
+              />
+            )}
             <TracePanel state={state} onBuild={build} />
           </div>
         </main>
