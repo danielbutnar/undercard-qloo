@@ -20,7 +20,8 @@ export function ActCardPanel({
   act: Act;
   unavailable: boolean;
   disabled: boolean;
-  onUnavailable: (act: Act, reason: UnavailableReason) => void;
+  /** Left out when a refill isn't possible, as on a judge's own brief. */
+  onUnavailable?: (act: Act, reason: UnavailableReason) => void;
   onClose: () => void;
   city?: string;
 }) {

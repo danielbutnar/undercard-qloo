@@ -1,5 +1,6 @@
 import type { BuildEvent, TraceCall } from "@/lib/build-events";
 import type { Festival } from "@/lib/festival";
+import { diagnoseRun } from "@/lib/your-festival";
 import { runUndercardAgent } from "./agent";
 import type { AgentModel } from "./ai";
 import type { BuildStore, SavedBuild } from "./build-store";
@@ -49,7 +50,7 @@ export function limitedResponse(
 ): Response {
   return ndjsonResponse(
     async (emit) => {
-      emit({ type: "error", message: result.message });
+      emit({ type: "error", message: result.message, code: "limit" });
       emit({ type: "done", calls: 0, ms: 0 });
     },
     {
@@ -113,6 +114,7 @@ export async function handleUndercardBuild({
   replayDelayMs = 120,
   limiter,
   ip,
+  save = true,
 }: {
   festival: Festival;
   qloo: () => QlooClient | null;
@@ -122,8 +124,13 @@ export async function handleUndercardBuild({
   replayDelayMs?: number;
   limiter: RateLimiter;
   ip: string;
+  /**
+   * False for a judge's own brief (M6f): the run is never saved, and if it can't fill both
+   * bands the stream ends with an error naming why.
+   */
+  save?: boolean;
 }): Promise<Response> {
-  const saved = fresh ? null : await store.latest(festival.id);
+  const saved = fresh || !save ? null : await store.latest(festival.id);
   if (saved)
     return ndjsonResponse((emit) => replay(saved, emit, replayDelayMs));
 
@@ -145,6 +152,7 @@ export async function handleUndercardBuild({
     const createdAt = new Date().toISOString();
     const trace: TraceCall[] = [];
     const notes: { at: number; text: string }[] = [];
+    const seen: BuildEvent[] = [];
     emit({ type: "build", id, createdAt, replayed: false });
     const result = await runUndercardAgent({
       festival,
@@ -154,9 +162,15 @@ export async function handleUndercardBuild({
         if (event.type === "call") trace.push(event.call);
         if (event.type === "status" && event.planner)
           notes.push({ at: trace.length, text: event.text });
+        seen.push(event);
         emit(event);
       },
     });
+    if (!save) {
+      const problem = diagnoseRun(seen, result.complete, festival.city);
+      if (problem) emit({ type: "error", ...problem });
+      return;
+    }
     if (result.complete && result.lineup) {
       trace.sort((a, b) => a.n - b.n);
       await store.save({

@@ -39,6 +39,12 @@ export function TownSwitcher({
           </li>
         ))}
       </ul>
+      <Link
+        href="/your-festival"
+        className="mt-1 self-start text-label font-semibold underline underline-offset-2 hover:text-accent"
+      >
+        Or draft one for your own town and headliners
+      </Link>
     </nav>
   );
 }

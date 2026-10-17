@@ -243,7 +243,8 @@ export function BillHeader({
     <>
       <div className="flex w-full flex-wrap-reverse items-center justify-center gap-x-6 gap-y-3 lg:justify-between">
         <p className="text-label text-muted">
-          {city}, {region} · {formatCount(capacity)} capacity · crowd aged{" "}
+          {region ? `${city}, ${region}` : city} ·{" "}
+          {formatCount(capacity)} capacity · crowd aged{" "}
           {crowdAge.min}–{crowdAge.max}
         </p>
         <p className="-rotate-2 rounded-sm border-2 border-danger px-2.5 pt-1 pb-0.5 font-display text-name leading-none font-extrabold text-danger uppercase">

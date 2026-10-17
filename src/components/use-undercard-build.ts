@@ -4,17 +4,19 @@ import { useCallback, useEffect, useReducer, useRef } from "react";
 import { buildReducer, IDLE_BUILD, type BuildState } from "@/lib/build-state";
 import type { Act } from "@/lib/lineup";
 import type { UnavailableReason } from "@/lib/unavailable";
+import type { YourBrief } from "@/lib/your-festival";
 import { streamEvents } from "./stream-events";
 import type { BuildRequest } from "./trace-panel";
 
 /**
  * Runs a build on POST /api/undercard and refills on POST /api/refill, folding both streams
- * of events into one board state.
+ * of events into one board state. Every request names its festival id.
  */
-/** Builds, replays and refills for one festival; every request names its festival id. */
 export function useUndercardBuild(
   initial: BuildState = IDLE_BUILD,
   festivalId?: string,
+  /** A judge's own brief (M6f): sent with every build, which then runs live and isn't saved. */
+  brief?: YourBrief,
 ) {
   const [state, dispatch] = useReducer(buildReducer, initial);
   const stateRef = useRef(state);
@@ -39,7 +41,11 @@ export function useUndercardBuild(
       try {
         await streamEvents(
           "/api/undercard",
-          { fresh: request.fresh ?? false, festival: festivalId },
+          {
+            fresh: request.fresh ?? false,
+            festival: festivalId,
+            ...(brief ? { brief } : {}),
+          },
           controller.signal,
           (event) => dispatch({ type: "event", event }),
         );
@@ -53,7 +59,7 @@ export function useUndercardBuild(
         }
       }
     },
-    [festivalId],
+    [festivalId, brief],
   );
 
   const markUnavailable = useCallback(

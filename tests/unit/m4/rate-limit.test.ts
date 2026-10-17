@@ -130,7 +130,7 @@ describe("rate limits on the routes", () => {
     expect(response.headers.get("retry-after")).toBe("60");
     const events = await readEvents(response);
     expect(events).toEqual([
-      { type: "error", message: "Synthetic limit." },
+      { type: "error", message: "Synthetic limit.", code: "limit" },
       { type: "done", calls: 0, ms: 0 },
     ]);
     expect(server.planner.turns()).toBe(0);
@@ -182,6 +182,7 @@ describe("rate limits on the routes", () => {
     expect((await readEvents(response))[0]).toEqual({
       type: "error",
       message: "Synthetic limit.",
+      code: "limit",
     });
     expect(server.fake.requests).toHaveLength(before);
   });

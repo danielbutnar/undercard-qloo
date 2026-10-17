@@ -61,7 +61,15 @@ describe("the town switcher", () => {
     const nav = screen.getByRole("navigation", {
       name: "Same brief, other towns",
     });
-    const links = within(nav).getAllByRole("link");
+    const links = within(within(nav).getByRole("list")).getAllByRole("link");
+    // M6f: one more link, to a town of your own.
+    expect(
+      within(nav)
+        .getByRole("link", {
+          name: "Or draft one for your own town and headliners",
+        })
+        .getAttribute("href"),
+    ).toBe("/your-festival");
     expect(
       links.map((link) => [link.textContent, link.getAttribute("href")]),
     ).toEqual([

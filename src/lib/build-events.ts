@@ -33,7 +33,14 @@ export const BuildEventSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("lineup"), lineup: LineupSchema }),
   /** A refill's result: the act that takes the unavailable act's slot. */
   z.object({ type: z.literal("refill"), replaces: z.string(), act: ActSchema }),
-  z.object({ type: z.literal("error"), message: z.string() }),
+  /** An error; code, when set, names a state the page designs for (M6f). */
+  z.object({
+    type: z.literal("error"),
+    message: z.string(),
+    code: z
+      .enum(["limit", "headliner-not-found", "too-few-rooms", "not-full"])
+      .optional(),
+  }),
   z.object({
     type: z.literal("done"),
     calls: z.number().int().nonnegative(),

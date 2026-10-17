@@ -15,6 +15,8 @@ export interface BuildState {
   notes: { at: number; text: string }[];
   acts: Act[];
   error: string | null;
+  /** The error's code, when the server named the state it belongs to. */
+  errorCode: string | null;
   summary: { calls: number; ms: number } | null;
   /** The build this board came from; a replayed build was saved earlier and streamed again. */
   build: { id: string; createdAt: string; replayed: boolean } | null;
@@ -46,6 +48,7 @@ export const IDLE_BUILD: BuildState = {
   notes: [],
   acts: [],
   error: null,
+  errorCode: null,
   summary: null,
   build: null,
   unavailable: [],
@@ -222,7 +225,11 @@ export function buildReducer(
           };
         case "error":
           if (state.kept) return { ...state, refusal: event.message };
-          return { ...state, error: event.message };
+          return {
+            ...state,
+            error: event.message,
+            errorCode: event.code ?? null,
+          };
         case "done":
           if (state.kept)
             return restoreKept(

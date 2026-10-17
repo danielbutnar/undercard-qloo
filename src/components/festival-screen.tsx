@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { ActCardPanel } from "@/components/act-card-panel";
 import { DraftBill, type Printing } from "@/components/draft-bill";
 import { ModelBill } from "@/components/model-bill";
@@ -21,6 +22,7 @@ import type { Act } from "@/lib/lineup";
 import { roomsBehind } from "@/lib/rooms";
 import { townOf } from "@/lib/towns";
 import type { UnavailableReason } from "@/lib/unavailable";
+import type { YourBrief } from "@/lib/your-festival";
 
 type Mode = "qloo" | "llm";
 
@@ -93,20 +95,70 @@ function LlmOnlyNote({ city }: { city: string }) {
   );
 }
 
+/** Why a judge's own draft couldn't be finished, and the next step (M6f). */
+function RunNotice({
+  message,
+  code,
+  onEdit,
+}: {
+  message: string;
+  code: string;
+  onEdit: () => void;
+}) {
+  return (
+    <section
+      aria-label="This draft couldn't be finished"
+      className="flex flex-col gap-2 border-2 border-danger bg-surface p-4"
+    >
+      <h2 className="font-display text-name font-extrabold uppercase text-danger">
+        {code === "limit"
+          ? "Today's live runs are used"
+          : code === "not-full"
+            ? "Some slots stayed open"
+            : "This draft couldn't be finished"}
+      </h2>
+      <p className="text-label">{message}</p>
+      {code === "limit" ? (
+        <Link
+          href="/"
+          className="self-start text-label font-semibold underline underline-offset-2 hover:text-accent"
+        >
+          Back to Sagebrush Sound, which replays without a limit
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={onEdit}
+          className="self-start rounded-sm border-2 border-rule px-3 py-1 text-label font-semibold hover:bg-ink hover:text-surface"
+        >
+          Change the brief
+        </button>
+      )}
+    </section>
+  );
+}
+
 export function FestivalScreen({
   festival,
   firstBill = null,
   towns = ["boise"],
+  custom,
 }: {
   festival: Festival;
   /** The latest saved build, read on the server; null falls back to the empty board. */
   firstBill?: FirstBill | null;
   /** Towns with a saved build of the same brief, for the switcher; Boise alone hides it. */
   towns?: readonly string[];
+  /**
+   * A judge's own brief (M6f): the agent runs live for it as soon as the screen opens. There is
+   * no Without Qloo, refill or town switcher, and nothing is saved.
+   */
+  custom?: { brief: YourBrief; onEdit: () => void };
 }) {
   const { state, build, markUnavailable } = useUndercardBuild(
     firstBoard(firstBill),
     festival.id,
+    custom?.brief,
   );
   const llm = useLlmOnly(festival.id);
   const [mode, setMode] = useState<Mode>("qloo");
@@ -161,6 +213,15 @@ export function FestivalScreen({
     void build(request);
   }
 
+  // A judge's own brief runs once, as soon as its screen opens.
+  const started = useRef(false);
+  useEffect(() => {
+    if (!custom || started.current) return;
+    started.current = true;
+    runBuild({ fresh: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function refill(act: Act, reason: UnavailableReason) {
     setPrinting("refill");
     void markUnavailable(act, reason);
@@ -201,7 +262,7 @@ export function FestivalScreen({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <ModeSwitch mode={mode} onChange={changeMode} />
+          {!custom && <ModeSwitch mode={mode} onChange={changeMode} />}
           {mode === "qloo" && bookedActs.length > 0 && (
             <button
               type="button"
@@ -261,6 +322,13 @@ export function FestivalScreen({
             }
           />
           <div className="flex flex-col gap-4">
+            {custom && state.status !== "building" && state.errorCode && (
+              <RunNotice
+                message={state.error ?? ""}
+                code={state.errorCode}
+                onEdit={custom.onEdit}
+              />
+            )}
             {!openAct && rooms.length > 0 && (
               <RoomsRail
                 rooms={rooms}
@@ -275,7 +343,7 @@ export function FestivalScreen({
                 act={openAct}
                 unavailable={state.unavailable.includes(openAct.entityId)}
                 disabled={state.refilling !== null || !state.build}
-                onUnavailable={refill}
+                onUnavailable={custom ? undefined : refill}
                 onClose={() => setOpenId(null)}
                 city={festival.city}
               />
@@ -286,7 +354,7 @@ export function FestivalScreen({
               onBuild={runBuild}
               buttonOnPhones={false}
             />
-            {!traceInUse && (
+            {!traceInUse && !custom && (
               <TownSwitcher current={townOf(festival).slug} onShow={towns} />
             )}
           </div>
