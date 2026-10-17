@@ -2,7 +2,7 @@ import { Ratelimit } from "@upstash/ratelimit";
 import type { Redis } from "@upstash/redis";
 
 /** The routes that spend paid or quota-limited calls. Replaying a saved build is not one. */
-export type LimitedAction = "build" | "refill" | "llmOnly";
+export type LimitedAction = "build" | "refill" | "llmOnly" | "order";
 
 export interface ActionLimit {
   /** Per client IP, per UTC day. */
@@ -25,6 +25,8 @@ export const LIMITS: Record<LimitedAction, ActionLimit> = {
   refill: { perIp: 25, perDay: 500, noun: "refills", hint: "" },
   // Counted only when the model is asked; the saved answer is free.
   llmOnly: { perIp: 10, perDay: 100, noun: "LLM-only requests", hint: "" },
+  // A running order makes up to 10 Qloo calls (M8a); a repeat for the same bill is cached.
+  order: { perIp: 10, perDay: 100, noun: "running orders", hint: "" },
 };
 
 export type LimitResult =

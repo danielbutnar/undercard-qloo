@@ -1,3 +1,4 @@
+import { RunningSlotSchema } from "./running-order";
 import { z } from "zod";
 import { ActSchema, LineupSchema } from "./lineup";
 
@@ -35,6 +36,8 @@ export const BuildEventSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("lineup"), lineup: LineupSchema }),
   /** A refill's result: the act that takes the unavailable act's slot. */
   z.object({ type: z.literal("refill"), replaces: z.string(), act: ActSchema }),
+  /** A running order (M8a): two stages, the acts on at the same time sharing the least. */
+  z.object({ type: z.literal("running-order"), slots: z.array(RunningSlotSchema) }),
   /** A redraft's result (M8c): each slot not kept, with the act that now takes it. */
   z.object({
     type: z.literal("redraft"),

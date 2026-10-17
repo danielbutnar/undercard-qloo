@@ -406,6 +406,24 @@ export function createQlooClient({
       );
     },
 
+    /**
+     * GET /v2/insights for artists seeded by one act, with the results limited to the given acts
+     * (M8a): each result's affinity is how much the seed's fans like that act, which scores how
+     * much the two share an audience.
+     */
+    audience({ seedId, amongIds }: { seedId: string; amongIds: string[] }) {
+      return get(
+        "/v2/insights",
+        {
+          "filter.type": "urn:entity:artist",
+          "signal.interests.entities": seedId,
+          "filter.results.entities": amongIds.join(","),
+          take: amongIds.length,
+        },
+        (body) => InsightsBody.parse(body).results.entities.map(toEntity),
+      );
+    },
+
     /** GET /v2/analysis/compare: the tags two groups of entities have in common, with scores. */
     compare({ a, b, take = 25 }: { a: string[]; b: string[]; take?: number }) {
       return get(

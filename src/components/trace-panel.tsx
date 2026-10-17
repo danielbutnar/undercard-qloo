@@ -134,9 +134,13 @@ export function TracePanel({
   const listRef = useRef<HTMLOListElement>(null);
   const building = state.status === "building";
   // The first screen shows a saved build; its trace stays folded until it is replayed.
-  const busy = building || state.refilling !== null || state.redrafting;
+  const busy =
+    building || state.refilling !== null || state.redrafting || state.ordering;
   const buildCalls = state.calls.filter(
-    (call) => call.tool !== "refill" && call.tool !== "redraft",
+    (call) =>
+      call.tool !== "refill" &&
+      call.tool !== "redraft" &&
+      call.tool !== "running_order",
   ).length;
   // The first screen shows a saved build: the panel pitches its replay until one runs. A
   // refill's calls list below the pitch.
@@ -245,6 +249,11 @@ export function TracePanel({
             Finding a replacement for {refillingName} in the same fee band…
           </p>
         )}
+        {state.ordering && (
+          <p aria-live="polite" className="text-label">
+            Asking Qloo how much the acts&apos; fans overlap…
+          </p>
+        )}
         {state.redrafting && (
           <p aria-live="polite" className="text-label">
             Redrafting every slot you didn&apos;t keep…
@@ -312,7 +321,8 @@ export function TracePanel({
                   call.n === state.latest &&
                   (building ||
                     (state.refilling !== null && call.tool === "refill") ||
-                    (state.redrafting && call.tool === "redraft"))
+                    (state.redrafting && call.tool === "redraft") ||
+                    (state.ordering && call.tool === "running_order"))
                 }
               />
             ))}

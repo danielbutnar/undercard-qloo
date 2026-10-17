@@ -1,3 +1,4 @@
+import type { RunningSlot } from "./running-order";
 import type { BuildEvent, TraceCall } from "./build-events";
 import type { FirstBill } from "./first-bill";
 import type { Act } from "./lineup";
@@ -42,6 +43,10 @@ export interface BuildState {
   keeping: string[];
   /** A redraft is running; it shares the refill's trace numbering and error line. */
   redrafting: boolean;
+  /** The running order for the acts on the bill (M8a); dropped when the bill changes. */
+  order: RunningSlot[] | null;
+  /** A running order is being scored; it shares the refill's trace numbering. */
+  ordering: boolean;
 }
 
 export const IDLE_BUILD: BuildState = {
@@ -65,6 +70,8 @@ export const IDLE_BUILD: BuildState = {
   refusal: null,
   keeping: [],
   redrafting: false,
+  order: null,
+  ordering: false,
 };
 
 /** The board the first screen opens on: the saved build's acts, ready to replay or refill. */
@@ -87,7 +94,9 @@ export type BuildAction =
   | { type: "refillEnd" }
   | { type: "refillFail"; message: string }
   | { type: "toggleKeep"; entityId: string }
-  | { type: "startRedraft" };
+  | { type: "startRedraft" }
+  | { type: "startOrder" }
+  | { type: "closeOrder" };
 
 function withCall(state: BuildState, call: TraceCall): BuildState {
   return {
@@ -119,6 +128,7 @@ function applyRefillEvent(state: BuildState, event: BuildEvent): BuildState {
       const gone = state.acts.find((act) => act.entityId === event.replaces);
       return {
         ...state,
+        order: null,
         acts: replaceAct(state.acts, event.replaces, event.act),
         replaced: {
           ...state.replaced,
@@ -129,6 +139,8 @@ function applyRefillEvent(state: BuildState, event: BuildEvent): BuildState {
         },
       };
     }
+    case "running-order":
+      return { ...state, order: event.slots };
     case "redraft": {
       let acts = state.acts;
       const replaced = { ...state.replaced };
@@ -140,12 +152,12 @@ function applyRefillEvent(state: BuildState, event: BuildEvent): BuildState {
           reason: null,
         };
       }
-      return { ...state, acts, replaced };
+      return { ...state, acts, replaced, order: null };
     }
     case "error":
       return { ...state, refillError: event.message };
     case "done":
-      return { ...state, refilling: null, redrafting: false };
+      return { ...state, refilling: null, redrafting: false, ordering: false };
     default:
       return state;
   }
@@ -187,6 +199,15 @@ export function buildReducer(
           ? state.keeping.filter((id) => id !== action.entityId)
           : [...state.keeping, action.entityId],
       };
+    case "startOrder":
+      return {
+        ...state,
+        ordering: true,
+        refillBase: state.calls.length,
+        refillError: null,
+      };
+    case "closeOrder":
+      return { ...state, order: null };
     case "startRedraft":
       return {
         ...state,
@@ -208,11 +229,12 @@ export function buildReducer(
     case "refillEvent":
       return applyRefillEvent(state, action.event);
     case "refillEnd":
-      return state.refilling || state.redrafting
+      return state.refilling || state.redrafting || state.ordering
         ? {
             ...state,
             refilling: null,
             redrafting: false,
+            ordering: false,
             refillError:
               state.refillError ??
               "The refill stopped before it finished. Try again.",
@@ -223,6 +245,7 @@ export function buildReducer(
         ...state,
         refilling: null,
         redrafting: false,
+        ordering: false,
         refillError: action.message,
       };
     case "event": {
@@ -267,6 +290,7 @@ export function buildReducer(
             acts: replaceAct(state.acts, event.replaces, event.act),
           };
         case "redraft":
+        case "running-order":
           return applyRefillEvent(state, event);
         case "error":
           if (state.kept) return { ...state, refusal: event.message };

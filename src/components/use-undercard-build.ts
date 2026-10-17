@@ -148,5 +148,53 @@ export function useUndercardBuild(
     }
   }, [festivalId]);
 
-  return { state, build, markUnavailable, toggleKeep, redraft };
+  // M8a: the running order for the acts on the bill, scored in at most 10 Qloo calls.
+  const runningOrder = useCallback(async () => {
+    const current = stateRef.current;
+    if (
+      !current.build ||
+      current.refilling ||
+      current.redrafting ||
+      current.ordering
+    )
+      return;
+    const acts = current.acts
+      .filter((act) => !current.unavailable.includes(act.entityId))
+      .map(({ entityId, name, band, popularity }) => ({
+        entityId,
+        name,
+        band,
+        popularity,
+      }));
+    const controller = new AbortController();
+    refillController.current = controller;
+    dispatch({ type: "startOrder" });
+    try {
+      await streamEvents(
+        "/api/running-order",
+        { festival: festivalId, buildId: current.build.id, acts },
+        controller.signal,
+        (event) => dispatch({ type: "refillEvent", event }),
+      );
+      dispatch({ type: "refillEnd" });
+    } catch {
+      if (!controller.signal.aborted)
+        dispatch({
+          type: "refillFail",
+          message: "Couldn't reach the running-order service. Try again.",
+        });
+    }
+  }, [festivalId]);
+
+  const closeOrder = useCallback(() => dispatch({ type: "closeOrder" }), []);
+
+  return {
+    state,
+    build,
+    markUnavailable,
+    toggleKeep,
+    redraft,
+    runningOrder,
+    closeOrder,
+  };
 }

@@ -7,6 +7,7 @@ import {
 } from "@/lib/checked-towns";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { formatCount } from "@/lib/format";
+import { RunningOrderPanel } from "@/components/running-order-panel";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ActCardPanel } from "@/components/act-card-panel";
@@ -245,13 +246,20 @@ export function FestivalScreen({
    */
   checked?: { onBack: () => void };
 }) {
-  const { state, build, markUnavailable, toggleKeep, redraft } =
-    useUndercardBuild(
-      firstBoard(firstBill),
-      festival.id,
-      custom?.brief,
-      checked !== undefined,
-    );
+  const {
+    state,
+    build,
+    markUnavailable,
+    toggleKeep,
+    redraft,
+    runningOrder,
+    closeOrder,
+  } = useUndercardBuild(
+    firstBoard(firstBill),
+    festival.id,
+    custom?.brief,
+    checked !== undefined,
+  );
   const llm = useLlmOnly(festival.id);
   const [mode, setMode] = useState<Mode>("qloo");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -297,6 +305,7 @@ export function FestivalScreen({
     state.refusal !== null ||
     state.refilling !== null ||
     state.redrafting ||
+    state.ordering ||
     state.refillError !== null;
 
   function runBuild(request: BuildRequest = {}) {
@@ -412,30 +421,60 @@ export function FestivalScreen({
               drafting={state.status === "building"}
               keeping={state.keeping}
               redraft={
-                !custom && state.keeping.length > 0 ? (
-                  <div className="flex flex-col items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPrinting("refill");
-                        setOpenId(null);
-                        void redraft();
-                      }}
-                      disabled={
-                        state.status === "building" ||
-                        state.refilling !== null ||
-                        state.redrafting
-                      }
-                      className="rounded-sm border-2 border-accent bg-accent px-4 py-1.5 text-body font-bold text-on-accent hover:bg-ink disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {state.redrafting ? "Redrafting…" : "Redraft the rest"}
-                    </button>
-                    <p className="text-label text-muted">
-                      Keeps {state.keeping.length}{" "}
-                      {state.keeping.length === 1 ? "act" : "acts"} and refills
-                      the other slots from the same rooms, in at most 3 Qloo
-                      calls.
-                    </p>
+                !custom && state.build ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="flex flex-col items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOpenId(null);
+                          void runningOrder();
+                        }}
+                        disabled={
+                          state.status === "building" ||
+                          state.refilling !== null ||
+                          state.redrafting ||
+                          state.ordering
+                        }
+                        className="rounded-sm border-2 border-rule px-4 py-1.5 text-body font-bold hover:bg-ink hover:text-surface disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {state.ordering
+                          ? "Planning the running order…"
+                          : "Running order"}
+                      </button>
+                      <p className="text-label text-muted">
+                        Two stages, acts on at the same time chosen so their
+                        fans overlap least, from up to 10 Qloo calls.
+                      </p>
+                    </div>
+                    {state.keeping.length > 0 && (
+                      <div className="flex flex-col items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPrinting("refill");
+                            setOpenId(null);
+                            void redraft();
+                          }}
+                          disabled={
+                            state.status === "building" ||
+                            state.refilling !== null ||
+                            state.redrafting
+                          }
+                          className="rounded-sm border-2 border-accent bg-accent px-4 py-1.5 text-body font-bold text-on-accent hover:bg-ink disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {state.redrafting
+                            ? "Redrafting…"
+                            : "Redraft the rest"}
+                        </button>
+                        <p className="text-label text-muted">
+                          Keeps {state.keeping.length}{" "}
+                          {state.keeping.length === 1 ? "act" : "acts"} and
+                          refills the other slots from the same rooms, in at
+                          most 3 Qloo calls.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ) : undefined
               }
@@ -477,6 +516,13 @@ export function FestivalScreen({
                   onPick={custom?.onPick}
                 />
               )}
+            {!openAct && state.order && (
+              <RunningOrderPanel
+                slots={state.order}
+                headliners={festival.headliners}
+                onClose={closeOrder}
+              />
+            )}
             {!openAct && rooms.length > 0 && (
               <RoomsRail
                 rooms={rooms}

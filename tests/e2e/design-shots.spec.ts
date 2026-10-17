@@ -3,6 +3,8 @@
 // The local server runs in synthetic mode, so the bill is the synthetic saved build. The
 // fallback (no saved build) is shot against a server seeded with UNDERCARD_E2E_SYNTHETIC=empty:
 // see README, Running locally. That run adds its shots without moving the others to .design/previous.
+import { planRunningOrder } from "../../src/lib/running-order";
+import { SAGEBRUSH_SOUND } from "../../src/lib/sagebrush";
 import { existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
 import { test, type Page } from "@playwright/test";
 import { SYNTHETIC } from "./env";
@@ -199,6 +201,38 @@ const SCENES: {
       await page
         .getByRole("button", { name: "Replay the saved build" })
         .waitFor();
+    },
+  },
+  {
+    // M8a: the running order, answered in the browser on the synthetic server.
+    name: "home-running-order",
+    viewports: [VIDEO, MOBILE],
+    prepare: async (page) => {
+      if (SYNTHETIC)
+        await page.route("**/api/running-order", async (route) => {
+          const { acts } = route.request().postDataJSON() as {
+            acts: Parameters<typeof planRunningOrder>[0];
+          };
+          await route.fulfill({
+            status: 200,
+            contentType: NDJSON,
+            body: [
+              {
+                type: "running-order",
+                slots: planRunningOrder(
+                  acts,
+                  (a, b) => 0.8 + ((a + b).length % 9) / 100,
+                  SAGEBRUSH_SOUND.feeBands,
+                ),
+              },
+              { type: "done", calls: 8, ms: 900 },
+            ]
+              .map((event) => JSON.stringify(event))
+              .join("\n"),
+          });
+        });
+      await bill(page).getByRole("button", { name: "Running order" }).click();
+      await page.getByRole("region", { name: "Running order" }).waitFor();
     },
   },
   {
