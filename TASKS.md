@@ -226,7 +226,9 @@ Copied from SPEC.md section 6, M8c. Freeze: 2026-10-23. Done means: kept acts st
 - [x] Keep on the act card; Kept on the bill; Redraft the rest on the bill once an act is kept
 - [x] e2e on the live demo: three kept acts stay, the other slots change, 1 to 3 redraft calls in the trace
 
-# TASKS: for the 27-28 October redo (not now)
+# TASKS: for the 26-27 October redo (not now)
+
+Moved 2026-10-18: the video and the gallery stills are re-shot on 26-27 October, after a UI freeze at the end of 25 October; 28 October is buffer. Protected windows (no deploys, no offline Qloo runs): Monday 19 October 09:00-21:00 and Tuesday 20 October 09:00-22:00 Bucharest. The live e2e makes no Qloo calls by default; the redraft, running-order and refill steps run with E2E_LIVE_QLOO=1 once after each deploy, outside those windows.
 
 - [ ] Fix the video's capture script for the reason picker (its refill step now stops at "Why is it unavailable?")
 - [ ] Story: M6b's runs per town; M6c as a stated limit ("a Boise heatmap gave a local signal for 7 of the 10 acts, so Undercard doesn't claim the town knows every act"); the town switcher and Your festival

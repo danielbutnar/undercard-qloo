@@ -5,7 +5,7 @@
 // which has no Qloo client, the refill is answered in the browser.
 import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
-import { SYNTHETIC } from "./env";
+import { LIVE_QLOO, QLOO_SKIP_REASON, SYNTHETIC } from "./env";
 import { syntheticRefillStream } from "./synthetic-build";
 
 const NDJSON = "application/x-ndjson; charset=utf-8";
@@ -163,6 +163,7 @@ test.describe("demo path", () => {
   test("step 4: Unavailable on the card asks why, then refills the slot from the same fee band with a new Qloo call", async ({
     page,
   }) => {
+    test.skip(!SYNTHETIC && !LIVE_QLOO, QLOO_SKIP_REASON);
     test.setTimeout(90_000);
     if (SYNTHETIC) {
       await page.route("**/api/refill", async (route) => {

@@ -7,7 +7,7 @@ import { planRunningOrder } from "../../src/lib/running-order";
 import { SAGEBRUSH_SOUND } from "../../src/lib/sagebrush";
 import { existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
 import { test, type Page } from "@playwright/test";
-import { SYNTHETIC } from "./env";
+import { LIVE_QLOO, SYNTHETIC } from "./env";
 import {
   syntheticBuildStream,
   syntheticLimitStream,
@@ -204,11 +204,12 @@ const SCENES: {
     },
   },
   {
-    // M8a: the running order, answered in the browser on the synthetic server.
+    // M8a: the running order, answered in the browser with made-up scores unless the run may
+    // call Qloo (E2E_LIVE_QLOO=1 against a deployment).
     name: "home-running-order",
     viewports: [VIDEO, MOBILE],
     prepare: async (page) => {
-      if (SYNTHETIC)
+      if (SYNTHETIC || !LIVE_QLOO)
         await page.route("**/api/running-order", async (route) => {
           const { acts } = route.request().postDataJSON() as {
             acts: Parameters<typeof planRunningOrder>[0];

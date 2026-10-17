@@ -4,7 +4,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { planRunningOrder } from "../../src/lib/running-order";
 import { SAGEBRUSH_SOUND } from "../../src/lib/sagebrush";
-import { SYNTHETIC } from "./env";
+import { LIVE_QLOO, QLOO_SKIP_REASON, SYNTHETIC } from "./env";
 
 const NDJSON = "application/x-ndjson; charset=utf-8";
 const bill = (page: Page) =>
@@ -13,6 +13,7 @@ const bill = (page: Page) =>
 test("the running order puts two acts on at a time, each set saying who plays against whom", async ({
   page,
 }) => {
+  test.skip(!SYNTHETIC && !LIVE_QLOO, QLOO_SKIP_REASON);
   test.setTimeout(90_000);
   if (SYNTHETIC)
     await page.route("**/api/running-order", async (route) => {

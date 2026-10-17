@@ -2,7 +2,7 @@
 // (at most 3 calls); on the synthetic server, which has no Qloo client, it's answered in the
 // browser.
 import { expect, test, type Page } from "@playwright/test";
-import { SYNTHETIC } from "./env";
+import { LIVE_QLOO, QLOO_SKIP_REASON, SYNTHETIC } from "./env";
 import { syntheticRedraftStream } from "./synthetic-build";
 
 const NDJSON = "application/x-ndjson; charset=utf-8";
@@ -12,6 +12,7 @@ const bill = (page: Page) =>
 test("keeps three acts, redrafts, and only the other slots change", async ({
   page,
 }) => {
+  test.skip(!SYNTHETIC && !LIVE_QLOO, QLOO_SKIP_REASON);
   test.setTimeout(90_000);
   if (SYNTHETIC)
     await page.route("**/api/redraft", async (route) => {

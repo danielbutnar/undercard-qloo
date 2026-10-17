@@ -9,3 +9,9 @@ export const SYNTHETIC: "1" | "empty" | null =
     : process.env.E2E_BASE_URL
       ? null
       : "1";
+
+// A deployment's e2e makes no Qloo calls by default: the redraft, the running order and the
+// refill (step 4) run against one only with E2E_LIVE_QLOO=1, once after each deploy.
+export const LIVE_QLOO = process.env.E2E_LIVE_QLOO === "1";
+export const QLOO_SKIP_REASON =
+  "calls Qloo on a deployment; run with E2E_LIVE_QLOO=1";
