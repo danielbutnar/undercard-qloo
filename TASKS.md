@@ -17,7 +17,7 @@ Copied from SPEC.md section 6, M4e. Closes: Potential Impact, Quality of the Ide
 - [x] The objection, from sources: KIVI's pre-festival guide (23 March 2026) says Treefort 2026 was to put over 500 artists into dozens of downtown Boise venues, naming Venue 227, and sold a Venue 166 pass; added to docs/research/festival-sites.md with the inference marked. The Venue 418 isn't confirmed as a Treefort venue
 - [x] Check against Treefort 2026's bill (562 names, Wayback capture of 17 April 2026): no-go. Mid 1 / 2 / 1 / 1 of 50 (headliners alone / + V418 / + Venue 227 / + Venue 166); Opener 0 in every list. Nothing claimed
 - [x] Three more towns: the agent filled both bands in Austin, Denver and Nashville; per-town rooms and lifts in docs/evidence.md
-- [x] Buyer message drafted in docs/outreach-draft.md (96 words, the live link, two questions); not sent
+- [x] Buyer message drafted, kept out of git (96 words, the live link, two questions); not sent
 - [x] docs/evidence.md holds each result, fact-checked against the sources and the run outputs
 
 # TASKS: M4f CI
