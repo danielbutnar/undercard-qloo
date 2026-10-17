@@ -141,6 +141,15 @@ Copied from SPEC.md section 6, M6j. Closes: Technological Implementation and Pot
 - [x] Re-measure written into docs/evidence.md section 12 before the runs; result 8 of 10 US towns, at the bar: free text stays
 - [x] Outreach table: Brighton thin; Wrexham and Cluj-Napoca fill both bands now; Burlington, Vermont fills from a room in Winooski
 
+# TASKS: M6k Checked towns first
+
+Copied from SPEC.md section 6, M6k. Closes: Design and Potential Impact. Freeze: 2026-10-24. Done means: Your festival opens on the checked towns, each with its country, one click to run, free text below if M6j keeps it; the list in one file in src/lib; shots at 1440x810 and 390 wide pass the design checks.
+
+- [x] src/lib/checked-towns.ts: 29 towns from docs/evidence.md (sections 3, 4, 5, 9, 12, and M6d), each with its state or province and country; names only, no Qloo data (tests/unit/m6k)
+- [x] Your festival: the headliners first (the demo's, editable), then the towns as buttons, city over state and country, one click to run; free text below (M6j kept it)
+- [x] e2e: a checked town runs in one click with the headliners in the form
+- [x] Shots at 1440x810 (the towns above the fold, three columns) and 390 wide (two columns, no sideways scroll); the design scan passes in the gate
+
 # TASKS: for the 27-28 October redo (not now)
 
 - [ ] Fix the video's capture script for the reason picker (its refill step now stops at "Why is it unavailable?")
