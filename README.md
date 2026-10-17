@@ -31,11 +31,13 @@ Khruangbin and Japanese Breakfast booked and two fee bands, Mid (4 slots) and Op
 3. Click an act to open its card: Qloo affinity, its popularity percentile inside the band,
    a "Why Boise" line naming the local venue whose fans lift it, and two Qloo tags it shares
    with the headliners.
-4. Mark it **Unavailable**: Undercard finds a replacement in the same fee band with a new Qloo
-   call, and the replacement prints into the slot.
+4. Mark it **Unavailable** and say why: a radius clause, routing or the fee. Undercard finds a
+   replacement in the same fee band with a new Qloo call, the replacement prints into the slot,
+   and the reason names the refill's line in the trace.
 5. Flip to **Without Qloo: the model's picks** to see the same brief answered by the model
    alone, each pick with the model's reason, no Boise room and no fee band check. **Export
-   CSV** in the bar downloads the booking sheet.
+   CSV** in the bar downloads the booking sheet; a replacement's row names the act it
+   replaced and why.
 
 ## How it works
 

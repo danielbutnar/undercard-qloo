@@ -78,6 +78,15 @@ Copied from SPEC.md section 6, M6d. Closes: Technological Implementation, Potent
 - [x] Fresh builds on production, once each (14:57-14:59 UTC): Austin 12 calls, Denver 11, Nashville 12, all with both bands full; Boise still serves its 12:13 UTC build
 - [x] Live e2e 33 passed (LCP 268 ms); the cold reader still names the buyer, Boise's venues and Watch the agent build it
 
+# TASKS: M6e Booking vocabulary
+
+Copied from SPEC.md section 6, M6e. Closes: Quality of the Idea. Freeze: 2026-10-24. Done means: "Unavailable" takes a reason (radius clause, routing or fee), recorded in the refill's trace line and in the CSV.
+
+- [x] The card asks "Why is it unavailable?" with Radius clause, Routing, Fee and Cancel; the reason goes with the refill request (tests/unit/m6e)
+- [x] The refill's trace line names it: "Refill (radius clause): Mid-band artists for the headliners and …"
+- [x] The CSV gains replaces and unavailable_reason; a replacement's row names the act it replaced and why
+- [x] The e2e demo path picks a reason, and checks the trace line and the CSV row
+
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
 ## Before judging starts (2026-11-02)
