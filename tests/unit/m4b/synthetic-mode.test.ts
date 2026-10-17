@@ -98,6 +98,25 @@ describe("synthetic mode, for local e2e runs and design shots", () => {
     expect(latest?.id).toBe(SYNTHETIC_BUILD_ID);
   });
 
+  it("seeds no saved build when set to empty, for the fallback's e2e and shots", async () => {
+    const env = { ...KEYS, [SYNTHETIC_ENV]: "empty" };
+    const cache = createQlooCache(env);
+    expect(cache.kind).toBe("memory");
+    expect(await createBuildStore(cache).latest(SAGEBRUSH_SOUND.id)).toBeNull();
+    const model = vi.fn(() => null);
+    const response = await handleLlmOnly({
+      festival: SAGEBRUSH_SOUND,
+      cache,
+      limiter: serverLimiter(env),
+      ip: "203.0.113.7",
+      model,
+    });
+    expect((await response.json()).cached).toBe(true);
+    expect(model).not.toHaveBeenCalled();
+    for (const [key, value] of Object.entries(env)) vi.stubEnv(key, value);
+    expect(serverQloo()).toBeNull();
+  });
+
   it("stays off without the variable", () => {
     for (const [key, value] of Object.entries(KEYS)) vi.stubEnv(key, value);
     expect(createQlooCache(KEYS).kind).toBe("upstash");

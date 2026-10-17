@@ -9,12 +9,16 @@ import type { QlooCache } from "./qloo-cache";
 import { createMemoryLimiter } from "./rate-limit";
 
 /**
- * Seeds a memory cache for synthetic mode (UNDERCARD_E2E_SYNTHETIC=1): the synthetic build as
- * the festival's latest, and the synthetic model answer as LLM only's saved answer, saved
- * through the same paths a real build and a real answer take. Loaded only in synthetic mode.
+ * Seeds a memory cache for synthetic mode (UNDERCARD_E2E_SYNTHETIC): the synthetic build as
+ * the festival's latest (left out with "empty", for the fallback), and the synthetic model
+ * answer as LLM only's saved answer, each saved the way a real build and a real answer are.
+ * Loaded only in synthetic mode.
  */
-export async function seedSynthetic(cache: QlooCache): Promise<void> {
-  await createBuildStore(cache).save(syntheticSavedBuild());
+export async function seedSynthetic(
+  cache: QlooCache,
+  { savedBuild }: { savedBuild: boolean },
+): Promise<void> {
+  if (savedBuild) await createBuildStore(cache).save(syntheticSavedBuild());
   const picks = syntheticLlmOnly().lineup.picks;
   await handleLlmOnly({
     festival: SAGEBRUSH_SOUND,
