@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { FestivalScreen } from "@/components/festival-screen";
 import { firstBoard, IDLE_BUILD } from "@/lib/build-state";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
@@ -49,6 +55,25 @@ describe("the first screen", () => {
     cleanup();
     render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={null} />);
     expect(screen.queryByRole("button", { name: "Export CSV" })).toBeNull();
+  });
+
+  it("keeps the bill on screen, in open slots, while a replay waits for its first event", () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => new Promise<Response>(() => {})),
+    );
+    render(
+      <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Watch the agent build it" }),
+    );
+    expect(
+      screen.getByRole("region", { name: "Undercard draft" }),
+    ).toBeTruthy();
+    expect(screen.getAllByText("Open slot")).toHaveLength(10);
+    expect(screen.queryByRole("region", { name: "Lineup board" })).toBeNull();
+    vi.unstubAllGlobals();
   });
 
   it("starts the board from the saved build, so a refill can name it", () => {

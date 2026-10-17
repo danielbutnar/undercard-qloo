@@ -107,8 +107,10 @@ export function FestivalScreen({
   const bookedActs = state.acts.filter(
     (act) => !state.unavailable.includes(act.entityId),
   );
-  // The bill once there is a build to show: the saved one, or one streaming in now.
-  const onBill = state.build !== null || state.acts.length > 0;
+  // The bill once there is a build to show: the saved one (also while its replay starts), or
+  // one streaming in now.
+  const onBill =
+    firstBill !== null || state.build !== null || state.acts.length > 0;
   const calls = state.summary?.calls ?? firstBill?.calls;
   // A replay streams the venue search again; until then, the server read's count.
   const placesListed =
