@@ -74,15 +74,16 @@ const theTop = (top?: number) => (top ? `top ${top}` : "ranking");
  */
 export function markKey(
   first: Act,
-  { acts, top }: { acts: readonly Act[]; top?: number },
+  { acts, top, city }: { acts: readonly Act[]; top?: number; city?: string },
 ): { example: string; lines: string[] } {
-  const room = first.anchorVenue.name;
+  // The room is named as a venue in the city, so it reads as a crowd the agent measured.
+  const room = `the crowd at ${first.anchorVenue.name}, ${city ? `a ${city} venue` : "a local venue"},`;
   const lift = liftOf(first);
   const others = acts.filter((act) => act !== first).map(liftOf);
   const lines: string[] = [];
   if (lift?.kind === "up") {
     lines.push(
-      `${RANKING}; adding ${room}'s crowd lifts this act ${lift.places} places.`,
+      `${RANKING}; adding ${room} lifts this act ${lift.places} places.`,
     );
     if (others.some((other) => other?.kind === "new"))
       lines.push(
@@ -90,7 +91,7 @@ export function markKey(
       );
   } else if (lift?.kind === "new") {
     lines.push(
-      `${RANKING}; adding ${room}'s crowd brings this act in from outside the ${theTop(top)}.`,
+      `${RANKING}; adding ${room} brings this act in from outside the ${theTop(top)}.`,
     );
     if (others.some((other) => other?.kind === "up"))
       lines.push("+ and a number: the places a room's crowd lifts an act.");

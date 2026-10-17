@@ -48,7 +48,7 @@ describe("the rooms rail", () => {
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
     );
     return screen.getByRole("region", {
-      name: "Boise crowds behind this bill",
+      name: "Boise venue crowds behind this bill",
     });
   };
 
@@ -91,7 +91,7 @@ describe("the rooms rail", () => {
       ).getByRole("button", { name: "Watch the agent build it" }),
     );
     const compact = screen.getByRole("region", {
-      name: "Boise crowds behind this bill",
+      name: "Boise venue crowds behind this bill",
     });
     expect(within(compact).queryByText(/not a stage/)).toBeNull();
     expect(within(compact).queryByText(/tested for/)).toBeNull();
@@ -106,7 +106,7 @@ describe("the rooms rail", () => {
       .click();
     return Promise.resolve().then(() => {
       expect(
-        screen.queryByRole("region", { name: "Boise crowds behind this bill" }),
+        screen.queryByRole("region", { name: "Boise venue crowds behind this bill" }),
       ).toBeNull();
     });
   });

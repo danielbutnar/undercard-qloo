@@ -45,7 +45,7 @@ function open({ reducedMotion = false } = {}) {
 const bill = () => screen.getByRole("region", { name: "Undercard draft" });
 const acts = () => within(bill()).queryAllByRole("article");
 const lantern = () =>
-  within(screen.getByRole("region", { name: "Boise crowds behind this bill" }))
+  within(screen.getByRole("region", { name: "Boise venue crowds behind this bill" }))
     .getAllByRole("listitem")
     .find((item) => item.textContent?.startsWith("The Lantern Room"))!;
 // jsdom has no AnimationEvent, so React listens for the prefixed name there.

@@ -102,7 +102,7 @@ describe("Without Qloo", () => {
     const note = screen.getByRole("complementary", { name: "The model alone" });
     expect(note.textContent).toMatch(/Claude Sonnet 5\.5 with no tools/);
     expect(
-      screen.queryByRole("region", { name: "Boise crowds behind this bill" }),
+      screen.queryByRole("region", { name: "Boise venue crowds behind this bill" }),
     ).toBeNull();
     expect(
       screen.queryByRole("button", { name: "Watch the agent build it" }),
