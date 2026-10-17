@@ -1,6 +1,14 @@
+"use client";
+
+import { useState } from "react";
 import type { FeeBandId } from "@/lib/fee-bands";
 import { formatAffinity, formatPercentile } from "@/lib/format";
 import type { Act } from "@/lib/lineup";
+import {
+  UNAVAILABLE_REASON_IDS,
+  UNAVAILABLE_REASONS,
+  type UnavailableReason,
+} from "@/lib/unavailable";
 
 // Billing size follows the fee band, as on a printed bill: Mid acts set larger than Openers.
 const BILLING = {
@@ -20,12 +28,14 @@ export function ActCard({
   /** Stamped and printed in worn ink while its slot is refilled, or when no refill was found. */
   unavailable?: boolean;
   disabled?: boolean;
-  onUnavailable?: (act: Act) => void;
+  /** Called with the reason the buyer picks: a radius clause, routing or the fee. */
+  onUnavailable?: (act: Act, reason: UnavailableReason) => void;
   /** Shown as Close beside the name when the card is opened from the bill. */
   onClose?: () => void;
   /** The festival's town, which names the Why line. */
   city?: string;
 }) {
+  const [asking, setAsking] = useState(false);
   const billing = BILLING[act.band];
   const ink = unavailable ? "text-muted" : "text-accent";
   return (
@@ -86,15 +96,49 @@ export function ActCard({
           </li>
         ))}
       </ul>
-      {onUnavailable && !unavailable && (
+      {onUnavailable && !unavailable && !asking && (
         <button
           type="button"
           disabled={disabled}
-          onClick={() => onUnavailable(act)}
+          onClick={() => setAsking(true)}
           className="self-start text-label text-muted underline underline-offset-2 hover:text-danger disabled:cursor-not-allowed disabled:no-underline"
         >
           Unavailable
         </button>
+      )}
+      {onUnavailable && !unavailable && asking && (
+        <div
+          role="group"
+          aria-labelledby={`why-${act.entityId}`}
+          className="flex flex-wrap items-center gap-2"
+        >
+          <p id={`why-${act.entityId}`} className="w-full text-label font-semibold">
+            Why is it unavailable?
+          </p>
+          {UNAVAILABLE_REASON_IDS.map((reason) => (
+            <button
+              key={reason}
+              type="button"
+              disabled={disabled}
+              onClick={() => {
+                setAsking(false);
+                onUnavailable(act, reason);
+              }}
+              className="rounded-sm border-2 border-danger px-2 text-label text-danger hover:bg-danger hover:text-on-accent disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {UNAVAILABLE_REASONS[reason].replace(/^./, (first) =>
+                first.toUpperCase(),
+              )}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setAsking(false)}
+            className="text-label text-muted underline underline-offset-2 hover:text-ink"
+          >
+            Cancel
+          </button>
+        </div>
       )}
     </article>
   );

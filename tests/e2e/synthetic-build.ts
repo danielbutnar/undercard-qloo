@@ -5,6 +5,10 @@
 // LLM only run on the server without Qloo, Claude or Upstash. Playwright intercepts the rest.
 import lineup from "../fixtures/lineup.synthetic.json";
 import type { SavedBuild } from "../../src/server/build-store";
+import {
+  UNAVAILABLE_REASONS,
+  type UnavailableReason,
+} from "../../src/lib/unavailable";
 
 export const SYNTHETIC_BUILD_ID = "synthetic-build";
 const CREATED_AT = "2026-10-15T14:02:00.000Z";
@@ -229,7 +233,10 @@ export function syntheticLimitStream(): string {
 }
 
 /** A synthetic refill: one Qloo call, then an invented act takes the slot. */
-export function syntheticRefillStream(replaces: string): string {
+export function syntheticRefillStream(
+  replaces: string,
+  reason?: UnavailableReason,
+): string {
   const replacement = {
     entityId: id(111),
     name: "Sego Lily",
@@ -246,7 +253,7 @@ export function syntheticRefillStream(replaces: string): string {
   const call = {
     ...artistsCall(1, "Mid", LANTERN.name),
     tool: "refill",
-    summary: `Refill: Mid-band artists for the headliners and ${LANTERN.name}, minus the board`,
+    summary: `Refill${reason ? ` (${UNAVAILABLE_REASONS[reason]})` : ""}: Mid-band artists for the headliners and ${LANTERN.name}, minus the board`,
   };
   call.params = call.params.map((param) =>
     param.key === "filter.exclude.entities"

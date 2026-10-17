@@ -45,7 +45,9 @@ function open({ reducedMotion = false } = {}) {
 const bill = () => screen.getByRole("region", { name: "Undercard draft" });
 const acts = () => within(bill()).queryAllByRole("article");
 const lantern = () =>
-  within(screen.getByRole("region", { name: "Boise venue crowds behind this bill" }))
+  within(
+    screen.getByRole("region", { name: "Boise venue crowds behind this bill" }),
+  )
     .getAllByRole("listitem")
     .find((item) => item.textContent?.startsWith("The Lantern Room"))!;
 // jsdom has no AnimationEvent, so React listens for the prefixed name there.
@@ -114,6 +116,8 @@ describe("the motion moment", () => {
         { name: "Unavailable" },
       ),
     );
+    // M6e: the card asks why before it refills.
+    fireEvent.click(screen.getByRole("button", { name: "Fee" }));
     await waitFor(() =>
       expect(
         within(bill()).getByRole("article", { name: "Sego Lily" }),

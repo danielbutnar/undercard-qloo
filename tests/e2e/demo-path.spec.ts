@@ -160,7 +160,7 @@ test.describe("demo path", () => {
     }
   });
 
-  test("step 4: Unavailable on the card refills the slot from the same fee band with a new Qloo call", async ({
+  test("step 4: Unavailable on the card asks why, then refills the slot from the same fee band with a new Qloo call", async ({
     page,
   }) => {
     test.setTimeout(90_000);
@@ -168,11 +168,12 @@ test.describe("demo path", () => {
       await page.route("**/api/refill", async (route) => {
         const body = route.request().postDataJSON() as {
           unavailableId: string;
+          reason?: "radius" | "routing" | "fee";
         };
         await route.fulfill({
           status: 200,
           contentType: NDJSON,
-          body: syntheticRefillStream(body.unavailableId),
+          body: syntheticRefillStream(body.unavailableId, body.reason),
         });
       });
     }
@@ -185,6 +186,11 @@ test.describe("demo path", () => {
     await page
       .getByRole("region", { name: "Act card" })
       .getByRole("button", { name: "Unavailable" })
+      .click();
+    // M6e: the buyer says why; the trace line and the CSV keep it.
+    await page
+      .getByRole("group", { name: "Why is it unavailable?" })
+      .getByRole("button", { name: "Radius clause" })
       .click();
 
     // The replacement prints into the same slot, in the same band, with its mark.
@@ -200,11 +206,23 @@ test.describe("demo path", () => {
     expect(added).toBeLessThanOrEqual(3);
     await expect(page.getByText(/^[123] refill calls?$/)).toBeVisible();
     const refillRow = traceRows(page)
-      .filter({ hasText: "Refill: Mid-band artists" })
+      .filter({ hasText: "Refill (radius clause): Mid-band artists" })
       .last();
     await refillRow.getByRole("button", { name: "Parameters" }).click();
     await expect(refillRow).toContainText("filter.exclude.entities=");
     await expect(refillRow).toContainText(gone);
+
+    // The CSV names the act the replacement took over from, and why.
+    const download = page.waitForEvent("download");
+    await page
+      .getByRole("banner")
+      .getByRole("button", { name: "Export CSV" })
+      .click();
+    const csv = await readFile(await (await download).path(), "utf8");
+    const replacementRow = csv
+      .split("\r\n")
+      .find((line) => line.endsWith(`,${gone},radius clause`));
+    expect(replacementRow).toBeTruthy();
   });
 
   test("step 5: Without Qloo reprints the bill with the model's picks; Export CSV in the bar downloads the agent's bill", async ({
@@ -244,7 +262,9 @@ test.describe("demo path", () => {
     const lines = (await readFile(await file.path(), "utf8"))
       .trimEnd()
       .split("\r\n");
-    expect(lines[0]).toBe("act,band,affinity,popularity,anchor_venue,reason");
+    expect(lines[0]).toBe(
+      "act,band,affinity,popularity,anchor_venue,reason,replaces,unavailable_reason",
+    );
     expect(lines).toHaveLength(11);
   });
 

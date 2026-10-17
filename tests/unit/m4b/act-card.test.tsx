@@ -97,6 +97,8 @@ describe("an act on the bill", () => {
         { name: "Unavailable" },
       ),
     );
+    // M6e: the card asks why before it refills.
+    fireEvent.click(screen.getByRole("button", { name: "Radius clause" }));
     expect(fetch).toHaveBeenCalledWith(
       "/api/refill",
       expect.objectContaining({ method: "POST" }),
@@ -105,6 +107,7 @@ describe("an act on the bill", () => {
       buildId: FIRST_BILL.build.id,
       unavailableId: acts[0].entityId,
       band: "mid",
+      reason: "radius",
     });
     await waitFor(() => expect(actButton("Sego Lily")).toBeTruthy());
     const mid = within(bill()).getByRole("region", { name: "Mid" });

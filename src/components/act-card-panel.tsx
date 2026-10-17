@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { ActCard } from "@/components/act-card";
 import type { Act } from "@/lib/lineup";
+import type { UnavailableReason } from "@/lib/unavailable";
 
 /**
  * An act's card, opened from the bill: Qloo's numbers, the Why Boise line, the shared tags and
@@ -19,7 +20,7 @@ export function ActCardPanel({
   act: Act;
   unavailable: boolean;
   disabled: boolean;
-  onUnavailable: (act: Act) => void;
+  onUnavailable: (act: Act, reason: UnavailableReason) => void;
   onClose: () => void;
   city?: string;
 }) {

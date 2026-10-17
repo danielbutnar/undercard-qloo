@@ -1,6 +1,7 @@
 import type { BuildEvent, TraceCall } from "./build-events";
 import type { FirstBill } from "./first-bill";
 import type { Act } from "./lineup";
+import type { Replacement, UnavailableReason } from "./unavailable";
 
 export interface BuildState {
   status: "idle" | "building" | "done" | "error";
@@ -24,6 +25,10 @@ export interface BuildState {
   /** Calls on the trace when the running refill started; its calls number on from here. */
   refillBase: number;
   refillError: string | null;
+  /** Why the act being refilled dropped out, until its replacement arrives. */
+  refillReason: UnavailableReason | null;
+  /** Replacements on the board, by act id: whose slot each took, and why. */
+  replaced: Record<string, Replacement>;
   /**
    * The board on screen when a fresh build was asked for. It stays up until the server
    * accepts the build; if the server refuses (a rate limit, a missing key) it comes back.
@@ -47,6 +52,8 @@ export const IDLE_BUILD: BuildState = {
   refilling: null,
   refillBase: 0,
   refillError: null,
+  refillReason: null,
+  replaced: {},
   kept: null,
   refusal: null,
 };
@@ -66,7 +73,7 @@ export type BuildAction =
   | { type: "event"; event: BuildEvent }
   | { type: "end" }
   | { type: "fail"; message: string }
-  | { type: "markUnavailable"; entityId: string }
+  | { type: "markUnavailable"; entityId: string; reason?: UnavailableReason }
   | { type: "refillEvent"; event: BuildEvent }
   | { type: "refillEnd" }
   | { type: "refillFail"; message: string };
@@ -97,11 +104,20 @@ function applyRefillEvent(state: BuildState, event: BuildEvent): BuildState {
         ...event.call,
         n: state.refillBase + event.call.n,
       });
-    case "refill":
+    case "refill": {
+      const gone = state.acts.find((act) => act.entityId === event.replaces);
       return {
         ...state,
         acts: replaceAct(state.acts, event.replaces, event.act),
+        replaced: {
+          ...state.replaced,
+          [event.act.entityId]: {
+            name: gone?.name ?? state.replaced[event.replaces]?.name ?? "",
+            reason: state.refillReason,
+          },
+        },
       };
+    }
     case "error":
       return { ...state, refillError: event.message };
     case "done":
@@ -147,6 +163,7 @@ export function buildReducer(
         refilling: action.entityId,
         refillBase: state.calls.length,
         refillError: null,
+        refillReason: action.reason ?? null,
       };
     case "refillEvent":
       return applyRefillEvent(state, action.event);

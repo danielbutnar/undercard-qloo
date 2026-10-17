@@ -20,6 +20,7 @@ import type { FirstBill } from "@/lib/first-bill";
 import type { Act } from "@/lib/lineup";
 import { roomsBehind } from "@/lib/rooms";
 import { townOf } from "@/lib/towns";
+import type { UnavailableReason } from "@/lib/unavailable";
 
 type Mode = "qloo" | "llm";
 
@@ -160,9 +161,9 @@ export function FestivalScreen({
     void build(request);
   }
 
-  function refill(act: Act) {
+  function refill(act: Act, reason: UnavailableReason) {
     setPrinting("refill");
-    void markUnavailable(act);
+    void markUnavailable(act, reason);
   }
 
   function onPrinted(entityId: string) {
@@ -183,7 +184,7 @@ export function FestivalScreen({
   function exportCsv() {
     downloadText(
       `${festival.id}-undercard.csv`,
-      lineupCsv(bookedActs, festival.feeBands),
+      lineupCsv(bookedActs, festival.feeBands, state.replaced),
       "text/csv;charset=utf-8",
     );
   }
@@ -285,7 +286,9 @@ export function FestivalScreen({
               onBuild={runBuild}
               buttonOnPhones={false}
             />
-            {!traceInUse && <TownSwitcher current={townOf(festival).slug} onShow={towns} />}
+            {!traceInUse && (
+              <TownSwitcher current={townOf(festival).slug} onShow={towns} />
+            )}
           </div>
         </main>
       )}

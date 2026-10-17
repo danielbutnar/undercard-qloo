@@ -7,9 +7,11 @@ import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 const { acts } = LineupSchema.parse(fixture);
 
 describe("lineupCsv", () => {
-  it("has the columns act, band, affinity, popularity, anchor_venue, reason", () => {
+  it("has the columns act, band, affinity, popularity, anchor_venue, reason, replaces, unavailable_reason", () => {
     const [header] = lineupCsv(acts, SAGEBRUSH_SOUND.feeBands).split("\r\n");
-    expect(header).toBe("act,band,affinity,popularity,anchor_venue,reason");
+    expect(header).toBe(
+      "act,band,affinity,popularity,anchor_venue,reason,replaces,unavailable_reason",
+    );
   });
 
   const rowsOf = (csv: string) => csv.trimEnd().split("\r\n").slice(1);
@@ -18,7 +20,7 @@ describe("lineupCsv", () => {
     const rows = rowsOf(lineupCsv(acts, SAGEBRUSH_SOUND.feeBands));
     expect(rows).toHaveLength(10);
     expect(rows[0]).toBe(
-      "Hollow Pines,Mid,0.94,0.91,The Lantern Room,The Lantern Room fans move it up 11 places.",
+      "Hollow Pines,Mid,0.94,0.91,The Lantern Room,The Lantern Room fans move it up 11 places.,,",
     );
   });
 
@@ -40,7 +42,7 @@ describe("lineupCsv", () => {
     };
     const [, row] = lineupCsv([act], SAGEBRUSH_SOUND.feeBands).split("\r\n");
     expect(row).toBe(
-      '"The ""Comma, Band""",Mid,0.94,0.91,The Lantern Room,"Line one\nline two"',
+      '"The ""Comma, Band""",Mid,0.94,0.91,The Lantern Room,"Line one\nline two",,',
     );
   });
 
