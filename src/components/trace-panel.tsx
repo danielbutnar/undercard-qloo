@@ -24,12 +24,28 @@ export const WATCH_BUTTON =
 
 // The newest call shows its parameters as it streams in; the rest fold behind a toggle so the
 // trace stays readable at 1440x810.
+/** One of the planner's lines, printed in the trace where it was said. */
+function PlannerLine({ text }: { text: string }) {
+  return (
+    <p className="text-label">
+      <span className="font-semibold">Agent: </span>
+      {text}
+    </p>
+  );
+}
+
 function CallRow({
   call,
   highlighted,
+  before = [],
+  after = [],
 }: {
   call: TraceCall;
   highlighted: boolean;
+  /** The planner's lines said before this call. */
+  before?: string[];
+  /** The planner's lines said after the last call. */
+  after?: string[];
 }) {
   const [expanded, setExpanded] = useState(false);
   const showParams = highlighted || expanded;
@@ -38,6 +54,13 @@ function CallRow({
     <li
       className={`border-l-4 py-2 pl-3 ${highlighted ? "border-accent" : "border-transparent"}`}
     >
+      {before.length > 0 && (
+        <div className="mb-1 flex flex-col gap-1">
+          {before.map((text, index) => (
+            <PlannerLine key={index} text={text} />
+          ))}
+        </div>
+      )}
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-label font-semibold wrap-anywhere">
           {call.n}. {call.summary}
@@ -77,6 +100,13 @@ function CallRow({
         </ul>
       )}
       {call.error && <p className="text-label text-danger">{call.error}</p>}
+      {after.length > 0 && (
+        <div className="mt-1 flex flex-col gap-1">
+          {after.map((text, index) => (
+            <PlannerLine key={index} text={text} />
+          ))}
+        </div>
+      )}
     </li>
   );
 }
@@ -246,10 +276,20 @@ export function TracePanel({
             aria-label="Qloo calls"
             className="flex max-h-[28rem] min-h-48 flex-col divide-y divide-muted/40 overflow-y-auto lg:max-h-[calc(100dvh-33rem)]"
           >
-            {state.calls.map((call) => (
+            {state.calls.map((call, index) => (
               <CallRow
                 key={call.n}
                 call={call}
+                before={state.notes
+                  .filter((note) => note.at === index)
+                  .map((note) => note.text)}
+                after={
+                  index === state.calls.length - 1
+                    ? state.notes
+                        .filter((note) => note.at > index)
+                        .map((note) => note.text)
+                    : []
+                }
                 highlighted={
                   call.n === state.latest &&
                   (building ||

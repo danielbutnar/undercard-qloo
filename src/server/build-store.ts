@@ -40,6 +40,13 @@ export const SavedBuildSchema = z.object({
   trace: z.array(TraceCallSchema),
   lineup: LineupSchema,
   context: BuildContextSchema,
+  /**
+   * The planner's lines, each with how many calls had come back when it was said, so a
+   * replay shows its decisions in order. Optional: builds saved before 2026-10-17 have none.
+   */
+  notes: z
+    .array(z.object({ at: z.number().int().nonnegative(), text: z.string() }))
+    .optional(),
 });
 
 export type BuildContext = z.infer<typeof BuildContextSchema>;

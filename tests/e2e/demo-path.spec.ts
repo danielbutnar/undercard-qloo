@@ -112,6 +112,8 @@ test.describe("demo path", () => {
     expect(callCount).toBeGreaterThanOrEqual(9);
     expect(callCount).toBeLessThanOrEqual(12);
     await expect(trace.getByLabel(/^\d+ results$/)).toHaveCount(callCount);
+    // The planner's own lines replay with the calls (builds saved since 2026-10-17 carry them).
+    await expect(trace.getByText(/^Agent:/).first()).toBeVisible();
 
     const venueRow = traceRows(page)
       .filter({ hasText: "artists for the headliners and" })

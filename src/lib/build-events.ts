@@ -24,7 +24,12 @@ export const BuildEventSchema = z.discriminatedUnion("type", [
     replayed: z.boolean(),
   }),
   z.object({ type: z.literal("call"), call: TraceCallSchema }),
-  z.object({ type: z.literal("status"), text: z.string() }),
+  /** A status line; planner: true marks the planning model's own words, saved with the build. */
+  z.object({
+    type: z.literal("status"),
+    text: z.string(),
+    planner: z.boolean().optional(),
+  }),
   z.object({ type: z.literal("lineup"), lineup: LineupSchema }),
   /** A refill's result: the act that takes the unavailable act's slot. */
   z.object({ type: z.literal("refill"), replaces: z.string(), act: ActSchema }),

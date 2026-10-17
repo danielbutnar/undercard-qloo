@@ -82,10 +82,18 @@ async function replay(saved: SavedBuild, emit: Emit, delayMs: number) {
     type: "status",
     text: `Replaying the saved build from ${savedAt.format(new Date(saved.createdAt))} UTC: no new Qloo or Claude calls.`,
   });
-  for (const call of saved.trace) {
+  // The planner's lines go out where they were said: before the call that followed them.
+  const notes = saved.notes ?? [];
+  const sayNotes = (at: (n: number) => boolean) => {
+    for (const note of notes)
+      if (at(note.at)) emit({ type: "status", text: note.text, planner: true });
+  };
+  for (const [index, call] of saved.trace.entries()) {
+    sayNotes((at) => at === index);
     await sleep(delayMs);
     emit({ type: "call", call: { ...call, cached: true } });
   }
+  sayNotes((at) => at >= saved.trace.length);
   emit({ type: "lineup", lineup: saved.lineup });
   emit({ type: "done", calls: saved.trace.length, ms: Date.now() - started });
 }
@@ -136,6 +144,7 @@ export async function handleUndercardBuild({
     const id = crypto.randomUUID();
     const createdAt = new Date().toISOString();
     const trace: TraceCall[] = [];
+    const notes: { at: number; text: string }[] = [];
     emit({ type: "build", id, createdAt, replayed: false });
     const result = await runUndercardAgent({
       festival,
@@ -143,6 +152,8 @@ export async function handleUndercardBuild({
       model: agentModel,
       emit: (event) => {
         if (event.type === "call") trace.push(event.call);
+        if (event.type === "status" && event.planner)
+          notes.push({ at: trace.length, text: event.text });
         emit(event);
       },
     });
@@ -155,6 +166,7 @@ export async function handleUndercardBuild({
         trace,
         lineup: result.lineup,
         context: result.context,
+        notes,
       });
     }
   });

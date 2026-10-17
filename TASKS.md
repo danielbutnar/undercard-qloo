@@ -4,7 +4,7 @@ Copied from SPEC.md section 6, M4d. Closes: Technological Implementation, Potent
 
 Approved for this run: these engine changes, and one fresh build on production through "Run the agent live instead". No other fresh build on production; the store's latest pointer is not touched by hand.
 
-- [ ] The planner's lines are saved with the build (an optional field, so the Oct 15 build still parses) and replayed in order
+- [x] The planner's lines are saved with the build (an optional field, so the Oct 15 build still parses) and replayed in order
 - [ ] Spike: the crowd's age reaches Qloo as signal.demographics.age (docs: 24_and_younger, 25_to_29, 30_to_34, 35_to_44, 45_to_54, 55_and_older; 25–34 is 25_to_29,30_to_34); kept if a build still fills 4 Mid and 6 Opener, otherwise the age leaves the screen
 - [ ] The LLM-only baseline runs at high effort with max_tokens matching the planner's, and its cached answer is regenerated
 - [ ] Deploy, then one fresh build on production through "Run the agent live instead"; stop if it's weaker than the Oct 15 build (a band not full, or fewer acts lifted by a room)

@@ -10,6 +10,8 @@ export interface BuildState {
   latest: number | null;
   /** The agent's latest status note. */
   note: string | null;
+  /** The planner's own lines, each with how many calls had come back when it was said. */
+  notes: { at: number; text: string }[];
   acts: Act[];
   error: string | null;
   summary: { calls: number; ms: number } | null;
@@ -36,6 +38,7 @@ export const IDLE_BUILD: BuildState = {
   calls: [],
   latest: null,
   note: null,
+  notes: [],
   acts: [],
   error: null,
   summary: null,
@@ -186,7 +189,13 @@ export function buildReducer(
         case "call":
           return withCall(state, event.call);
         case "status":
-          return { ...state, note: event.text };
+          return {
+            ...state,
+            note: event.text,
+            notes: event.planner
+              ? [...state.notes, { at: state.calls.length, text: event.text }]
+              : state.notes,
+          };
         case "lineup":
           return { ...state, acts: event.lineup.acts };
         case "refill":

@@ -173,6 +173,29 @@ export function syntheticSavedBuild(): SavedBuild {
       baselines: { mid: baseline("mid"), opener: baseline("opener") },
       anchors: { mid: [LANTERN, FORT, COTTONWOOD], opener: [LANTERN, FORT] },
     },
+    // Invented planner lines, placed by how many calls had come back when each was said.
+    notes: [
+      {
+        at: 0,
+        text: "Search both headliners and find the tag Qloo puts on live music venues.",
+      },
+      {
+        at: 3,
+        text: "List Boise's places with that tag, and compare what the two headliners' fans share.",
+      },
+      {
+        at: 5,
+        text: "Rank each band for the headliners alone, then add The Lantern Room and Fort Street Ballroom.",
+      },
+      {
+        at: 11,
+        text: "Try Cottonwood Social Hall for Mid as a third room.",
+      },
+      {
+        at: 12,
+        text: "Cottonwood Social Hall lifted no act; finish with the two rooms that did.",
+      },
+    ],
   };
 }
 

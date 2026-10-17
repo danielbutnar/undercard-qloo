@@ -122,7 +122,7 @@ export async function runUndercardAgent({
 
       for (const block of response.content) {
         if (block.type === "text" && block.text.trim())
-          emit({ type: "status", text: block.text.trim() });
+          emit({ type: "status", text: block.text.trim(), planner: true });
       }
       const toolUses = response.content.filter(
         (block): block is Anthropic.ToolUseBlock => block.type === "tool_use",

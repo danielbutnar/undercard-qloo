@@ -14,4 +14,3 @@ export interface FirstBill {
   /** Per band, how many acts the headliners-only ranking listed. */
   baselineTop: Partial<Record<FeeBandId, number>>;
 }
-
