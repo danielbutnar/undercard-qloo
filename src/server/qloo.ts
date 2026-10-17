@@ -225,12 +225,15 @@ export function createQlooClient({
       popularityMin,
       popularityMax,
       excludeEntityIds = [],
+      ages = [],
       take = 50,
     }: {
       signalEntityIds: string[];
       popularityMin: number;
       popularityMax: number;
       excludeEntityIds?: string[];
+      /** Qloo age buckets for signal.demographics.age, such as 25_to_29. */
+      ages?: readonly string[];
       take?: number;
     }) {
       const params: Record<string, string | number> = {
@@ -241,6 +244,7 @@ export function createQlooClient({
       };
       if (excludeEntityIds.length)
         params["filter.exclude.entities"] = excludeEntityIds.join(",");
+      if (ages.length) params["signal.demographics.age"] = ages.join(",");
       params.take = take;
       return get("/v2/insights", params, (body) =>
         InsightsBody.parse(body).results.entities.map(toEntity),

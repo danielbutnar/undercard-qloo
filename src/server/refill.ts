@@ -117,6 +117,8 @@ export async function handleRefill({
           popularityMin: band.minPopularity,
           popularityMax: band.maxPopularity,
           excludeEntityIds: excluded,
+          // The crowd the build asked for, so the lift compares like with like.
+          ages: context.ages,
         });
         artists = result.data;
         emit({
