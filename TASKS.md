@@ -226,6 +226,19 @@ Copied from SPEC.md section 6, M8c. Freeze: 2026-10-23. Done means: kept acts st
 - [x] Keep on the act card; Kept on the bill; Redraft the rest on the bill once an act is kept
 - [x] e2e on the live demo: three kept acts stay, the other slots change, 1 to 3 redraft calls in the trace
 
+# TASKS: M6r Plain words, round 2
+
+Copied from SPEC.md section 6, M6r. Closes: Design, Quality of the Idea. Deploy by 2026-10-18 22:00 Bucharest. Done means: plain words first with the buyer's term once in brackets; no "fee band" and no bare "+N"; the running order ranked, not "overlap", with a booker-pairs check; two lay readers and the buyer reader pass; deployed and the live e2e passes.
+
+- [x] "fee range" for "fee band" (none left on the page); "venue" for "room"; "lineup (the bill)" at first use; "AI agent" at first use on the first screen and Your festival (tests/unit/m6r)
+- [x] Qloo explained in the first line, above the fold at 390 wide: "a taste-data service that maps what fans of one artist, venue or film also like" (Qloo's hackathon kit says "taste-powered"; its devpost page returned 403)
+- [x] Every +N badge carries its words: "places higher in Qloo's ranking"; "new" reads "new to Qloo's top 50"
+- [x] Running order: each clash ranked among the lineup's pairs ("the 3rd closest of 21 pairs on this lineup"), "a measure of taste, not a count of shared ticket buyers"; raw affinities in the trace line; docs note in evidence section 15
+- [x] Booker-pairs check, bar and pairs fixed first (evidence section 17): 5 of 5 same-crowd pairs above every different-crowd pair: it stays in the demo path
+- [x] Deployed 2026-10-18 00:40 Bucharest; live e2e 44 passed, 7 skipped (no Qloo calls); E2E_LIVE_QLOO run 3 passed
+- [x] Lay readers C and D (fresh, M6q prompt plus the four terms, production shots of the final version): each says what the page does and explains fee range, a badge number, AI agent and Qloo. Still hard for them: the fee-range sentence and "percentile", "lifted" and "tested for" in the venue box, "build" and "calls", AI agent against AI model, act names that don't look clickable
+- [x] Buyer cold reader: "an AI agent for music festival bookers ... based on what fans of the town's music venues already like"; first click Watch how it picked these acts
+
 # TASKS: for the 26-27 October redo (not now)
 
 Moved 2026-10-18: the video and the gallery stills are re-shot on 26-27 October, after a UI freeze at the end of 25 October; 28 October is buffer. Protected windows (no deploys, no offline Qloo runs): Monday 19 October 09:00-21:00 and Tuesday 20 October 09:00-22:00 Bucharest. The live e2e makes no Qloo calls by default; the redraft, running-order and refill steps run with E2E_LIVE_QLOO=1 once after each deploy, outside those windows.
