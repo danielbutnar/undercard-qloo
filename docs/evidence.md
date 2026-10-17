@@ -369,6 +369,14 @@ Written on 2026-10-18, before either measurement. The rules don't change after t
 
 **Readers' result, 2026-10-18: pass.** The frames reader: "each venue's local crowd taste re-weights Qloo's ranking, which pushes some acts up the list". The end-state reader: the labelled acts "moved up Qloo's ranking once that venue's fans were counted", the number being "how many places the act climbed". The frames reader also caught the venues rail showing no lifts during the climb; the rail now steps aside while the climb plays.
 
+## 20. Town against town (M9b), written before the spike and the reader
+
+Written on 2026-10-18, before either measurement. The rules don't change after the results are in.
+
+**The spike.** Offline, from the 29 saved builds' replays (no Qloo calls): how many acts each town's lineup shares with Boise's. Go if a default pair exists where both marks show: some pair with Boise shares at least 1 act and differs in at least 3. The default pair is the first such town in the checked list's order. Counts per town are reported either way.
+
+**The reader.** A fresh cold reader, shown only a 1280x800 shot of the two towns side by side, passes if they say why the two lineups differ: the headliners and fee ranges are the same, and each lineup comes from what fans of that town's own venues like.
+
 ## What these numbers don't establish
 
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
