@@ -5,6 +5,7 @@ import { ActCardPanel } from "@/components/act-card-panel";
 import { DraftBill, type Printing } from "@/components/draft-bill";
 import { ModelBill } from "@/components/model-bill";
 import { RoomsRail } from "@/components/rooms-rail";
+import { TownSwitcher } from "@/components/town-switcher";
 import {
   TracePanel,
   WATCH_BUTTON,
@@ -18,6 +19,7 @@ import type { Festival } from "@/lib/festival";
 import type { FirstBill } from "@/lib/first-bill";
 import type { Act } from "@/lib/lineup";
 import { roomsBehind } from "@/lib/rooms";
+import { townOf } from "@/lib/towns";
 
 type Mode = "qloo" | "llm";
 
@@ -67,7 +69,7 @@ function ModeSwitch({
   );
 }
 
-function LlmOnlyNote() {
+function LlmOnlyNote({ city }: { city: string }) {
   return (
     <aside
       aria-label="The model alone"
@@ -79,12 +81,12 @@ function LlmOnlyNote() {
       <p className="text-label">
         The same brief went to Claude Sonnet 5.5 with no tools: the festival,
         its city, capacity and crowd, the headliners and the fee bands. It
-        answers from what it already knows, so no pick comes from a Boise
+        answers from what it already knows, so no pick comes from a {city}
         room&apos;s crowd, and with no popularity data no fee band can be
         checked.
       </p>
       <p className="text-label text-muted">
-        With Qloo brings back the agent&apos;s bill and its Boise rooms.
+        With Qloo brings back the agent&apos;s bill and its {city} rooms.
       </p>
     </aside>
   );
@@ -93,15 +95,19 @@ function LlmOnlyNote() {
 export function FestivalScreen({
   festival,
   firstBill = null,
+  towns = ["boise"],
 }: {
   festival: Festival;
   /** The latest saved build, read on the server; null falls back to the empty board. */
   firstBill?: FirstBill | null;
+  /** Towns with a saved build of the same brief, for the switcher; Boise alone hides it. */
+  towns?: readonly string[];
 }) {
   const { state, build, markUnavailable } = useUndercardBuild(
     firstBoard(firstBill),
+    festival.id,
   );
-  const llm = useLlmOnly();
+  const llm = useLlmOnly(festival.id);
   const [mode, setMode] = useState<Mode>("qloo");
   const [openId, setOpenId] = useState<string | null>(null);
   // A refill replaces the act, which closes its card; the replacement prints into the slot.
@@ -213,7 +219,7 @@ export function FestivalScreen({
             state={llm.state}
             onRetry={() => void llm.load()}
           />
-          <LlmOnlyNote />
+          <LlmOnlyNote city={festival.city} />
         </main>
       ) : (
         <main className="grid flex-1 grid-cols-1 gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_336px] lg:items-start lg:px-6">
@@ -260,6 +266,7 @@ export function FestivalScreen({
                 compact={traceInUse}
                 bands={festival.feeBands}
                 placesListed={placesListed}
+                city={festival.city}
               />
             )}
             {openAct && (
@@ -269,6 +276,7 @@ export function FestivalScreen({
                 disabled={state.refilling !== null || !state.build}
                 onUnavailable={refill}
                 onClose={() => setOpenId(null)}
+                city={festival.city}
               />
             )}
             <TracePanel
@@ -277,6 +285,7 @@ export function FestivalScreen({
               onBuild={runBuild}
               buttonOnPhones={false}
             />
+            {!traceInUse && <TownSwitcher current={townOf(festival).slug} onShow={towns} />}
           </div>
         </main>
       )}

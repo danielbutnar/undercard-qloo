@@ -10,7 +10,11 @@ import type { BuildRequest } from "./trace-panel";
  * Runs a build on POST /api/undercard and refills on POST /api/refill, folding both streams
  * of events into one board state.
  */
-export function useUndercardBuild(initial: BuildState = IDLE_BUILD) {
+/** Builds, replays and refills for one festival; every request names its festival id. */
+export function useUndercardBuild(
+  initial: BuildState = IDLE_BUILD,
+  festivalId?: string,
+) {
   const [state, dispatch] = useReducer(buildReducer, initial);
   const stateRef = useRef(state);
   const buildController = useRef<AbortController | null>(null);
@@ -33,7 +37,7 @@ export function useUndercardBuild(initial: BuildState = IDLE_BUILD) {
     try {
       await streamEvents(
         "/api/undercard",
-        { fresh: request.fresh ?? false },
+        { fresh: request.fresh ?? false, festival: festivalId },
         controller.signal,
         (event) => dispatch({ type: "event", event }),
       );
@@ -46,7 +50,7 @@ export function useUndercardBuild(initial: BuildState = IDLE_BUILD) {
         });
       }
     }
-  }, []);
+  }, [festivalId]);
 
   const markUnavailable = useCallback(async (act: Act) => {
     const current = stateRef.current;
@@ -58,6 +62,7 @@ export function useUndercardBuild(initial: BuildState = IDLE_BUILD) {
       await streamEvents(
         "/api/refill",
         {
+          festival: festivalId,
           buildId: current.build.id,
           unavailableId: act.entityId,
           band: act.band,
@@ -81,7 +86,7 @@ export function useUndercardBuild(initial: BuildState = IDLE_BUILD) {
         });
       }
     }
-  }, []);
+  }, [festivalId]);
 
   return { state, build, markUnavailable };
 }

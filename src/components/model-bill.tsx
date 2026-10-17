@@ -9,7 +9,7 @@ export interface LlmOnlyState {
 }
 
 // Black ink only: the model's own reason, then two plain facts. No score or tally.
-function Pick({ pick }: { pick: LlmOnlyPick }) {
+function Pick({ pick, city }: { pick: LlmOnlyPick; city: string }) {
   return (
     <article aria-label={pick.name} className="flex flex-col gap-1">
       <h3 className="font-display text-figure font-extrabold uppercase">
@@ -17,7 +17,7 @@ function Pick({ pick }: { pick: LlmOnlyPick }) {
       </h3>
       <p className="text-label">{pick.note}</p>
       <p className="text-label text-muted">
-        No Boise room · fee band not checked
+        No {city} room · fee band not checked
       </p>
     </article>
   );
@@ -78,7 +78,7 @@ export function ModelBill({
           <ol className="mt-2.5 grid w-full grid-cols-1 gap-x-8 gap-y-2 text-left sm:grid-cols-2 min-[87.5rem]:grid-cols-3">
             {state.lineup.picks.map((pick) => (
               <li key={pick.name}>
-                <Pick pick={pick} />
+                <Pick city={festival.city} pick={pick} />
               </li>
             ))}
           </ol>

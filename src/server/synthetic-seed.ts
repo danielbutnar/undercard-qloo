@@ -1,4 +1,5 @@
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
+import { TOWNS } from "@/lib/towns";
 import {
   syntheticLlmOnly,
   syntheticSavedBuild,
@@ -18,7 +19,20 @@ export async function seedSynthetic(
   cache: QlooCache,
   { savedBuild }: { savedBuild: boolean },
 ): Promise<void> {
-  if (savedBuild) await createBuildStore(cache).save(syntheticSavedBuild());
+  if (savedBuild) {
+    const store = createBuildStore(cache);
+    await store.save(syntheticSavedBuild());
+    // The same synthetic bill under each other town's id, so the town switcher has towns.
+    for (const town of TOWNS.slice(1)) {
+      const build = syntheticSavedBuild();
+      await store.save({
+        ...build,
+        id: `${build.id}-${town.slug}`,
+        festivalId: town.festival.id,
+        lineup: { ...build.lineup, festivalId: town.festival.id },
+      });
+    }
+  }
   const picks = syntheticLlmOnly().lineup.picks;
   await handleLlmOnly({
     festival: SAGEBRUSH_SOUND,
