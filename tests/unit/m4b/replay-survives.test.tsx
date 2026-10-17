@@ -5,6 +5,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { Activity } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -44,7 +45,9 @@ describe("a replay in flight", () => {
     );
     const { rerender } = render(screenIn("visible"));
     fireEvent.click(
-      screen.getByRole("button", { name: "Watch the agent build it" }),
+      within(
+        screen.getByRole("complementary", { name: "Qloo calls" }),
+      ).getByRole("button", { name: "Watch the agent build it" }),
     );
     rerender(screenIn("hidden"));
     rerender(screenIn("visible"));

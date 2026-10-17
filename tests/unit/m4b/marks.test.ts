@@ -56,7 +56,7 @@ describe("the mark under an act", () => {
           "Fort Street Ballroom",
         ),
       ),
-    ).toBe("FSB ▲7");
+    ).toBe("FSB +7");
     expect(markText(act("The Lantern Room fans move it into the top 8."))).toBe(
       "The Lantern Room new",
     );
@@ -85,7 +85,7 @@ describe("the key beside the first mark", () => {
 
   it("explains the first mark in words, with the room's full name", () => {
     const key = markKey(up, { acts: [up], top: 50 });
-    expect(key.example).toBe("The Lantern Room ▲11");
+    expect(key.example).toBe("The Lantern Room +11");
     expect(key.lines[0]).toBe(
       "Qloo ranks artists for the headliners' fans; adding The Lantern Room's crowd lifts this act 11 places.",
     );
@@ -107,7 +107,7 @@ describe("the key beside the first mark", () => {
       /^Qloo ranks artists for the headliners' fans; adding The Lantern Room's crowd brings this act in from outside the top 50\.$/,
     );
     expect(key.lines).toContain(
-      "▲ and a number: the places a room's crowd lifts an act.",
+      "+ and a number: the places a room's crowd lifts an act.",
     );
   });
 

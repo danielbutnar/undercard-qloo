@@ -32,12 +32,13 @@ export function roomShortName(name: string): string {
     : name;
 }
 
-/** The mark under an act on the bill, such as "FSB ▲7" or "The Lantern Room new". */
+/** The mark under an act on the bill, such as "FSB +7" or "The Lantern Room new". The display
+ * font carries +; it has no ▲ (which fell back to another face), and sets ↑ too small to read. */
 export function markText(act: Act): string {
   const room = roomShortName(act.anchorVenue.name);
   const lift = liftOf(act);
   if (!lift) return room;
-  return lift.kind === "up" ? `${room} ▲${lift.places}` : `${room} new`;
+  return lift.kind === "up" ? `${room} +${lift.places}` : `${room} new`;
 }
 
 const outsideTop = (top?: number) =>
@@ -82,7 +83,7 @@ export function markKey(
       `${RANKING}; adding ${room}'s crowd brings this act in from outside the ${theTop(top)}.`,
     );
     if (others.some((other) => other?.kind === "up"))
-      lines.push("▲ and a number: the places a room's crowd lifts an act.");
+      lines.push("+ and a number: the places a room's crowd lifts an act.");
   }
   lines.push(QLOO);
   return { example: markText(first), lines };

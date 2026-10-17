@@ -54,7 +54,10 @@ const printStarts = (article: Element) =>
 
 async function watch() {
   fireEvent.click(
-    screen.getByRole("button", { name: "Watch the agent build it" }),
+    within(screen.getByRole("complementary", { name: "Qloo calls" })).getByRole(
+      "button",
+      { name: "Watch the agent build it" },
+    ),
   );
   await waitFor(() => expect(acts()).toHaveLength(10));
 }

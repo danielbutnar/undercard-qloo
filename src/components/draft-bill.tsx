@@ -180,8 +180,8 @@ function BandTier({
           {band.label}
         </h2>
         <p className="text-label text-muted">
-          {band.slots} slots · fee band set by Qloo&apos;s popularity
-          percentile: {formatBandRange(band)}
+          {band.slots} slots · the buyer&apos;s fee band, in Qloo popularity
+          percentiles: {formatBandRange(band)}
         </p>
       </div>
       <ol className="mt-2.5 flex flex-wrap items-start justify-center gap-x-7 gap-y-3">
@@ -286,6 +286,8 @@ export function DraftBill({
   onOpen,
   printing = null,
   onPrinted,
+  phoneAction,
+  drafting = false,
 }: {
   festival: Festival;
   acts: readonly Act[];
@@ -302,6 +304,10 @@ export function DraftBill({
   printing?: Printing;
   /** Called as each act's print-in starts, so the rooms' counts can tick up with it. */
   onPrinted?: (entityId: string) => void;
+  /** Shown under the headliners on phones only, where the rail sits below the whole bill. */
+  phoneAction?: ReactNode;
+  /** A build is streaming; the footer says the agent is drafting. */
+  drafting?: boolean;
 }) {
   const billed = festival.feeBands.flatMap((band) =>
     acts.filter((act) => act.band === band.id),
@@ -322,6 +328,9 @@ export function DraftBill({
           acts.length > 0 &&
           " Click an act to open its card, where you can mark it unavailable."}
       </BillHeader>
+      {phoneAction && (
+        <div className="mt-3 w-full lg:hidden">{phoneAction}</div>
+      )}
       {festival.feeBands.map((band) => (
         <BandTier
           key={band.id}
@@ -340,7 +349,9 @@ export function DraftBill({
       <p className="mt-auto w-full border-t border-rule pt-2.5 text-label text-muted">
         {calls && createdAt
           ? `Drafted by the agent from ${calls} Qloo calls · saved ${formatSavedAt(createdAt)} UTC`
-          : "The agent is drafting the undercard."}
+          : drafting
+            ? "The agent is drafting the undercard."
+            : "No undercard drafted yet."}
       </p>
     </section>
   );

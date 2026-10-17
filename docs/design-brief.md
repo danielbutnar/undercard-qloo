@@ -68,17 +68,17 @@ Redrawn on 2026-10-17 from the approved draft-bill mockup, for M4b. Tokens and t
 | |               KHRUANGBIN · JAPANESE BREAKFAST                     48px  |  | live-music places;  |
 | |        Headliners booked. The agent drafted the undercard below.  16px  |  | the agent tested 3. |
 | | ----------------------------------------------------------------------- |  | A room is a crowd   |
-| |  MID  4 slots · fee band set by Qloo's popularity percentile: 80th–92nd |  | here, not a stage.  |
+| |  MID  4 slots · the buyer's fee band, in Qloo popularity percentiles: 80th–92nd |  | here, not a stage.  |
 | |                                                                         |  |                     |
-| |     HOLLOW PINES   36px   | [The Lantern Room ▲11] Qloo ranks artists   |  | The Lantern Room  7 |
-| |  [The Lantern Room ▲11]   | by how much the headliners' fans like them. |  | lifted 7 acts  48px |
+| |     HOLLOW PINES   36px   | [The Lantern Room +11] Qloo ranks artists   |  | The Lantern Room  7 |
+| |  [The Lantern Room +11]   | by how much the headliners' fans like them. |  | lifted 7 acts  48px |
 | |          [Q] 22px         | Adding The Lantern Room's crowd moves this  |  | Fort Street       3 |
 | |                           | act up 11 places. Qloo: data on what people |  | Ballroom (FSB)      |
 | |                           | like, across music, places and more.  16px  |  | Cottonwood Social 0 |
 | |   MARISOL VEY        THE DITCH RIDERS        KESTREL & BLOOM            |  | Hall: lifted none   |
-| |    [FSB ▲7]       [The Lantern Room ▲26]  [The Lantern Room ▲9]         |  +---------------------+
+| |    [FSB +7]       [The Lantern Room +26]  [The Lantern Room +9]         |  +---------------------+
 | | ----------------------------------------------------------------------- |  [ WATCH THE AGENT     ]
-| |  OPENER  6 slots · fee band set by Qloo's popularity percentile: 55th–80th  [ BUILD IT       28px ]
+| |  OPENER  6 slots · the buyer's fee band, in Qloo popularity percentiles: 55th–80th  [ BUILD IT       28px ]
 | |    JUNIPER STATIC    OWYHEE DRIFT    SALTGRASS    TEDDY ARCANA    28px  |  Replays the saved build:
 | |         LOW BENCH CHOIR [The Lantern Room new]    CASS WREN             |  12 Qloo calls, then the
 | | ----------------------------------------------------------------------- |  bill reprints.
@@ -88,7 +88,7 @@ Redrawn on 2026-10-17 from the approved draft-bill mockup, for M4b. Tokens and t
 ```
 
 - **The bill** is the sheet from the Poster, now the board. Fact line 16px, red stamp 22px, festival 36px, headliners 48px on one line, band names 22px, Mid act names 36px, Opener act names 28px, all Big Shoulders 800. Each band stays a region of `<article>`s, so the tests' selectors hold.
-- **The mark** under each act: the room's short name (its initials when the name has three or more words, the full name otherwise) and the places it gained, "▲11", in 22px blue Big Shoulders inside a 2px blue rule. An act that was outside the headliners-only top 50 reads "new" instead of a count. The places come from the act's Why Boise line, so the build saved on Oct 15 needs no new field.
+- **The mark** under each act: the room's short name (its initials when the name has three or more words, the full name otherwise) and the places it gained, "+11", in 22px blue Big Shoulders (the face has no ▲, and its ↑ sets too small to read) inside a 2px blue rule. An act that was outside the headliners-only top 50 reads "new" instead of a count. The places come from the act's Why Boise line, so the build saved on Oct 15 needs no new field.
 - **The key** sits beside the first Mid act, the two on a row of their own, in 16px Libre Franklin: what the first mark means, what "new" means when an act on the bill carries it, and what Qloo is (what people like, across music, places and more). It stays in that slot while the act is refilled, so nothing jumps.
 - **Each act is a button:** a pointer, an underline on hover and on keyboard focus, and the act's name as its accessible name. No hover-scale (B7).
 - **The rooms rail** counts what each tested room lifted, a 48px blue number per room and a muted 0 for a room that lifted none, and says the rooms are crowds, not stages. While the trace is in use (streaming, listing calls, refilling or showing a refusal) it compacts to names and 28px counts, so the trace stays in frame at 810 tall.
@@ -109,17 +109,17 @@ Redrawn on 2026-10-17 from the approved draft-bill mockup, for M4b. Tokens and t
 +---------------------------------+
 ```
 
-**Step 3: open an act.** A click on an act opens its card at the top of the rail, in place of the rooms: the existing act card with the name, Qloo affinity and popularity `[Q]` (36px on a Mid card, 28px on an Opener card), the Why Boise line, two shared tags and "Unavailable". "Close" brings the rooms back. On a phone the card opens under the bill and takes focus.
+**Step 3: open an act.** A click on an act opens its card at the top of the rail, in place of the rooms: the existing act card with the name, Qloo affinity and popularity `[Q]` (36px on a Mid card, 28px on an Opener card), the Why Boise line, two shared tags and "Unavailable". "Close", inside the card beside the name, brings the rooms back. On a phone the card opens under the bill and takes focus.
 
 **Step 4: "Unavailable".** The card and the act on the bill take the red "Unavailable" stamp and muted ink. `[Q]` The refill call joins the trace with the blue rule, and the replacement prints into the same slot with its mark; the card closes.
 
 **Step 5: "Without Qloo: the model's picks".** The sheet reprints with the model's ten picks under the same headliners, in black ink only, three across at 1400px and wider, two below. A red "No Qloo data" stamp replaces the draft stamp. Each pick shows its name (28px), the model's own reason (16px), and two plain facts: "No Boise room · fee band not checked". There is no score or tally. The rail says what the model got (the same brief, no tools) in place of the rooms and the trace. "With Qloo: the agent's bill" brings back the blue, and "Export CSV" in the bar downloads the agent's bill.
 
-**No saved build, or the store can't be reached.** Today's empty board loads instead, never an error: the festival block with the 72px headliners, ten dashed "Open slot" boxes in Mid and Opener, and the trace panel with "Build undercard". Once a build starts, the screen becomes the bill.
+**No saved build, or the store can't be reached.** The bill loads in its own design, never an error: the festival, the headliners and both tiers with their slots open in dashed outlines, "No undercard drafted yet." in the footer, and "Build undercard" in the rail (and under the headliners on a phone). The rooms rail waits for rooms to count. Once a build starts, the trace streams and the acts print in.
 
 **1280x800 (a judge's laptop):** the same layout; the bill fills the left column and the rail stays 336px.
 
-**Mobile (390 wide):** one column. The bar wraps (the wordmark, then the switch and Export CSV), then the bill with its acts centred and the key under the first act, then the rooms, the Watch button and the trace. An opened card sits under the bill and takes focus.
+**Mobile (390 wide):** one column. The bar wraps (the wordmark, then the switch and Export CSV), then the bill: "Watch the agent build it" sits right under the headliners on phones only (the rail's copy shows from 1024px up), then the tiers with the key under the first act, then the rooms and the trace. An opened card sits under the bill and takes focus.
 
 ## 6. Avoided, and what instead
 

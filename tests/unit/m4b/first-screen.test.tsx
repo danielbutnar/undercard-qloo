@@ -23,12 +23,14 @@ describe("the first screen", () => {
     expect(screen.queryByText("Open slot")).toBeNull();
   });
 
-  it("falls back to today's empty board and Build undercard when no build is saved", () => {
+  it("falls back to the bill with open slots and Build undercard when no build is saved", () => {
     render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={null} />);
     expect(screen.queryAllByRole("article")).toHaveLength(0);
     expect(screen.getAllByText("Open slot")).toHaveLength(10);
     expect(
-      screen.getByRole("button", { name: "Build undercard" }),
+      within(
+        screen.getByRole("complementary", { name: "Qloo calls" }),
+      ).getByRole("button", { name: "Build undercard" }),
     ).toBeTruthy();
   });
 
@@ -66,7 +68,9 @@ describe("the first screen", () => {
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
     );
     fireEvent.click(
-      screen.getByRole("button", { name: "Watch the agent build it" }),
+      within(
+        screen.getByRole("complementary", { name: "Qloo calls" }),
+      ).getByRole("button", { name: "Watch the agent build it" }),
     );
     expect(
       screen.getByRole("region", { name: "Undercard draft" }),

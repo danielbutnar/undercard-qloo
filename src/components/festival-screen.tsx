@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { ActCardPanel } from "@/components/act-card-panel";
 import { DraftBill, type Printing } from "@/components/draft-bill";
-import { FestivalHeader } from "@/components/festival-header";
-import { LineupBoard } from "@/components/lineup-board";
 import { ModelBill } from "@/components/model-bill";
 import { RoomsRail } from "@/components/rooms-rail";
-import { TracePanel, type BuildRequest } from "@/components/trace-panel";
+import {
+  TracePanel,
+  WATCH_BUTTON,
+  type BuildRequest,
+} from "@/components/trace-panel";
 import { useLlmOnly } from "@/components/use-llm-only";
 import { useUndercardBuild } from "@/components/use-undercard-build";
 import { firstBoard } from "@/lib/build-state";
@@ -107,10 +109,6 @@ export function FestivalScreen({
   const bookedActs = state.acts.filter(
     (act) => !state.unavailable.includes(act.entityId),
   );
-  // The bill once there is a build to show: the saved one (also while its replay starts), or
-  // one streaming in now.
-  const onBill =
-    firstBill !== null || state.build !== null || state.acts.length > 0;
   const calls = state.summary?.calls ?? firstBill?.calls;
   // A replay streams the venue search again; until then, the server read's count.
   const placesListed =
@@ -217,7 +215,7 @@ export function FestivalScreen({
           />
           <LlmOnlyNote />
         </main>
-      ) : onBill ? (
+      ) : (
         <main className="grid flex-1 grid-cols-1 gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_336px] lg:items-start lg:px-6">
           <DraftBill
             festival={festival}
@@ -230,9 +228,33 @@ export function FestivalScreen({
             onOpen={(act) => setOpenId(act.entityId)}
             printing={printing}
             onPrinted={onPrinted}
+            drafting={state.status === "building"}
+            phoneAction={
+              <div className="flex flex-col items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => runBuild()}
+                  disabled={
+                    state.status === "building" || state.refilling !== null
+                  }
+                  className={WATCH_BUTTON}
+                >
+                  {state.status === "building"
+                    ? "Building…"
+                    : state.build
+                      ? "Watch the agent build it"
+                      : "Build undercard"}
+                </button>
+                <p className="text-label text-muted">
+                  {state.build
+                    ? "Replays the saved build's Qloo calls; they list under the bill."
+                    : "Runs the agent; its Qloo calls list under the bill."}
+                </p>
+              </div>
+            }
           />
           <div className="flex flex-col gap-4">
-            {!openAct && (
+            {!openAct && rooms.length > 0 && (
               <RoomsRail
                 rooms={rooms}
                 compact={traceInUse}
@@ -253,24 +275,9 @@ export function FestivalScreen({
               state={state}
               savedCalls={firstBill?.calls}
               onBuild={runBuild}
+              buttonOnPhones={false}
             />
           </div>
-        </main>
-      ) : (
-        <main className="grid flex-1 grid-cols-1 content-start gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-6">
-          <FestivalHeader festival={festival} />
-          <div className="lg:row-span-2">
-            <TracePanel state={state} onBuild={runBuild} />
-          </div>
-          <section aria-label="Lineup board">
-            <LineupBoard
-              bands={festival.feeBands}
-              acts={state.acts}
-              unavailable={state.unavailable}
-              refilling={state.refilling}
-              onUnavailable={state.build ? refill : undefined}
-            />
-          </section>
         </main>
       )}
     </div>

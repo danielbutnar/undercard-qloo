@@ -34,21 +34,14 @@ export function ActCardPanel({
       ref={ref}
       tabIndex={-1}
       aria-label="Act card"
-      className="flex flex-col gap-2 outline-none"
+      className="outline-none"
     >
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="Close the card"
-        className="self-end text-label text-ink underline underline-offset-2 hover:text-accent"
-      >
-        Close
-      </button>
       <ActCard
         act={act}
         unavailable={unavailable}
         disabled={disabled}
         onUnavailable={onUnavailable}
+        onClose={onClose}
       />
     </section>
   );

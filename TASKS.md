@@ -8,12 +8,12 @@ Approved for this run: pushing redesign-first-screen and main (merged without sq
 - [x] UNDERCARD_E2E_SYNTHETIC isn't set on Vercel: the live page serves the real Oct 15 build, no synthetic names (no variable changed)
 - [x] Live e2e passes with no fresh agent run against production: 30 passed; the LCP spec failed at 3,644 ms only while it ran beside three workers
 - [x] LCP of the live first screen at 1280x800: 780, 696 and 688 ms, measured alone
-- [ ] The fee band says the buyer sets it and Qloo supplies the popularity percentile
-- [ ] The mark's ▲ comes from a font the page loads, or the mark uses text the fonts carry
-- [ ] The card's Close sits inside the card
-- [ ] At 390 px, Watch the agent build it sits under the headliners
-- [ ] The display font's loading checked (subset, preload, display); changed only if small and safe
-- [ ] If there's time: the fallback screen in the bill's design, still with Build undercard
+- [x] The fee band says the buyer sets it and Qloo supplies the popularity percentile
+- [x] The mark's ▲ comes from a font the page loads, or the mark uses text the fonts carry: now +, which Big Shoulders carries at full weight (it has no ▲, and its ↑ sets too small to read)
+- [x] The card's Close sits inside the card
+- [x] At 390 px, Watch the agent build it sits under the headliners
+- [x] The display font's loading checked: latin subset, preloaded, display swap already; the one lever left (dropping the opsz axis) changes the type, so no change
+- [x] If there's time: the fallback screen in the bill's design, still with Build undercard
 - [ ] Deploy, live e2e again, a fresh cold reader (low effort) on the live 1280x800 shot
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
