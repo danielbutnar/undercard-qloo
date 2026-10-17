@@ -2,6 +2,7 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { FestivalScreen } from "@/components/festival-screen";
+import { PresaleSparkline } from "@/components/presale-sparkline";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 
 afterEach(cleanup);
@@ -33,8 +34,14 @@ describe("FestivalScreen for Sagebrush Sound", () => {
     expect(screen.getByRole("region", { name: /^Opener/ })).toBeTruthy();
   });
 
+  // Presale left the first screen in M4b; the component stays.
   it("draws the 30-day presale sparkline with tickets sold", () => {
-    render(<FestivalScreen festival={SAGEBRUSH_SOUND} />);
+    render(
+      <PresaleSparkline
+        presale={SAGEBRUSH_SOUND.presale}
+        capacity={SAGEBRUSH_SOUND.capacity}
+      />,
+    );
     const sparkline = screen.getByRole("img", {
       name: /Presale over the last 30 days/,
     });
@@ -46,7 +53,12 @@ describe("FestivalScreen for Sagebrush Sound", () => {
   });
 
   it("keeps a table of the daily presale counts for screen readers", () => {
-    render(<FestivalScreen festival={SAGEBRUSH_SOUND} />);
+    render(
+      <PresaleSparkline
+        presale={SAGEBRUSH_SOUND.presale}
+        capacity={SAGEBRUSH_SOUND.capacity}
+      />,
+    );
     const table = screen.getByRole("table", { name: /Presale by day/ });
     expect(within(table).getAllByRole("row")).toHaveLength(31);
   });

@@ -26,6 +26,17 @@ describe("the first screen", () => {
     ).toBeTruthy();
   });
 
+  it("leaves presale off the first screen, with or without a saved bill", () => {
+    for (const firstBill of [FIRST_BILL, null]) {
+      render(
+        <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={firstBill} />,
+      );
+      expect(screen.queryByRole("img", { name: /Presale/ })).toBeNull();
+      expect(screen.queryByText(/sold of/)).toBeNull();
+      cleanup();
+    }
+  });
+
   it("starts the board from the saved build, so a refill can name it", () => {
     expect(firstBoard(null)).toEqual(IDLE_BUILD);
     expect(firstBoard(FIRST_BILL)).toEqual({

@@ -5,7 +5,6 @@ import { FestivalHeader } from "@/components/festival-header";
 import { LineupBoard } from "@/components/lineup-board";
 import { LlmOnlyBoard } from "@/components/llm-only-board";
 import { Poster } from "@/components/poster";
-import { PresaleSparkline } from "@/components/presale-sparkline";
 import { TracePanel } from "@/components/trace-panel";
 import { useLlmOnly } from "@/components/use-llm-only";
 import { useUndercardBuild } from "@/components/use-undercard-build";
@@ -150,10 +149,6 @@ export function FestivalScreen({
           <FestivalHeader
             festival={festival}
             compact={state.status !== "idle" || mode === "llm"}
-          />
-          <PresaleSparkline
-            presale={festival.presale}
-            capacity={festival.capacity}
           />
           {mode === "qloo" ? (
             <TracePanel state={state} onBuild={build} />
