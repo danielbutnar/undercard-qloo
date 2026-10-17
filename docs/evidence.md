@@ -200,6 +200,18 @@ The production build of 17 October 2026 matched Boise's row above: Venue 418 8, 
 
 **Verdict: go.** Each of the three resolves correctly with one extra call, and the four demo towns keep today's places with none. The extra call counts against the build's 12, so the cap stays true.
 
+## 12. Re-measure of Your festival's towns (M6j), written before the runs
+
+Written on 2026-10-17, after the M6j build was committed and before any of these runs. The towns and the bar below don't change after the results are in.
+
+**The towns.** The 10 US towns the M6f spike meant to test, each with its state: Chicago, Illinois; Seattle, Washington; Minneapolis, Minnesota; Kansas City, Missouri; Richmond, Virginia; Asheville, North Carolina; Missoula, Montana; Burlington, Vermont; Bozeman, Montana; Duluth, Minnesota.
+
+**The method.** `scripts/robustness.ts`, one run per town, one town at a time, with the demo's brief and the M6j resolution: the plain name, then "town, state" when its places miss the state. No build is saved. A run that meets Qloo's rate limit is redone.
+
+**The bar.** Free-text towns stay in Your festival only if at least 8 of these 10 fill both bands within 12 Qloo calls. Otherwise free text is removed, and Your festival offers only the checked towns (M6k).
+
+**For the outreach table, not counted in the bar:** Brighton, England; Wrexham, Wales; Cluj-Napoca, Romania; and Burlington, Vermont, from the run above.
+
 ## What these numbers don't establish
 
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
