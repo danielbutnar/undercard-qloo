@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef } from "react";
-import { buildReducer, IDLE_BUILD } from "@/lib/build-state";
+import { buildReducer, IDLE_BUILD, type BuildState } from "@/lib/build-state";
 import type { Act } from "@/lib/lineup";
 import { streamEvents } from "./stream-events";
 import type { BuildRequest } from "./trace-panel";
@@ -10,8 +10,8 @@ import type { BuildRequest } from "./trace-panel";
  * Runs a build on POST /api/undercard and refills on POST /api/refill, folding both streams
  * of events into one board state.
  */
-export function useUndercardBuild() {
-  const [state, dispatch] = useReducer(buildReducer, IDLE_BUILD);
+export function useUndercardBuild(initial: BuildState = IDLE_BUILD) {
+  const [state, dispatch] = useReducer(buildReducer, initial);
   const stateRef = useRef(state);
   const buildController = useRef<AbortController | null>(null);
   const refillController = useRef<AbortController | null>(null);

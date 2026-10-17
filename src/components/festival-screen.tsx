@@ -9,8 +9,10 @@ import { PresaleSparkline } from "@/components/presale-sparkline";
 import { TracePanel } from "@/components/trace-panel";
 import { useLlmOnly } from "@/components/use-llm-only";
 import { useUndercardBuild } from "@/components/use-undercard-build";
+import { firstBoard } from "@/lib/build-state";
 import { lineupCsv } from "@/lib/csv";
 import type { Festival } from "@/lib/festival";
+import type { FirstBill } from "@/lib/first-bill";
 
 type Mode = "qloo" | "llm";
 
@@ -79,8 +81,17 @@ function LlmOnlyNote() {
   );
 }
 
-export function FestivalScreen({ festival }: { festival: Festival }) {
-  const { state, build, markUnavailable } = useUndercardBuild();
+export function FestivalScreen({
+  festival,
+  firstBill = null,
+}: {
+  festival: Festival;
+  /** The latest saved build, read on the server; null falls back to the empty board. */
+  firstBill?: FirstBill | null;
+}) {
+  const { state, build, markUnavailable } = useUndercardBuild(
+    firstBoard(firstBill),
+  );
   const llm = useLlmOnly();
   const [mode, setMode] = useState<Mode>("qloo");
   const [view, setView] = useState<"board" | "poster">("board");
