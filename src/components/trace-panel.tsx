@@ -119,12 +119,12 @@ export function TracePanel({
       aria-label="Qloo calls"
       className="flex flex-col border-2 border-rule bg-surface"
     >
-      <div className="border-b-2 border-rule p-4">
+      <div className="border-b-2 border-rule p-3">
         <button
           type="button"
           onClick={() => onBuild()}
           disabled={busy}
-          className="w-full rounded-sm border-2 border-accent bg-accent px-4 py-2 font-display text-figure font-extrabold uppercase text-on-accent hover:border-ink hover:bg-ink disabled:cursor-wait disabled:border-muted disabled:bg-surface disabled:text-muted"
+          className="w-full rounded-sm border-2 border-accent bg-accent px-2 py-2 font-display text-figure font-extrabold uppercase text-on-accent hover:border-ink hover:bg-ink disabled:cursor-wait disabled:border-muted disabled:bg-surface disabled:text-muted"
         >
           {building
             ? "Building…"
@@ -235,7 +235,7 @@ export function TracePanel({
           <ol
             ref={listRef}
             aria-label="Qloo calls"
-            className="flex max-h-[28rem] min-h-48 flex-col divide-y divide-muted/40 overflow-y-auto lg:max-h-[calc(100dvh-30rem)]"
+            className="flex max-h-[28rem] min-h-48 flex-col divide-y divide-muted/40 overflow-y-auto lg:max-h-[calc(100dvh-33rem)]"
           >
             {state.calls.map((call) => (
               <CallRow

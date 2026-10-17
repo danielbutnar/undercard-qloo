@@ -75,7 +75,7 @@ export function ModelBill({
           </div>
         )}
         {state.lineup && (
-          <ol className="mt-2.5 grid w-full grid-cols-1 gap-x-8 gap-y-3 text-left sm:grid-cols-2">
+          <ol className="mt-2.5 grid w-full grid-cols-1 gap-x-8 gap-y-2 text-left sm:grid-cols-2 min-[87.5rem]:grid-cols-3">
             {state.lineup.picks.map((pick) => (
               <li key={pick.name}>
                 <Pick pick={pick} />

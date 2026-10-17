@@ -190,7 +190,7 @@ function BandTier({
             key={act?.entityId ?? `open-${index}`}
             className={
               act && act === keyed?.act
-                ? "flex flex-wrap items-center justify-center gap-x-6 gap-y-3"
+                ? "flex w-full flex-wrap items-center justify-center gap-x-6 gap-y-3"
                 : undefined
             }
           >
@@ -308,9 +308,8 @@ export function DraftBill({
   );
   const order = new Map(billed.map((act, index) => [act.entityId, index]));
   // The key sits beside the first mark on the bill, in billing order.
-  const firstMarked = billed.find(
-    (act) => !unavailable.includes(act.entityId) && liftOf(act),
-  );
+  // It stays there while that act is refilled, so nothing on the bill jumps.
+  const firstMarked = billed.find((act) => liftOf(act));
   const keyed = firstMarked && {
     act: firstMarked,
     ...markKey(firstMarked, { acts, top: top[firstMarked.band] }),
@@ -320,6 +319,7 @@ export function DraftBill({
       <BillHeader festival={festival} stamp="Undercard draft · not announced">
         Headliners booked.
         {onOpen &&
+          acts.length > 0 &&
           " Click an act to open its card, where you can mark it unavailable."}
       </BillHeader>
       {festival.feeBands.map((band) => (

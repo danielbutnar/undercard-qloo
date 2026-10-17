@@ -115,6 +115,16 @@ describe("the draft bill", () => {
     );
   });
 
+  it("keeps the key in the first slot while that act is refilled, so nothing jumps", () => {
+    bill({ unavailable: [acts[0].entityId] });
+    const firstSlot = within(
+      screen.getByRole("region", { name: "Mid" }),
+    ).getAllByRole("listitem")[0];
+    expect(
+      within(firstSlot).getByRole("note", { name: "How to read the marks" }),
+    ).toBeTruthy();
+  });
+
   it("says how many Qloo calls drafted it and when the build was saved", () => {
     bill();
     expect(

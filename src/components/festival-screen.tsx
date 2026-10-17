@@ -140,6 +140,15 @@ export function FestivalScreen({
       : room,
   );
 
+  // While the trace lists calls, streams or reports a problem, the rooms compact so it stays
+  // in view.
+  const traceInUse =
+    state.status !== "idle" ||
+    state.calls.length > 0 ||
+    state.refusal !== null ||
+    state.refilling !== null ||
+    state.refillError !== null;
+
   function runBuild(request: BuildRequest = {}) {
     setPrinting("run");
     // A fresh run may be refused and keep the bill on screen, so only a replay ticks.
@@ -200,7 +209,7 @@ export function FestivalScreen({
         </div>
       </header>
       {mode === "llm" ? (
-        <main className="grid flex-1 grid-cols-1 gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:px-6">
+        <main className="grid flex-1 grid-cols-1 gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_336px] lg:px-6">
           <ModelBill
             festival={festival}
             state={llm.state}
@@ -209,7 +218,7 @@ export function FestivalScreen({
           <LlmOnlyNote />
         </main>
       ) : onBill ? (
-        <main className="grid flex-1 grid-cols-1 gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:px-6">
+        <main className="grid flex-1 grid-cols-1 gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_336px] lg:items-start lg:px-6">
           <DraftBill
             festival={festival}
             acts={state.acts}
@@ -226,6 +235,7 @@ export function FestivalScreen({
             {!openAct && (
               <RoomsRail
                 rooms={rooms}
+                compact={traceInUse}
                 bands={festival.feeBands}
                 placesListed={placesListed}
               />

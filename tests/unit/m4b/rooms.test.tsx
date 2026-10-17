@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { FestivalScreen } from "@/components/festival-screen";
 import { roomsBehind } from "@/lib/rooms";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
@@ -69,6 +75,26 @@ describe("the rooms rail", () => {
       "Fort Street Ballroom3 acts liftedFSB · tested for Mid and Opener",
       "Cottonwood Social Hall0 lifted noneCSH · tested for Mid",
     ]);
+  });
+
+  it("compacts to names and counts while the trace is in use, so the trace stays in view", () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => new Promise<Response>(() => {})),
+    );
+    render(
+      <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Watch the agent build it" }),
+    );
+    const compact = screen.getByRole("region", {
+      name: "Boise crowds behind this bill",
+    });
+    expect(within(compact).queryByText(/not a stage/)).toBeNull();
+    expect(within(compact).queryByText(/tested for/)).toBeNull();
+    expect(within(compact).getAllByRole("listitem")).toHaveLength(3);
+    vi.unstubAllGlobals();
   });
 
   it("makes way for an open act's card", () => {
