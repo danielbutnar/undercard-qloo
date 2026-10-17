@@ -176,3 +176,46 @@ test.describe("Your festival", () => {
     ).toHaveAttribute("href", "/");
   });
 });
+
+test.describe("Your festival's checked towns (M6k)", () => {
+  test("open first, and one click drafts a town with the headliners in the form", async ({
+    page,
+  }) => {
+    const saved = syntheticSavedBuild();
+    const bodies = await answerBuilds(page, [
+      {
+        type: "build",
+        id: "yours-e2e",
+        createdAt: saved.createdAt,
+        replayed: false,
+      },
+      ...saved.trace.map((call) => ({ type: "call", call })),
+      { type: "lineup", lineup: { ...saved.lineup, festivalId: "yours-e2e" } },
+      { type: "done", calls: saved.trace.length, ms: 1500 },
+    ]);
+    await page.goto("/your-festival");
+    const towns = page.getByRole("list", {
+      name: "Towns Undercard has already read",
+    });
+    await expect(
+      towns.getByRole("button", { name: "Boise, Idaho, United States" }),
+    ).toBeVisible();
+    await towns.getByRole("button", { name: "Tallinn, Estonia" }).click();
+    await expect(
+      page
+        .getByRole("region", { name: "Undercard draft" })
+        .getByRole("article"),
+    ).toHaveCount(10);
+    await expect(
+      page.getByText(/^Tallinn, Estonia · 3,000 capacity/),
+    ).toBeVisible();
+    expect(bodies[0]).toMatchObject({
+      fresh: true,
+      brief: {
+        city: "Tallinn",
+        region: "Estonia",
+        headliners: ["Khruangbin", "Japanese Breakfast"],
+      },
+    });
+  });
+});

@@ -30,6 +30,13 @@ export const YourBriefSchema = z
     { message: "Two different headliners, please.", path: ["headliners"] },
   );
 
+/**
+ * Whether Your festival takes a free-text town below the checked towns. M6j's re-measure
+ * decides it (docs/evidence.md section 12): on only if at least 8 of its 10 US towns fill both
+ * bands; otherwise Your festival offers only the checked towns.
+ */
+export const FREE_TEXT_TOWNS = true;
+
 export type YourBrief = z.infer<typeof YourBriefSchema>;
 
 export function yourFestival(brief: YourBrief, id: string): Festival {

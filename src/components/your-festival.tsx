@@ -4,6 +4,13 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { FestivalScreen } from "@/components/festival-screen";
 import {
+  CHECKED_TOWNS,
+  checkedTownLabel,
+  type CheckedTown,
+} from "@/lib/checked-towns";
+import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
+import {
+  FREE_TEXT_TOWNS,
   YourBriefSchema,
   yourFestival,
   type YourBrief,
@@ -41,6 +48,7 @@ function problemWith(values: {
  */
 export function YourFestival({
   linked = null,
+  freeText = FREE_TEXT_TOWNS,
 }: {
   /**
    * A pre-filled link's values (M6h), read on the server. They only fill the form: mail clients
@@ -52,9 +60,17 @@ export function YourFestival({
     first: string;
     second: string;
   } | null;
+  /** A free-text town below the checked towns; on only while M6j's re-measure keeps it. */
+  freeText?: boolean;
 } = {}) {
   const [values, setValues] = useState(
-    linked ?? { city: "", region: "", first: "", second: "" },
+    linked ?? {
+      city: "",
+      region: "",
+      // The demo's headliners, so a checked town runs in one click; both can be changed.
+      first: SAGEBRUSH_SOUND.headliners[0],
+      second: SAGEBRUSH_SOUND.headliners[1],
+    },
   );
   const fromLink = linked !== null;
   const [problem, setProblem] = useState<string | null>(null);
@@ -70,19 +86,30 @@ export function YourFestival({
       />
     );
 
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    const found = problemWith(values);
+  function start(next: typeof values) {
+    const found = problemWith(next);
     setProblem(found);
     if (found) return;
     setRun((n) => n + 1);
     setBrief(
       YourBriefSchema.parse({
-        city: values.city,
-        region: values.region,
-        headliners: [values.first, values.second],
+        city: next.city,
+        region: next.region,
+        headliners: [next.first, next.second],
       }),
     );
+  }
+
+  // A checked town (M6k): one click runs it with the headliners in the form.
+  function runTown(town: CheckedTown) {
+    const next = { ...values, city: town.city, region: town.region };
+    setValues(next);
+    start(next);
+  }
+
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    start(values);
   }
 
   const field = (
@@ -119,7 +146,7 @@ export function YourFestival({
           onSubmit={submit}
           noValidate
           aria-labelledby="your-festival-title"
-          className="flex w-full max-w-xl flex-col gap-4 self-start border-2 border-rule bg-surface p-6"
+          className="flex w-full max-w-4xl flex-col gap-4 self-start border-2 border-rule bg-surface p-6"
         >
           <h1
             id="your-festival-title"
@@ -128,31 +155,73 @@ export function YourFestival({
             Your festival
           </h1>
           <p className="text-body">
-            Name a town and two booked headliners. The agent reads that
-            town&apos;s own music rooms through Qloo and drafts the undercard,
-            with Sagebrush Sound&apos;s crowd (aged 25–34) and fee bands.
+            Two booked headliners, then a town. The agent reads that town&apos;s
+            own music rooms through Qloo and drafts the undercard, with
+            Sagebrush Sound&apos;s crowd (aged 25–34) and fee bands.
           </p>
           {fromLink && (
             <p className="text-label font-semibold">
-              Filled in from your link. Check it, then press Draft my undercard
-              to run it.
+              {freeText
+                ? "Filled in from your link. Check it, then press Draft my undercard to run it."
+                : "Filled in from your link. Pick your town below to run it."}
             </p>
           )}
-          {field("city", "Town", "Such as Duluth")}
-          {field("region", "State or country", "Such as Minnesota")}
-          {field("first", "First headliner", "Such as Khruangbin")}
-          {field("second", "Second headliner", "Such as Japanese Breakfast")}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {field("first", "First headliner", "Such as Khruangbin")}
+            {field("second", "Second headliner", "Such as Japanese Breakfast")}
+          </div>
+          <h2
+            id="checked-towns-title"
+            className="mt-2 font-display text-name font-extrabold uppercase"
+          >
+            Towns Undercard has already read
+          </h2>
+          <p className="text-label text-muted">
+            Each has filled both bands with these headliners before. One click
+            runs the agent for it.
+          </p>
+          <ul
+            aria-label="Towns Undercard has already read"
+            className="grid grid-cols-2 gap-2 lg:grid-cols-3"
+          >
+            {CHECKED_TOWNS.map((town) => (
+              <li key={`${town.city}|${town.region}`}>
+                <button
+                  type="button"
+                  onClick={() => runTown(town)}
+                  aria-label={checkedTownLabel(town)}
+                  className="group flex h-full w-full flex-col rounded-sm border-2 border-rule bg-page px-3 py-2 text-left hover:bg-ink hover:text-surface"
+                >
+                  <span className="text-body font-semibold">{town.city}</span>
+                  <span className="text-label text-muted group-hover:text-surface">
+                    {town.region === town.country
+                      ? town.country
+                      : `${town.region}, ${town.country}`}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
           {problem && (
             <p role="alert" className="text-label font-semibold text-danger">
               {problem}
             </p>
           )}
-          <button
-            type="submit"
-            className="self-start rounded-sm bg-accent px-4 py-2 font-display text-name font-extrabold uppercase text-on-accent hover:bg-ink"
-          >
-            Draft my undercard
-          </button>
+          {freeText && (
+            <>
+              <h2 className="mt-2 font-display text-name font-extrabold uppercase">
+                Or name another town
+              </h2>
+              {field("city", "Town", "Such as Duluth")}
+              {field("region", "State or country", "Such as Minnesota")}
+              <button
+                type="submit"
+                className="self-start rounded-sm bg-accent px-4 py-2 font-display text-name font-extrabold uppercase text-on-accent hover:bg-ink"
+              >
+                Draft my undercard
+              </button>
+            </>
+          )}
           <p className="text-label text-muted">
             It runs live: about 15 seconds and up to 12 Qloo calls, limited to 5
             runs a day from your address. Nothing is saved, and Sagebrush
