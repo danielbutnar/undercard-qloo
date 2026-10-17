@@ -4,7 +4,7 @@ import { useState } from "react";
 import { FestivalHeader } from "@/components/festival-header";
 import { LineupBoard } from "@/components/lineup-board";
 import { LlmOnlyBoard } from "@/components/llm-only-board";
-import { Poster } from "@/components/poster";
+import { DraftBill } from "@/components/draft-bill";
 import { TracePanel } from "@/components/trace-panel";
 import { useLlmOnly } from "@/components/use-llm-only";
 import { useUndercardBuild } from "@/components/use-undercard-build";
@@ -93,19 +93,20 @@ export function FestivalScreen({
   );
   const llm = useLlmOnly();
   const [mode, setMode] = useState<Mode>("qloo");
-  const [view, setView] = useState<"board" | "poster">("board");
   const bookedActs = state.acts.filter(
     (act) => !state.unavailable.includes(act.entityId),
   );
-  const posterReady = mode === "qloo" && bookedActs.length > 0;
+  // The bill once there is a build to show: the saved one, or one streaming in now.
+  const onBill = state.build !== null || state.acts.length > 0;
+  const calls = state.summary?.calls ?? firstBill?.calls;
 
   function changeMode(next: Mode) {
     setMode(next);
-    if (next === "llm") {
-      setView("board");
-      if (llm.state.status === "idle" || llm.state.status === "error")
-        void llm.load();
-    }
+    if (
+      next === "llm" &&
+      (llm.state.status === "idle" || llm.state.status === "error")
+    )
+      void llm.load();
   }
 
   function exportCsv() {
@@ -118,58 +119,63 @@ export function FestivalScreen({
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b-2 border-rule px-4 py-2 lg:px-6">
-        <p className="font-display text-name font-extrabold uppercase">
-          Undercard
-        </p>
+      <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b-2 border-rule px-4 py-2 lg:px-6">
+        <div className="flex flex-wrap items-baseline gap-x-3.5">
+          <p className="font-display text-name font-extrabold uppercase">
+            Undercard
+          </p>
+          <p className="text-label text-muted">
+            Booking desk · {festival.name}
+          </p>
+        </div>
         <div className="flex flex-wrap items-center gap-3">
           <ModeSwitch mode={mode} onChange={changeMode} />
-          <button
-            type="button"
-            disabled={!posterReady}
-            aria-pressed={view === "poster"}
-            onClick={() => setView(view === "poster" ? "board" : "poster")}
-            className="rounded-sm border-2 border-rule px-3 py-1 text-label font-semibold aria-pressed:bg-ink aria-pressed:text-surface disabled:cursor-not-allowed disabled:border-muted disabled:text-muted"
-          >
-            Poster
-          </button>
+          {bookedActs.length > 0 && (
+            <button
+              type="button"
+              onClick={exportCsv}
+              className="rounded-sm border-2 border-rule px-3 py-1 text-label font-semibold hover:bg-ink hover:text-surface"
+            >
+              Export CSV
+            </button>
+          )}
         </div>
-      </div>
-      {view === "poster" && posterReady ? (
-        <main className="px-4 py-4 lg:px-6">
-          <Poster
+      </header>
+      {mode === "llm" ? (
+        <main className="grid flex-1 grid-cols-1 content-start gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:px-6">
+          <section aria-label="Lineup board">
+            <LlmOnlyBoard state={llm.state} />
+          </section>
+          <LlmOnlyNote />
+        </main>
+      ) : onBill ? (
+        <main className="grid flex-1 grid-cols-1 gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:px-6">
+          <DraftBill
             festival={festival}
-            acts={bookedActs}
-            onBack={() => setView("board")}
-            onExport={exportCsv}
+            acts={state.acts}
+            calls={calls}
+            createdAt={state.build?.createdAt}
+            top={firstBill?.baselineTop}
+            unavailable={state.unavailable}
           />
+          <div className="flex flex-col gap-4">
+            <TracePanel state={state} onBuild={build} />
+          </div>
         </main>
       ) : (
         <main className="grid flex-1 grid-cols-1 content-start gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-6">
-          <FestivalHeader
-            festival={festival}
-            compact={state.status !== "idle" || mode === "llm"}
-          />
-          {mode === "qloo" ? (
+          <FestivalHeader festival={festival} />
+          <div className="lg:row-span-2">
             <TracePanel state={state} onBuild={build} />
-          ) : (
-            <LlmOnlyNote />
-          )}
-          <section
-            aria-label="Lineup board"
-            className="lg:col-start-1 lg:row-start-2"
-          >
-            {mode === "qloo" ? (
-              <LineupBoard
-                bands={festival.feeBands}
-                acts={state.acts}
-                unavailable={state.unavailable}
-                refilling={state.refilling}
-                onUnavailable={state.build ? markUnavailable : undefined}
-              />
-            ) : (
-              <LlmOnlyBoard state={llm.state} />
-            )}
+          </div>
+          <section aria-label="Lineup board">
+            <LineupBoard
+              bands={festival.feeBands}
+              acts={state.acts}
+              unavailable={state.unavailable}
+              refilling={state.refilling}
+              onUnavailable={state.build ? markUnavailable : undefined}
+            />
           </section>
         </main>
       )}

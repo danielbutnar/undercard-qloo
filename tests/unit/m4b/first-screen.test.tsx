@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { FestivalScreen } from "@/components/festival-screen";
 import { firstBoard, IDLE_BUILD } from "@/lib/build-state";
@@ -35,6 +35,20 @@ describe("the first screen", () => {
       expect(screen.queryByText(/sold of/)).toBeNull();
       cleanup();
     }
+  });
+
+  it("puts Export CSV in the bar once there's a lineup, and none on the empty board", () => {
+    render(
+      <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
+    );
+    expect(
+      within(screen.getByRole("banner")).getByRole("button", {
+        name: "Export CSV",
+      }),
+    ).toBeTruthy();
+    cleanup();
+    render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={null} />);
+    expect(screen.queryByRole("button", { name: "Export CSV" })).toBeNull();
   });
 
   it("starts the board from the saved build, so a refill can name it", () => {

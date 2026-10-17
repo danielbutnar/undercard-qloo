@@ -10,15 +10,15 @@ Decided for this run (2026-10-17): Direction 1, the draft bill, built on the bra
 - [ ] The trace behind "Watch the agent build it" (replays the saved build as today); "Run the agent live instead" replaces "Run the agent again", still rate-limited
 - [x] Presale off the first screen; the seed and the component stay
 - [ ] An act's card opens on click, reusing `ActCard` and its Unavailable button
-- [ ] Label fix 1: the fee band says Qloo's popularity percentile sets it
-- [ ] Label fix 2: the lift counts places gained throughout; an act from outside the headliners-only top 50 reads "new"
+- [x] Label fix 1: the fee band says Qloo's popularity percentile sets it
+- [x] Label fix 2: the lift counts places gained throughout; an act from outside the headliners-only top 50 reads "new"
 - [ ] Label fix 3: "Without Qloo" says what it shows
 - [ ] Label fix 4: the rooms rail doesn't read as where the acts will play
 - [ ] Label fix 5: a few words on what Qloo is (what people like, across music, places and more), where the marks are explained; no tagline, no claim beyond what the app does
 - [ ] E2E specs: new selectors and assertions for the new demo path; the 5-second test becomes a first-paint check
 
 ## Draft bill (Direction 1)
-- [ ] The bill as the board, built from `poster.tsx`: act lines with room marks; each act stays an `<article>` inside regions named Mid and Opener
+- [x] The bill as the board, built from `poster.tsx`: act lines with room marks; each act stays an `<article>` inside regions named Mid and Opener
 - [ ] The marks explained beside the first mark on the bill, not in the rail
 - [ ] Every act on the bill looks and works like a button (pointer, underline on hover and keyboard focus, accessible name); the hint says a click opens the act's card, where it can be marked unavailable; no hover-scale
 - [ ] The rooms rail, from the acts' anchor venues and the build's venue runs

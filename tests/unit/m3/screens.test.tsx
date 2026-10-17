@@ -12,7 +12,6 @@ import fixture from "../../fixtures/lineup.synthetic.json";
 import { ActCard } from "@/components/act-card";
 import { FestivalScreen } from "@/components/festival-screen";
 import { LlmOnlyBoard } from "@/components/llm-only-board";
-import { Poster } from "@/components/poster";
 import { LineupSchema } from "@/lib/lineup";
 import type { LlmOnlyLineup } from "@/lib/llm-only";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
@@ -31,49 +30,6 @@ const llmLineup: LlmOnlyLineup = {
     note: `A synthetic reason ${i + 1}.`,
   })),
 };
-
-describe("Poster", () => {
-  it("typesets every act grouped by band, under the festival and its headliners", () => {
-    render(
-      <Poster
-        festival={SAGEBRUSH_SOUND}
-        acts={acts}
-        onBack={vi.fn()}
-        onExport={vi.fn()}
-      />,
-    );
-    const poster = screen.getByRole("region", { name: "Poster" });
-    expect(
-      within(poster).getByRole("heading", { name: "Sagebrush Sound" }),
-    ).toBeTruthy();
-    expect(within(poster).getByText("Khruangbin")).toBeTruthy();
-    const mid = within(poster).getByRole("list", { name: "Mid" });
-    const opener = within(poster).getByRole("list", { name: "Opener" });
-    expect(
-      within(mid)
-        .getAllByRole("listitem")
-        .map((item) => item.textContent),
-    ).toEqual(acts.filter((act) => act.band === "mid").map((act) => act.name));
-    expect(within(opener).getAllByRole("listitem")).toHaveLength(6);
-  });
-
-  it("offers Export CSV and a way back to the board", () => {
-    const onBack = vi.fn();
-    const onExport = vi.fn();
-    render(
-      <Poster
-        festival={SAGEBRUSH_SOUND}
-        acts={acts}
-        onBack={onBack}
-        onExport={onExport}
-      />,
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Export CSV" }));
-    fireEvent.click(screen.getByRole("button", { name: "Back to the board" }));
-    expect(onExport).toHaveBeenCalledOnce();
-    expect(onBack).toHaveBeenCalledOnce();
-  });
-});
 
 describe("LlmOnlyBoard", () => {
   it("labels the model's picks 'No Qloo data', with no affinity, fee band or local link", () => {
@@ -132,14 +88,6 @@ describe("ActCard with Unavailable", () => {
 });
 
 describe("FestivalScreen modes", () => {
-  it("keeps Poster off until there's a Qloo lineup", () => {
-    render(<FestivalScreen festival={SAGEBRUSH_SOUND} />);
-    expect(
-      (screen.getByRole("button", { name: "Poster" }) as HTMLButtonElement)
-        .disabled,
-    ).toBe(true);
-  });
-
   it("flips to the LLM-only lineup and back", async () => {
     const fetch = vi.fn(async () =>
       Response.json({ lineup: llmLineup, cached: true }),
