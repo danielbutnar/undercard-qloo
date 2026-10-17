@@ -212,6 +212,34 @@ Written on 2026-10-17, after the M6j build was committed and before any of these
 
 **For the outreach table, not counted in the bar:** Brighton, England; Wrexham, Wales; Cluj-Napoca, Romania; and Burlington, Vermont, from the run above.
 
+**The results** (2026-10-17, each run on its own, with no call refused by Qloo's rate limit):
+
+| Town | Both bands filled | Qloo calls | Rooms tested, and acts each lifted |
+|---|---|---|---|
+| Chicago, Illinois | yes | 11 | Venue 193 9, Venue 211 1 |
+| Seattle, Washington | yes | 11 | Venue 30 9, Venue 226 1 |
+| Minneapolis, Minnesota | yes | 11 | Venue 110 7, Venue 112 3 |
+| Kansas City, Missouri | yes | 11 | Venue 384 6, Venue 167 4 |
+| Richmond, Virginia | no | 12 | The Broadberry 0, The Canal Club 0 |
+| Asheville, North Carolina | yes | 12 | Venue 21 9, Venue 352 1, Venue 366 0 |
+| Missoula, Montana | no | 12 | The Wilma 0, Zootown Arts Community Center 0, The Badlander 0 |
+| Burlington, Vermont | yes | 12 | Venue 216 10, ArtsRiot 0 |
+| Bozeman, Montana | yes | 12 | Venue 272 10 |
+| Duluth, Minnesota | yes | 12 | Venue 34 10, Venue 280 0, Venue 113 0 |
+
+**Verdict: 8 of 10, at the bar. Free-text towns stay in Your festival.** Richmond now resolves to its own rooms (two Richmond, Virginia clubs, after one extra call), but neither lifted an act. Missoula's three rooms lifted none. Burlington, Vermont resolves to Vermont now, but its bill came from Venue 216, which Qloo places in Winooski, next door.
+
+**The outreach table** (not in the bar):
+
+| Town | Both bands filled | Qloo calls | Rooms tested, and acts each lifted |
+|---|---|---|---|
+| Brighton, England | no | 12 | Green Door Store 0, Concorde 2 0 |
+| Wrexham, Wales | yes | 12 | Venue 406 10, Venue 197 0, Venue 382 0 |
+| Cluj-Napoca, Romania | yes | 12 | Venue 156 10, Venue 72 0 |
+| Burlington, Vermont | yes | 12 | as above |
+
+Brighton now resolves to Brighton's own rooms, but they lifted nothing: it stays thin. Wrexham and Cluj-Napoca, not run in section 9 because fewer than five places were in the town, fill both bands with the town and its country. Each bill came from one room, and Venue 197 is in Llay, outside Wrexham.
+
 ## What these numbers don't establish
 
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.

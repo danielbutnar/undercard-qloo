@@ -131,12 +131,22 @@ Copied from SPEC.md section 6, M6i. Closes: Quality of the Idea and Design. Free
 - [x] Ten-town rerun with the rule, one at a time: 7 of 10 filled both bands (Duluth lost its Opener band without its festival park), under the bar of 8
 - [x] No-go recorded in docs/evidence.md section 10; the rule's code was reverted before any commit and isn't shipped
 
+# TASKS: M6j Towns resolve to the right place
+
+Copied from SPEC.md section 6, M6j. Closes: Technological Implementation and Potential Impact. Freeze: 2026-10-22. Done means: a spike's go or no-go; on a go, a town plus a state or country in Your festival, its link and the pilot script, the resolved place in the trace, rooms outside the town marked in pilot drafts; a re-measure written down first; free text kept only at 8 of 10.
+
+- [x] Spike (docs/evidence.md section 11): the plain name, then "town, region" when its places miss the region, resolves Burlington, Vermont, Richmond, Virginia and Brighton, England with one extra call, and the four demo towns to today's places with none: go
+- [x] src/lib/town-resolution.ts and the venue search: Qloo's geocode on each place (no call), the second ask counted against the 12, the resolved place named on the trace line (tests/unit/m6j)
+- [x] Your festival, its pre-filled link (region parameter) and scripts/pilot.ts take a state or country; a pilot draft marks rooms Qloo places outside the town, by Qloo's own city
+- [x] Re-measure written into docs/evidence.md section 12 before the runs; result 8 of 10 US towns, at the bar: free text stays
+- [x] Outreach table: Brighton thin; Wrexham and Cluj-Napoca fill both bands now; Burlington, Vermont fills from a room in Winooski
+
 # TASKS: for the 27-28 October redo (not now)
 
 - [ ] Fix the video's capture script for the reason picker (its refill step now stops at "Why is it unavailable?")
 - [ ] Story: M6b's runs per town; M6c as a stated limit ("a Boise heatmap gave a local signal for 7 of the 10 acts, so Undercard doesn't claim the town knows every act"); the town switcher and Your festival
 - [ ] Gallery stills that show the town switcher and the reason picker
-- [ ] Story and README: the corrected Your festival count, how towns are resolved, and that Brighton, Wrexham and Cluj-Napoca were thin
+- [ ] Story and README: the corrected Your festival count (7 of 10 with plain names; 8 of 10 once towns resolve), how towns are resolved, and that Brighton stayed thin while Wrexham and Cluj-Napoca filled once resolved
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
