@@ -14,13 +14,15 @@ describe("a pre-filled Your festival link", () => {
   it("is built from a town and two headliners, and read back the same", () => {
     const href = yourFestivalHref({
       city: "Tallinn",
+      region: "Estonia",
       headliners: ["Khruangbin", "Japanese Breakfast"],
     });
     expect(href).toBe(
-      "/your-festival?town=Tallinn&headliner=Khruangbin&headliner=Japanese+Breakfast",
+      "/your-festival?town=Tallinn&region=Estonia&headliner=Khruangbin&headliner=Japanese+Breakfast",
     );
     expect(briefFromSearch(href.split("?")[1])).toEqual({
       city: "Tallinn",
+      region: "Estonia",
       first: "Khruangbin",
       second: "Japanese Breakfast",
     });
@@ -29,6 +31,7 @@ describe("a pre-filled Your festival link", () => {
   it("keeps only what fits the form's fields", () => {
     expect(briefFromSearch(`town=${"x".repeat(90)}&headliner=A`)).toEqual({
       city: "x".repeat(60),
+      region: "",
       first: "A",
       second: "",
     });

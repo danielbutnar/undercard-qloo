@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { PlaceWhere } from "@/lib/town-resolution";
 import { cacheTtlSeconds, type QlooCache } from "./qloo-cache";
 
 /** The hackathon key works only against this host (RULES.md, Dev guide). */
@@ -24,6 +25,8 @@ export interface QlooEntity {
   /** query.affinity on Insights results; null where Qloo returns none (search, places). */
   affinity: number | null;
   tags: QlooTag[];
+  /** Where a place is, from Qloo's geocode; absent on artists and on older cached answers. */
+  where?: PlaceWhere;
 }
 
 export interface QlooCall {
@@ -67,6 +70,24 @@ const RawEntity = z.object({
   popularity: z.number().optional(),
   query: z.object({ affinity: z.number().optional() }).partial().optional(),
   tags: z.array(RawTag).optional(),
+  // Places carry Qloo's own geocode: where the place is, checked against a town (M6j).
+  properties: z
+    .object({
+      geocode: z
+        .object({
+          city: z.string().nullish(),
+          name: z.string().nullish(),
+          admin2_region: z.string().nullish(),
+          admin1_region: z.string().nullish(),
+          country: z.string().nullish(),
+          country_code: z.string().nullish(),
+        })
+        .partial()
+        .nullish(),
+    })
+    .partial()
+    .passthrough()
+    .nullish(),
 });
 const SearchBody = z.object({ results: z.array(RawEntity) });
 const InsightsBody = z.object({
@@ -100,7 +121,23 @@ function toEntity(raw: z.infer<typeof RawEntity>): QlooEntity {
     popularity: raw.popularity ?? 0,
     affinity: raw.query?.affinity ?? null,
     tags: (raw.tags ?? []).map(toTag).filter(usable),
+    ...placeWhere(raw.properties?.geocode),
   };
+}
+
+function placeWhere(
+  geocode: NonNullable<z.infer<typeof RawEntity>["properties"]>["geocode"],
+): { where?: PlaceWhere } {
+  if (!geocode) return {};
+  const where: PlaceWhere = {
+    city: geocode.city ?? undefined,
+    name: geocode.name ?? undefined,
+    admin2: geocode.admin2_region ?? undefined,
+    admin1: geocode.admin1_region ?? undefined,
+    country: geocode.country ?? undefined,
+    countryCode: geocode.country_code ?? undefined,
+  };
+  return Object.values(where).some(Boolean) ? { where } : {};
 }
 
 /**

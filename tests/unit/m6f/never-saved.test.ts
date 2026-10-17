@@ -11,6 +11,7 @@ describe("a run on a judge's own brief", () => {
     const festival = yourFestival(
       {
         city: SAGEBRUSH_SOUND.city,
+        region: SAGEBRUSH_SOUND.region,
         headliners: [...SAGEBRUSH_SOUND.headliners],
       },
       "yours-test",

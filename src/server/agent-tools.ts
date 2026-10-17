@@ -4,6 +4,11 @@ import { liftsOver, MIN_LIFT } from "@/lib/assemble-lineup";
 import { ageBuckets } from "@/lib/ages";
 import type { BuildEvent } from "@/lib/build-events";
 import { FEE_BAND_IDS, type FeeBandId } from "@/lib/fee-bands";
+import {
+  needsFullName,
+  placesInRegion,
+  resolvedName,
+} from "@/lib/town-resolution";
 import type { Festival } from "@/lib/festival";
 import {
   QlooBusy,
@@ -216,6 +221,8 @@ export function createToolbox({
     endpoint: string,
     summary: string,
     request: () => Promise<QlooResult<T>>,
+    /** A fuller line for the trace, once the answer is in (M6j's resolved place). */
+    describe?: (data: T) => string,
   ) {
     if (used >= cap)
       throw new BudgetSpent(
@@ -225,7 +232,10 @@ export function createToolbox({
     const started = Date.now();
     try {
       const { data, call } = await request();
-      emit({ type: "call", call: traceOf(n, tool, summary, call) });
+      emit({
+        type: "call",
+        call: traceOf(n, tool, describe ? describe(data) : summary, call),
+      });
       return data;
     } catch (error) {
       const message = describeFailure(error);
@@ -309,16 +319,52 @@ export function createToolbox({
 
     async find_venues({ tag_id }) {
       const label = tagNames.get(tag_id) ?? tag_id;
-      const venues = await callQloo(
+      const { city, region } = festival;
+      const summary = `${city} places tagged ${label}`;
+      // A town resolves to its state or country (M6j): the plain name first, as Qloo reads it
+      // best; when its places miss the region, once more as "town, region", and the answer
+      // with more places in the region stands. The second ask is a real call: it counts.
+      const where = (found: QlooEntity[]) => {
+        const name = resolvedName(city, found);
+        return name ? ` · resolved to ${name}` : "";
+      };
+      const plain = await callQloo(
         "find_venues",
         "/v2/insights",
-        `${festival.city} places tagged ${label}`,
-        () => qloo.places({ locationQuery: festival.city, tagId: tag_id }),
+        summary,
+        () => qloo.places({ locationQuery: city, tagId: tag_id }),
+        (found) =>
+          needsFullName(found, region) ? summary : `${summary}${where(found)}`,
       );
+      const answers = [plain];
+      if (needsFullName(plain, region)) {
+        const fullName = `${city}, ${region}`;
+        answers.push(
+          await callQloo(
+            "find_venues",
+            "/v2/insights",
+            `${summary}, asked again as “${fullName}”`,
+            () => qloo.places({ locationQuery: fullName, tagId: tag_id }),
+            (found) => {
+              const chosen = placesInRegion([plain, found], region);
+              const outside = chosen.outside
+                ? ` · ${chosen.outside} outside ${region} left out`
+                : "";
+              return `${summary}, asked again as “${fullName}”${where(chosen.places)}${outside}`;
+            },
+          ),
+        );
+      }
+      const chosen =
+        answers.length > 1 || region.trim()
+          ? placesInRegion(answers, region)
+          : { places: plain, outside: 0, answer: 0 };
+      const venues = answers.length > 1 ? chosen.places : plain;
       state.venues = venues;
       for (const venue of venues) names.set(venue.entityId, venue.name);
       return {
-        city: festival.city,
+        city,
+        resolved_to: resolvedName(city, venues),
         venues: venues.map((venue) => ({
           entity_id: venue.entityId,
           name: venue.name,

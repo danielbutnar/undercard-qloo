@@ -18,7 +18,12 @@ const TOWN = z
   .regex(/^\p{L}[\p{L}\p{M} .'’-]*$/u);
 
 export const YourBriefSchema = z
-  .object({ city: TOWN, headliners: z.tuple([NAME, NAME]) })
+  .object({
+    city: TOWN,
+    // The town's state or country, which resolves it (M6j): "Burlington" alone reads Ontario.
+    region: TOWN,
+    headliners: z.tuple([NAME, NAME]),
+  })
   .refine(
     ({ headliners: [a, b] }) =>
       a.trim().toLowerCase() !== b.trim().toLowerCase(),
@@ -33,7 +38,7 @@ export function yourFestival(brief: YourBrief, id: string): Festival {
     id,
     name: "Your festival",
     city: brief.city.trim(),
-    region: "",
+    region: brief.region.trim(),
     headliners: [brief.headliners[0].trim(), brief.headliners[1].trim()],
     presale: [],
   };
@@ -95,6 +100,7 @@ export function diagnoseRun(
 export function yourFestivalHref(brief: YourBrief): string {
   const search = new URLSearchParams([
     ["town", brief.city],
+    ["region", brief.region],
     ["headliner", brief.headliners[0]],
     ["headliner", brief.headliners[1]],
   ]);
@@ -104,11 +110,14 @@ export function yourFestivalHref(brief: YourBrief): string {
 /** The form's values from a link's query string, cut to the fields' lengths; null when empty. */
 export function briefFromSearch(
   search: string,
-): { city: string; first: string; second: string } | null {
+): { city: string; region: string; first: string; second: string } | null {
   const params = new URLSearchParams(search);
   const city = (params.get("town") ?? "").slice(0, 60);
+  const region = (params.get("region") ?? "").slice(0, 60);
   const [first = "", second = ""] = params
     .getAll("headliner")
     .map((name) => name.slice(0, 80));
-  return city || first || second ? { city, first, second } : null;
+  return city || region || first || second
+    ? { city, region, first, second }
+    : null;
 }

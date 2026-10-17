@@ -2,6 +2,7 @@ import type { FeeBandId } from "./fee-bands";
 import type { Festival } from "./festival";
 import { actsInBand, type Act } from "./lineup";
 import { liftOf } from "./marks";
+import { inTown, type PlaceWhere } from "./town-resolution";
 import { SAGEBRUSH_SOUND } from "./sagebrush";
 
 /** A buyer's brief for a pilot draft: their town, two headliners and how many slots per band. */
@@ -29,6 +30,8 @@ export interface PilotRun {
   ranAt: string;
   acts: readonly Act[];
   roomsTested: Partial<Record<FeeBandId, readonly string[]>>;
+  /** Where Qloo puts each room, by name (M6j); a room outside the town is marked. */
+  roomsWhere?: Readonly<Record<string, PlaceWhere | undefined>>;
   log: readonly PilotLogEntry[];
 }
 
@@ -134,6 +137,14 @@ export function pilotDraft(run: PilotRun): string {
   for (const band of festival.feeBands)
     for (const room of run.roomsTested[band.id] ?? [])
       rooms.set(room, [...(rooms.get(room) ?? []), band.id]);
+  // A room Qloo doesn't place in the town is marked, so a buyer sees where it really is.
+  const whereNote = (room: string) => {
+    if (!run.roomsWhere) return "";
+    const where = run.roomsWhere[room];
+    if (!where) return " (Qloo doesn't say where it is)";
+    if (inTown(where, festival.city)) return "";
+    return ` (outside ${festival.city}: ${where.city ?? where.name ?? where.admin2 ?? where.admin1 ?? "elsewhere"})`;
+  };
   out.push(
     "",
     "## The rooms tested",
@@ -149,7 +160,7 @@ export function pilotDraft(run: PilotRun): string {
     const lifted = run.acts.filter(
       (act) => act.anchorVenue.name === room,
     ).length;
-    out.push(`| ${room} | ${labels} | ${lifted} |`);
+    out.push(`| ${room}${whereNote(room)} | ${labels} | ${lifted} |`);
   }
 
   out.push("", `## How it was drafted: ${calls} Qloo calls`, "");

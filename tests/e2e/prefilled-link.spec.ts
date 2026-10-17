@@ -9,10 +9,13 @@ test("a pre-filled link fills the form and runs nothing", async ({ page }) => {
     await route.abort();
   });
   await page.goto(
-    "/your-festival?town=Tallinn&headliner=Khruangbin&headliner=Japanese%20Breakfast",
+    "/your-festival?town=Tallinn&region=Estonia&headliner=Khruangbin&headliner=Japanese%20Breakfast",
   );
   const form = page.locator("form");
   await expect(form.getByLabel("Town", { exact: true })).toHaveValue("Tallinn");
+  await expect(
+    form.getByLabel("State or country", { exact: true }),
+  ).toHaveValue("Estonia");
   await expect(form.getByLabel("First headliner", { exact: true })).toHaveValue(
     "Khruangbin",
   );

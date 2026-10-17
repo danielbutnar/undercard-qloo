@@ -3,6 +3,7 @@ import { ageBuckets } from "@/lib/ages";
 import { assembleLineup, type AssemblyInput } from "@/lib/assemble-lineup";
 import type { BuildEvent } from "@/lib/build-events";
 import type { Lineup } from "@/lib/lineup";
+import type { PlaceWhere } from "@/lib/town-resolution";
 import { FEE_BAND_IDS } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import { formatCount } from "@/lib/format";
@@ -66,6 +67,8 @@ export interface AgentResult {
   /** True when every slot was booked and nothing failed: only such builds are saved. */
   complete: boolean;
   context: BuildContext;
+  /** The places the venue search kept, with where Qloo puts them; not saved with a build. */
+  places?: { name: string; where?: PlaceWhere }[];
 }
 
 /**
@@ -177,6 +180,7 @@ export async function runUndercardAgent({
     lineup,
     complete: lineup !== null && missing === 0,
     context: buildContext(input, festival),
+    places: toolbox.state.venues.map(({ name, where }) => ({ name, where })),
   };
 }
 

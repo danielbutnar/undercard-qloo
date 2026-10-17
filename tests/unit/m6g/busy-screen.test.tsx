@@ -99,6 +99,10 @@ describe("a busy Qloo on Your festival", () => {
     fireEvent.change(screen.getByLabelText("Town"), {
       target: { value: "Duluth" },
     });
+    // M6j: the town's state or country resolves it.
+    fireEvent.change(screen.getByLabelText("State or country"), {
+      target: { value: "Minnesota" },
+    });
     fireEvent.change(screen.getByLabelText("First headliner"), {
       target: { value: "Khruangbin" },
     });

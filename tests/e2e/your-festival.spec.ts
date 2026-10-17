@@ -17,16 +17,19 @@ async function answerBuilds(page: Page, events: unknown[], status = 200) {
   return bodies;
 }
 
-async function fill(page: Page, city: string, first: string, second: string) {
-  await page.locator("form").getByLabel("Town", { exact: true }).fill(city);
-  await page
-    .locator("form")
-    .getByLabel("First headliner", { exact: true })
-    .fill(first);
-  await page
-    .locator("form")
-    .getByLabel("Second headliner", { exact: true })
-    .fill(second);
+async function fill(
+  page: Page,
+  city: string,
+  first: string,
+  second: string,
+  region = "Minnesota",
+) {
+  const form = page.locator("form");
+  await form.getByLabel("Town", { exact: true }).fill(city);
+  // M6j: the town's state or country resolves it.
+  await form.getByLabel("State or country", { exact: true }).fill(region);
+  await form.getByLabel("First headliner", { exact: true }).fill(first);
+  await form.getByLabel("Second headliner", { exact: true }).fill(second);
   await page.getByRole("button", { name: "Draft my undercard" }).click();
 }
 
@@ -66,11 +69,14 @@ test.describe("Your festival", () => {
         .getByRole("region", { name: "Undercard draft" })
         .getByRole("article"),
     ).toHaveCount(10);
-    await expect(page.getByText(/^Duluth · 3,000 capacity/)).toBeVisible();
+    await expect(
+      page.getByText(/^Duluth, Minnesota · 3,000 capacity/),
+    ).toBeVisible();
     expect(bodies[0]).toMatchObject({
       fresh: true,
       brief: {
         city: "Duluth",
+        region: "Minnesota",
         headliners: ["Khruangbin", "Japanese Breakfast"],
       },
     });

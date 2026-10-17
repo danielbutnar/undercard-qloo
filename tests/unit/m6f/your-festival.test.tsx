@@ -43,7 +43,8 @@ const calls = (...list: TraceCall[]): BuildEvent[] =>
 describe("a buyer's own brief", () => {
   it("takes a town and two different headliners, and nothing that isn't a name", () => {
     const ok = (city: string, a = "Khruangbin", b = "Japanese Breakfast") =>
-      YourBriefSchema.safeParse({ city, headliners: [a, b] }).success;
+      YourBriefSchema.safeParse({ city, region: "Idaho", headliners: [a, b] })
+        .success;
     expect(ok("Reykjavík")).toBe(true);
     expect(ok("St. Louis")).toBe(true);
     expect(ok("Coeur d'Alene")).toBe(true);
@@ -56,12 +57,12 @@ describe("a buyer's own brief", () => {
 
   it("becomes a festival of its own: the demo's crowd and fee bands, the buyer's town and headliners", () => {
     const festival = yourFestival(
-      { city: " Duluth ", headliners: ["A", "B"] },
+      { city: " Duluth ", region: "Minnesota", headliners: ["A", "B"] },
       "yours-1234",
     );
     expect(festival.id).toBe("yours-1234");
     expect(festival.city).toBe("Duluth");
-    expect(festival.region).toBe("");
+    expect(festival.region).toBe("Minnesota");
     expect(festival.headliners).toEqual(["A", "B"]);
     expect(festival.feeBands).toEqual(SAGEBRUSH_SOUND.feeBands);
     expect(festival.crowdAge).toEqual(SAGEBRUSH_SOUND.crowdAge);
@@ -124,6 +125,10 @@ describe("the Your festival page", () => {
     fireEvent.change(screen.getByLabelText("Town"), {
       target: { value: city },
     });
+    // M6j: the town's state or country resolves it.
+    fireEvent.change(screen.getByLabelText("State or country"), {
+      target: { value: "Minnesota" },
+    });
     fireEvent.change(screen.getByLabelText("First headliner"), {
       target: { value: a },
     });
@@ -156,6 +161,7 @@ describe("the Your festival page", () => {
       fresh: true,
       brief: {
         city: "Duluth",
+        region: "Minnesota",
         headliners: ["Khruangbin", "Japanese Breakfast"],
       },
     });

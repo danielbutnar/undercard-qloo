@@ -102,7 +102,18 @@ const roomsTested = Object.fromEntries(
     (result.context.anchors[band.id] ?? []).map((venue) => venue.name),
   ]),
 );
-const page = pilotDraft({ festival, ranAt, acts, roomsTested, log });
+// Where Qloo puts each room, so the draft marks any outside the town (M6j).
+const roomsWhere = Object.fromEntries(
+  (result.places ?? []).map((place) => [place.name, place.where]),
+);
+const page = pilotDraft({
+  festival,
+  ranAt,
+  acts,
+  roomsTested,
+  roomsWhere,
+  log,
+});
 mkdirSync(values.out, { recursive: true });
 const file = `${values.out}/${festival.id.replace(/^pilot-/, "")}.md`;
 writeFileSync(file, page);

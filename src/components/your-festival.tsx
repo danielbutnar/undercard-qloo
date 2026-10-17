@@ -13,15 +13,23 @@ const FIELD =
   "rounded-sm border-2 border-rule bg-page px-3 py-2 text-body text-ink focus:outline-2 focus:outline-offset-2 focus:outline-accent";
 
 /** What's wrong with a brief, in plain words, the town first. */
-function problemWith(values: { city: string; first: string; second: string }) {
+function problemWith(values: {
+  city: string;
+  region: string;
+  first: string;
+  second: string;
+}) {
   const parsed = YourBriefSchema.safeParse({
     city: values.city,
+    region: values.region,
     headliners: [values.first, values.second],
   });
   if (parsed.success) return null;
   const paths = parsed.error.issues.map((issue) => issue.path[0]);
   if (paths.includes("city"))
     return "Give a town's name, such as Duluth or Reykjavík: letters, spaces, dots, hyphens and apostrophes.";
+  if (paths.includes("region"))
+    return "Give the town's state or country, such as Vermont or England, so Qloo finds the right town.";
   if (!values.first.trim() || !values.second.trim())
     return "Give both headliners.";
   return "Two different headliners, please.";
@@ -38,10 +46,15 @@ export function YourFestival({
    * A pre-filled link's values (M6h), read on the server. They only fill the form: mail clients
    * and link previews open links by themselves, so only the visitor's press starts the agent.
    */
-  linked?: { city: string; first: string; second: string } | null;
+  linked?: {
+    city: string;
+    region: string;
+    first: string;
+    second: string;
+  } | null;
 } = {}) {
   const [values, setValues] = useState(
-    linked ?? { city: "", first: "", second: "" },
+    linked ?? { city: "", region: "", first: "", second: "" },
   );
   const fromLink = linked !== null;
   const [problem, setProblem] = useState<string | null>(null);
@@ -66,13 +79,14 @@ export function YourFestival({
     setBrief(
       YourBriefSchema.parse({
         city: values.city,
+        region: values.region,
         headliners: [values.first, values.second],
       }),
     );
   }
 
   const field = (
-    id: "city" | "first" | "second",
+    id: "city" | "region" | "first" | "second",
     label: string,
     placeholder: string,
   ) => (
@@ -83,7 +97,7 @@ export function YourFestival({
         value={values[id]}
         placeholder={placeholder}
         autoComplete="off"
-        maxLength={id === "city" ? 60 : 80}
+        maxLength={id === "city" || id === "region" ? 60 : 80}
         onChange={(event) =>
           setValues((current) => ({ ...current, [id]: event.target.value }))
         }
@@ -120,11 +134,12 @@ export function YourFestival({
           </p>
           {fromLink && (
             <p className="text-label font-semibold">
-              Filled in from your link. Check it, then press Draft my
-              undercard to run it.
+              Filled in from your link. Check it, then press Draft my undercard
+              to run it.
             </p>
           )}
           {field("city", "Town", "Such as Duluth")}
+          {field("region", "State or country", "Such as Minnesota")}
           {field("first", "First headliner", "Such as Khruangbin")}
           {field("second", "Second headliner", "Such as Japanese Breakfast")}
           {problem && (
