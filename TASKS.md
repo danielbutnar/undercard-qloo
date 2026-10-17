@@ -51,6 +51,15 @@ Copied from SPEC.md section 6, M6a. Closes: Potential Impact. Freeze: 2026-10-19
 - [x] Boise checked: 12 Qloo calls, Mid 4 of 4, Opener 6 of 6; the page reads as one page
 - [x] Pilot towns, added 2026-10-17: Calgary, Raleigh and Reykjavík with the demo's brief, plain city names, no saved builds. All three filled both bands (20, 18 and 5 live-music places); a go for pilots, in docs/evidence.md section 4. A run that meets Qloo's rate limit (HTTP 429) is redone
 
+# TASKS: M6b Robustness
+
+Copied from SPEC.md section 6, M6b. Closes: Technological Implementation and Potential Impact. Freeze: 2026-10-20. Done means: from five offline runs in Boise and three each in Austin, Denver and Nashville, docs/evidence.md reports per town how often both bands filled, which rooms were tested and how many acts each lifted, and how many of the ten acts repeat between runs.
+
+- [x] src/lib/robustness.ts counts the acts on every run's bill, the different acts, and what each pair of runs shares (tests/unit/m6b)
+- [x] scripts/robustness.ts: a fresh memory cache per run, no saved build, a pause between runs, and a run that meets Qloo's rate limit is redone
+- [x] Results in docs/evidence.md section 5: every run filled both bands (5 of 5, 3 of 3, 3 of 3, 3 of 3); Boise, Denver and Nashville gave the same ten acts every run, Austin 8 to 10 in common
+- [x] Found: running towns in parallel, or the agent's own parallel calls, can meet Qloo's rate limit (HTTP 429); the agent then tests fewer rooms. Recorded in section 5
+
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
 ## Before judging starts (2026-11-02)
