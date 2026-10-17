@@ -66,7 +66,9 @@ describe("the first screen", () => {
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
     );
     fireEvent.click(
-      screen.getByRole("button", { name: "Watch the agent build it" }),
+      within(
+        screen.getByRole("complementary", { name: "Qloo calls" }),
+      ).getByRole("button", { name: "Watch the agent build it" }),
     );
     expect(
       screen.getByRole("region", { name: "Undercard draft" }),

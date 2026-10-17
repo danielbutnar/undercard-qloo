@@ -11,7 +11,7 @@ Approved for this run: pushing redesign-first-screen and main (merged without sq
 - [x] The fee band says the buyer sets it and Qloo supplies the popularity percentile
 - [x] The mark's ▲ comes from a font the page loads, or the mark uses text the fonts carry: now ↑, which Big Shoulders carries
 - [x] The card's Close sits inside the card
-- [ ] At 390 px, Watch the agent build it sits under the headliners
+- [x] At 390 px, Watch the agent build it sits under the headliners
 - [ ] The display font's loading checked (subset, preload, display); changed only if small and safe
 - [ ] If there's time: the fallback screen in the bill's design, still with Build undercard
 - [ ] Deploy, live e2e again, a fresh cold reader (low effort) on the live 1280x800 shot

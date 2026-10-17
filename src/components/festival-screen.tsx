@@ -7,7 +7,11 @@ import { FestivalHeader } from "@/components/festival-header";
 import { LineupBoard } from "@/components/lineup-board";
 import { ModelBill } from "@/components/model-bill";
 import { RoomsRail } from "@/components/rooms-rail";
-import { TracePanel, type BuildRequest } from "@/components/trace-panel";
+import {
+  TracePanel,
+  WATCH_BUTTON,
+  type BuildRequest,
+} from "@/components/trace-panel";
 import { useLlmOnly } from "@/components/use-llm-only";
 import { useUndercardBuild } from "@/components/use-undercard-build";
 import { firstBoard } from "@/lib/build-state";
@@ -230,6 +234,26 @@ export function FestivalScreen({
             onOpen={(act) => setOpenId(act.entityId)}
             printing={printing}
             onPrinted={onPrinted}
+            phoneAction={
+              <div className="flex flex-col items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => runBuild()}
+                  disabled={
+                    state.status === "building" || state.refilling !== null
+                  }
+                  className={WATCH_BUTTON}
+                >
+                  {state.status === "building"
+                    ? "Building…"
+                    : "Watch the agent build it"}
+                </button>
+                <p className="text-label text-muted">
+                  Replays the saved build&apos;s Qloo calls; they list under the
+                  bill.
+                </p>
+              </div>
+            }
           />
           <div className="flex flex-col gap-4">
             {!openAct && (
@@ -253,6 +277,7 @@ export function FestivalScreen({
               state={state}
               savedCalls={firstBill?.calls}
               onBuild={runBuild}
+              buttonOnPhones={false}
             />
           </div>
         </main>

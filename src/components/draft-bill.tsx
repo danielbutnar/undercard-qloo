@@ -286,6 +286,7 @@ export function DraftBill({
   onOpen,
   printing = null,
   onPrinted,
+  phoneAction,
 }: {
   festival: Festival;
   acts: readonly Act[];
@@ -302,6 +303,8 @@ export function DraftBill({
   printing?: Printing;
   /** Called as each act's print-in starts, so the rooms' counts can tick up with it. */
   onPrinted?: (entityId: string) => void;
+  /** Shown under the headliners on phones only, where the rail sits below the whole bill. */
+  phoneAction?: ReactNode;
 }) {
   const billed = festival.feeBands.flatMap((band) =>
     acts.filter((act) => act.band === band.id),
@@ -322,6 +325,9 @@ export function DraftBill({
           acts.length > 0 &&
           " Click an act to open its card, where you can mark it unavailable."}
       </BillHeader>
+      {phoneAction && (
+        <div className="mt-3 w-full lg:hidden">{phoneAction}</div>
+      )}
       {festival.feeBands.map((band) => (
         <BandTier
           key={band.id}

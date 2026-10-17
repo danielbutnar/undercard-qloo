@@ -18,6 +18,10 @@ const savedAt = new Intl.DateTimeFormat("en-US", {
 
 export type BuildRequest = { fresh?: boolean };
 
+/** The blue Build / Watch button, shared with the bill's phone copy. */
+export const WATCH_BUTTON =
+  "w-full rounded-sm border-2 border-accent bg-accent px-2 py-2 font-display text-figure font-extrabold uppercase text-on-accent hover:border-ink hover:bg-ink disabled:cursor-wait disabled:border-muted disabled:bg-surface disabled:text-muted";
+
 // The newest call shows its parameters as it streams in; the rest fold behind a toggle so the
 // trace stays readable at 1440x810.
 function CallRow({
@@ -85,11 +89,14 @@ export function TracePanel({
   state,
   savedCalls,
   onBuild,
+  buttonOnPhones = true,
 }: {
   state: BuildState;
   /** Qloo calls in the saved build the first screen shows, for the replay's description. */
   savedCalls?: number;
   onBuild: (request?: BuildRequest) => void;
+  /** False when the bill carries its own copy of the button for phones (FestivalScreen). */
+  buttonOnPhones?: boolean;
 }) {
   const listRef = useRef<HTMLOListElement>(null);
   const building = state.status === "building";
@@ -119,12 +126,14 @@ export function TracePanel({
       aria-label="Qloo calls"
       className="flex flex-col border-2 border-rule bg-surface"
     >
-      <div className="border-b-2 border-rule p-3">
+      <div
+        className={`border-b-2 border-rule p-3 ${buttonOnPhones ? "" : "hidden lg:block"}`}
+      >
         <button
           type="button"
           onClick={() => onBuild()}
           disabled={busy}
-          className="w-full rounded-sm border-2 border-accent bg-accent px-2 py-2 font-display text-figure font-extrabold uppercase text-on-accent hover:border-ink hover:bg-ink disabled:cursor-wait disabled:border-muted disabled:bg-surface disabled:text-muted"
+          className={WATCH_BUTTON}
         >
           {building
             ? "Building…"
