@@ -110,6 +110,18 @@ test.describe("demo path", () => {
     await expect(trace).toContainText("artists for the headliners and");
     const callCount = await traceRows(page).count();
     expect(callCount).toBeGreaterThanOrEqual(9);
+
+    // M9a: on a deployment the replay rebuilds the climb from the Qloo cache. The venues'
+    // lists re-sort with real moves; Skip goes straight to the lineup.
+    if (!SYNTHETIC) {
+      await expect(
+        bill(page).getByText(/^How the town's venue crowds move acts up/),
+      ).toBeVisible();
+      await expect(
+        bill(page).getByText(/^\+\d+, /).first(),
+      ).toBeVisible({ timeout: REPLAY_TIMEOUT });
+      await bill(page).getByRole("button", { name: "Skip to the lineup" }).click();
+    }
     expect(callCount).toBeLessThanOrEqual(12);
     await expect(trace.getByLabel(/^\d+ results$/)).toHaveCount(callCount);
     // The planner's own lines replay with the calls (builds saved since 2026-10-17 carry them).

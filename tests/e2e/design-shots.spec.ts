@@ -90,6 +90,9 @@ const SCENES: {
         .getByRole("button", { name: "Watch how it picked these acts" })
         .click();
       await page.getByText(/^Replayed the build saved/).waitFor();
+      // M9a: the climb plays first on a deployment; skip to the reprinted lineup.
+      const skip = bill(page).getByRole("button", { name: "Skip to the lineup" });
+      if (await skip.isVisible()) await skip.click();
       await test.expect.poll(() => liftedTotal(page)).toBe(10);
     },
   },
