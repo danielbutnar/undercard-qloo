@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1000" viewBox="0 0 1500 1000" role="img" aria-labelledby="title desc">
+  <title id="title">How Undercard builds a bill</title>
+  <desc id="desc">The page reads the latest saved build on the server. /api/undercard replays that build or runs the agent, whose planner, Claude Sonnet 5.5, chooses up to 12 Qloo calls; the app books acts by the lift rule and saves the build. /api/refill makes up to 3 Qloo calls; /api/llm-only asks Claude alone. Upstash Redis holds the Qloo cache, saved builds and rate limits.</desc>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@800&amp;family=Libre+Franklin:wght@400;600&amp;display=swap');
+    .display { font-family: 'Big Shoulders', 'Big Shoulders Display', 'Arial Narrow', sans-serif; font-weight: 800; fill: #1C1611; }
+    .body { font-family: 'Libre Franklin', 'Franklin Gothic Book', Arial, sans-serif; font-size: 16px; font-weight: 400; fill: #1C1611; }
+    .strong { font-weight: 600; }
+    .muted { fill: #54412F; }
+    .blue { fill: #1F3F8C; }
+    .call { font-size: 18px; font-weight: 600; fill: #1F3F8C; }
+    .panel { fill: #E4D3B2; stroke: #231B14; stroke-width: 2; }
+    .button { fill: #CDB38A; stroke: #231B14; stroke-width: 2; }
+    .ink { stroke: #231B14; stroke-width: 2; fill: none; }
+    .qloo { stroke: #1F3F8C; stroke-width: 3; fill: none; }
+    .rule { stroke: #54412F; stroke-width: 1; }
+  </style>
+  <defs>
+    <marker id="ink-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#231B14"/>
+    </marker>
+    <marker id="blue-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#1F3F8C"/>
+    </marker>
+  </defs>
+
+  <rect width="1500" height="1000" fill="#CDB38A"/>
+
+  <!-- Title -->
+  <text class="display" x="48" y="86" font-size="48">HOW UNDERCARD BUILDS A BILL</text>
+  <text class="body muted" x="48" y="120" font-size="18">Server code on Vercel. Ink arrows are requests and reads; blue arrows are Qloo calls.</text>
+
+  <!-- Column 1: the page -->
+  <rect class="panel" x="48" y="150" width="280" height="670"/>
+  <text class="display" x="68" y="192" font-size="28">THE PAGE</text>
+  <text class="body" x="68" y="226">Rendered on the server from the</text>
+  <text class="body" x="68" y="248">latest saved build, cached for a</text>
+  <text class="body" x="68" y="270">minute: the draft bill is there</text>
+  <text class="body" x="68" y="292">at first paint, with no login</text>
+  <text class="body" x="68" y="314">and no key.</text>
+
+  <rect class="button" x="68" y="360" width="240" height="52" rx="2"/>
+  <text class="body strong" x="84" y="392">Watch the agent build it</text>
+  <rect class="button" x="68" y="440" width="240" height="52" rx="2"/>
+  <text class="body strong" x="84" y="472">Run the agent live instead</text>
+  <rect class="button" x="68" y="560" width="240" height="52" rx="2"/>
+  <text class="body strong" x="84" y="592">Unavailable, on a card</text>
+  <rect class="button" x="68" y="700" width="240" height="52" rx="2"/>
+  <text class="body strong" x="84" y="732">Without Qloo</text>
+
+  <!-- Column 2: routes -->
+  <rect class="panel" x="360" y="340" width="300" height="190"/>
+  <text class="body call" x="380" y="372">/api/undercard</text>
+  <text class="body" x="380" y="402">Replay: streams the saved</text>
+  <text class="body" x="380" y="424">build's calls and planner lines,</text>
+  <text class="body" x="380" y="446">never limited.</text>
+  <text class="body" x="380" y="476">Fresh: runs the agent, 5 a day</text>
+  <text class="body" x="380" y="498">per IP, and saves the build.</text>
+
+  <rect class="panel" x="360" y="545" width="300" height="120"/>
+  <text class="body call" x="380" y="577">/api/refill</text>
+  <text class="body" x="380" y="605">Same fee band, every act on the</text>
+  <text class="body" x="380" y="627">bill excluded, the same lift</text>
+  <text class="body" x="380" y="649">rule; at most 3 Qloo calls.</text>
+
+  <rect class="panel" x="360" y="680" width="300" height="140"/>
+  <text class="body call" x="380" y="712">/api/llm-only</text>
+  <text class="body" x="380" y="740">The brief to Claude alone: no</text>
+  <text class="body" x="380" y="762">Qloo, no tools, high effort. The</text>
+  <text class="body" x="380" y="784">answer is saved, so later views</text>
+  <text class="body" x="380" y="806">reuse it.</text>
+
+  <path class="ink" d="M308 386 H358" marker-end="url(#ink-head)"/>
+  <path class="ink" d="M308 466 H358" marker-end="url(#ink-head)"/>
+  <path class="ink" d="M308 586 H358" marker-end="url(#ink-head)"/>
+  <path class="ink" d="M308 726 H358" marker-end="url(#ink-head)"/>
+
+  <!-- Column 3: the agent, the lift rule, the saved build -->
+  <rect class="panel" x="692" y="150" width="340" height="230"/>
+  <text class="display" x="712" y="190" font-size="28">THE PLANNER</text>
+  <text class="body strong" x="712" y="220">Claude Sonnet 5.5, medium effort</text>
+  <text class="body" x="712" y="246">Picks the music rooms, decides</text>
+  <text class="body" x="712" y="268">which Qloo call comes next, and</text>
+  <text class="body" x="712" y="290">tries another room when one lifts</text>
+  <text class="body" x="712" y="312">nothing. Every tool is one Qloo</text>
+  <text class="body" x="712" y="334">call, and a build stops at 12. It</text>
+  <text class="body" x="712" y="356">never picks the acts.</text>
+
+  <rect class="panel" x="692" y="410" width="340" height="190"/>
+  <text class="display" x="712" y="450" font-size="28">THE LIFT RULE</text>
+  <text class="body" x="712" y="480">The app books an act when a room</text>
+  <text class="body" x="712" y="502">lifts it at least 5 places above</text>
+  <text class="body" x="712" y="524">the headliners-only ranking, its</text>
+  <text class="body" x="712" y="546">popularity sits in the fee band,</text>
+  <text class="body" x="712" y="568">and it shares 2 genre tags with</text>
+  <text class="body" x="712" y="590">the headliners.</text>
+
+  <rect class="panel" x="692" y="630" width="340" height="190"/>
+  <text class="display" x="712" y="670" font-size="28">THE SAVED BUILD</text>
+  <text class="body" x="712" y="700">Every call with its parameters</text>
+  <text class="body" x="712" y="722">and result count, the planner's</text>
+  <text class="body" x="712" y="744">lines and the booked bill. Later</text>
+  <text class="body" x="712" y="766">visitors open on it, and the</text>
+  <text class="body" x="712" y="788">replay reads it back.</text>
+
+  <path class="ink" d="M660 380 H676 V280 H690" marker-end="url(#ink-head)"/>
+  <path class="ink" d="M862 380 V408" marker-end="url(#ink-head)"/>
+
+  <!-- Column 4: Qloo -->
+  <rect x="1064" y="150" width="388" height="670" fill="#E4D3B2" stroke="#1F3F8C" stroke-width="3"/>
+  <text class="display" x="1088" y="192" font-size="28" style="fill:#1F3F8C">QLOO HACKATHON API</text>
+  <text class="body muted" x="1088" y="218">hackathon.api.qloo.com · GET · X-Api-Key</text>
+
+  <text class="body call" x="1088" y="262">GET /search</text>
+  <text class="body" x="1088" y="286">Each booked headliner as a Qloo entity.</text>
+  <line class="rule" x1="1088" y1="306" x2="1428" y2="306"/>
+
+  <text class="body call" x="1088" y="336">GET /v2/tags</text>
+  <text class="body" x="1088" y="360">The tag Qloo puts on live music venues.</text>
+  <line class="rule" x1="1088" y1="380" x2="1428" y2="380"/>
+
+  <text class="body call" x="1088" y="410">GET /v2/insights · places</text>
+  <text class="body" x="1088" y="434">The city's places with that tag: 8 in</text>
+  <text class="body" x="1088" y="456">Boise. The planner picks the music rooms.</text>
+  <line class="rule" x1="1088" y1="476" x2="1428" y2="476"/>
+
+  <text class="body call" x="1088" y="506">GET /v2/analysis/compare</text>
+  <text class="body" x="1088" y="530">The taste tags the two headliners share;</text>
+  <text class="body" x="1088" y="552">they rank the tags each card shows.</text>
+  <line class="rule" x1="1088" y1="572" x2="1428" y2="572"/>
+
+  <text class="body call" x="1088" y="602">GET /v2/insights · artists</text>
+  <text class="body" x="1088" y="626">Up to 50 ranked artists inside a fee</text>
+  <text class="body" x="1088" y="648">band's popularity range, with the crowd's</text>
+  <text class="body" x="1088" y="670">age: for the headliners alone, then with</text>
+  <text class="body" x="1088" y="692">one room added. Each act's affinity and</text>
+  <text class="body" x="1088" y="714">popularity come from here.</text>
+
+  <path class="qloo" d="M1032 265 H1060" marker-end="url(#blue-head)"/>
+  <path class="qloo" d="M660 615 H1060" marker-end="url(#blue-head)"/>
+
+  <!-- Upstash -->
+  <rect class="panel" x="48" y="860" width="1404" height="96"/>
+  <text class="display" x="72" y="900" font-size="28">UPSTASH REDIS</text>
+  <text class="body" x="72" y="932">The Qloo response cache, kept until after judging · saved builds and the saved model answer · rate limits, per IP and per day</text>
+
+  <path class="ink" d="M188 820 V858" marker-end="url(#ink-head)"/>
+  <text class="body muted" x="200" y="846">reads the latest saved build</text>
+  <path class="ink" d="M510 820 V858" marker-end="url(#ink-head)"/>
+  <text class="body muted" x="522" y="846">rate limits</text>
+  <path class="ink" d="M862 820 V858" marker-end="url(#ink-head)"/>
+  <text class="body muted" x="874" y="846">saved whole</text>
+  <path class="qloo" d="M1258 820 V858" stroke-dasharray="6 5" marker-end="url(#blue-head)"/>
+  <text class="body muted" x="1270" y="846">every response cached</text>
+</svg>
