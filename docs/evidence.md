@@ -303,6 +303,18 @@ Written on 2026-10-17, before any spike run. The rule doesn't change after the r
 
 **Results, 2026-10-17: no-go.** Offline on the app's Qloo cache: 0 uncached calls, and reassembling each saved build by today's rule gave back its saved bill exactly, in all four towns. The spread rule raised the rooms per bill in 0 of the 4 towns (Boise 2 to 2, Austin 1 to 1, Denver 2 to 2, Nashville 1 to 1), against a bar of 3. Every town still filled both bands, and band mean affinity moved by at most 0.2%. Why: in Austin and Nashville, only one room lifts any act past the bar in either band (2 of the 5 room-and-band runs lift anything, both the same room's); in Boise and Denver, every room that lifts an act already has one on the bill. A rule that chooses among acts that already pass the bar can't add rooms that lift none. Not shipped; the code is kept out of the repository.
 
+## 17. Does the running order's score match a booker's sense of a shared crowd? (M6r), written before scoring
+
+Written on 2026-10-18, before any of these pairs was scored. The rule doesn't change after the results are in.
+
+**Why.** M8a's spike showed the score ranks pairs, and that genre-sharing pairs score a little higher. It didn't show the score agrees with a booker. The score is Qloo affinity: how much fans of one act also like the other. It isn't a count of shared ticket buyers.
+
+**The pairs.** Ten pairs of acts that already appear in the saved builds, chosen by booker judgement alone before any was scored: 5 a booker would call the same crowd, 5 they would call different crowds. The list is in .design/m6r/pairs.json (gitignored, SHA-256 starting 25cd127d6a52974f), fixed at 00:40 Bucharest.
+
+**How.** Each pair is scored the way the running order scores it: one Qloo insights call seeded by the first act, results limited to the second; the score is the second act's affinity. Ten calls, one at a time.
+
+**The bar.** Go if at least 4 of the 5 same-crowd pairs score above every different-crowd pair. Random scores pass that 6 times in 252, about 2.4% (every way of ranking the ten pairs counted). On a no-go, the running order stays in the app but leaves the demo path and the video.
+
 ## What these numbers don't establish
 
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
