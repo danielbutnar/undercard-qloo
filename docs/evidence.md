@@ -340,7 +340,7 @@ Written on 2026-10-18, before any of these calls. The rule doesn't change after 
 
 **The bar.** The premise is supported if at least 8 of the 10 festivals support it (a one-sided sign test: 8 or more of 10 happens by chance about 5.5% of the time). Otherwise it isn't, and the result is reported either way. Counts and lifts only in this file; names stay in .design/.
 
-**Results, 2026-10-18: not supported at the bar (7 of 10; the bar was 8).** 287 Qloo calls, one at a time. (A first attempt was stopped after its first festival, and for about two minutes two runs overlapped; their output was discarded and this is one clean run.) Lift is the largest gain in Qloo affinity from one of the town's venues, booked acts against random band- and taste-matched acts:
+**Results, 2026-10-18: not supported at the bar (7 of 10; the bar was 8).** 287 Qloo calls, one at a time. (A first attempt was stopped after its first festival, and for about two minutes two runs overlapped; their output was discarded and this is one clean run. Checked afterwards: each festival's count of attempts equals the requests it needed (287 in all), so no call was refused for load (429) or failed (5xx) and retried, in the overlap or after. A 4xx answer isn't retried and wasn't logged, so it can't be ruled out from the record.) Lift is the largest gain in Qloo affinity from one of the town's venues, booked acts against random band- and taste-matched acts:
 
 | Festival | Venues | Booked acts in the bands (Mid / Opener) | Booked mean lift | Random mean lift | Supports |
 |---|---|---|---|---|---|
