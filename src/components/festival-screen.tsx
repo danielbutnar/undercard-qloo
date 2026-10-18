@@ -253,13 +253,16 @@ function EditionBanner({
   calls: number;
   total: number;
   note: string | null;
-  /** Acts on the lineup this edition's venue lifted. */
-  lifted: number;
+  /** Acts on the lineup this edition's venue lifted; null until the lineup is in. */
+  lifted: number | null;
   headliners: readonly string[];
   replayed: boolean;
   onSkip: () => void;
 }) {
   const first = phase === "calls" || !step;
+  // A live run sends its lineup after its last call: until then, the edition's own climbs.
+  const climbs =
+    step?.acts.filter((listed) => listed.move !== null).length ?? 0;
   const title = first
     ? replayed
       ? "Replaying the AI agent's build"
@@ -270,9 +273,13 @@ function EditionBanner({
   const line = first
     ? "First it finds the headliners and the town's music venues in Qloo."
     : step.venue
-      ? lifted > 0
-        ? `The chart re-sorts with this venue's fans added: ${lifted} ${lifted === 1 ? "act climbs" : "acts climb"} onto the lineup.`
-        : `The chart re-sorts with this venue's fans added: no act climbs ${MIN_LIFT} places onto the lineup.`
+      ? lifted === null
+        ? climbs > 0
+          ? `The chart re-sorts with this venue's fans added: ${climbs} of the top ${step.acts.length} ${climbs === 1 ? "climbs" : "climb"} ${MIN_LIFT} places or more.`
+          : `The chart re-sorts with this venue's fans added: no act in view climbs ${MIN_LIFT} places.`
+        : lifted > 0
+          ? `The chart re-sorts with this venue's fans added: ${lifted} ${lifted === 1 ? "act climbs" : "acts climb"} onto the lineup.`
+          : `The chart re-sorts with this venue's fans added: no act climbs ${MIN_LIFT} places onto the lineup.`
       : "Qloo ranks the artists the headliners' fans like: the chart before any venue.";
   const shown = Math.max(total, calls);
   return (
@@ -504,13 +511,16 @@ export function FestivalScreen({
     step?.venue && watch.phase === "climbing"
       ? (hues.get(step.venue.entityId) ?? null)
       : null;
-  const liftedHere = step?.venue
-    ? state.acts.filter(
-        (act) =>
-          act.band === step.band &&
-          act.anchorVenue.entityId === step.venue!.entityId,
-      ).length
-    : 0;
+  // The acts this edition's venue put on the lineup, once the lineup is in: a replay sends it
+  // early, a live run only after its last Qloo call.
+  const liftedHere =
+    step?.venue && state.acts.length > 0
+      ? state.acts.filter(
+          (act) =>
+            act.band === step.band &&
+            act.anchorVenue.entityId === step.venue!.entityId,
+        ).length
+      : null;
   // Only the planner's own lines are the agent's; a replay's status line isn't.
   const note = call
     ? (state.notes.filter((entry) => entry.at < call.n).at(-1)?.text ?? null)
