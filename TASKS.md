@@ -408,4 +408,7 @@ Daniel's brief of 2026-10-18 (Sunday): one of three sessions, each building a di
   - [ ] e2e against the preview: blocked until the Preview environment has the Upstash settings
 - [ ] Merge main in (never rebase); deploy the branch to its preview URL
 - [ ] A fresh subagent reviews the diff against main for merge-blocking problems; none left
+  - [x] First review (fresh Opus subagent, 2026-10-18): four blocking problems, all fixed in 770e87c: Qloo-derived act names and places in docs/design-brief.md and TASKS.md (the earlier commits 4988e25 and a450aff still hold them: rewriting history is Daniel's call); the venue switch could show another build's data after a live run; checked-town replays labelled as live runs; the phone's scroll to Watch ignored reduced motion
+  - [ ] Second review by a fresh subagent: running
 - [ ] Deliver: the preview URL, stills of every screen at 1440x810 and 390 wide, a 30-second recording of the demo path, docs/design-brief.md, what I'd still improve
+  - [x] Stills of every screen at 1440x810 and 390 wide (11 screens), the designed states, the brainstorm stills and a 30-second recording of the demo path in .design/final-chart (git-ignored)
