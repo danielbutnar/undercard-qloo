@@ -288,6 +288,18 @@ Copied from SPEC.md section 6, M8e. Freeze: 2026-10-25. Done means: a keyboard a
 - [x] tests/e2e/a11y.spec.ts on /, /towns/austin, /your-festival, /compare, /method: one h1, named controls, images and regions, a focus mark at every Tab stop, no trap; passes locally and live
 - [ ] Not done: a real screen reader (NVDA or VoiceOver) pass
 
+# TASKS: M9d Blind tournament
+
+Copied from SPEC.md section 6, M9d. Freeze: 2026-10-25. Done means: three candidates per screen besides the current one, judged blind in both orders by four fresh persona judges on two models; a challenger wins 2 of 3 to replace; protocol written first; win rates and task accuracy, then a final check by unused judges.
+
+- [x] Protocol in docs/evidence.md section 24 before the first round
+- [x] Round 1: first screen no winner; build view no winner; method page two columns wins 3 of 3
+- [x] Round 2: first screen ledger + lift bars wins 3 of 3; build view "(was Nth)" wins 3 of 3; method page diagram full width over two columns wins 3 of 3
+- [x] Final check by 12 unused judges (Haiku, Sonnet, Opus): each winner beats the original (2-0 with 2 ties, 4-0, 4-0)
+- [x] Winners shipped (1749870); candidates kept in 6f2e26a, then removed; the bill's separate key goes, the rows say it
+- [x] Cold reader of the new first screen passes (what, for whom, Watch first, the venue's fans as the reason)
+- [x] Deployed (6bfbc85) and the live e2e passes: 56 passed, 7 skipped, then the 3 Qloo steps with E2E_LIVE_QLOO=1
+
 # TASKS: for the 26-27 October redo (not now)
 
 Moved 2026-10-18: the video and the gallery stills are re-shot on 26-27 October, after a UI freeze at the end of 25 October; 28 October is buffer. Protected windows (no deploys, no offline Qloo runs): Monday 19 October 09:00-21:00 and Tuesday 20 October 09:00-22:00 Bucharest. The live e2e makes no Qloo calls by default; the redraft, running-order and refill steps run with E2E_LIVE_QLOO=1 once after each deploy, outside those windows.
@@ -319,6 +331,8 @@ Moved 2026-10-18: the video and the gallery stills are re-shot on 26-27 October,
 - [ ] Shipped in M9b: /compare, Boise against Austin by default; a still and a line in the story
 
 - [ ] Shipped in M9c: /method; set DEMO_VIDEO_URL in src/lib/method.ts once the video is published; link the method page from the story
+
+- [ ] Shipped in M9d: the ledger bill with lift bars, "(was Nth)" on the climb, the method page in two columns; re-shoot every still and the capture of the bill and the climb, and drop the key's line from any caption
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
