@@ -245,6 +245,7 @@ export function BandChart({
   onOpen,
   printing = null,
   column = 0,
+  current = true,
   caption,
   children,
 }: {
@@ -262,6 +263,8 @@ export function BandChart({
   printing?: Printing;
   /** The band's column, 0 or 1, so a replay's two bands print side by side. */
   column?: number;
+  /** False while Watch plays the other band's edition: a phone shows only the one playing. */
+  current?: boolean;
   /** A line under the header: what this edition of the chart is. */
   caption?: ReactNode;
   /** The open act's card, shown under its row. */
@@ -275,7 +278,10 @@ export function BandChart({
   const headingId = `chart-${band.id}`;
   const listing = rows.some((row) => row.kind === "listed");
   return (
-    <section aria-labelledby={headingId} className="band">
+    <section
+      aria-labelledby={headingId}
+      className={`band ${current ? "" : "band-resting"}`}
+    >
       <div className="band-head">
         <h2 id={headingId} className="band-name">
           {PLAIN_BAND[band.id]}

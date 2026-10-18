@@ -2326,3 +2326,27 @@
     display: none;
   }
 }
+
+/* Watch on a phone: only the band whose edition is playing, and a short banner. */
+@media (max-width: 1099px) {
+  .chart-app .draft.is-watching .band-resting {
+    display: none;
+  }
+}
+@media (max-width: 767px) {
+  .chart-app .edition {
+    padding: 10px 12px;
+  }
+  .chart-app .edition-title {
+    font-size: 28px;
+  }
+  .chart-app .edition-call,
+  .chart-app .edition-note {
+    display: none;
+  }
+  .chart-app .edition-side {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

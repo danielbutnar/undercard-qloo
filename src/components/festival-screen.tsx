@@ -484,11 +484,10 @@ export function FestivalScreen({
           act.anchorVenue.entityId === step.venue!.entityId,
       ).length
     : 0;
+  // Only the planner's own lines are the agent's; a replay's status line isn't.
   const note = call
     ? (state.notes.filter((entry) => entry.at < call.n).at(-1)?.text ?? null)
-    : state.status === "building"
-      ? state.note
-      : null;
+    : (state.notes.at(-1)?.text ?? null);
 
   const bandsView =
     mode === "llm" ? (
@@ -506,6 +505,7 @@ export function FestivalScreen({
               <BandChart
                 key={band.id}
                 band={band}
+                current={!step || step.band === band.id}
                 rows={
                   edition ? editionRows(edition, state.acts, placeOf, hues) : []
                 }
