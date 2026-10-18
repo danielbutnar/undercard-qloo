@@ -2321,3 +2321,8 @@
     display: none;
   }
 }
+@media (max-width: 767px) {
+  .chart-app .click-hint {
+    display: none;
+  }
+}

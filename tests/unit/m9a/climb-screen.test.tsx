@@ -9,6 +9,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FestivalScreen } from "@/components/festival-screen";
+import type { ClimbEvent } from "@/lib/lift-climb";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { readEvents, syntheticServer } from "../m3/scripted";
 
@@ -24,17 +25,30 @@ async function liveEvents() {
   return { events, saved };
 }
 
+// The venue switch asks GET /api/venue-switch once on mount; a 404 makes it say it isn't
+// available. Every other request is the build's stream.
 function stream(events: unknown[]) {
-  return vi.fn(
-    async () =>
-      new Response(
-        events.map((event) => JSON.stringify(event)).join("\n") + "\n",
-        {
-          headers: { "content-type": "application/x-ndjson" },
-        },
-      ),
+  return vi.fn(async (url: string) =>
+    url.startsWith("/api/venue-switch")
+      ? new Response("{}", { status: 404 })
+      : new Response(
+          events.map((event) => JSON.stringify(event)).join("\n") + "\n",
+          {
+            headers: { "content-type": "application/x-ndjson" },
+          },
+        ),
   );
 }
+
+// A row's words as they're seen: without the ones kept for screen readers.
+const seen = (node: Node) => {
+  const clone = node.cloneNode(true) as HTMLElement;
+  clone.querySelectorAll(".sr-only").forEach((child) => child.remove());
+  return clone.textContent ?? "";
+};
+
+const WATCH = { name: "Watch how it picked these acts" };
+const SKIP = { name: "Skip to the lineup" };
 
 describe("the lift, visible, on the screen (M9a)", () => {
   it("plays each venue's re-sort with the real move, then the lineup prints; Skip goes straight there", async () => {
@@ -58,37 +72,84 @@ describe("the lift, visible, on the screen (M9a)", () => {
         }}
       />,
     );
-    fireEvent.click(
-      screen.getAllByRole("button", {
-        name: "Watch how it picked these acts",
-      })[0],
-    );
+    fireEvent.click(screen.getByRole("button", WATCH));
     const bill = screen.getByRole("region", { name: "Undercard draft" });
-    await waitFor(() =>
-      expect(
-        within(bill).getByText(
-          /How the town's venue crowds move acts up Qloo's list/,
-        ),
-      ).toBeTruthy(),
-    );
-    // The bands' tiers, and their acts, wait while the climb plays.
+    // Watch opens on the replay, with Skip always there; the bands' acts wait while it plays.
+    expect(
+      within(bill).getByText("Replaying the AI agent's build"),
+    ).toBeTruthy();
+    expect(within(bill).getByRole("button", SKIP)).toBeTruthy();
     expect(within(bill).queryAllByRole("article")).toHaveLength(0);
+    // First the headliners' fans alone...
     await waitFor(
       () =>
         expect(
-          within(bill).getAllByText(
-            /^\+\d+, The Lantern Room \(was \d+(st|nd|rd|th)\)$/,
-          ).length,
-        ).toBeGreaterThan(0),
+          within(bill).getByText("Khruangbin + Japanese Breakfast fans alone"),
+        ).toBeTruthy(),
       { timeout: 8000 },
     );
-    fireEvent.click(
-      within(bill).getByRole("button", { name: "Skip to the lineup" }),
+    // ...then the Lantern Room's fans added: its edition of the Mid-size chart, with every
+    // act's real move and the place it came from.
+    const mid = within(bill).getByRole("region", { name: "Mid-size acts" });
+    await waitFor(
+      () =>
+        expect(
+          within(mid).getByText("With The Lantern Room's fans added"),
+        ).toBeTruthy(),
+      { timeout: 8000 },
     );
-    expect(
-      within(bill).queryByText(/How the town's venue crowds move acts/),
-    ).toBeNull();
-    expect(within(bill).getAllByRole("article")).toHaveLength(10);
+    expect(within(bill).getByText("+ The Lantern Room's fans")).toBeTruthy();
+    expect(within(bill).queryAllByRole("article")).toHaveLength(0);
+    const edition = events
+      .filter((e): e is ClimbEvent => e.type === "climb")
+      .find(
+        (step) =>
+          step.band === "mid" && step.venue?.name === "The Lantern Room",
+      )!;
+    const lifted = edition.acts.filter((listed) => listed.move !== null);
+    expect(lifted.length).toBeGreaterThan(0);
+    edition.acts.forEach((listed, index) => {
+      const row = within(mid).getByText(listed.name).closest("li")!;
+      const words = seen(row);
+      if (listed.move === null) {
+        expect(words).not.toMatch(/\+\d/);
+        return;
+      }
+      const [, move, was] = /\+(\d+)\s*was (\d+)(?:st|nd|rd|th)/.exec(words)!;
+      expect(Number(move)).toBe(listed.move);
+      expect(Number(was)).toBe(index + 1 + listed.move);
+      expect(words).toContain("The Lantern Room");
+    });
+    // The acts this venue's fans put on the lineup say so, and only they do.
+    const booked = saved.lineup.acts
+      .filter(
+        (act) =>
+          act.band === "mid" && act.anchorVenue.name === "The Lantern Room",
+      )
+      .map((act) => act.name);
+    expect(booked.length).toBeGreaterThan(0);
+    for (const listed of edition.acts)
+      expect(
+        seen(within(mid).getByText(listed.name).closest("li")!).includes(
+          "On the lineup",
+        ),
+      ).toBe(booked.includes(listed.name));
+    // Skip goes straight to the lineup, which prints in act by act.
+    fireEvent.click(within(bill).getByRole("button", SKIP));
+    expect(within(bill).queryByRole("button", SKIP)).toBeNull();
+    expect(within(bill).queryByText("+ The Lantern Room's fans")).toBeNull();
+    const articles = within(bill).getAllByRole("article");
+    expect(articles).toHaveLength(10);
+    for (const article of articles)
+      expect(article.className).toContain("animate-print-in");
+    // Each act has its own turn, in steps of 0.12 s down the chart (the two bands' rows side
+    // by side), starting at once.
+    const delays = articles
+      .map((article) => parseFloat(article.style.animationDelay))
+      .sort((a, b) => a - b);
+    expect(delays[0]).toBe(0);
+    expect(new Set(delays).size).toBe(delays.length);
+    for (const delay of delays) expect((delay / 0.12) % 1).toBeCloseTo(0, 5);
   }, 15000);
 
   it("shows the end state at once under reduced motion", async () => {
@@ -113,22 +174,22 @@ describe("the lift, visible, on the screen (M9a)", () => {
         }}
       />,
     );
-    fireEvent.click(
-      screen.getAllByRole("button", {
-        name: "Watch how it picked these acts",
-      })[0],
-    );
+    fireEvent.click(screen.getByRole("button", WATCH));
     const bill = screen.getByRole("region", { name: "Undercard draft" });
-    await waitFor(() =>
-      expect(
-        within(bill).getAllByText(/^Re-ranked with the fans of /).length,
-      ).toBe(2),
+    // Nothing is paced: the lineup is back as soon as the build is in, long before the editions
+    // would have played (about 8 s), with no edition rows and no print-in.
+    await waitFor(
+      () => expect(within(bill).getAllByRole("article")).toHaveLength(10),
+      { timeout: 4000 },
     );
+    expect(within(bill).queryByRole("button", SKIP)).toBeNull();
+    expect(bill.querySelector(".row-listed")).toBeNull();
+    expect(bill.querySelector("[class*='animate-print-in']")).toBeNull();
   });
 });
 
-describe("the venues rail during the climb", () => {
-  it("steps aside, so it never shows zero lifts beside a climb that shows them", async () => {
+describe("the venue switch during Watch", () => {
+  it("steps aside, so it never shows zero lifts beside editions that show them", async () => {
     const { events, saved } = await liveEvents();
     vi.stubGlobal("fetch", stream(events));
     render(
@@ -144,25 +205,22 @@ describe("the venues rail during the climb", () => {
         }}
       />,
     );
-    expect(
-      screen.getByRole("region", {
-        name: /venues whose fans shaped this lineup/,
-      }),
-    ).toBeTruthy();
-    fireEvent.click(
-      screen.getAllByRole("button", {
-        name: "Watch how it picked these acts",
-      })[0],
-    );
-    await waitFor(() =>
-      expect(
-        screen.getByText(/How the town's venue crowds move acts up/),
-      ).toBeTruthy(),
-    );
-    expect(
+    const venueSwitch = () =>
       screen.queryByRole("region", {
         name: /venues whose fans shaped this lineup/,
-      }),
-    ).toBeNull();
+      });
+    expect(venueSwitch()).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", WATCH));
+    await waitFor(
+      () =>
+        expect(
+          screen.getByText("Khruangbin + Japanese Breakfast fans alone"),
+        ).toBeTruthy(),
+      { timeout: 8000 },
+    );
+    expect(venueSwitch()).toBeNull();
+    // It comes back with the lineup.
+    fireEvent.click(screen.getByRole("button", SKIP));
+    expect(venueSwitch()).toBeTruthy();
   });
 });

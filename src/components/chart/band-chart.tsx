@@ -9,6 +9,15 @@ import { Sleeve } from "./sleeve";
 import { useFlip } from "./use-flip";
 import { feeRangeWords, ordinal, PLAIN_BAND } from "./words";
 
+/**
+ * What prints rows that mount now: a replay's lineup prints down the chart row by row, both bands
+ * side by side; a refill's replacement prints straight into its slot; null prints nothing.
+ */
+export type Printing = "replay" | "refill" | null;
+
+/** A replay's rows print 0.12 s apart, the two bands' rows alternating. */
+export const PRINT_STEP_S = 0.12;
+
 /** Places on a band's chart the arrows are drawn against: Qloo's top 50. */
 const TOP = 50;
 
@@ -63,7 +72,11 @@ export function ClimbArrow({
         </span>
       </span>
       <span className="climb-was">
-        {fresh ? "not in top 50" : was !== null ? `was ${ordinal(was)}` : ""}
+        {fresh
+          ? "not in top 50"
+          : was !== null
+            ? `was ${ordinal(was)}`
+            : `up ${move} places`}
       </span>
     </span>
   );
@@ -87,6 +100,8 @@ function Row({
   /** Seconds before the row prints in, when a replay reprints the lineup. */
   printDelay: number | null;
 }) {
+  // Decided when the row mounts, so the rows already on the chart never print again.
+  const [print] = useState(printDelay);
   if (row.kind === "open")
     return (
       <div className="row row-open">
@@ -157,11 +172,9 @@ function Row({
   return (
     <article
       aria-label={row.name}
-      className={`row ${hue} ${open ? "is-open" : ""} ${gone ? "is-gone" : ""} ${kept ? "is-kept" : ""} ${printDelay !== null ? "motion-safe:animate-print-in" : ""}`}
+      className={`row ${hue} ${open ? "is-open" : ""} ${gone ? "is-gone" : ""} ${kept ? "is-kept" : ""} ${print !== null ? "motion-safe:animate-print-in" : ""}`}
       style={
-        printDelay !== null
-          ? { animationDelay: `${printDelay.toFixed(2)}s` }
-          : undefined
+        print !== null ? { animationDelay: `${print.toFixed(2)}s` } : undefined
       }
     >
       {body}
@@ -231,6 +244,7 @@ export function BandChart({
   unavailable = [],
   onOpen,
   printing = null,
+  column = 0,
   caption,
   children,
 }: {
@@ -244,8 +258,10 @@ export function BandChart({
   keeping?: readonly string[];
   unavailable?: readonly string[];
   onOpen?: (act: Act) => void;
-  /** Delays per act id, when a replay reprints the lineup act by act. */
-  printing?: ReadonlyMap<string, number> | null;
+  /** What prints the rows that mount now. */
+  printing?: Printing;
+  /** The band's column, 0 or 1, so a replay's two bands print side by side. */
+  column?: number;
   /** A line under the header: what this edition of the chart is. */
   caption?: ReactNode;
   /** The open act's card, shown under its row. */
@@ -273,9 +289,11 @@ export function BandChart({
         </p>
       )}
       <ol className={`rows ${listing ? "rows-listing" : ""}`}>
-        {rows.map((row) => (
+        {rows.map((row, index) => (
           <li key={row.key} ref={flip(row.key)}>
+            {/* Keyed by kind: an edition row that becomes a lineup row mounts afresh and prints in. */}
             <Row
+              key={row.kind}
               row={row}
               top={top}
               open={openId !== null && row.act?.entityId === openId}
@@ -283,7 +301,11 @@ export function BandChart({
               gone={unavailable.includes(row.act?.entityId ?? "")}
               onOpen={onOpen}
               printDelay={
-                row.act ? (printing?.get(row.act.entityId) ?? null) : null
+                !row.act || printing === null
+                  ? null
+                  : printing === "refill"
+                    ? 0
+                    : (index * 2 + column) * PRINT_STEP_S
               }
             />
             {row.act && openId === row.act.entityId && children?.(row.act)}

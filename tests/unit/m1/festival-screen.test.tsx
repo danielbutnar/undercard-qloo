@@ -63,13 +63,11 @@ describe("FestivalScreen for Sagebrush Sound", () => {
     expect(within(table).getAllByRole("row")).toHaveLength(31);
   });
 
+  // The button sits in the lead beside the chart, not inside the draft.
   it("offers Build undercard and an empty Qloo call trace", () => {
     render(<FestivalScreen festival={SAGEBRUSH_SOUND} />);
     expect(
-      within(screen.getByRole("region", { name: "Undercard draft" })).getByRole(
-        "button",
-        { name: "Build undercard" },
-      ),
+      screen.getByRole("button", { name: "Build undercard" }),
     ).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Qloo calls" })).toBeTruthy();
   });

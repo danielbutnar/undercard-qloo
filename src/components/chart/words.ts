@@ -1,10 +1,8 @@
 import type { FeeBand, FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import { formatBandRange, formatCount } from "@/lib/format";
-import type { Act } from "@/lib/lineup";
-import { liftOf, roomShortName } from "@/lib/marks";
+import { roomShortName } from "@/lib/marks";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
-import type { Placed } from "@/lib/venue-switch";
 
 /** What the chart says, in one place. Plain words first (M6q, M6r); pictures carry the rest. */
 
@@ -23,7 +21,7 @@ export function headlinersNote(festival: Festival): string {
   const bands =
     festival.headliners[0] === SAGEBRUSH_SOUND.headliners[0] &&
     festival.headliners[1] === SAGEBRUSH_SOUND.headliners[1];
-  return `${bands ? "The headliners, two bands, are" : "The headliners are"} already booked · the AI agent drafted everyone below`;
+  return `${bands ? "The headliners, two bands, are" : "The headliners are"} already booked · the AI agent drafted the rest of the lineup (the bill)`;
 }
 
 /** The headline: what this screen is, in the two seconds a glance gives it. */
@@ -74,25 +72,6 @@ export function ordinal(place: number): string {
 /** A venue's short mark on a row: its bracketed abbreviation or initials, else its name. */
 export const venueShort = (name: string) => roomShortName(name);
 
-/**
- * The row's reason in words, for screen readers and the card: the venue, then the climb. Never a
- * bare +N (M6r).
- */
-export function climbSentence(
-  act: Act,
-  place: Placed | undefined,
-  top?: number,
-): string {
-  const lift = liftOf(act);
-  const venue = act.anchorVenue.name;
-  if (lift?.kind === "new")
-    return `${venue} fans like it: new to Qloo's top ${top ?? lift.top}, in at ${ordinal(place?.now ?? lift.top)}.`;
-  if (lift?.kind === "up")
-    return place?.was
-      ? `${venue} fans like it: ${lift.places} places higher in Qloo's ranking, from ${ordinal(place.was)} to ${ordinal(place.now)}.`
-      : `${venue} fans like it: ${lift.places} places higher in Qloo's ranking.`;
-  return `${venue} fans like it.`;
-}
 
 export const liftedWords = (lifted: number) =>
   lifted === 0

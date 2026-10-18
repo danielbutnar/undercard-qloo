@@ -192,17 +192,20 @@ describe("Running order on the bill", () => {
       () => 0.83,
       SAGEBRUSH_SOUND.feeBands,
     );
-    const fetch = vi.fn(
-      async () =>
-        new Response(
-          [
-            { type: "running-order", slots },
-            { type: "done", calls: 8, ms: 900 },
-          ]
-            .map((event) => JSON.stringify(event))
-            .join("\n") + "\n",
-          { headers: { "content-type": "application/x-ndjson" } },
-        ),
+    // The venue switch asks GET /api/venue-switch once on mount; a 404 makes it say it isn't
+    // available. Every other request is the running order's stream.
+    const fetch = vi.fn(async (url: string) =>
+      url.startsWith("/api/venue-switch")
+        ? new Response("{}", { status: 404 })
+        : new Response(
+            [
+              { type: "running-order", slots },
+              { type: "done", calls: 8, ms: 900 },
+            ]
+              .map((event) => JSON.stringify(event))
+              .join("\n") + "\n",
+            { headers: { "content-type": "application/x-ndjson" } },
+          ),
     );
     vi.stubGlobal("fetch", fetch);
     render(
@@ -222,14 +225,27 @@ describe("Running order on the bill", () => {
     fireEvent.click(
       within(bill).getByRole("button", { name: "Running order" }),
     );
-    await waitFor(() => expect(fetch).toHaveBeenCalled());
-    const [url] = fetch.mock.calls[0] as unknown as [string];
-    expect(url).toBe("/api/running-order");
+    const requests = () =>
+      fetch.mock.calls
+        .map(([url]) => url)
+        .filter((url) => !url.startsWith("/api/venue-switch"));
+    await waitFor(() => expect(requests()).toHaveLength(1));
+    expect(requests()).toEqual(["/api/running-order"]);
     const panel = await screen.findByRole("region", { name: "Running order" });
+    // It opens on the bill, under the bands.
+    expect(bill.contains(panel)).toBe(true);
+    expect(
+      within(bill)
+        .getByRole("region", { name: "Opening acts" })
+        .compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     const sets = within(panel).getAllByRole("listitem");
     expect(sets).toHaveLength(5);
     expect(sets[0].textContent).toContain(slots[0].main.name);
     expect(sets[0].textContent).toContain(slots[0].second!.name);
+    expect(sets[0].textContent).toContain(
+      `${slots[0].main.name} plays against ${slots[0].second!.name}`,
+    );
     expect(sets[0].textContent).toMatch(/closest of \d+ pairs on this lineup/);
   });
 });

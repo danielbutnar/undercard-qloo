@@ -1,53 +1,116 @@
 // @vitest-environment jsdom
-// M9d: the blind tournament's winners, shipped (docs/evidence.md section 24). The first screen's
-// bands are ledgers with a lift bar per act; the climb says where a lifted act came from; the
-// method page sets its diagram full width over two columns.
-import { cleanup, render, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { DraftBill } from "@/components/draft-bill";
-import { LiftClimb } from "@/components/lift-climb";
+// M9d: the blind tournament's winners, shipped (docs/evidence.md section 24), as the weekly chart
+// carries them. The first screen's bands are charts with a climb arrow per act as long as its
+// move; the climb says where a lifted act came from; the method page sets its diagram full width
+// over two columns.
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
+import { BandChart } from "@/components/chart/band-chart";
+import { editionRows } from "@/components/chart/chart-rows";
+import { FestivalScreen } from "@/components/festival-screen";
 import { MethodPage } from "@/components/method-page";
-import { liftOf } from "@/lib/marks";
-import { wasPlace } from "@/lib/lift-climb";
+import { wasPlace, type ClimbEvent } from "@/lib/lift-climb";
+import { liftOf, roomShortName } from "@/lib/marks";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
-import { acts } from "../m4b/first-bill-fixture";
+import { acts, FIRST_BILL } from "../m4b/first-bill-fixture";
 
-afterEach(() => {
-  cleanup();
-  vi.unstubAllGlobals();
+afterEach(cleanup);
+
+// A row's words as they're seen: without the ones kept for screen readers.
+const seen = (node: Node) => {
+  const clone = node.cloneNode(true) as HTMLElement;
+  clone.querySelectorAll(".sr-only").forEach((child) => child.remove());
+  return clone.textContent ?? "";
+};
+
+// One edition of Watch's chart: a band's list after a venue's fans were added.
+function renderEdition(step: ClimbEvent) {
+  render(
+    <BandChart
+      band={SAGEBRUSH_SOUND.feeBands[0]}
+      rows={editionRows(step, [], {}, new Map())}
+      sortKey={step}
+      motion={false}
+    />,
+  );
+  return screen.getAllByRole("listitem");
+}
+
+const edition = (
+  moves: (number | null)[],
+  venue: ClimbEvent["venue"] = { entityId: "v1", name: "The Lantern Room" },
+): ClimbEvent => ({
+  type: "climb",
+  band: "mid",
+  venue,
+  acts: moves.map((move, index) => ({
+    entityId: `a${index}`,
+    name: `Act ${index + 1}`,
+    move,
+  })),
 });
 
-describe("the first screen's ledger (M9d winner)", () => {
-  it("sets each act as a row: its name, the venue whose fans like it, its move and a bar as long as the move", () => {
+describe("the first screen's chart (M9d winner)", () => {
+  it("sets each act as a row: its name, the venue whose fans like it, its move and an arrow as long as the move", () => {
+    const first = acts.find((act) => act.band === "mid")!;
+    const lift = liftOf(first);
+    expect(lift?.kind).toBe("up");
+    const move = (lift as { places: number }).places;
     render(
-      <DraftBill
+      <FestivalScreen
         festival={SAGEBRUSH_SOUND}
-        acts={acts}
-        calls={12}
-        createdAt="2026-10-15T14:02:00.000Z"
-        onOpen={() => {}}
+        firstBill={{
+          ...FIRST_BILL,
+          places: { [first.entityId]: { now: 1, was: 1 + move } },
+        }}
       />,
     );
     const mid = screen.getByRole("region", { name: "Mid-size acts" });
-    const rows = within(mid).getAllByRole("article");
-    expect(rows).toHaveLength(4);
-    const first = acts.find((act) => act.band === "mid")!;
+    expect(within(mid).getAllByRole("article")).toHaveLength(4);
     const row = within(mid).getByRole("article", { name: first.name });
     expect(within(row).getByRole("button", { name: first.name })).toBeTruthy();
+    // The venue whose fans like it: its mark and its crowd on the row...
     expect(
-      within(row).getByText(`${first.anchorVenue.name} fans like it`),
+      within(row).getByText(roomShortName(first.anchorVenue.name)),
     ).toBeTruthy();
     expect(
-      within(row).getByText("places higher in Qloo's ranking"),
+      within(row).getByText(
+        `${first.anchorVenue.name}'s crowd: up ${move} places`,
+      ),
     ).toBeTruthy();
-    const lift = liftOf(first);
-    expect(lift?.kind).toBe("up");
-    const bar = row.querySelector<HTMLElement>("[data-lift-bar]")!;
-    expect(bar.getAttribute("aria-hidden")).toBe("true");
-    expect(bar.style.width).toBe(
-      `${Math.min(100, ((lift as { places: number }).places / 50) * 100)}%`,
+    // ...the move, beside the place it came from...
+    expect(seen(row)).toMatch(
+      new RegExp(`\\+${move}\\s*was ${move + 1}(st|nd|rd|th)`),
     );
-    // The words on each row do the key's job, so the bill carries no separate key.
+    // ...and an arrow as long as the move: 50 places fill the cell, a short move keeps a stub.
+    const share = (article: HTMLElement) =>
+      article
+        .querySelector<HTMLElement>(".climb-arrow")!
+        .style.getPropertyValue("--share");
+    expect(row.querySelector(".climb")!.getAttribute("aria-hidden")).toBe(
+      "true",
+    );
+    expect(share(row)).toBe(String(Math.min(1, Math.max(0.18, move / 50))));
+    for (const article of within(mid).getAllByRole("article")) {
+      const places = Number(/\+(\d+)/.exec(seen(article))![1]);
+      expect(share(article)).toBe(
+        String(Math.min(1, Math.max(0.18, places / 50))),
+      );
+    }
+    // The card says in full whose fans like it.
+    fireEvent.click(within(row).getByRole("button", { name: first.name }));
+    expect(
+      within(screen.getByRole("region", { name: "Act card" })).getByText(
+        `${first.anchorVenue.name} fans like it`,
+      ),
+    ).toBeTruthy();
+    // The words on each row do the key's job, so the chart carries no separate key.
     expect(
       screen.queryByRole("note", { name: "How to read the marks" }),
     ).toBeNull();
@@ -64,32 +127,37 @@ describe("the climb says where a lifted act came from (M9d winner)", () => {
     expect(wasPlace(1, 110)).toBe("was 111th");
   });
 
+  it("prints that place on each lifted row: its rank in the list plus its move", () => {
+    // Each act's place in the list now is its rank; the place it held is its rank plus its move.
+    const was = (moves: number[]) => {
+      const names = renderEdition(edition(moves)).map(
+        (row) => /was (\d+(?:st|nd|rd|th))/.exec(seen(row))![1],
+      );
+      cleanup();
+      return names;
+    };
+    expect(was([49, 19, 9, 107])).toEqual(["50th", "21st", "12th", "111th"]);
+    expect(was([1, 1])).toEqual(["2nd", "3rd"]);
+  });
+
   it("labels each lifted act with its move, the venue and its old place", () => {
-    vi.stubGlobal("matchMedia", (query: string) => ({
-      matches: query.includes("reduce"),
-      media: query,
-      addEventListener() {},
-      removeEventListener() {},
-    }));
-    render(
-      <LiftClimb
-        steps={[
-          {
-            type: "climb",
-            band: "mid",
-            venue: { entityId: "v1", name: "The Lantern Room" },
-            acts: [
-              { entityId: "a1", name: "Hollow Pines", move: 11 },
-              { entityId: "a2", name: "Marisol Vey", move: null },
-            ],
-          },
-        ]}
-        bands={SAGEBRUSH_SOUND.feeBands}
-        live={false}
-        onDone={() => {}}
-      />,
-    );
-    expect(screen.getByText("+11, The Lantern Room (was 12th)")).toBeTruthy();
+    const rows = renderEdition({
+      type: "climb",
+      band: "mid",
+      venue: { entityId: "v1", name: "The Lantern Room" },
+      acts: [
+        { entityId: "a1", name: "Hollow Pines", move: 11 },
+        { entityId: "a2", name: "Marisol Vey", move: null },
+      ],
+    });
+    expect(rows).toHaveLength(2);
+    const lifted = seen(rows[0]);
+    expect(lifted).toContain("Hollow Pines");
+    expect(lifted).toMatch(/\+11\s*was 12th/);
+    expect(lifted).toContain("The Lantern Room");
+    // An act the venue's fans didn't lift carries none of it.
+    expect(seen(rows[1])).toContain("Marisol Vey");
+    expect(seen(rows[1])).not.toMatch(/\+\d|was \d|The Lantern Room/);
   });
 });
 
@@ -99,7 +167,7 @@ describe("the method page's layout (M9d winner)", () => {
     const method = screen.getByRole("region", { name: "The method" });
     const evidence = screen.getByRole("region", { name: "Evidence" });
     const objections = screen.getByRole("region", { name: "Five objections" });
-    const columns = evidence.closest("[data-columns]");
+    const columns = evidence.closest(".method-columns");
     expect(columns).not.toBeNull();
     expect(columns!.contains(objections)).toBe(true);
     expect(columns!.contains(method)).toBe(false);

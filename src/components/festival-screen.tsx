@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ActCardPanel } from "@/components/act-card-panel";
-import { BandChart } from "@/components/chart/band-chart";
+import { BandChart, type Printing } from "@/components/chart/band-chart";
 import { billRows, editionRows } from "@/components/chart/chart-rows";
 import { RuleKey } from "@/components/chart/rule-key";
 import { Quilt } from "@/components/chart/sleeve";
@@ -49,9 +49,6 @@ import type { YourBrief } from "@/lib/your-festival";
 import "./chart/chart.css";
 
 type Mode = "qloo" | "llm";
-
-/** Once Watch hands the chart back, the lineup's acts print in 0.12 s apart. */
-const PRINT_STEP_S = 0.12;
 
 const savedAt = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -361,9 +358,7 @@ export function FestivalScreen({
   // Watch on a saved build replays it; a fresh run is the agent planning live.
   const [replaying, setReplaying] = useState(true);
   const [openId, setOpenId] = useState<string | null>(null);
-  const [printing, setPrinting] = useState<ReadonlyMap<string, number> | null>(
-    null,
-  );
+  const [printing, setPrinting] = useState<Printing>(null);
   const board = useRef<HTMLElement>(null);
 
   const watching = watch.phase === "calls" || watch.phase === "climbing";
@@ -432,7 +427,8 @@ export function FestivalScreen({
     setMode("qloo");
     setOpenId(null);
     switcher.reset();
-    setPrinting(null);
+    // The lineup prints in down the chart once Watch hands it back (reduced motion: at once).
+    setPrinting(watch.reduced ? null : "replay");
     setReplaying(!request.fresh && state.build !== null);
     watch.start();
     void build(request);
@@ -441,25 +437,6 @@ export function FestivalScreen({
       board.current?.scrollIntoView?.({ block: "start", behavior: "smooth" });
   }
 
-  // When Watch hands the chart back, the lineup prints in act by act (reduced motion: at once).
-  const lastPhase = useRef<WatchPhase>("idle");
-  useEffect(() => {
-    if (
-      lastPhase.current !== "done" &&
-      watch.phase === "done" &&
-      !watch.reduced
-    ) {
-      const order = festival.feeBands.flatMap((band) =>
-        state.acts.filter((act) => act.band === band.id),
-      );
-      setPrinting(
-        new Map(
-          order.map((act, index) => [act.entityId, index * PRINT_STEP_S]),
-        ),
-      );
-    }
-    lastPhase.current = watch.phase;
-  }, [watch.phase, watch.reduced, festival.feeBands, state.acts]);
 
   // A judge's own brief runs once, as soon as its screen opens; a checked town replays.
   const started = useRef(false);
@@ -471,7 +448,7 @@ export function FestivalScreen({
   }, []);
 
   function refill(act: Act, reason: UnavailableReason) {
-    setPrinting(null);
+    setPrinting("refill");
     void markUnavailable(act, reason);
   }
 
@@ -557,6 +534,7 @@ export function FestivalScreen({
               key={band.id}
               band={band}
               rows={billRows(band, shownActs, placeOf, hues, open)}
+              column={festival.feeBands.indexOf(band)}
               sortKey={whatIf ? [...switcher.off].sort().join() : "bill"}
               motion={!watch.reduced}
               top={firstBill?.baselineTop[band.id]}
@@ -673,7 +651,15 @@ export function FestivalScreen({
                 </li>
               ))}
             </ul>
-            <p className="headliners-note">{headlinersNote(festival)}</p>
+            <p className="headliners-note">
+              {headlinersNote(festival)}
+              {mode === "qloo" && state.acts.length > 0 && !custom && (
+                <span className="click-hint">
+                  {" "}
+                  Click an act to see why, keep it or mark it unavailable.
+                </span>
+              )}
+            </p>
             {watching && (
               <EditionBanner
                 phase={watch.phase}
@@ -739,7 +725,7 @@ export function FestivalScreen({
                       type="button"
                       className="tool tool-strong"
                       onClick={() => {
-                        setPrinting(null);
+                        setPrinting("refill");
                         setOpenId(null);
                         void redraft();
                       }}
