@@ -46,7 +46,9 @@ const bill = () => screen.getByRole("region", { name: "Undercard draft" });
 const acts = () => within(bill()).queryAllByRole("article");
 const lantern = () =>
   within(
-    screen.getByRole("region", { name: "Boise venues whose fans shaped this lineup" }),
+    screen.getByRole("region", {
+      name: "Boise venues whose fans shaped this lineup",
+    }),
   )
     .getAllByRole("listitem")
     .find((item) => item.textContent?.startsWith("The Lantern Room"))!;
@@ -56,7 +58,7 @@ const printStarts = (article: Element) =>
 
 async function watch() {
   fireEvent.click(
-    within(screen.getByRole("complementary", { name: "Qloo calls" })).getByRole(
+    within(screen.getByRole("region", { name: "Undercard draft" })).getByRole(
       "button",
       { name: "Watch how it picked these acts" },
     ),

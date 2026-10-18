@@ -66,9 +66,10 @@ describe("FestivalScreen for Sagebrush Sound", () => {
   it("offers Build undercard and an empty Qloo call trace", () => {
     render(<FestivalScreen festival={SAGEBRUSH_SOUND} />);
     expect(
-      within(
-        screen.getByRole("complementary", { name: "Qloo calls" }),
-      ).getByRole("button", { name: "Build undercard" }),
+      within(screen.getByRole("region", { name: "Undercard draft" })).getByRole(
+        "button",
+        { name: "Build undercard" },
+      ),
     ).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Qloo calls" })).toBeTruthy();
   });

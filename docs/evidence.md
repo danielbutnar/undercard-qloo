@@ -466,6 +466,8 @@ Written on 2026-10-18, before the candidate is shown to a judge. M9d's first-scr
 
 **The bar.** At least 20 of 24 answers name Watch (the key's word "watch") as the first click. If it's met, the candidate ships. If it isn't, Watch stays where it is and only the sentence split ships. Which screen wins each comparison is reported but doesn't decide.
 
+**Result, 2026-10-18: met, 24 of 24.** Every answer names "Watch how it picked these acts", most of them adding "under the headliners" or "full-width". The candidate also won all three comparisons: 4–0 against the current screen, 4–0 against the original, 2–1 against round 2's table with a button above. One thing cuts the other way: in this batch the current screen's first click was Watch in 8 of its 8 answers too, so round 2's 15 of 24 didn't repeat with fresh judges, and the move is a clear preference rather than a fix for a measured gap. All shots use the synthetic data; the judges are Claude models given personas.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.

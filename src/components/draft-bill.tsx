@@ -294,7 +294,7 @@ export function DraftBill({
   onOpen,
   printing = null,
   onPrinted,
-  phoneAction,
+  action,
   drafting = false,
   keeping = [],
   redraft,
@@ -315,8 +315,8 @@ export function DraftBill({
   printing?: Printing;
   /** Called as each act's print-in starts, so the rooms' counts can tick up with it. */
   onPrinted?: (entityId: string) => void;
-  /** Shown under the headliners on phones only, where the rail sits below the whole bill. */
-  phoneAction?: ReactNode;
+  /** Shown under the headliners at every width: Watch, the first click (evidence section 25). */
+  action?: ReactNode;
   /** A build is streaming; the footer says the agent is drafting. */
   drafting?: boolean;
   /** Acts the buyer keeps (M8c), marked on the bill. */
@@ -339,9 +339,7 @@ export function DraftBill({
           acts.length > 0 &&
           " Click an act to see why, keep it or mark it unavailable."}
       </BillHeader>
-      {phoneAction && (
-        <div className="mt-3 w-full lg:hidden">{phoneAction}</div>
-      )}
+      {action && <div className="mt-3 w-full">{action}</div>}
       {climb}
       {!climb &&
         festival.feeBands.map((band) => (
