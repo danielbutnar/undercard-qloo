@@ -404,7 +404,7 @@ Daniel's brief of 2026-10-18 (Sunday): one of three sessions, each building a di
 - [ ] Gates: squint test, lay reader (M6q prompt) at 1440 and 390, design scan, pnpm gate, e2e against the preview with no live-Qloo tests
   - [x] Squint test (2026-10-18): a fresh reader of the third-size 1440x810 shot: "an AI agent that drafts a festival's opening acts from what fans of a town's own venues like, for festival organizers"; first click the yellow Watch button
   - [x] Lay reader (2026-10-18, 1440 and 390 shots): what it does and for whom ("drafts the support bands … using what fans of Boise's own venues like … aimed at festival organizers"), one act's reason in its own words (its old and new place in Qloo's ranking and the venue whose fans lifted it), first click Watch; it found the fee range bars and the slot squares unclear, so both are now labelled in words
-  - [x] Design scan and pnpm gate pass (462 unit tests); e2e locally on the synthetic server: 61 passed, 5 skipped (live-Qloo steps and empty-server scenes)
+  - [x] Design scan and pnpm gate pass (463 unit tests, rerun after the first review's fixes); e2e locally on the synthetic server: 61 passed, 5 skipped (live-Qloo steps and empty-server scenes), rerun after the same fixes
   - [ ] e2e against the preview: blocked until the Preview environment has the Upstash settings
 - [ ] Merge main in (never rebase); deploy the branch to its preview URL
 - [ ] A fresh subagent reviews the diff against main for merge-blocking problems; none left
