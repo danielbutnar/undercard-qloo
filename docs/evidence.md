@@ -423,6 +423,39 @@ Written on 2026-10-18, before any candidate is shown to a judge. The protocol do
 
 **Final check.** After the last round, the final version of each screen against the original, judged by four judges not used in any round (fresh subagents, a third model where available). Reported as win rates and task accuracy, never a score out of 10.
 
+### Results (2026-10-18)
+
+Two rounds, 144 judges (72 a round, Sonnet and Opus alternating), then 12 final-check judges (Haiku for the engineer and the buyer, Sonnet for the critic, Opus for the 90-second judge). One round-1 vote file was unreadable JSON and is left out. No anchors: none were downloaded. Every shot shows the same synthetic data.
+
+Comparisons won, of 3 per candidate; the score in brackets is counted votes (both orders agreeing) out of 4 judges.
+
+| Screen | Round 1 (A = current) | Round 2 | Outcome |
+|---|---|---|---|
+| First screen | A 2 (beat C 3–0, D 4–0; lost to B 0–2), B ledger 1, C focus 0, D rail left 1 | A 1, E ledger + button above 2, **F ledger + lift bars 3** (beat A 3–0, E 3–0, G 3–1), G compact poster 0 | F replaces A |
+| Build view | **A 3** (4–0, 4–0, 2–1), B climb in the rail 0, C climb full width 1, D stepper 2 | A 1, E venue progress line 2, F trace folded 0, **G "(was Nth)" 3** (beat A 2–0, E 3–0, F 4–0) | G replaces A |
+| Method page | A 2, B questions first 1, **C two columns 3** (beat A 3–1, B 4–0, D 4–0), D table first 0 | C 2, **E diagram full width over two columns 3** (beat C 4–0, F 4–0, G 4–0), F columns swapped 1, G table below 0 | C replaces A in round 1, E replaces C in round 2 |
+
+Every screen had a winner in round 2, so the protocol allowed a third round. It wasn't run: each round-2 winner won all three of its comparisons, and a third round meant 72 more judges and nine more candidates with the UI freeze on 25 October.
+
+**Task accuracy** (answers right, of 24 a candidate a round; 8 in the final check). "What" and "first click" are graded by keyword against the key above. "Why" was first graded by keyword too, needing the word "venue"; the judges mostly named the venue instead ("The Lantern Room's fans moved it up"), which the key counts as right. So "why" is reported both ways, the second also accepting the two synthetic venues' names, applied to every round alike.
+
+| Screen, candidate | What | First click | Why (word "venue" / venue named) |
+|---|---|---|---|
+| First, A (round 2) | 16 | 20 | 14 / 24 |
+| First, F (round 2) | 18 | 15 | 12 / 24 |
+| Build, A (round 2) | 18 | 24 | 15 / 24 |
+| Build, G (round 2) | 16 | 24 | 6 / 24 |
+| Method, C (round 2) | 8 | 23 | 20 / 20 |
+| Method, E (round 2) | 8 | 24 | 24 / 24 |
+
+The method page's "what" stays low for every candidate because it doesn't show a lineup; the judges describe a method explainer, which the key's wording doesn't match. The first screen's winner lowered first-click accuracy in round 2 (15 against 20); in the final check the two were level (5 of 8 each).
+
+**Final check**, final version against the original, four fresh judges each: the first screen F 2, A 0, two ties (two judges, both Haiku, picked the same position in both orders, so their two trials named different versions); the build view G 4, A 0; the method page E 4, A 0, one of those four from a Haiku judge who said its second trial's shots looked identical (the files were checked and differ) and picked by position there, which happened to agree with its first trial. Accuracy, final against original, of 8: first screen what 4 / 6, first click 5 / 5, why (venue named) 8 / 8; build view what 6 / 5, first click 8 / 8, why 6 / 4; method page what 0 / 5, first click 8 / 8, why 4 / 5.
+
+**Shipped** (commit 1749870): the bands as ledgers, one row per act with the venue whose fans like it, its move and a bar as long as the move, and no separate key, since the rows say what it said; the climb's labels with the place an act held before; the method page's diagram full width over the evidence and the objections in two columns. The candidates are in commit 6f2e26a and were removed after. A cold reader given the new first screen alone named what it does and for whom, chose Watch first, and gave the venue's fans as the reason for an act; it misread what the move is measured against.
+
+**Limits.** The judges are Claude models given personas, not people. Each saw one comparison, so there are 4 votes a comparison, and a 2–0 is two judges. All shots use synthetic data, and none show a past winner's screen for scale.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
