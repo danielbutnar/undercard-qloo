@@ -60,11 +60,14 @@ describe("the method page (M9c)", () => {
     expect(
       screen.getAllByRole("img", { name: /How Undercard drafts a lineup/ }),
     ).toHaveLength(1);
-    const table = screen.getByRole("table", { name: "What was tested" });
-    const rows = within(table).getAllByRole("row");
+    const tables = ["Does the idea hold?", "Does the product work?"].map(
+      (name) => screen.getByRole("table", { name }),
+    );
+    const rows = tables.flatMap((table) => within(table).getAllByRole("row"));
     expect(rows.length).toBeGreaterThan(10);
-    for (const link of within(table).getAllByRole("link"))
-      expect(headings).toContain(link.getAttribute("href")!.split("#")[1]);
+    for (const table of tables)
+      for (const link of within(table).getAllByRole("link"))
+        expect(headings).toContain(link.getAttribute("href")!.split("#")[1]);
     expect(
       screen.getByRole("region", {
         name: "What these numbers don't establish",
