@@ -1,0 +1,455 @@
+/*
+ * The weekly chart (design round, direction 1): a printed singles chart. Its tokens live here
+ * and nowhere else; every rule below uses them. Contrast pairs, from scripts/design-check.mjs:
+ * ink on page 18.73, muted on page 6.90, on-mast on mast 5.66, up on page 5.96, ink on zebra 16.56,
+ * muted on zebra 6.10, up on zebra 5.27, on-mast on ink 18.73, ink on mark 12.97.
+ */
+.lab-chart {
+  --page: #ffffff;
+  --ink: #121212;
+  --muted: #5a5a5a;
+  --hair: #c9c9c5;
+  --zebra: #f1f1ef;
+  --mast: #c8231a;
+  --on-mast: #ffffff;
+  --up: #0a7339;
+  --mark: #ffd23f;
+
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--chart-face), Arial, sans-serif;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.lab-chart .top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px 32px;
+  padding: 14px 32px 12px;
+}
+.lab-chart .firstLine {
+  max-width: 1100px;
+}
+.lab-chart .example {
+  font-size: 16px;
+  color: var(--muted);
+}
+.lab-chart .textLink {
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.lab-chart .textLink:hover {
+  color: var(--mast);
+}
+
+.lab-chart .mast {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 440px;
+  align-items: end;
+  gap: 16px 40px;
+  padding: 14px 32px 16px;
+  background: var(--mast);
+  color: var(--on-mast);
+}
+.lab-chart .facts {
+  font-size: 16px;
+}
+.lab-chart .festival {
+  margin: 2px 0 8px;
+  font-size: 56px;
+  line-height: 0.92;
+  font-weight: 900;
+  font-stretch: 125%;
+}
+.lab-chart .headliners {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 14px;
+}
+.lab-chart .headLabel {
+  font-size: 16px;
+  font-weight: 700;
+}
+.lab-chart .headNames {
+  font-size: 30px;
+  line-height: 1.1;
+  font-weight: 800;
+  font-stretch: 112%;
+}
+.lab-chart .side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lab-chart .stamp {
+  align-self: flex-end;
+  border: 2px solid var(--on-mast);
+  padding: 1px 8px;
+  font-size: 16px;
+  font-weight: 700;
+}
+.lab-chart .watch {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  background: var(--ink);
+  color: var(--on-mast);
+  font: inherit;
+  font-size: 22px;
+  line-height: 1.15;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+.lab-chart .watch:hover {
+  background: var(--on-mast);
+  color: var(--ink);
+}
+.lab-chart .watch:focus-visible,
+.lab-chart .quiet:focus-visible,
+.lab-chart .textLink:focus-visible {
+  outline: 3px solid var(--mark);
+  outline-offset: 2px;
+}
+.lab-chart .watch:disabled {
+  cursor: wait;
+}
+.lab-chart .watch svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+.lab-chart .watchNote {
+  font-size: 16px;
+}
+
+.lab-chart .ticker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 18px;
+  min-height: 44px;
+  padding: 9px 32px;
+  background: var(--ink);
+  color: var(--on-mast);
+  font-size: 16px;
+}
+.lab-chart .tickerNote {
+  color: var(--mark);
+  font-weight: 700;
+}
+
+.lab-chart .bill {
+  padding: 10px 32px 0;
+}
+
+.lab-chart .charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 40px;
+  padding: 4px 32px 18px;
+}
+.lab-chart .column {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.lab-chart .chartHead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2px 12px;
+  padding-bottom: 6px;
+  border-bottom: 4px solid var(--ink);
+}
+.lab-chart .band {
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 900;
+  font-stretch: 118%;
+}
+.lab-chart .small {
+  font-size: 16px;
+  color: var(--muted);
+}
+.lab-chart .skip {
+  margin-left: auto;
+}
+.lab-chart .rows {
+  list-style: none;
+}
+.lab-chart .row {
+  display: grid;
+  grid-template-columns: 68px 84px minmax(0, 0.85fr) minmax(0, 1.3fr);
+  align-items: center;
+  gap: 0 12px;
+  min-height: 52px;
+  padding: 3px 8px 3px 0;
+  border-bottom: 1px solid var(--hair);
+}
+.lab-chart .row:nth-child(even) {
+  background: var(--zebra);
+}
+.lab-chart .compact {
+  grid-template-columns: 68px 84px minmax(0, 1.5fr) minmax(0, 1fr);
+  min-height: 33px;
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+.lab-chart .compact .name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.lab-chart .tag {
+  margin-left: 8px;
+  padding: 0 6px;
+  background: var(--mark);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.lab-chart .place {
+  font-size: 40px;
+  line-height: 1;
+  font-weight: 900;
+  font-stretch: 125%;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.lab-chart .compact .place {
+  font-size: 26px;
+}
+.lab-chart .moveCell {
+  display: flex;
+  flex-direction: column;
+}
+.lab-chart .was {
+  font-size: 16px;
+  line-height: 1.1;
+  color: var(--muted);
+}
+.lab-chart .move {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--up);
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.lab-chart .move svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+.lab-chart .fresh {
+  justify-self: start;
+  padding: 1px 8px;
+  background: var(--mark);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 800;
+}
+.lab-chart .still {
+  color: var(--muted);
+  font-size: 22px;
+}
+.lab-chart .name {
+  font-size: 22px;
+  line-height: 1.1;
+  font-weight: 800;
+}
+.lab-chart .genre {
+  font-size: 16px;
+  color: var(--muted);
+}
+.lab-chart .venue {
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 700;
+}
+.lab-chart .why {
+  font-size: 16px;
+  line-height: 1.3;
+}
+.lab-chart .onBill {
+  box-shadow: inset 6px 0 0 var(--mark);
+}
+.lab-chart .offBill {
+  color: var(--muted);
+}
+.lab-chart .gap {
+  padding: 2px 0 2px 70px;
+  border-bottom: 1px solid var(--hair);
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.lab-chart .venues {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 2px solid var(--ink);
+}
+.lab-chart .venuesTitle {
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+.lab-chart .venueRows {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.lab-chart .venueRow {
+  display: grid;
+  grid-template-columns: minmax(0, 13em) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+}
+.lab-chart .venueName {
+  font-weight: 700;
+}
+.lab-chart .bar {
+  height: 14px;
+  background: var(--up);
+}
+.lab-chart .barTrack {
+  height: 14px;
+  background: var(--zebra);
+}
+.lab-chart .liftedCount {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.lab-chart .tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 14px 32px;
+  border-top: 1px solid var(--ink);
+}
+.lab-chart .switch {
+  display: flex;
+  flex-wrap: wrap;
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+}
+.lab-chart .switch button,
+.lab-chart .quiet {
+  padding: 5px 12px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.lab-chart .switch [aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--on-mast);
+}
+.lab-chart .quiet {
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+}
+.lab-chart .quiet:hover {
+  background: var(--ink);
+  color: var(--on-mast);
+}
+.lab-chart .drafted {
+  margin-left: auto;
+  font-size: 16px;
+  color: var(--muted);
+}
+
+@media (max-width: 1023px) {
+  .lab-chart .top,
+  .lab-chart .mast,
+  .lab-chart .ticker,
+  .lab-chart .bill,
+  .lab-chart .charts,
+  .lab-chart .tools {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .lab-chart .top {
+    flex-direction: column;
+  }
+  .lab-chart .mast {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lab-chart .festival {
+    font-size: 44px;
+  }
+  .lab-chart .headNames {
+    font-size: 24px;
+  }
+  .lab-chart .stamp {
+    align-self: flex-start;
+  }
+  .lab-chart .charts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  .lab-chart .row {
+    grid-template-columns: 44px minmax(0, 1fr);
+    grid-template-areas: "place who" "move why";
+    gap: 2px 12px;
+    padding: 8px 8px 8px 0;
+  }
+  .lab-chart .place {
+    grid-area: place;
+    font-size: 32px;
+  }
+  .lab-chart .row > :nth-child(2) {
+    grid-area: move;
+    justify-self: end;
+  }
+  .lab-chart .who {
+    grid-area: who;
+  }
+  .lab-chart .why {
+    grid-area: why;
+  }
+  .lab-chart .venueRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .lab-chart .venueRow .barTrack {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .lab-chart .drafted {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-chart .row {
+    transition: none;
+  }
+}

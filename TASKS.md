@@ -350,9 +350,9 @@ Daniel's inputs: his words on the live design are C1-C4 in docs/design-bans.md; 
 
 - [x] 1. The live look in docs/design-bans.md as C1, scan regex scoped to src/app/lab until step 6 replaces the look; his three points as C2-C4 screenshot checks; scripts/design-check.mjs takes the `in:` scope (tests/unit/design-round)
 - [ ] 2. Six directions behind a local-only /lab on the saved Boise build, no Qloo data committed: each with its first screen at 1440x810 and 390 wide, a 10-15 s clip of the agent building the lineup, and one sentence on why it suits a talent buyer; all six on one local page
-  - [ ] /lab answers only under `next dev`, never on Vercel; stills and clips live in .design/lab (git-ignored) and are served only in dev
-  - [ ] Capture script: the two stills and the clip per direction, from the real replay (no Qloo or Claude calls)
-  - [ ] The weekly chart
+  - [x] /lab answers only under `next dev`, never on Vercel; stills and clips live in .design/lab (git-ignored) and are served only in dev
+  - [x] Capture script (scripts/lab-capture.mjs): the two stills and the clip per direction, from the real replay (no Qloo or Claude calls); locally the replay waits about 4 s on Upstash before its first step, so each clip starts 1.5 s before it
+  - [x] The weekly chart
   - [ ] The mixing desk
   - [ ] The split-flap board
   - [ ] The club marquees
