@@ -300,6 +300,24 @@ Copied from SPEC.md section 6, M9d. Freeze: 2026-10-25. Done means: three candid
 - [x] Cold reader of the new first screen passes (what, for whom, Watch first, the venue's fans as the reason)
 - [x] Deployed (6bfbc85) and the live e2e passes: 56 passed, 7 skipped, then the 3 Qloo steps with E2E_LIVE_QLOO=1
 
+# TASKS: run of 2026-10-18 afternoon (before the Monday window)
+
+- [x] <brief> against the live model on every path: a fresh production build through Your festival (Portland, 12 calls, both ranges full, trace normal), the model-only answer on a checked town (fresh, read the brief), and pilot.ts (Asheville, 4 of 4 and 6 of 6)
+- [x] Cluj-Napoca's live replay: one build (09:52 UTC), 10 acts all from Venue 156, the rail and trace agree, the card and trace say "a festival"; no rebuild needed
+- [x] SPEC: the button's current label in section 3 and the live rules; the redo is 26-27 October
+- [x] M8d overlap: attempts equal requests for all ten festivals (287), so no call was retried for a 429 or 5xx; recorded in evidence section 18
+- [x] Unit tests: none needs 20 s (slowest 3.5 s; two suites at once all pass at 5 s); unit tests now run offline (tests/unit/setup.ts), and the live Upstash check moved to tests/live
+- [x] Watch under the headliners at every width, first sentence split: bar written first (evidence 25), 24 of 24 first clicks; cold reader passes
+- [x] Method page: shown, partly shown, not shown; the evidence in two groups, every row and limit kept
+- [ ] Deployed and the default live e2e passes
+- [x] M8f in SPEC; its bar in evidence section 26 before any run
+
+# TASKS: M8f Premise test, round 2 (from Wednesday 21 October)
+
+- [ ] List 30 festivals in towns with a saved build, none of M8d's ten, each with its own site's complete lineup, in .design/m8f/ before any Qloo call
+- [ ] Run outside the protected windows, one call at a time; report either way in evidence section 26
+- [ ] Put the result on the method page next to the 7 of 10
+
 # TASKS: for the 26-27 October redo (not now)
 
 Moved 2026-10-18: the video and the gallery stills are re-shot on 26-27 October, after a UI freeze at the end of 25 October; 28 October is buffer. Protected windows (no deploys, no offline Qloo runs): Monday 19 October 09:00-21:00 and Tuesday 20 October 09:00-22:00 Bucharest. The live e2e makes no Qloo calls by default; the redraft, running-order and refill steps run with E2E_LIVE_QLOO=1 once after each deploy, outside those windows.
@@ -331,6 +349,8 @@ Moved 2026-10-18: the video and the gallery stills are re-shot on 26-27 October,
 - [ ] Shipped in M9b: /compare, Boise against Austin by default; a still and a line in the story
 
 - [ ] Shipped in M9c: /method; set DEMO_VIDEO_URL in src/lib/method.ts once the video is published; link the method page from the story
+
+- [ ] Shipped 2026-10-18: Watch under the headliners at every width and the first sentence in two; the method page's shown / partly shown / not shown lines and two evidence groups. Re-shoot the first-screen and method stills, and any caption that quotes the old first sentence
 
 - [ ] Shipped in M9d: the ledger bill with lift bars, "(was Nth)" on the climb, the method page in two columns; re-shoot every still and the capture of the bill and the climb, and drop the key's line from any caption
 
