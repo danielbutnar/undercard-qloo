@@ -19,10 +19,12 @@ function BandList({
   band,
   step,
   animate,
+  showFrom = false,
 }: {
   band: FeeBandId;
   step: ClimbEvent | null;
   animate: boolean;
+  showFrom?: boolean;
 }) {
   const rows = useRef(new Map<string, HTMLLIElement>());
   const last = useRef(new Map<string, DOMRect>());
@@ -82,6 +84,8 @@ function BandList({
             {act.move !== null && step?.venue && (
               <span className="shrink-0 rounded-sm border border-accent px-1 text-label font-semibold text-accent">
                 +{act.move}, {step.venue.name}
+                {showFrom &&
+                  ` (was ${(step.acts.indexOf(act) + 1 + act.move).toString()}${["th", "st", "nd", "rd"][(step.acts.indexOf(act) + 1 + act.move) % 10 < 4 && Math.floor(((step.acts.indexOf(act) + 1 + act.move) % 100) / 10) !== 1 ? (step.acts.indexOf(act) + 1 + act.move) % 10 : 0]})`}
               </span>
             )}
           </li>
@@ -102,12 +106,20 @@ export function LiftClimb({
   bands,
   live,
   onDone,
+  stepper = false,
+  progress = false,
+  showFrom = false,
 }: {
   steps: readonly ClimbEvent[];
   bands: readonly FeeBand[];
   /** The build is still streaming, so more steps may come. */
   live: boolean;
   onDone: () => void;
+  /** M9d's stepper candidate: one list at a time, with the step it's on. */
+  stepper?: boolean;
+  /** M9d candidates: the venue step it's on, and where a lifted act came from. */
+  progress?: boolean;
+  showFrom?: boolean;
 }) {
   const [still] = useState(reducedMotion);
   const [shown, setShown] = useState(() =>
@@ -159,18 +171,46 @@ export function LiftClimb({
           Skip to the lineup
         </button>
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {[...bands]
-          .sort((a, b) => b.minPopularity - a.minPopularity)
-          .map((band) => (
-            <BandList
-              key={band.id}
-              band={band.id}
-              step={latest(band.id)}
-              animate={!still}
-            />
-          ))}
-      </div>
+      {progress && (
+        <p className="text-label font-semibold" aria-live="polite">
+          {(() => {
+            const venues = [
+              ...new Set(steps.flatMap((s) => (s.venue ? [s.venue.name] : []))),
+            ];
+            const now = steps[Math.max(caughtUp, 1) - 1]?.venue?.name;
+            return now
+              ? `Venue ${venues.indexOf(now) + 1} of ${venues.length}: ${now}`
+              : "The headliners' fans alone";
+          })()}
+        </p>
+      )}
+      {stepper ? (
+        <div className="flex flex-col gap-1">
+          <p className="text-label font-semibold" aria-live="polite">
+            Step {Math.max(caughtUp, 1)} of {steps.length}
+          </p>
+          {(() => {
+            const step = steps[Math.max(caughtUp, 1) - 1] ?? null;
+            return step ? (
+              <BandList band={step.band} step={step} animate={!still} />
+            ) : null;
+          })()}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {[...bands]
+            .sort((a, b) => b.minPopularity - a.minPopularity)
+            .map((band) => (
+              <BandList
+                key={band.id}
+                band={band.id}
+                step={latest(band.id)}
+                animate={!still}
+                showFrom={showFrom}
+              />
+            ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -123,6 +123,7 @@ export function TracePanel({
   savedCalls,
   onBuild,
   buttonOnPhones = true,
+  button = true,
 }: {
   state: BuildState;
   /** Qloo calls in the saved build the first screen shows, for the replay's description. */
@@ -130,6 +131,8 @@ export function TracePanel({
   onBuild: (request?: BuildRequest) => void;
   /** False when the bill carries its own copy of the button for phones (FestivalScreen). */
   buttonOnPhones?: boolean;
+  /** False when the bill carries the button at every size (M9d's focus candidate). */
+  button?: boolean;
 }) {
   const listRef = useRef<HTMLOListElement>(null);
   const building = state.status === "building";
@@ -164,7 +167,7 @@ export function TracePanel({
       className="flex flex-col border-2 border-rule bg-surface"
     >
       <div
-        className={`border-b-2 border-rule p-3 ${buttonOnPhones ? "" : "hidden lg:block"}`}
+        className={`border-b-2 border-rule p-3 ${!button ? "hidden" : buttonOnPhones ? "" : "hidden lg:block"}`}
       >
         <button
           type="button"

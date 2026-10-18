@@ -175,6 +175,79 @@ function OpenSlot() {
 }
 
 /** One fee band's tier: its name, what sets it, and its slots in the lineup's order. */
+/** M9d's ledger candidate: one row per slot, the act, the venue whose fans like it, its move. */
+function LedgerRows({
+  bars = false,
+  slots,
+  unavailable,
+  top,
+  onOpen,
+}: {
+  bars?: boolean;
+  slots: (Act | null)[];
+  unavailable: readonly string[];
+  top?: number;
+  onOpen?: (act: Act) => void;
+}) {
+  return (
+    <table className="mt-2 w-full border-collapse text-left">
+      <tbody>
+        {slots.map((act, index) => (
+          <tr
+            key={act?.entityId ?? `open-${index}`}
+            className="border-b border-rule/50"
+          >
+            {act ? (
+              <>
+                <td className="py-1.5 pr-3 text-body font-bold">
+                  {onOpen ? (
+                    <button
+                      type="button"
+                      onClick={() => onOpen(act)}
+                      className="cursor-pointer text-left decoration-2 underline-offset-4 hover:underline focus-visible:underline"
+                    >
+                      {act.name}
+                    </button>
+                  ) : (
+                    act.name
+                  )}
+                  {unavailable.includes(act.entityId) && (
+                    <span className="ml-2 text-label text-danger">
+                      Unavailable
+                    </span>
+                  )}
+                </td>
+                <td className="py-1.5 pr-3 text-label">
+                  {act.anchorVenue.name} fans like it
+                </td>
+                <td className="py-1.5 text-label">
+                  <span className="rounded-sm border border-accent px-1 font-semibold text-accent">
+                    {badgeOf(act)}
+                  </span>{" "}
+                  {badgeWords(act, top)}
+                  {bars && liftOf(act)?.kind === "up" && (
+                    <span
+                      aria-hidden
+                      className="mt-1 block h-1.5 bg-accent"
+                      style={{
+                        width: `${Math.min(100, ((liftOf(act) as { places: number }).places / 50) * 100)}%`,
+                      }}
+                    />
+                  )}
+                </td>
+              </>
+            ) : (
+              <td colSpan={3} className="py-1.5 text-label text-muted">
+                Open slot
+              </td>
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 function BandTier({
   band,
   acts,
@@ -187,6 +260,8 @@ function BandTier({
   printing,
   order,
   onPrinted,
+  ledger = false,
+  ledgerBars = false,
 }: {
   band: FeeBand;
   acts: readonly Act[];
@@ -201,6 +276,9 @@ function BandTier({
   /** Billing order across the bands, by entity id. */
   order: ReadonlyMap<string, number>;
   onPrinted?: (entityId: string) => void;
+  /** M9d's ledger candidate: the band as rows of act, venue and move. */
+  ledger?: boolean;
+  ledgerBars?: boolean;
 }) {
   const billed = acts.filter((act) => act.band === band.id);
   const slots = Array.from(
@@ -223,37 +301,47 @@ function BandTier({
           {`(${formatBandRange(band)} percentile)`}
         </p>
       </div>
-      <ol className="mt-2.5 flex flex-wrap items-start justify-center gap-x-7 gap-y-3">
-        {slots.map((act, index) => (
-          <li
-            key={act?.entityId ?? `open-${index}`}
-            className={
-              act && act === keyed?.act
-                ? "flex w-full flex-wrap items-center justify-center gap-x-6 gap-y-3"
-                : undefined
-            }
-          >
-            {act ? (
-              <BillAct
-                act={act}
-                kept={keeping.includes(act.entityId)}
-                gone={unavailable.includes(act.entityId)}
-                top={top}
-                open={openId === act.entityId}
-                onOpen={onOpen}
-                printing={printing}
-                index={order.get(act.entityId) ?? 0}
-                onPrinted={onPrinted}
-              />
-            ) : (
-              <OpenSlot />
-            )}
-            {act && act === keyed?.act && (
-              <MarkKey example={keyed.example} lines={keyed.lines} />
-            )}
-          </li>
-        ))}
-      </ol>
+      {ledger ? (
+        <LedgerRows
+          bars={ledgerBars}
+          slots={slots}
+          unavailable={unavailable}
+          top={top}
+          onOpen={onOpen}
+        />
+      ) : (
+        <ol className="mt-2.5 flex flex-wrap items-start justify-center gap-x-7 gap-y-3">
+          {slots.map((act, index) => (
+            <li
+              key={act?.entityId ?? `open-${index}`}
+              className={
+                act && act === keyed?.act
+                  ? "flex w-full flex-wrap items-center justify-center gap-x-6 gap-y-3"
+                  : undefined
+              }
+            >
+              {act ? (
+                <BillAct
+                  act={act}
+                  kept={keeping.includes(act.entityId)}
+                  gone={unavailable.includes(act.entityId)}
+                  top={top}
+                  open={openId === act.entityId}
+                  onOpen={onOpen}
+                  printing={printing}
+                  index={order.get(act.entityId) ?? 0}
+                  onPrinted={onPrinted}
+                />
+              ) : (
+                <OpenSlot />
+              )}
+              {act && act === keyed?.act && (
+                <MarkKey example={keyed.example} lines={keyed.lines} />
+              )}
+            </li>
+          ))}
+        </ol>
+      )}
     </section>
   );
 }
@@ -329,6 +417,10 @@ export function DraftBill({
   keeping = [],
   redraft,
   climb,
+  ledger = false,
+  ledgerBars = false,
+  noKey = false,
+  actionAlways = false,
 }: {
   festival: Festival;
   acts: readonly Act[];
@@ -355,6 +447,11 @@ export function DraftBill({
   redraft?: ReactNode;
   /** The lift, visible (M9a): while it plays, it takes the bands' place. */
   climb?: ReactNode;
+  /** M9d candidates: each band as a ledger of rows, and the button at every size. */
+  ledger?: boolean;
+  ledgerBars?: boolean;
+  noKey?: boolean;
+  actionAlways?: boolean;
 }) {
   const billed = festival.feeBands.flatMap((band) =>
     acts.filter((act) => act.band === band.id),
@@ -383,7 +480,9 @@ export function DraftBill({
           " Click an act to see why, keep it or mark it unavailable."}
       </BillHeader>
       {phoneAction && (
-        <div className="mt-3 w-full lg:hidden">{phoneAction}</div>
+        <div className={`mt-3 w-full ${actionAlways ? "" : "lg:hidden"}`}>
+          {phoneAction}
+        </div>
       )}
       {climb}
       {!climb &&
@@ -397,10 +496,12 @@ export function DraftBill({
             top={top[band.id]}
             openId={openId}
             onOpen={onOpen}
-            keyed={keyed?.act.band === band.id ? keyed : undefined}
+            keyed={!noKey && keyed?.act.band === band.id ? keyed : undefined}
             printing={printing}
             order={order}
             onPrinted={onPrinted}
+            ledger={ledger}
+            ledgerBars={ledgerBars}
           />
         ))}
       {redraft && <div className="mt-3 w-full">{redraft}</div>}
