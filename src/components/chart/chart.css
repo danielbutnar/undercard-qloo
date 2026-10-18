@@ -1428,3 +1428,302 @@
     grid-template-columns: minmax(340px, 400px) minmax(0, 1fr);
   }
 }
+
+/* Watch: the show needs the whole chart in view, so the headliner cards fold away and the
+   editions' rows go compact. */
+.chart-app .draft.is-watching .headliners,
+.chart-app .draft.is-watching .headliners-note {
+  display: none;
+}
+.chart-app .draft.is-watching .masthead h1 {
+  font-size: 40px;
+}
+.chart-app .row-listed {
+  min-height: 40px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+.chart-app .row-listed .row-place {
+  font-size: 28px;
+}
+.chart-app .row-listed .row-name {
+  font-size: 19px;
+}
+.chart-app .row-listed .row-genres {
+  display: none;
+}
+.chart-app .row-listed .row-sleeve {
+  width: 32px;
+  height: 32px;
+}
+.chart-app .row-listed .row-venue span {
+  font-size: 13px;
+}
+.chart-app .rows-listing {
+  gap: 3px;
+}
+@media (min-width: 560px) {
+  .chart-app .row-listed {
+    grid-template-columns: 40px 34px minmax(0, 1fr) 24px;
+  }
+}
+@media (min-width: 1400px) {
+  .chart-app .row-listed {
+    grid-template-columns: 108px 40px 34px minmax(0, 1fr) 24px;
+  }
+}
+.chart-app .row-listed .climb-track,
+.chart-app .row-listed .climb-arrow,
+.chart-app .row-listed .climb-head {
+  height: 18px;
+}
+.chart-app .row-listed .climb-was {
+  font-size: 15px;
+}
+.chart-app .row-listed .row-who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 8px;
+}
+.chart-app .row-listed .row-flag {
+  margin: 0;
+  padding: 0 5px;
+  font-size: 14px;
+  border-width: 1.5px;
+}
+.chart-app .row-listed {
+  min-height: 38px;
+}
+/* ---------- the running order: two stages, set by set ---------- */
+
+.chart-app .order-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.chart-app .order-sets {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+.chart-app .order-set {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+}
+.chart-app .order-when {
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1;
+}
+.chart-app .order-stages {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+@media (min-width: 768px) {
+  .chart-app .order-stages {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.chart-app .stage-act {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--text-label);
+}
+.chart-app .stage-sleeve {
+  width: 36px;
+  height: 36px;
+}
+.chart-app .stage-name {
+  font-weight: 800;
+}
+.chart-app .order-clash {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+.chart-app .order-meter {
+  display: block;
+  height: 10px;
+  background: var(--color-quiet);
+  border: 2px solid var(--color-ink);
+}
+.chart-app .order-meter span {
+  display: block;
+  height: 100%;
+  background: var(--color-ink);
+}
+.chart-app .order-alone {
+  font-size: var(--text-label);
+  color: var(--color-muted);
+}
+.chart-app .order-close {
+  margin-top: 12px;
+  font-size: var(--text-label);
+}
+
+/* ---------- other towns ---------- */
+
+.chart-app .town-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.chart-app .town-link {
+  display: inline-block;
+  padding: 4px 10px;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  font-weight: 800;
+  font-size: var(--text-label);
+  text-decoration: none;
+}
+.chart-app .town-link:hover {
+  background: var(--color-accent);
+}
+.chart-app .town-link[aria-current="page"] {
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+
+/* ---------- Without Qloo: the model's picks, with nothing to draw ---------- */
+
+.chart-app .model {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.chart-app .model-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding-bottom: 8px;
+  border-bottom: 4px solid var(--color-ink);
+}
+.chart-app .model-stamp {
+  position: static;
+  rotate: -2deg;
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+.chart-app .model-wait {
+  padding: 14px;
+  border: 3px dashed var(--color-ink);
+  background: var(--color-surface);
+  font-weight: 700;
+}
+.chart-app .picks {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+@media (min-width: 1100px) {
+  .chart-app .picks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.chart-app .pick {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  height: 100%;
+  padding: 10px 12px;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+}
+.chart-app .pick-sleeve {
+  width: 44px;
+  height: 44px;
+}
+.chart-app .pick-name {
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1.05;
+}
+.chart-app .pick-note {
+  margin-top: 2px;
+  font-size: var(--text-label);
+}
+.chart-app .pick-none {
+  margin-top: 4px;
+  font-size: var(--text-label);
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
+/* ---------- fixes: rules that must win over the ones above ---------- */
+
+/* Text sitting straight on the red is ink, never the muted grey meant for white panels. */
+.chart-app .model-head .panel-sub,
+.chart-app .band-caption,
+.chart-app .drafted,
+.chart-app .tools-note {
+  color: var(--color-on-page);
+}
+
+/* An open slot: a dashed outline the size of a row, its words in one place. */
+.chart-app .row.row-open {
+  grid-template-columns: 50px minmax(0, 1fr);
+  grid-template-areas: "place who";
+  min-height: 56px;
+}
+.chart-app .row.row-open .row-place {
+  grid-area: place;
+}
+.chart-app .row.row-open .row-open-words {
+  grid-area: who;
+}
+
+/* The card's climb reads across: old place, the arrow, the place now. */
+.chart-app .card .card-climb .climb {
+  flex-direction: column;
+  align-items: stretch;
+}
+.chart-app .card .card-climb .climb-track {
+  width: 100%;
+  justify-content: flex-start;
+}
+.chart-app .card .card-climb .climb-shaft {
+  flex: 1;
+  width: auto;
+}
+
+@media (max-width: 767px) {
+  .chart-app .stamp {
+    position: static;
+    justify-self: start;
+    rotate: -2deg;
+    font-size: 14px;
+    padding: 1px 6px;
+    margin-top: -4px;
+  }
+}
+
+/* Venue colours last, so every element that carries one (rows, cards, banners) takes it. */
+.chart-app .venue-0 { --venue: var(--color-venue-0); --on-venue: var(--color-on-venue-0); }
+.chart-app .venue-1 { --venue: var(--color-venue-1); --on-venue: var(--color-on-venue-1); }
+.chart-app .venue-2 { --venue: var(--color-venue-2); --on-venue: var(--color-on-venue-2); }
+.chart-app .venue-3 { --venue: var(--color-venue-3); --on-venue: var(--color-on-venue-3); }
+.chart-app .venue-4 { --venue: var(--color-venue-4); --on-venue: var(--color-on-venue-4); }
+.chart-app .venue-5 { --venue: var(--color-venue-5); --on-venue: var(--color-on-venue-5); }
+.chart-app .card .card-climb {
+  grid-template-columns: minmax(0, 1fr) minmax(72px, 1fr) minmax(0, 1fr);
+}
+.chart-app .card .card-place:last-child {
+  text-align: right;
+  align-items: flex-end;
+}

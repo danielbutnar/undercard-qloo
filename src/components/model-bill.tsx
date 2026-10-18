@@ -1,4 +1,3 @@
-import { BillHeader, formatSavedAt, SHEET } from "@/components/draft-bill";
 import type { Festival } from "@/lib/festival";
 import type { LlmOnlyLineup, LlmOnlyPick } from "@/lib/llm-only";
 
@@ -8,25 +7,36 @@ export interface LlmOnlyState {
   error: string | null;
 }
 
-// Black ink only: the model's own reason, then two plain facts. No score or tally.
+const savedAt = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+  timeZone: "UTC",
+});
+
+/** When a build or an answer was saved, as "Oct 15, 14:02". */
+export const formatSavedAt = (iso: string) => savedAt.format(new Date(iso));
+
+// No place, no climb, no venue colour, a blank sleeve: there is no Qloo data behind a pick.
 function Pick({ pick, city }: { pick: LlmOnlyPick; city: string }) {
   return (
-    <article aria-label={pick.name} className="flex flex-col gap-1">
-      <h3 className="font-display text-figure font-extrabold uppercase">
-        {pick.name}
-      </h3>
-      <p className="text-label">{pick.note}</p>
-      <p className="text-label text-muted">
-        No {city} venue · fee range not checked
-      </p>
+    <article aria-label={pick.name} className="pick">
+      <span className="sleeve pick-sleeve sleeve-blank" aria-hidden />
+      <div className="min-w-0">
+        <h3 className="pick-name">{pick.name}</h3>
+        <p className="pick-note">{pick.note}</p>
+        <p className="pick-none">No {city} venue · fee range not checked</p>
+      </div>
     </article>
   );
 }
 
 /**
- * Without Qloo: the same bill reprinted with the model's own picks for the same brief, in
- * black ink under a red "No Qloo data" stamp. With no Qloo data there is no Boise room behind
- * a pick and no popularity to check it against a fee band.
+ * Without Qloo: the same brief answered by the model alone, in grey under a "No Qloo data"
+ * stamp. With no Qloo data there is no venue behind a pick, no climb to draw and no popularity
+ * to check against a fee range.
  */
 export function ModelBill({
   festival,
@@ -38,53 +48,45 @@ export function ModelBill({
   onRetry: () => void;
 }) {
   return (
-    <section aria-label="Without Qloo: an AI model's picks alone" className={SHEET}>
-      <BillHeader festival={festival} stamp="No Qloo data">
-        Headliners booked. The same brief, answered by the model alone.
-      </BillHeader>
-      <section
-        aria-labelledby="model-picks"
-        className="mt-3 flex w-full flex-col items-center border-t-2 border-rule pt-2"
-      >
-        <div className="flex flex-wrap items-baseline justify-center gap-x-3">
-          <h2
-            id="model-picks"
-            className="font-display text-name font-extrabold uppercase"
-          >
-            The model&apos;s picks
-          </h2>
-          <p className="text-label text-muted">
-            no popularity data, so no fee range check
+    <section
+      aria-label="Without Qloo: an AI model's picks alone"
+      className="model"
+    >
+      <div className="model-head">
+        <div>
+          <h2 className="band-name">The model&apos;s picks</h2>
+          <p className="panel-sub">
+            Headliners booked. The same brief, answered by the model alone: no
+            popularity data, so no fee range check.
           </p>
         </div>
-        {state.status === "loading" && (
-          <p className="mt-3 text-label">Asking the model, without Qloo…</p>
-        )}
-        {state.status === "error" && (
-          <div className="mt-3 flex flex-col items-center gap-1">
-            <p role="alert" className="text-label font-semibold text-danger">
-              {state.error}
-            </p>
-            <button
-              type="button"
-              onClick={onRetry}
-              className="text-label text-ink underline underline-offset-2 hover:text-accent"
-            >
-              Try again
-            </button>
-          </div>
-        )}
-        {state.lineup && (
-          <ol className="mt-2.5 grid w-full grid-cols-1 gap-x-8 gap-y-2 text-left sm:grid-cols-2 min-[87.5rem]:grid-cols-3">
-            {state.lineup.picks.map((pick) => (
-              <li key={pick.name}>
-                <Pick city={festival.city} pick={pick} />
-              </li>
-            ))}
-          </ol>
-        )}
-      </section>
-      <p className="mt-auto w-full border-t border-rule pt-2.5 text-label text-muted">
+        <p className="stamp model-stamp">No Qloo data</p>
+      </div>
+      {(state.status === "loading" || state.status === "idle") && (
+        <p className="model-wait" role="status">
+          Asking the model, without Qloo…
+        </p>
+      )}
+      {state.status === "error" && (
+        <div className="model-wait">
+          <p role="alert" className="alert">
+            {state.error}
+          </p>
+          <button type="button" onClick={onRetry} className="tool mt-2">
+            Try again
+          </button>
+        </div>
+      )}
+      {state.lineup && (
+        <ol className="picks">
+          {state.lineup.picks.map((pick) => (
+            <li key={pick.name}>
+              <Pick city={festival.city} pick={pick} />
+            </li>
+          ))}
+        </ol>
+      )}
+      <p className="drafted">
         {state.lineup
           ? `Answered by the model alone, with no tools · saved ${formatSavedAt(state.lineup.createdAt)} UTC`
           : "The model alone, with no tools."}

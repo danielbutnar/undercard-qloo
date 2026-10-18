@@ -369,6 +369,8 @@ export function FestivalScreen({
   // The switch needs a saved build: never for a judge's own run, which isn't saved.
   const switcher = useVenueSwitch(festival.id, !custom);
   const [mode, setMode] = useState<Mode>("qloo");
+  // Watch on a saved build replays it; a fresh run is the agent planning live.
+  const [replaying, setReplaying] = useState(true);
   const [openId, setOpenId] = useState<string | null>(null);
   const [printing, setPrinting] = useState<ReadonlyMap<string, number> | null>(
     null,
@@ -440,6 +442,7 @@ export function FestivalScreen({
     setOpenId(null);
     switcher.reset();
     setPrinting(null);
+    setReplaying(!request.fresh && state.build !== null);
     watch.start();
     void build(request);
     // On a phone the chart sits under the lead: bring the show into view.
@@ -639,7 +642,7 @@ export function FestivalScreen({
             <button
               type="button"
               onClick={() => runBuild()}
-              disabled={busy}
+              disabled={busy || watching}
               className="watch"
             >
               <span className="watch-play" aria-hidden>
@@ -647,11 +650,13 @@ export function FestivalScreen({
                   <path d="M4 2v16l14-8z" />
                 </svg>
               </span>
-              {state.status === "building"
-                ? "Building…"
-                : state.build
-                  ? WATCH
-                  : "Build undercard"}
+              {watching
+                ? "Watching…"
+                : state.status === "building"
+                  ? "Building…"
+                  : state.build
+                    ? WATCH
+                    : "Build undercard"}
             </button>
             <p className="watch-sub">
               <span className="ticks" aria-hidden>
@@ -668,7 +673,12 @@ export function FestivalScreen({
         </section>
 
         <main ref={board} className="board">
-          <section aria-label="Undercard draft" className="draft">
+          <section
+            {...(mode === "qloo"
+              ? { "aria-label": "Undercard draft" }
+              : { "aria-label": "The festival" })}
+            className={`draft ${watching ? "is-watching" : ""}`}
+          >
             <div className="masthead">
               <div>
                 <h1>{festival.name}</h1>
@@ -684,9 +694,7 @@ export function FestivalScreen({
                 </li>
               ))}
             </ul>
-            <p className="headliners-note">
-              {headlinersNote(festival)}
-            </p>
+            <p className="headliners-note">{headlinersNote(festival)}</p>
             {watching && (
               <EditionBanner
                 phase={watch.phase}
@@ -698,7 +706,7 @@ export function FestivalScreen({
                 note={note}
                 lifted={liftedHere}
                 headliners={festival.headliners}
-                replayed={state.build?.replayed ?? false}
+                replayed={replaying}
                 onSkip={watch.skip}
               />
             )}
@@ -723,6 +731,7 @@ export function FestivalScreen({
                 slots={state.order}
                 headliners={festival.headliners}
                 onClose={closeOrder}
+                acts={state.acts}
               />
             )}
             {!watching && (

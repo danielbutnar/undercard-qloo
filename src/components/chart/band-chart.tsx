@@ -269,7 +269,7 @@ export function BandChart({
           {caption}
         </p>
       )}
-      <ol className="rows">
+      <ol className={`rows ${listing ? "rows-listing" : ""}`}>
         {rows.map((row) => (
           <li key={row.key} ref={flip(row.key)}>
             <Row
