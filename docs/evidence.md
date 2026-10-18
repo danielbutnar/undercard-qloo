@@ -456,6 +456,16 @@ The method page's "what" stays low for every candidate because it doesn't show a
 
 **Limits.** The judges are Claude models given personas, not people. Each saw one comparison, so there are 4 votes a comparison, and a 2–0 is two judges. All shots use synthetic data, and none show a past winner's screen for scale.
 
+## 25. Watch under the headliners, written before the judges
+
+Written on 2026-10-18, before the candidate is shown to a judge. M9d's first-screen winner put each band in a table, but Watch how it picked these acts stayed low in the right column at 1280x800, under the venues panel, and round 2's judges named it as their first click less often (15 of 24 answers, against 20 for the screen it replaced).
+
+**The candidate.** The same first screen with Watch directly under the headliners at every width, as it already is on a phone, and the trace panel's own copy of the button removed. The tables are unchanged. The first sentence is also split in two (what Undercard does, then where its data comes from); no other copy changes.
+
+**The judges.** Round 2's protocol: the candidate against three other first screens (the current one, the original, and round 2's table with a button above it), each comparison judged by four fresh subagents, one per persona (a Qloo engineer, a festival talent buyer, a design critic, a judge with 90 seconds), two on Sonnet and two on Opus, each seeing both orders. None of them has judged before. Every judge names a first click for the candidate in each of its two trials, so the count is out of 24 answers from 12 judges, the same way round 2's 15 of 24 was counted.
+
+**The bar.** At least 20 of 24 answers name Watch (the key's word "watch") as the first click. If it's met, the candidate ships. If it isn't, Watch stays where it is and only the sentence split ships. Which screen wins each comparison is reported but doesn't decide.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
