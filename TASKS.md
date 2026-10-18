@@ -349,9 +349,9 @@ Dates (Bucharest): no production deploys Monday 19 October 09:00-21:00 or Tuesda
 Daniel's inputs: his words on the live design are C1-C4 in docs/design-bans.md; references only if none of the six lands. He approved the six directions below; the set-time clash grid is left out because the saved build has no running order, so its set times would be invented.
 
 - [x] 1. The live look in docs/design-bans.md as C1, scan regex scoped to src/app/lab until step 6 replaces the look; his three points as C2-C4 screenshot checks; scripts/design-check.mjs takes the `in:` scope (tests/unit/design-round)
-- [ ] 2. Six directions behind a local-only /lab on the saved Boise build, no Qloo data committed: each with its first screen at 1440x810 and 390 wide, a 10-15 s clip of the agent building the lineup, and one sentence on why it suits a talent buyer; all six on one local page
+- [x] 2. Six directions behind a local-only /lab on the saved Boise build, no Qloo data committed: each with its first screen at 1440x810 and 390 wide, a 10-15 s clip of the agent building the lineup, and one sentence on why it suits a talent buyer; all six on one local page
   - [x] /lab answers only under `next dev`, never on Vercel; stills and clips live in .design/lab (git-ignored) and are served only in dev
-  - [x] Capture script (scripts/lab-capture.mjs): the two stills and the clip per direction, from the real replay (no Qloo or Claude calls); locally the replay waits about 4 s on Upstash before its first step, so each clip starts 1.5 s before it
+  - [x] Capture script (scripts/lab-capture.mjs): the two stills and the clip per direction, from the real replay (no Qloo or Claude calls); locally the replay waits about 4 s on Upstash before its first step, so each clip starts 1.2 s before it and ends 1.4 s after the bill is back (10-15 s)
   - [x] The weekly chart
   - [x] The mixing desk
   - [x] The split-flap board

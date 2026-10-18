@@ -84,7 +84,7 @@ async function clip(browser, slug) {
   const pressed = (Date.now() - opened) / 1000;
   await watchButton(page).click();
   // Locally the replay first reads seven cached Qloo answers from Upstash one by one (about 4 s
-  // from Bucharest; milliseconds on Vercel), so the clip starts 1.5 s before the first step.
+  // from Bucharest; milliseconds on Vercel), so the clip starts 1.2 s before the first step.
   let climbing = pressed;
   if (slug === "live") await page.waitForTimeout(14_500);
   else {
@@ -94,13 +94,13 @@ async function clip(browser, slug) {
     climbing = (Date.now() - opened) / 1000;
     await page.locator("[data-lab-phase='done']").waitFor({ timeout: 30_000 });
   }
-  await page.waitForTimeout(1_800);
+  await page.waitForTimeout(1_400);
   const ended = (Date.now() - opened) / 1000;
   const video = page.video();
   await context.close();
   renameSync(await video.path(), join(OUT, `${slug}-build.webm`));
   rmSync(dir, { recursive: true, force: true });
-  const start = Math.max(0, pressed - 0.8, climbing - 1.5);
+  const start = Math.max(0, pressed - 0.8, climbing - 1.2);
   const round = (value) => Number(value.toFixed(2));
   writeFileSync(
     join(OUT, `${slug}-build.json`),
