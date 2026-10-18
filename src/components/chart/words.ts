@@ -17,11 +17,11 @@ export const QLOO_LINE =
  * Under the headliners: who they are (M6q: the demo's are bands; a judge's own may not be) and
  * that everyone below is the AI agent's draft.
  */
-export function headlinersNote(festival: Festival): string {
+export function headlinersNote(festival: Festival, drafted = true): string {
   const bands =
     festival.headliners[0] === SAGEBRUSH_SOUND.headliners[0] &&
     festival.headliners[1] === SAGEBRUSH_SOUND.headliners[1];
-  return `${bands ? "The headliners, two bands, are" : "The headliners are"} already booked · the AI agent drafted the rest of the lineup (the bill)`;
+  return `${bands ? "The headliners, two bands, are" : "The headliners are"} already booked · the AI agent ${drafted ? "drafted" : "will draft"} the rest of the lineup (the bill)`;
 }
 
 /** The headline: what this screen is, in the two seconds a glance gives it. */

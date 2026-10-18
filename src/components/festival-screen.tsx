@@ -533,7 +533,20 @@ export function FestivalScreen({
             <BandChart
               key={band.id}
               band={band}
-              rows={billRows(band, shownActs, placeOf, hues, open)}
+              rows={billRows(
+                band,
+                shownActs,
+                placeOf,
+                hues,
+                open,
+                whatIf
+                  ? "No act from the venues left on clears the bar."
+                  : state.acts.length === 0
+                    ? state.status === "building"
+                      ? "The AI agent is drafting this slot."
+                      : "Empty until the AI agent drafts the lineup."
+                    : "No act the venues lifted clears the bar.",
+              )}
               column={festival.feeBands.indexOf(band)}
               sortKey={whatIf ? [...switcher.off].sort().join() : "bill"}
               motion={!watch.reduced}
@@ -652,7 +665,7 @@ export function FestivalScreen({
               ))}
             </ul>
             <p className="headliners-note">
-              {headlinersNote(festival)}
+              {headlinersNote(festival, state.acts.length > 0)}
               {mode === "qloo" && state.acts.length > 0 && !custom && (
                 <span className="click-hint">
                   {" "}

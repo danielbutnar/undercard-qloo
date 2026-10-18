@@ -110,7 +110,7 @@ function Row({
         </span>
         <p className="row-open-words">
           <span className="row-open-title">Open slot</span>
-          <span>No act from the venues left on clears the bar.</span>
+          <span>{row.words}</span>
         </p>
       </div>
     );

@@ -16,6 +16,8 @@ export function billRows(
   places: Readonly<Record<string, Placed>>,
   hues: ReadonlyMap<string, number>,
   openSlots = 0,
+  /** Why a slot is open, said in the slot. */
+  openWords = "No act the venues lifted clears the bar.",
 ): ChartRowData[] {
   const rows: ChartRowData[] = acts
     .filter((act) => act.band === band.id)
@@ -50,6 +52,7 @@ export function billRows(
       hue: null,
       venueShort: null,
       act: null,
+      words: openWords,
     });
   return rows;
 }
