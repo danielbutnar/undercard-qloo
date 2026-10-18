@@ -28,9 +28,10 @@ describe("the first screen", () => {
     expect(screen.queryAllByRole("article")).toHaveLength(0);
     expect(screen.getAllByText("Open slot")).toHaveLength(10);
     expect(
-      within(
-        screen.getByRole("complementary", { name: "Qloo calls" }),
-      ).getByRole("button", { name: "Build undercard" }),
+      within(screen.getByRole("region", { name: "Undercard draft" })).getByRole(
+        "button",
+        { name: "Build undercard" },
+      ),
     ).toBeTruthy();
   });
 
@@ -69,9 +70,10 @@ describe("the first screen", () => {
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
     );
     fireEvent.click(
-      within(
-        screen.getByRole("complementary", { name: "Qloo calls" }),
-      ).getByRole("button", { name: "Watch how it picked these acts" }),
+      within(screen.getByRole("region", { name: "Undercard draft" })).getByRole(
+        "button",
+        { name: "Watch how it picked these acts" },
+      ),
     );
     expect(
       screen.getByRole("region", { name: "Undercard draft" }),

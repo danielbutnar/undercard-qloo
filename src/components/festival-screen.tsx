@@ -383,8 +383,8 @@ export function FestivalScreen({
             <strong className="font-bold">Undercard</strong> is an AI agent that
             helps a music festival choose the smaller acts that play before the
             stars, using what fans of the town&apos;s own music venues already
-            like, read from Qloo, a taste-data service that maps what fans of
-            one artist, venue or film also like.
+            like. It reads that from Qloo, a taste-data service that maps what
+            fans of one artist, venue or film also like.
           </p>
           <p className="text-label text-muted">{exampleLine(festival)}</p>
         </div>
@@ -518,7 +518,7 @@ export function FestivalScreen({
                   </div>
                 ) : undefined
               }
-              phoneAction={
+              action={
                 <div className="flex flex-col items-center gap-1">
                   <button
                     type="button"
@@ -534,7 +534,7 @@ export function FestivalScreen({
                         ? "Watch how it picked these acts"
                         : "Build undercard"}
                   </button>
-                  <p className="text-label text-muted">
+                  <p className="text-label text-muted lg:hidden">
                     {state.build
                       ? "Replays the saved build's Qloo calls; they list under the lineup."
                       : "Runs the AI agent; its Qloo calls list under the lineup."}
@@ -590,7 +590,7 @@ export function FestivalScreen({
               state={state}
               savedCalls={firstBill?.calls}
               onBuild={runBuild}
-              buttonOnPhones={false}
+              button={false}
             />
             {!traceInUse && !custom && !checked && (
               <TownSwitcher current={townOf(festival).slug} onShow={towns} />

@@ -466,6 +466,20 @@ Written on 2026-10-18, before the candidate is shown to a judge. M9d's first-scr
 
 **The bar.** At least 20 of 24 answers name Watch (the key's word "watch") as the first click. If it's met, the candidate ships. If it isn't, Watch stays where it is and only the sentence split ships. Which screen wins each comparison is reported but doesn't decide.
 
+**Result, 2026-10-18: met, 24 of 24.** Every answer names "Watch how it picked these acts", most of them adding "under the headliners" or "full-width". The candidate also won all three comparisons: 4–0 against the current screen, 4–0 against the original, 2–1 against round 2's table with a button above. One thing cuts the other way: in this batch the current screen's first click was Watch in 8 of its 8 answers too, so round 2's 15 of 24 didn't repeat with fresh judges, and the move is a clear preference rather than a fix for a measured gap. All shots use the synthetic data; the judges are Claude models given personas.
+
+## 26. Premise test, round 2 (M8f), written before any run
+
+Written on 2026-10-18, before any festival is chosen and before any Qloo call. The rule doesn't change after the results are in. It runs from Wednesday 21 October, outside the protected windows.
+
+**The question.** Section 18's, on new festivals: do the acts real buyers booked show more lift from their own town's venues than band-matched random acts do?
+
+**The festivals.** 30 real festivals, none of section 18's ten, each in a town where Undercard has a saved build (the 29 towns Your festival lists). A town may have more than one. Each comes with the complete lineup of one edition from the festival's own site: its lineup page, live or as a Wayback Machine capture of that edition, every act it lists across all days, not Wikipedia. The 30 are listed with their pages and capture dates in .design/m8f/ before the first Qloo call. A festival is replaced only before that call, and only if its site shows no complete lineup; each replacement is recorded with its reason.
+
+**The venues, acts, measure and counting.** As section 18, unchanged: the anchor venues of the town's saved build; the first two names Qloo resolves as the headliners; booked acts in the demo's two bands, at most 12 from at most 40 searches; random acts matched on band and the headliners' taste from Qloo's top 50, with a fixed seed; lift as the largest affinity gain from any one venue; a festival supports the premise when its booked acts' mean lift beats its random acts'. A festival with fewer than 2 booked acts in the bands counts as not supporting it. Calls go one at a time, and every attempt is counted, so a retry shows.
+
+**The bar.** Supported if at least 20 of the 30 festivals support it: the same standard as section 18's 8 of 10 (a one-sided sign test; 20 or more of 30 happens by chance about 4.9% of the time, 8 of 10 about 5.5%). Otherwise it isn't, and the result is reported either way. It goes on the method page next to the 7 of 10, which stays. Counts and lifts only in this file; names stay in .design/.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.

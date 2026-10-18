@@ -19,6 +19,8 @@ const eslintConfig = defineConfig([
     ".design/**",
     // The demo video is its own project (M5):
     "video/**",
+    // Other sessions' git worktrees are checkouts of their own, linted there:
+    ".claude/**",
   ]),
 ]);
 

@@ -18,9 +18,10 @@ describe("the first screen with no saved build", () => {
     expect(within(bill).getAllByText("Open slot")).toHaveLength(10);
     expect(within(bill).getByText("No undercard drafted yet.")).toBeTruthy();
     expect(
-      within(
-        screen.getByRole("complementary", { name: "Qloo calls" }),
-      ).getByRole("button", { name: "Build undercard" }),
+      within(screen.getByRole("region", { name: "Undercard draft" })).getByRole(
+        "button",
+        { name: "Build undercard" },
+      ),
     ).toBeTruthy();
     expect(
       within(bill).getByRole("button", { name: "Build undercard" }),

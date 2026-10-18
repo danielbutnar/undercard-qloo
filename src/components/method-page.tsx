@@ -196,38 +196,47 @@ function Diagram() {
   );
 }
 
-const ROWS: {
+type Row = {
   to: keyof typeof S;
+  /** The premise tests ("Does the idea hold?") or the engineering checks ("Does the product work?"). */
+  group: "idea" | "product";
   what: string;
   result: string;
   limit: string;
-}[] = [
+};
+
+const ROWS: Row[] = [
   {
     to: "boise",
+    group: "idea",
     what: "Does Boise's own festival book the venues Undercard reads?",
     result: "Treefort 2026 used two of the three Boise venues tested",
     limit: "Shows the venues are used, not that their fans predict bookings",
   },
   {
     to: "treefort",
+    group: "idea",
     what: "Do Boise's venues pull Qloo's ranking toward Treefort's acts?",
     result: "No-go: 0 to 2 of 50 per list",
     limit: "Counts too small to show the signal either way",
   },
   {
     to: "premise",
+    group: "idea",
     what: "On ten real festivals, do booked acts out-lift matched random ones?",
     result: "7 of 10, one short of the bar of 8",
     limit: "Partial lineups from Wikipedia; small differences",
   },
   {
     to: "local",
+    group: "idea",
     what: "Does a town's crowd know the undercard acts?",
     result: "No-go: a usable local signal for 7 of 10 acts, bar 8",
     limit: "Not claimed",
   },
   {
     to: "runs",
+    group: "product",
     what: "Is a build stable when run again?",
     result:
       "Every run filled both bands; three of four towns gave the same ten acts",
@@ -235,65 +244,115 @@ const ROWS: {
   },
   {
     to: "ten",
+    group: "product",
     what: "Does a judge's own US town fill both bands?",
     result: "Spike 8 of 10",
     limit: "Plain town names; corrected in section 12",
   },
   {
     to: "remeasure",
+    group: "product",
     what: "Once towns resolve, do the ten US towns fill?",
     result: "8 of 10",
     limit: "A thin town is offered checked towns instead",
   },
   {
     to: "resolve",
+    group: "product",
     what: "Does a town resolve to the right place?",
     result: "Go, with at most one extra call",
     limit: "Relies on Qloo's geocode",
   },
   {
     to: "checked",
+    group: "product",
     what: "Do the 29 checked towns replay a full lineup?",
     result: "29 of 29",
     limit: "One fresh build each, on one day",
   },
   {
     to: "rooms",
+    group: "product",
     what: "Can parks and arenas be filtered out?",
     result: "No-go; labelled instead",
     limit: "A festival site can still anchor a lineup",
   },
   {
     to: "festival",
+    group: "product",
     what: "Can a festival filed as a place be told apart?",
     result: "Go: labelled, booking unchanged",
     limit: "The rule fits the one case seen",
   },
   {
     to: "order",
+    group: "product",
     what: "Can Qloo score each pair's shared taste?",
     result: "180 of 180 pairs within 10 calls",
     limit: "A measure of taste, not of shared ticket buyers",
   },
   {
     to: "pairs",
+    group: "product",
     what: "Does that score match a booker-style judgement?",
     result: "5 of 5 same-crowd pairs above every different-crowd pair",
     limit: "The pairs were Claude's judgement, not a working buyer's",
   },
   {
     to: "spread",
+    group: "product",
     what: "Can a lineup spread across more venues?",
     result: "No-go: 0 of 4 towns",
     limit: "The venues that lift acts are already on the lineup",
   },
   {
     to: "retry",
+    group: "product",
     what: "Does a build survive Qloo's rate limit?",
     result: "Retries with backoff inside a 45 s budget",
     limit: "A busy Qloo still ends a live run, with the replay offered",
   },
 ];
+
+/** One group of the evidence table: each row's question, result, limit and source. */
+function EvidenceTable({ title, rows }: { title: string; rows: Row[] }) {
+  return (
+    <div className="flex w-full flex-col gap-1">
+      <h3 className="text-left text-body font-bold">{title}</h3>
+      <div className="w-full overflow-x-auto">
+        <table
+          aria-label={title}
+          className="w-full border-collapse text-left text-label"
+        >
+          <thead>
+            <tr className="border-b-2 border-rule">
+              <th className="py-1 pr-3">Question</th>
+              <th className="py-1 pr-3">Result</th>
+              <th className="py-1 pr-3">Limit</th>
+              <th className="py-1">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.to} className="border-b border-rule/50 align-top">
+                <td className="py-1.5 pr-3">{row.what}</td>
+                <td className="py-1.5 pr-3 font-semibold">{row.result}</td>
+                <td className="py-1.5 pr-3 text-muted">{row.limit}</td>
+                <td className="py-1.5">
+                  <Ev to={row.to}>
+                    {S[row.to].split(".")[0].match(/^\d+$/)
+                      ? `evidence ${S[row.to].split(".")[0]}`
+                      : "evidence"}
+                  </Ev>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 
 /**
  * The method page (M9c), one click from the bill and in its language: one diagram, the five
@@ -339,42 +398,34 @@ export function MethodPage({
           <div className="flex min-w-0 flex-col gap-5">
             <section aria-label="Evidence" className={`${SHEET} gap-2`}>
               <h2 className="text-figure font-bold">What was tested</h2>
-              <div className="w-full overflow-x-auto">
-                <table
-                  aria-label="What was tested"
-                  className="w-full border-collapse text-left text-label"
-                >
-                  <thead>
-                    <tr className="border-b-2 border-rule">
-                      <th className="py-1 pr-3">Question</th>
-                      <th className="py-1 pr-3">Result</th>
-                      <th className="py-1 pr-3">Limit</th>
-                      <th className="py-1">Source</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ROWS.map((row) => (
-                      <tr
-                        key={row.to}
-                        className="border-b border-rule/50 align-top"
-                      >
-                        <td className="py-1.5 pr-3">{row.what}</td>
-                        <td className="py-1.5 pr-3 font-semibold">
-                          {row.result}
-                        </td>
-                        <td className="py-1.5 pr-3 text-muted">{row.limit}</td>
-                        <td className="py-1.5">
-                          <Ev to={row.to}>
-                            {S[row.to].split(".")[0].match(/^\d+$/)
-                              ? `evidence ${S[row.to].split(".")[0]}`
-                              : "evidence"}
-                          </Ev>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <ul className="flex w-full flex-col gap-1 text-left text-body">
+                <li>
+                  <strong className="font-semibold">Shown:</strong> the AI agent
+                  drafts a full lineup from a town&apos;s own venues, through
+                  Qloo, in each of the 29 towns checked, and lists every Qloo
+                  call it makes.
+                </li>
+                <li>
+                  <strong className="font-semibold">Partly shown:</strong> that
+                  a town&apos;s venues point to the acts its festivals book.
+                  Treefort 2026 used two of the three Boise venues tested, and
+                  at ten real festivals the booked acts out-lifted matched
+                  random ones in 7, one short of the bar of 8.
+                </li>
+                <li>
+                  <strong className="font-semibold">Not shown:</strong> that the
+                  town&apos;s crowd knows these acts, or that they would sell
+                  tickets, take the slot or fit a budget.
+                </li>
+              </ul>
+              <EvidenceTable
+                title="Does the idea hold?"
+                rows={ROWS.filter((row) => row.group === "idea")}
+              />
+              <EvidenceTable
+                title="Does the product work?"
+                rows={ROWS.filter((row) => row.group === "product")}
+              />
             </section>
 
             <section

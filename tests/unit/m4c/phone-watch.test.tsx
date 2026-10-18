@@ -20,43 +20,20 @@ const WATCH = { name: "Watch how it picked these acts" };
 const open = () =>
   render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />);
 const bill = () => screen.getByRole("region", { name: "Undercard draft" });
-const rail = () => screen.getByRole("complementary", { name: "Qloo calls" });
 
-// jsdom applies no CSS, so these check the classes that decide which copy shows: on phones
-// the bill's own button under the headliners, from lg up the rail's.
-describe("Watch how it picked these acts on a phone", () => {
-  it("sits in the bill, right under the headliners, on phones only", () => {
-    open();
-    const button = within(bill()).getByRole("button", WATCH);
-    expect(button.closest(".lg\\:hidden")).not.toBeNull();
-    const headliners = within(bill()).getByRole("list", {
-      name: "Booked headliners",
-    });
-    expect(
-      headliners.compareDocumentPosition(button) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
-    const firstBand = within(bill()).getByRole("region", { name: "Mid-size acts" });
-    expect(
-      button.compareDocumentPosition(firstBand) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
-  });
-
-  it("leaves the rail's button to wider screens", () => {
-    open();
-    const button = within(rail()).getByRole("button", WATCH);
-    expect(button.closest(".hidden.lg\\:block")).not.toBeNull();
-  });
-
-  it("replays the saved build, like the rail's button", () => {
+// Since evidence section 25 the bill's button under the headliners is the only one, at every
+// width (tests/unit/m9d/watch-under-headliners.test.tsx checks where it sits).
+describe("Watch how it picked these acts in the bill", () => {
+  it("replays the saved build", () => {
     const fetch = vi.fn(() => new Promise<Response>(() => {}));
     vi.stubGlobal("fetch", fetch);
     open();
     fireEvent.click(within(bill()).getByRole("button", WATCH));
     expect(fetch).toHaveBeenCalledWith(
       "/api/undercard",
-      expect.objectContaining({ body: JSON.stringify({ fresh: false, festival: "sagebrush-sound" }) }),
+      expect.objectContaining({
+        body: JSON.stringify({ fresh: false, festival: "sagebrush-sound" }),
+      }),
     );
     expect(
       within(bill()).getByRole("button", { name: "Building…" }),

@@ -45,9 +45,10 @@ describe("a replay in flight", () => {
     );
     const { rerender } = render(screenIn("visible"));
     fireEvent.click(
-      within(
-        screen.getByRole("complementary", { name: "Qloo calls" }),
-      ).getByRole("button", { name: "Watch how it picked these acts" }),
+      within(screen.getByRole("region", { name: "Undercard draft" })).getByRole(
+        "button",
+        { name: "Watch how it picked these acts" },
+      ),
     );
     rerender(screenIn("hidden"));
     rerender(screenIn("visible"));
