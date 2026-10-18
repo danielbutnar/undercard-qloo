@@ -393,6 +393,16 @@ Written on 2026-10-18, before the page is shown to anyone. The key doesn't chang
 4. **What happens when a town is thin?** The town is resolved to its state or country; with too few venues the page says so in one sentence and offers checked towns; a band that can't fill is left with open slots, never padded.
 5. **Why trust a pick?** Each act shows the venue whose fans lifted it, by how many places, and its Qloo affinity and popularity; every Qloo call is in the trace and a replay repeats it; the limits are stated.
 
+## 22. Who decides what, and what a thin town gets
+
+A description of the code, not a measurement, so the method page can point to it.
+
+- **The AI agent (Claude Sonnet 5.5) plans the Qloo calls**: which headliners to search, which venues to anchor on and in what order, within a cap of 12 calls a build (src/server/agent.ts, src/server/agent-tools.ts). It never names an act.
+- **Qloo supplies every ranking, affinity and popularity** the bill shows (src/server/qloo.ts).
+- **The app's own rule books the acts** (src/lib/assemble-lineup.ts): an act must rank at least 5 places higher with a venue's fans added than for the headliners alone, sit inside the band's popularity range, and share two genre tags with the headliners; each band takes the strongest such acts by Qloo affinity. A band with too few is left with open slots, never padded.
+- **A thin town** (src/lib/your-festival.ts, M6n): the town is first resolved to its state or country (section 11); if Qloo finds no venues, or too few to compare, the page says so in one sentence and offers the checked towns in the same country, one click each.
+- **Every Qloo call is in the trace**, with its parameters and result count, and a saved build replays call by call (sections 13 and 19).
+
 ## What these numbers don't establish
 
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
