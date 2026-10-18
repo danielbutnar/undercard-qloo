@@ -544,7 +544,9 @@ export function FestivalScreen({
                   : state.acts.length === 0
                     ? state.status === "building"
                       ? "The AI agent is drafting this slot."
-                      : "Empty until the AI agent drafts the lineup."
+                      : state.status === "error"
+                        ? "The AI agent couldn't draft this slot: see why beside the chart."
+                        : "Empty until the AI agent drafts the lineup."
                     : "No act the venues lifted clears the bar.",
               )}
               column={festival.feeBands.indexOf(band)}
