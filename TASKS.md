@@ -404,11 +404,12 @@ Daniel's brief of 2026-10-18 (Sunday): one of three sessions, each building a di
 - [ ] Gates: squint test, lay reader (M6q prompt) at 1440 and 390, design scan, pnpm gate, e2e against the preview with no live-Qloo tests
   - [x] Squint test (2026-10-18): a fresh reader of the third-size 1440x810 shot: "an AI agent that drafts a festival's opening acts from what fans of a town's own venues like, for festival organizers"; first click the yellow Watch button
   - [x] Lay reader (2026-10-18, 1440 and 390 shots): what it does and for whom ("drafts the support bands … using what fans of Boise's own venues like … aimed at festival organizers"), one act's reason in its own words (its old and new place in Qloo's ranking and the venue whose fans lifted it), first click Watch; it found the fee range bars and the slot squares unclear, so both are now labelled in words
-  - [x] Design scan and pnpm gate pass (463 unit tests, rerun after the first review's fixes); e2e locally on the synthetic server: 61 passed, 5 skipped (live-Qloo steps and empty-server scenes), rerun after the same fixes
+  - [x] Design scan and pnpm gate pass (467 unit tests, rerun after the second review's fixes); e2e locally on the synthetic server: 61 passed, 5 skipped (live-Qloo steps and empty-server scenes), rerun after the same fixes
   - [ ] e2e against the preview: blocked until the Preview environment has the Upstash settings
 - [ ] Merge main in (never rebase); deploy the branch to its preview URL
 - [ ] A fresh subagent reviews the diff against main for merge-blocking problems; none left
   - [x] First review (fresh Opus subagent, 2026-10-18): four blocking problems, all fixed in 770e87c: Qloo-derived act names and places in docs/design-brief.md and TASKS.md (the earlier commits 4988e25 and a450aff still hold them: rewriting history is Daniel's call); the venue switch could show another build's data after a live run; checked-town replays labelled as live runs; the phone's scroll to Watch ignored reduced motion
-  - [ ] Second review by a fresh subagent: running
+  - [x] Second review (fresh Opus subagent, 2026-10-18): one blocking problem, the method page's result pictures never drew (a scripted edit had dropped the escapes in their patterns), fixed in eeb2722 with a test that counts them; its one minor note, an open Running order staying under the re-formed chart while a venue is off, fixed in e30ba49
+  - [ ] Third review by a fresh subagent: running
 - [ ] Deliver: the preview URL, stills of every screen at 1440x810 and 390 wide, a 30-second recording of the demo path, docs/design-brief.md, what I'd still improve
   - [x] Stills of every screen at 1440x810 and 390 wide (11 screens), the designed states, the brainstorm stills and a 30-second recording of the demo path in .design/final-chart (git-ignored)
