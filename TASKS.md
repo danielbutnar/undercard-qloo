@@ -309,7 +309,7 @@ Copied from SPEC.md section 6, M9d. Freeze: 2026-10-25. Done means: three candid
 - [x] Unit tests: none needs 20 s (slowest 3.5 s; two suites at once all pass at 5 s); unit tests now run offline (tests/unit/setup.ts), and the live Upstash check moved to tests/live
 - [x] Watch under the headliners at every width, first sentence split: bar written first (evidence 25), 24 of 24 first clicks; cold reader passes
 - [x] Method page: shown, partly shown, not shown; the evidence in two groups, every row and limit kept
-- [ ] Deployed and the default live e2e passes
+- [x] Deployed (3998e5a) and the live e2e passes: 56 passed, 7 skipped, LCP 260 ms; the 3 Qloo steps passed on Sunday UTC
 - [x] M8f in SPEC; its bar in evidence section 26 before any run
 
 # TASKS: M8f Premise test, round 2 (from Wednesday 21 October)
