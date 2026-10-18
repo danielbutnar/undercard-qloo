@@ -406,24 +406,50 @@ const ROWS: Row[] = [
   },
 ];
 
+const NUMBER_WORDS: Record<string, number> = {
+  one: 1,
+  two: 2,
+  three: 3,
+  four: 4,
+  five: 5,
+  six: 6,
+  seven: 7,
+  eight: 8,
+  nine: 9,
+  ten: 10,
+};
+const asNumber = (word: string) => NUMBER_WORDS[word.toLowerCase()] ?? Number(word);
+
 /**
- * A result as a picture where it counts something: one square per case, filled for each that
- * passed, and the bar marked when the test had one. A count over 30 is drawn as a bar, and a
- * result without a count as a go or no-go mark.
+ * A result as a picture only where its own words count something: one square per case,
+ * filled for each that passed, with the bar marked when the test had one ("7 of 10, one short
+ * of the bar of 8"); a count over 30 as a bar. A go or no-go chip only when the result says so;
+ * a sourced fact or a description gets no picture, so nothing reads stronger than its row.
  */
 function ResultPicture({ result }: { result: string }) {
-  const count = /(\d+) of (\d+)/.exec(result);
-  const bar = /bar(?: of)? (\d+)/.exec(result);
-  if (!count) {
-    const go = !/^No-go/.test(result);
-    return (
-      <span className={`result-chip ${go ? "is-go" : "is-nogo"}`} aria-hidden>
-        {go ? "go" : "no-go"}
-      </span>
+  const count =
+    /(d+|one|two|three|four|five|six|seven|eight|nine|ten) of (?:the )?(d+|one|two|three|four|five|six|seven|eight|nine|ten)/i.exec(
+      result,
     );
+  const bar = /bar(?: of)? (d+)/.exec(result);
+  if (!count) {
+    if (/^No-go/.test(result))
+      return (
+        <span className="result-chip is-nogo" aria-hidden>
+          no-go
+        </span>
+      );
+    if (/^Go/.test(result))
+      return (
+        <span className="result-chip is-go" aria-hidden>
+          go
+        </span>
+      );
+    return null;
   }
-  const hit = Number(count[1]);
-  const of = Number(count[2]);
+  const hit = asNumber(count[1]);
+  const of = asNumber(count[2]);
+  if (!Number.isFinite(hit) || !Number.isFinite(of) || of === 0) return null;
   if (of > 30)
     return (
       <span className="result-bar" aria-hidden>

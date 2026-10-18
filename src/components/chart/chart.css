@@ -2350,3 +2350,32 @@
     justify-content: space-between;
   }
 }
+
+/* The evidence on a phone: each row stacked (question, the result drawn, its limit, the
+   source) rather than four squeezed columns. The table stays a table for screen readers. */
+@media (max-width: 700px) {
+  .chart-app .evidence thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .chart-app .evidence,
+  .chart-app .evidence tbody,
+  .chart-app .evidence tr,
+  .chart-app .evidence td {
+    display: block;
+  }
+  .chart-app .evidence tr {
+    padding: 10px 0;
+    border-bottom: 2px solid var(--color-ink);
+  }
+  .chart-app .evidence td {
+    padding: 2px 0;
+    border-bottom: 0;
+  }
+  .chart-app .evidence td:first-child {
+    font-weight: 700;
+  }
+}
