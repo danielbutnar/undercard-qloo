@@ -206,6 +206,8 @@ const SCENES: {
         .waitFor();
     },
   },
+  // M9c: the method page.
+  { name: "method", path: "/method", viewports: [VIDEO, MOBILE] },
   // M9b: town against town, Boise and Austin side by side.
   { name: "compare", path: "/compare", viewports: [JUDGE, VIDEO, MOBILE] },
   {

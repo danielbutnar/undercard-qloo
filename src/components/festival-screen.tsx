@@ -398,6 +398,12 @@ export function FestivalScreen({
               Pick another town
             </button>
           )}
+          <Link
+            href="/method"
+            className="text-label underline underline-offset-2 hover:text-accent"
+          >
+            How it works
+          </Link>
         </div>
       </header>
       {mode === "llm" ? (
