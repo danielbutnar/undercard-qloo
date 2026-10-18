@@ -353,12 +353,12 @@ Daniel's inputs: his words on the live design are C1-C4 in docs/design-bans.md; 
   - [x] /lab answers only under `next dev`, never on Vercel; stills and clips live in .design/lab (git-ignored) and are served only in dev
   - [x] Capture script (scripts/lab-capture.mjs): the two stills and the clip per direction, from the real replay (no Qloo or Claude calls); locally the replay waits about 4 s on Upstash before its first step, so each clip starts 1.5 s before it
   - [x] The weekly chart
-  - [ ] The mixing desk
-  - [ ] The split-flap board
-  - [ ] The club marquees
-  - [ ] The booker's magnet board
-  - [ ] The rock family tree
-  - [ ] /lab shows all six: stills, clips, sentences, a link to each live screen
+  - [x] The mixing desk
+  - [x] The split-flap board
+  - [x] The club marquees
+  - [x] The booker's magnet board
+  - [x] The rock family tree
+  - [x] /lab shows all six: stills, clips, sentences, a link to each live screen, and the live design for comparison
 - [ ] 3. Stop: Daniel picks one or two and says why (by Tuesday evening)
 - [ ] 4. Two or three variants of the pick; gate, not judge: a fresh AI lay reader (the M6q prompt) says what the page does and for whom and names Watch as the first click; a variant that fails is fixed or dropped
 - [ ] 5. The finalist on a Vercel preview URL (not production, saved builds only); three people on their phones; fix what they trip on

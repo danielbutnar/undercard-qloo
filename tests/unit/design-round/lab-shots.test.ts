@@ -34,6 +34,15 @@ describe("lab stills and clips", () => {
     expect(clip.headers.get("content-type")).toBe("video/webm");
   });
 
+  it("serves a clip's timing, so the lab page plays the build and not the page load", async () => {
+    const root = folder();
+    writeFileSync(join(root, "chart-build.json"), '{"start":4.1,"end":18.9}\n');
+    const timing = await labShot("chart-build.json", { root, enabled: true });
+    expect(timing.status).toBe(200);
+    expect(timing.headers.get("content-type")).toBe("application/json");
+    expect(await timing.json()).toEqual({ start: 4.1, end: 18.9 });
+  });
+
   it("answers 404 when the lab is closed", async () => {
     const response = await labShot("chart-1440.png", {
       root: folder(),

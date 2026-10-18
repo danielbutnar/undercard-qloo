@@ -1,0 +1,446 @@
+/*
+ * The booker's magnet board (design round, direction 5): a whiteboard in a booking office, tiers
+ * drawn in marker, act names on magnet strips coloured by the venue whose fans put them there.
+ * Tokens live here only. Contrast (scripts/design-check.mjs): ink on board 18.88, marker-blue on
+ * board 7.66, marker-red on board 6.54, marker-green on board 5.35, ink on strip-a 11.90, on-dark
+ * on strip-b 5.60, on-dark on strip-head 17.40, ink on wall 8.34, wall-muted on wall 5.25,
+ * muted on board 7.46, ink on tray 15.84.
+ */
+.lab-board {
+  --wall: #9fb0ab;
+  --wall-muted: #2c3a36;
+  --ink: #111111;
+  --muted: #555555;
+  --board: #ffffff;
+  --frame: #c7ced1;
+  --frame-dark: #8c969a;
+  --tray: #e8ecea;
+  --marker-blue: #1b4db1;
+  --marker-red: #b3261e;
+  --marker-green: #1e7a46;
+  --strip-a: #f2c94c;
+  --strip-b: #2f63c9;
+  --strip-c: #7cc4a4;
+  --strip-head: #1a1a1a;
+  --on-dark: #ffffff;
+  --ghost: #eef1f0;
+  --shade: rgb(0 0 0 / 0.22);
+
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--wall);
+  color: var(--ink);
+  font-family: var(--board-body), Arial, sans-serif;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.lab-board .top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px 32px;
+  padding: 14px 32px 10px;
+}
+.lab-board .firstLine {
+  max-width: 1100px;
+}
+.lab-board .example {
+  font-size: 16px;
+  color: var(--wall-muted);
+}
+.lab-board .textLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.lab-board .textLink:focus-visible,
+.lab-board .watch:focus-visible,
+.lab-board .quiet:focus-visible {
+  outline: 3px solid var(--marker-blue);
+  outline-offset: 2px;
+}
+
+.lab-board .whiteboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  grid-template-areas: "head side" "tiers side";
+  align-items: start;
+  gap: 0 28px;
+  margin: 2px 32px 0;
+  padding: 16px 24px 14px;
+  border: 10px solid var(--frame);
+  border-bottom-width: 18px;
+  border-bottom-color: var(--frame-dark);
+  border-radius: 4px;
+  background: var(--board);
+  box-shadow: 0 6px 0 var(--shade);
+}
+.lab-board .boardHead {
+  grid-area: head;
+}
+.lab-board .tiers {
+  grid-area: tiers;
+}
+.lab-board .marker {
+  font-family: var(--board-marker), cursive;
+  font-weight: 700;
+  line-height: 1.05;
+}
+.lab-board .title {
+  font-size: 42px;
+}
+.lab-board .facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  font-size: 16px;
+  color: var(--muted);
+}
+.lab-board .stamp {
+  padding: 0 8px;
+  border: 2px solid var(--marker-red);
+  border-radius: 3px;
+  color: var(--marker-red);
+  font-size: 16px;
+  font-weight: 700;
+  transform: rotate(-2deg);
+}
+.lab-board .heads {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+.lab-board .headLabel {
+  font-size: 26px;
+  color: var(--marker-red);
+}
+.lab-board .strip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 2px 12px;
+  border-radius: 2px;
+  background: var(--strip);
+  color: var(--strip-ink);
+  font-family: var(--board-strip), sans-serif;
+  font-size: 21px;
+  line-height: 1.1;
+  font-weight: 600;
+  box-shadow: 0 2px 0 var(--shade);
+}
+.lab-board .strip.head {
+  --strip: var(--strip-head);
+  --strip-ink: var(--on-dark);
+  font-size: 24px;
+}
+.lab-board .booked {
+  font-size: 24px;
+  color: var(--marker-green);
+}
+.lab-board .billLine {
+  margin-top: 6px;
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.lab-board .tier {
+  margin-top: 8px;
+}
+.lab-board .tierNote.why {
+  margin-top: 8px;
+}
+.lab-board .tierHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 14px;
+  padding-bottom: 4px;
+  border-bottom: 3px solid var(--marker-red);
+  border-radius: 0 0 40% 3% / 0 0 6px 3px;
+}
+.lab-board .tierName {
+  font-size: 29px;
+  color: var(--marker-red);
+}
+.lab-board .tierNote {
+  font-size: 16px;
+  color: var(--muted);
+}
+.lab-board .slots {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  gap: 4px 18px;
+  margin-top: 8px;
+}
+.lab-board .slot {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 40px;
+}
+.lab-board .slot .strip {
+  flex: none;
+  width: 220px;
+}
+.lab-board .slot.empty .strip {
+  background: var(--ghost);
+  color: var(--muted);
+  box-shadow: none;
+  border: 2px dashed var(--frame-dark);
+}
+.lab-board .strip.drop {
+  animation: lab-board-drop 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes lab-board-drop {
+  from {
+    opacity: 0;
+    transform: translate(60px, -14px) rotate(4deg);
+  }
+}
+.lab-board .note {
+  font-size: 22px;
+  color: var(--marker-blue);
+}
+.lab-board .note .up {
+  color: var(--marker-green);
+}
+.lab-board .note.write {
+  animation: lab-board-write 0.7s 0.25s ease-out both;
+}
+@keyframes lab-board-write {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+.lab-board .genre {
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.lab-board .side {
+  grid-area: side;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 22px;
+  border-left: 3px solid var(--tray);
+}
+.lab-board .sideWatch,
+.lab-board .sidePanel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lab-board .watch {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--marker-red);
+  color: var(--on-dark);
+  font: inherit;
+  font-size: 21px;
+  line-height: 1.15;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--shade);
+}
+.lab-board .watch:hover {
+  background: var(--ink);
+}
+.lab-board .watch:disabled {
+  cursor: wait;
+}
+.lab-board .watch svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+.lab-board .small {
+  font-size: 16px;
+  color: var(--muted);
+}
+.lab-board .sideTitle {
+  font-size: 30px;
+  color: var(--marker-blue);
+}
+.lab-board .tallies {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lab-board .tally {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 2px 10px;
+  align-items: start;
+}
+.lab-board .dot {
+  width: 14px;
+  height: 14px;
+  margin-top: 5px;
+  border-radius: 2px;
+  background: var(--strip);
+}
+.lab-board .tallyName {
+  font-size: 18px;
+  font-weight: 700;
+}
+.lab-board .marks {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  color: var(--muted);
+}
+.lab-board .marks svg {
+  height: 28px;
+  overflow: visible;
+}
+.lab-board .marks path {
+  fill: none;
+  stroke: var(--marker-blue);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.lab-board .list {
+  list-style: none;
+}
+.lab-board .item {
+  display: grid;
+  grid-template-columns: 28px 50px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  font-size: 17px;
+}
+.lab-board .item .place {
+  font-family: var(--board-marker), cursive;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.lab-board .item .up {
+  font-family: var(--board-marker), cursive;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--marker-green);
+}
+.lab-board .mini {
+  justify-self: start;
+  padding: 0 8px;
+  border-radius: 2px;
+  background: var(--tray);
+  font-family: var(--board-strip), sans-serif;
+  font-weight: 600;
+}
+.lab-board .mini.onBill {
+  background: var(--strip);
+  color: var(--strip-ink);
+}
+
+.lab-board .tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  padding: 16px 32px 18px;
+}
+.lab-board .switch {
+  display: flex;
+  flex-wrap: wrap;
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+}
+.lab-board .switch button,
+.lab-board .quiet {
+  padding: 5px 12px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.lab-board .switch [aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--on-dark);
+}
+.lab-board .quiet {
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+}
+.lab-board .quiet:hover {
+  background: var(--ink);
+  color: var(--on-dark);
+}
+
+@media (max-width: 1023px) {
+  .lab-board .top,
+  .lab-board .tools {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .lab-board .top {
+    flex-direction: column;
+  }
+  .lab-board .whiteboard {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "head" "watch" "tiers" "panel";
+    margin: 2px 8px 0;
+    padding: 12px 14px;
+  }
+  .lab-board .title {
+    font-size: 36px;
+  }
+  .lab-board .slots {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lab-board .slot {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  .lab-board .side {
+    display: contents;
+  }
+  .lab-board .sideWatch {
+    grid-area: watch;
+    margin: 12px 0 4px;
+  }
+  .lab-board .sidePanel {
+    grid-area: panel;
+    margin-top: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-board .strip.drop,
+  .lab-board .note.write {
+    animation: none;
+  }
+}

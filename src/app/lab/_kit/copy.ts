@@ -45,6 +45,12 @@ export function feeRangeLine(band: FeeBand): string {
   return `${band.slots} slots · fee range (${band.label}): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (${formatBandRange(band)} percentile)`;
 }
 
+/** The same words split: the range on the band's line, the reason once for both bands. */
+export const feeRangeShort = (band: FeeBand) =>
+  `${band.slots} slots · fee range (${band.label}): ${formatBandRange(band)} percentile`;
+export const FEE_RANGE_WHY =
+  "Fee range: with no real fees to go on, how popular an act is on Qloo stands in for what it charges.";
+
 export const factsLine = ({ city, region, capacity, crowdAge }: Festival) =>
   `${region ? `${city}, ${region}` : city} · ${formatCount(capacity)} capacity · crowd aged ${crowdAge.min}–${crowdAge.max}`;
 

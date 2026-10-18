@@ -39,8 +39,12 @@ export async function readLabBill(
 /** Where scripts/lab-capture.mjs writes the stills and clips: git-ignored, never deployed. */
 export const LAB_SHOTS = join(process.cwd(), ".design", "lab");
 
-const SHOT = /^[a-z0-9]+(?:-[a-z0-9]+)*\.(png|webm)$/;
-const TYPES = { png: "image/png", webm: "video/webm" } as const;
+const SHOT = /^[a-z0-9]+(?:-[a-z0-9]+)*\.(png|webm|json)$/;
+const TYPES = {
+  png: "image/png",
+  webm: "video/webm",
+  json: "application/json",
+} as const;
 
 /** One still or clip from the lab folder, only while the lab is open; anything else is a 404. */
 export async function labShot(
