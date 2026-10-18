@@ -379,6 +379,18 @@ Written on 2026-10-18, before either measurement. The rules don't change after t
 
 **The reader.** A fresh cold reader, shown only a 1280x800 shot of the two towns side by side, passes if they say why the two lineups differ: the headliners and fee ranges are the same, and each lineup comes from what fans of that town's own venues like.
 
+## 21. The method page (M9c), written before the reader
+
+Written on 2026-10-18, before the page is shown to anyone. The key doesn't change after the answers are in.
+
+**The reader.** A fresh cold reader reads only the method page (its 1280-wide full-page shot) and answers five questions in their own words. It passes if all five answers match this key in substance:
+
+1. **Does the town know these acts?** Not shown. Undercard measures that fans of the town's venues like an act more than fans of the headliners alone do (its lift in Qloo's ranking). A direct local-strength signal was a no-go (section 6), and the test on ten real festivals fell one short of its bar (section 18).
+2. **What does the model decide, and what does Qloo decide?** The AI agent (Claude) plans the Qloo calls: which venues to read and in what order, within 12 calls. Qloo supplies every ranking, affinity and popularity. The app's own rule books the acts (a lift of 5 places or more, the fee range, two shared tags); the model doesn't pick acts.
+3. **Why venues?** Qloo takes no location for artists, so a venue's fans carry the town's taste into the ranking; and a town's festival books its venues (Treefort, section 1).
+4. **What happens when a town is thin?** The town is resolved to its state or country; with too few venues the page says so in one sentence and offers checked towns; a band that can't fill is left with open slots, never padded.
+5. **Why trust a pick?** Each act shows the venue whose fans lifted it, by how many places, and its Qloo affinity and popularity; every Qloo call is in the trace and a replay repeats it; the limits are stated.
+
 ## What these numbers don't establish
 
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
