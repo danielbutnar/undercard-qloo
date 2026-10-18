@@ -352,10 +352,21 @@ export function FestivalScreen({
   );
   const watch = useWatch(state);
   const llm = useLlmOnly(festival.id);
-  // The switch needs a saved build: never for a judge's own run, which isn't saved.
-  const switcher = useVenueSwitch(festival.id, !custom);
+  // The switch works from the saved build on screen, never a judge's own run (it isn't saved).
+  // It follows a new build once the build has finished, so a live run's lineup is the one it
+  // re-forms (on a preview, which saves nothing, the switch then says it isn't available).
+  const [switchBuild, setSwitchBuild] = useState<string | null>(
+    firstBill?.build.id ?? null,
+  );
+  // Adopted during render once a build has finished (React: adjusting state when props change).
+  const finished = state.status !== "building" ? (state.build?.id ?? null) : null;
+  if (finished && finished !== switchBuild) setSwitchBuild(finished);
+  const switcher = useVenueSwitch(festival.id, switchBuild, !custom);
+  // What the server read at first paint belongs to that build only.
+  const onFirst = firstBill !== null && switchBuild === firstBill.build.id;
   const [mode, setMode] = useState<Mode>("qloo");
-  // Watch on a saved build replays it; a fresh run is the agent planning live.
+  // Watch on a saved build replays it; a fresh run is the agent planning live. The build event
+  // settles it; until then, what was asked for.
   const [replaying, setReplaying] = useState(true);
   const [openId, setOpenId] = useState<string | null>(null);
   const [printing, setPrinting] = useState<Printing>(null);
@@ -368,17 +379,28 @@ export function FestivalScreen({
   const allVenues = useMemo(() => {
     if (switcher.venues.length) return switcher.venues;
     const seen = new Map<string, { entityId: string; name: string }>();
-    for (const band of festival.feeBands)
-      for (const venue of firstBill?.anchors[band.id] ?? [])
-        if (!seen.has(venue.entityId)) seen.set(venue.entityId, venue);
+    if (onFirst)
+      for (const band of festival.feeBands)
+        for (const venue of firstBill?.anchors[band.id] ?? [])
+          if (!seen.has(venue.entityId)) seen.set(venue.entityId, venue);
     for (const act of state.acts)
       if (!seen.has(act.anchorVenue.entityId))
         seen.set(act.anchorVenue.entityId, act.anchorVenue);
     return [...seen.values()];
-  }, [switcher.venues, festival.feeBands, firstBill, state.acts]);
+  }, [switcher.venues, onFirst, festival.feeBands, firstBill, state.acts]);
 
-  // Each venue keeps its colour while venues switch off and on: worked out from the saved lineup.
-  const savedActs = firstBill?.acts ?? state.acts;
+  // Each venue keeps its colour while venues switch off and on and while Watch replays: worked
+  // out from the saved lineup (the switch's every-venue lineup, or the server's first read).
+  const savedActs = useMemo(
+    () =>
+      switcher.baseActs ??
+      (onFirst
+        ? firstBill!.acts
+        : state.acts.length
+          ? state.acts
+          : (firstBill?.acts ?? [])),
+    [switcher.baseActs, onFirst, firstBill, state.acts],
+  );
   const hues = useMemo(
     () => venueHues(allVenues, savedActs),
     [allVenues, savedActs],
@@ -388,10 +410,10 @@ export function FestivalScreen({
   const placeOf: Readonly<Record<string, Placed>> = useMemo(
     () => ({
       ...(switcher.basePlaces ?? {}),
-      ...(firstBill?.places ?? {}),
+      ...(onFirst ? (firstBill?.places ?? {}) : {}),
       ...(switcher.lineup?.places ?? {}),
     }),
-    [switcher.basePlaces, firstBill, switcher.lineup],
+    [switcher.basePlaces, onFirst, firstBill, switcher.lineup],
   );
 
   const shownActs = switcher.lineup?.acts ?? state.acts;
@@ -429,12 +451,15 @@ export function FestivalScreen({
     switcher.reset();
     // The lineup prints in down the chart once Watch hands it back (reduced motion: at once).
     setPrinting(watch.reduced ? null : "replay");
-    setReplaying(!request.fresh && state.build !== null);
+    setReplaying(!request.fresh && (state.build !== null || checked !== undefined));
     watch.start();
     void build(request);
     // On a phone the chart sits under the lead: bring the show into view.
     if (typeof window !== "undefined" && window.innerWidth < 1100)
-      board.current?.scrollIntoView?.({ block: "start", behavior: "smooth" });
+      board.current?.scrollIntoView?.({
+        block: "start",
+        behavior: watch.reduced ? "auto" : "smooth",
+      });
   }
 
 
@@ -579,6 +604,7 @@ export function FestivalScreen({
                   city={festival.city}
                   place={placeOf[act.entityId]}
                   hue={hues.get(act.anchorVenue.entityId) ?? null}
+                  band={festival.feeBands.find((entry) => entry.id === act.band)}
                   note={
                     whatIf
                       ? "Turn every venue back on to keep or replace acts."
@@ -686,7 +712,7 @@ export function FestivalScreen({
                 note={note}
                 lifted={liftedHere}
                 headliners={festival.headliners}
-                replayed={replaying}
+                replayed={state.build?.replayed ?? replaying}
                 onSkip={watch.skip}
               />
             )}

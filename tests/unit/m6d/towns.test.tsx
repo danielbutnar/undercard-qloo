@@ -145,8 +145,11 @@ describe("a town's screen", () => {
     const switches = fetch.mock.calls.filter(([url]) =>
       url.startsWith("/api/venue-switch"),
     );
-    expect(switches.map(([url]) => url)).toEqual([
-      `/api/venue-switch?festival=${austin.id}`,
-    ]);
+    // Once, for the town's own festival and the saved build on screen.
+    expect(switches).toHaveLength(1);
+    const asked = String(switches[0][0]);
+    expect(asked.startsWith(`/api/venue-switch?festival=${austin.id}&build=`)).toBe(
+      true,
+    );
   });
 });

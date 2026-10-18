@@ -115,18 +115,23 @@ export async function readVenueSwitch({
   store,
   festival,
   qloo,
+  buildId,
 }: {
-  store: Pick<BuildStore, "latest">;
+  store: Pick<BuildStore, "latest" | "byId">;
   festival: Festival;
   qloo: QlooClient | null;
+  /** The build on the buyer's screen; the festival's latest saved build when unset. */
+  buildId?: string;
 }): Promise<VenueSwitchData | null> {
   if (!qloo) return null;
-  const saved = await store.latest(festival.id);
-  if (!saved) return null;
+  const saved = buildId
+    ? await store.byId(buildId)
+    : await store.latest(festival.id);
+  if (!saved || saved.festivalId !== festival.id) return null;
   const input = await assemblyFromSaved(saved, festival, qloo);
   if (!input) return null;
   const every = new Set(venuesOf(input).map((venue) => venue.entityId));
   if (!sameLineup(lineupWith(input, every).acts, saved.lineup.acts))
     return null;
-  return venueSwitch(input);
+  return { buildId: saved.id, ...venueSwitch(input) };
 }

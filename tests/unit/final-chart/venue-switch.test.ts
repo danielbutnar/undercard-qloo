@@ -192,6 +192,35 @@ describe("the venue switch on a saved build (synthetic Qloo)", () => {
     expect(server.requests.length).toBe(before);
   });
 
+  it("is worked out from the build on screen, names it, and answers nothing for a build it doesn't hold", async () => {
+    const server = syntheticServer();
+    await readEvents(server.build({ fresh: true }));
+    const saved = await server.store.latest(SAGEBRUSH_SOUND.id);
+    const cacheOnly = createQlooClient({
+      apiKey: "k",
+      cache: server.cache,
+      fetch: () => {
+        throw new Error("the venue switch must not call Qloo");
+      },
+      cacheOnly: true,
+    });
+    const asked = await readVenueSwitch({
+      store: server.store,
+      festival: SAGEBRUSH_SOUND,
+      qloo: cacheOnly,
+      buildId: saved!.id,
+    });
+    expect(asked?.buildId).toBe(saved!.id);
+    await expect(
+      readVenueSwitch({
+        store: server.store,
+        festival: SAGEBRUSH_SOUND,
+        qloo: cacheOnly,
+        buildId: "a-live-run-that-was-never-saved",
+      }),
+    ).resolves.toBeNull();
+  });
+
   it("is unavailable when the Qloo cache can't answer, rather than guessing", async () => {
     const server = syntheticServer();
     await readEvents(server.build({ fresh: true }));

@@ -77,6 +77,8 @@ export function maskFor(
  * that can book it, and each combination lists its acts by key.
  */
 export interface VenueSwitchData {
+  /** The saved build the combinations were worked out from. */
+  buildId?: string;
   venues: VenueRef[];
   entries: Record<string, { act: Act; place: Placed | null }>;
   lineups: Record<

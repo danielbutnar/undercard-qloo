@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { ActCard } from "@/components/act-card";
+import type { FeeBand } from "@/lib/fee-bands";
 import type { Act } from "@/lib/lineup";
 import type { UnavailableReason } from "@/lib/unavailable";
 import type { Placed } from "@/lib/venue-switch";
@@ -23,6 +24,7 @@ export function ActCardPanel({
   place,
   hue,
   note,
+  band,
 }: {
   act: Act;
   unavailable: boolean;
@@ -36,6 +38,7 @@ export function ActCardPanel({
   place?: Placed;
   hue?: number | null;
   note?: string;
+  band?: FeeBand;
 }) {
   const ref = useRef<HTMLElement>(null);
 
@@ -64,6 +67,7 @@ export function ActCardPanel({
         place={place}
         hue={hue}
         note={note}
+        band={band}
       />
     </section>
   );

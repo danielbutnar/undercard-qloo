@@ -144,7 +144,7 @@ function Storyboard() {
           <MiniRow place={1} name="An artist" />
           <MiniRow place={2} name="An artist" />
           <MiniRow place={3} name="An artist" />
-          <MiniRow place={45} name="An artist" />
+          <MiniRow place={40} name="An artist" />
         </span>
         <p className="story-caption">
           Qloo ranks the artists they like: a top 50.
@@ -157,7 +157,7 @@ function Storyboard() {
         <span className="mini-chart">
           <MiniRow place={1} name="An artist" />
           <MiniRow place={2} name="An artist" />
-          <MiniRow place={1} name="An artist" hue={0} climb="+N, was Nth" />
+          <MiniRow place={18} name="An artist" hue={0} climb="+22, was 40th" />
           <MiniRow place={16} name="An artist" />
         </span>
         <p className="story-caption">

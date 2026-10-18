@@ -9,7 +9,9 @@ import { readVenueSwitch } from "@/server/venue-switch";
  * model call and is never rate-limited.
  */
 export async function GET(request: Request): Promise<Response> {
-  const id = new URL(request.url).searchParams.get("festival") ?? undefined;
+  const query = new URL(request.url).searchParams;
+  const id = query.get("festival") ?? undefined;
+  const buildId = query.get("build") ?? undefined;
   const festival = festivalById(id);
   if (!festival)
     return Response.json(
@@ -25,6 +27,7 @@ export async function GET(request: Request): Promise<Response> {
     store: serverBuildStore(),
     festival,
     qloo: serverCachedQloo(),
+    buildId,
   });
   if (!data)
     return Response.json(

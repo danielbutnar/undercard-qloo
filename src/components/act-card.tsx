@@ -4,7 +4,12 @@ import { useState } from "react";
 import { ClimbArrow } from "@/components/chart/band-chart";
 import { Sleeve } from "@/components/chart/sleeve";
 import { ordinal } from "@/components/chart/words";
-import { formatAffinity, formatPercentile } from "@/lib/format";
+import type { FeeBand } from "@/lib/fee-bands";
+import {
+  formatAffinity,
+  formatBandRange,
+  formatPercentile,
+} from "@/lib/format";
 import type { Act } from "@/lib/lineup";
 import { liftOf } from "@/lib/marks";
 import {
@@ -31,6 +36,7 @@ export function ActCard({
   place,
   hue = null,
   note,
+  band,
 }: {
   act: Act;
   /** Struck through while its slot is refilled, or when no refill was found. */
@@ -51,6 +57,8 @@ export function ActCard({
   hue?: number | null;
   /** Why Keep and Unavailable are missing, when they are. */
   note?: string;
+  /** The act's fee range, lit on the popularity scale. */
+  band?: FeeBand;
 }) {
   const [asking, setAsking] = useState(false);
   const lift = liftOf(act);
@@ -130,10 +138,21 @@ export function ActCard({
         </div>
         <div className="card-pop" aria-hidden>
           <span className="fee-track card-track">
+            {band && (
+              <span
+                className="fee-lit"
+                style={{
+                  left: `${band.minPopularity * 100}%`,
+                  width: `${(band.maxPopularity - band.minPopularity) * 100}%`,
+                }}
+              />
+            )}
             <span className="card-pop-dot" style={{ left: `${popularity}%` }} />
           </span>
           <span className="card-pop-words">
-            percentile on Qloo: it stands in for the fee
+            {band
+              ? `popularity on Qloo, inside the ${band.id === "mid" ? "mid-size" : "opening"} fee range (${formatBandRange(band)})`
+              : "percentile on Qloo: it stands in for the fee"}
           </span>
         </div>
       </dl>
