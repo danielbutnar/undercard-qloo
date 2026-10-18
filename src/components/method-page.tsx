@@ -302,167 +302,7 @@ const ROWS: {
  */
 export function MethodPage({
   videoUrl = DEMO_VIDEO_URL,
-  arrangement = "current",
-}: {
-  videoUrl?: string | null;
-  /** M9d candidates, shown only on the local lab route. */
-  arrangement?:
-    | "current"
-    | "qa-first"
-    | "two-column"
-    | "table-first"
-    | "two-column-wide-diagram"
-    | "two-column-swapped"
-    | "two-column-table-below";
-} = {}) {
-  const methodSec = (
-    <section key="The method" aria-label="The method" className={SHEET}>
-      <h2 className="text-figure font-bold">The method</h2>
-      <Diagram />
-      <p className="text-body">
-        Qloo is a taste-data service that maps what fans of one artist, venue or
-        film also like. Artists in Qloo take no location, so Undercard adds the
-        fans of the town&apos;s own venues to the headliners&apos; and watches
-        which acts climb.
-      </p>
-    </section>
-  );
-  const objectionsSec = (
-    <section
-      key="Five objections"
-      aria-label="Five objections"
-      className={`${SHEET} gap-3`}
-    >
-      <h2 className="text-figure font-bold">Five objections, answered</h2>
-      <Objection question="Does the town know these acts?">
-        <p>
-          Not shown. Undercard measures that fans of the town&apos;s venues like
-          an act more than fans of the headliners alone: its lift in Qloo&apos;s
-          ranking. A direct measure of local strength was a no-go (
-          <Ev to="local">evidence 6</Ev>), and a test on ten real festivals fell
-          one short of its bar (<Ev to="premise">evidence 18</Ev>).
-        </p>
-      </Objection>
-      <Objection question="What does the AI model decide, and what does Qloo decide?">
-        <p>
-          The AI agent (Claude) plans the Qloo calls: which venues to read and
-          in what order, within 12 calls. Qloo supplies every ranking, affinity
-          and popularity. The app&apos;s own rule books the acts: a lift of 5
-          places or more, inside the fee range, two genres shared with the
-          headliners. The model doesn&apos;t choose the acts (
-          <Ev to="decides">evidence 22</Ev>).
-        </p>
-      </Objection>
-      <Objection question="Why venues?">
-        <p>
-          Qloo takes no location for artists, so a venue&apos;s fans are how a
-          town&apos;s taste gets into the ranking (
-          <Ev to="local">evidence 6</Ev>). And a town&apos;s festival books its
-          venues: Treefort 2026 used two of the three Boise venues tested (
-          <Ev to="boise">evidence 1</Ev>).
-        </p>
-      </Objection>
-      <Objection question="What happens when a town is thin?">
-        <p>
-          The town is resolved to its state or country first (
-          <Ev to="resolve">evidence 11</Ev>). With too few venues, the page says
-          so in one sentence and offers checked towns in the same country; a
-          band that can&apos;t fill keeps open slots, never padded (
-          <Ev to="decides">evidence 22</Ev>).
-        </p>
-      </Objection>
-      <Objection question="Why trust a pick?">
-        <p>
-          Each act shows the venue whose fans lifted it, by how many places, and
-          its Qloo affinity and popularity. Every Qloo call is in the trace, and
-          a saved build replays call by call (<Ev to="checked">evidence 13</Ev>,{" "}
-          <Ev to="climb">evidence 19</Ev>
-          ). The limits are stated below (
-          <Ev to="limits">what these numbers don&apos;t establish</Ev>
-          ).
-        </p>
-      </Objection>
-    </section>
-  );
-  const evidenceSec = (
-    <section key="Evidence" aria-label="Evidence" className={`${SHEET} gap-2`}>
-      <h2 className="text-figure font-bold">What was tested</h2>
-      <div className="w-full overflow-x-auto">
-        <table
-          aria-label="What was tested"
-          className="w-full border-collapse text-left text-label"
-        >
-          <thead>
-            <tr className="border-b-2 border-rule">
-              <th className="py-1 pr-3">Question</th>
-              <th className="py-1 pr-3">Result</th>
-              <th className="py-1 pr-3">Limit</th>
-              <th className="py-1">Source</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ROWS.map((row) => (
-              <tr key={row.to} className="border-b border-rule/50 align-top">
-                <td className="py-1.5 pr-3">{row.what}</td>
-                <td className="py-1.5 pr-3 font-semibold">{row.result}</td>
-                <td className="py-1.5 pr-3 text-muted">{row.limit}</td>
-                <td className="py-1.5">
-                  <Ev to={row.to}>
-                    {S[row.to].split(".")[0].match(/^\d+$/)
-                      ? `evidence ${S[row.to].split(".")[0]}`
-                      : "evidence"}
-                  </Ev>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  );
-  const limitsSec = (
-    <section
-      key="What these numbers don't establish"
-      aria-label="What these numbers don't establish"
-      className={`${SHEET} gap-1`}
-    >
-      <h2 className="text-figure font-bold">
-        What these numbers don&apos;t establish
-      </h2>
-      <ul className="list-disc pl-5 text-body">
-        <li>
-          That the acts would sell tickets, take the slot or fit the budget: the
-          fee ranges are popularity ranges the buyer sets, not fees.
-        </li>
-        <li>That a town&apos;s crowd knows the undercard acts.</li>
-        <li>
-          That every venue behind a lineup is a club: a park or an arena can
-          still anchor one, and is labelled.
-        </li>
-        <li>
-          That a town&apos;s venues pick out what its festivals book: the
-          real-festival test fell one short.
-        </li>
-        <li>
-          Stability beyond the runs shown: a few runs per town, on one day, with
-          one pair of headliners.
-        </li>
-      </ul>
-      <p className="text-label">
-        <Ev to="limits">The full list in docs/evidence.md</Ev>
-      </p>
-    </section>
-  );
-  const videoSec = (
-    <section
-      key="The demo video"
-      aria-label="The demo video"
-      className={`${SHEET} gap-2`}
-    >
-      <h2 className="text-figure font-bold">The demo video</h2>
-      <VideoSlot url={videoUrl} />
-    </section>
-  );
+}: { videoUrl?: string | null } = {}) {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2 border-b-2 border-rule px-4 py-3 lg:px-6">
@@ -479,63 +319,161 @@ export function MethodPage({
           Back to the lineup
         </Link>
       </header>
-      {arrangement === "two-column-wide-diagram" ? (
-        <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-4 lg:px-6">
-          {methodSec}
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-start">
-            <div className="flex min-w-0 flex-col gap-5">
-              {evidenceSec}
-              {limitsSec}
-            </div>
-            <div className="flex min-w-0 flex-col gap-5">
-              {objectionsSec}
-              {videoSec}
-            </div>
-          </div>
-        </main>
-      ) : arrangement === "two-column-swapped" ? (
-        <main className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-5 px-4 py-4 lg:grid-cols-2 lg:items-start lg:px-6">
+      <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-4 lg:px-6">
+        <section aria-label="The method" className={SHEET}>
+          <h2 className="text-figure font-bold">The method</h2>
+          <Diagram />
+          <p className="text-body">
+            Qloo is a taste-data service that maps what fans of one artist,
+            venue or film also like. Artists in Qloo take no location, so
+            Undercard adds the fans of the town&apos;s own venues to the
+            headliners&apos; and watches which acts climb.
+          </p>
+        </section>
+
+        {/* M9d: the method full width, then the evidence and the objections side by side. */}
+        <div
+          data-columns
+          className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-start"
+        >
           <div className="flex min-w-0 flex-col gap-5">
-            {objectionsSec}
-            {videoSec}
+            <section aria-label="Evidence" className={`${SHEET} gap-2`}>
+              <h2 className="text-figure font-bold">What was tested</h2>
+              <div className="w-full overflow-x-auto">
+                <table
+                  aria-label="What was tested"
+                  className="w-full border-collapse text-left text-label"
+                >
+                  <thead>
+                    <tr className="border-b-2 border-rule">
+                      <th className="py-1 pr-3">Question</th>
+                      <th className="py-1 pr-3">Result</th>
+                      <th className="py-1 pr-3">Limit</th>
+                      <th className="py-1">Source</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ROWS.map((row) => (
+                      <tr
+                        key={row.to}
+                        className="border-b border-rule/50 align-top"
+                      >
+                        <td className="py-1.5 pr-3">{row.what}</td>
+                        <td className="py-1.5 pr-3 font-semibold">
+                          {row.result}
+                        </td>
+                        <td className="py-1.5 pr-3 text-muted">{row.limit}</td>
+                        <td className="py-1.5">
+                          <Ev to={row.to}>
+                            {S[row.to].split(".")[0].match(/^\d+$/)
+                              ? `evidence ${S[row.to].split(".")[0]}`
+                              : "evidence"}
+                          </Ev>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section
+              aria-label="What these numbers don't establish"
+              className={`${SHEET} gap-1`}
+            >
+              <h2 className="text-figure font-bold">
+                What these numbers don&apos;t establish
+              </h2>
+              <ul className="list-disc pl-5 text-body">
+                <li>
+                  That the acts would sell tickets, take the slot or fit the
+                  budget: the fee ranges are popularity ranges the buyer sets,
+                  not fees.
+                </li>
+                <li>That a town&apos;s crowd knows the undercard acts.</li>
+                <li>
+                  That every venue behind a lineup is a club: a park or an arena
+                  can still anchor one, and is labelled.
+                </li>
+                <li>
+                  That a town&apos;s venues pick out what its festivals book:
+                  the real-festival test fell one short.
+                </li>
+                <li>
+                  Stability beyond the runs shown: a few runs per town, on one
+                  day, with one pair of headliners.
+                </li>
+              </ul>
+              <p className="text-label">
+                <Ev to="limits">The full list in docs/evidence.md</Ev>
+              </p>
+            </section>
           </div>
           <div className="flex min-w-0 flex-col gap-5">
-            {methodSec}
-            {evidenceSec}
-            {limitsSec}
+            <section aria-label="Five objections" className={`${SHEET} gap-3`}>
+              <h2 className="text-figure font-bold">
+                Five objections, answered
+              </h2>
+              <Objection question="Does the town know these acts?">
+                <p>
+                  Not shown. Undercard measures that fans of the town&apos;s
+                  venues like an act more than fans of the headliners alone: its
+                  lift in Qloo&apos;s ranking. A direct measure of local
+                  strength was a no-go (<Ev to="local">evidence 6</Ev>), and a
+                  test on ten real festivals fell one short of its bar (
+                  <Ev to="premise">evidence 18</Ev>).
+                </p>
+              </Objection>
+              <Objection question="What does the AI model decide, and what does Qloo decide?">
+                <p>
+                  The AI agent (Claude) plans the Qloo calls: which venues to
+                  read and in what order, within 12 calls. Qloo supplies every
+                  ranking, affinity and popularity. The app&apos;s own rule
+                  books the acts: a lift of 5 places or more, inside the fee
+                  range, two genres shared with the headliners. The model
+                  doesn&apos;t choose the acts (
+                  <Ev to="decides">evidence 22</Ev>).
+                </p>
+              </Objection>
+              <Objection question="Why venues?">
+                <p>
+                  Qloo takes no location for artists, so a venue&apos;s fans are
+                  how a town&apos;s taste gets into the ranking (
+                  <Ev to="local">evidence 6</Ev>). And a town&apos;s festival
+                  books its venues: Treefort 2026 used two of the three Boise
+                  venues tested (<Ev to="boise">evidence 1</Ev>).
+                </p>
+              </Objection>
+              <Objection question="What happens when a town is thin?">
+                <p>
+                  The town is resolved to its state or country first (
+                  <Ev to="resolve">evidence 11</Ev>). With too few venues, the
+                  page says so in one sentence and offers checked towns in the
+                  same country; a band that can&apos;t fill keeps open slots,
+                  never padded (<Ev to="decides">evidence 22</Ev>).
+                </p>
+              </Objection>
+              <Objection question="Why trust a pick?">
+                <p>
+                  Each act shows the venue whose fans lifted it, by how many
+                  places, and its Qloo affinity and popularity. Every Qloo call
+                  is in the trace, and a saved build replays call by call (
+                  <Ev to="checked">evidence 13</Ev>,{" "}
+                  <Ev to="climb">evidence 19</Ev>
+                  ). The limits are stated below (
+                  <Ev to="limits">what these numbers don&apos;t establish</Ev>
+                  ).
+                </p>
+              </Objection>
+            </section>
+
+            <section aria-label="The demo video" className={`${SHEET} gap-2`}>
+              <h2 className="text-figure font-bold">The demo video</h2>
+              <VideoSlot url={videoUrl} />
+            </section>
           </div>
-        </main>
-      ) : arrangement === "two-column-table-below" ? (
-        <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-4 lg:px-6">
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-start">
-            {methodSec}
-            {objectionsSec}
-          </div>
-          {evidenceSec}
-          {limitsSec}
-          {videoSec}
-        </main>
-      ) : arrangement === "two-column" ? (
-        <main className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-5 px-4 py-4 lg:grid-cols-2 lg:items-start lg:px-6">
-          <div className="flex min-w-0 flex-col gap-5">
-            {methodSec}
-            {evidenceSec}
-            {limitsSec}
-          </div>
-          <div className="flex min-w-0 flex-col gap-5">
-            {objectionsSec}
-            {videoSec}
-          </div>
-        </main>
-      ) : (
-        <main className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 py-4 lg:px-6">
-          {arrangement === "qa-first"
-            ? [objectionsSec, methodSec, evidenceSec, limitsSec, videoSec]
-            : arrangement === "table-first"
-              ? [evidenceSec, limitsSec, methodSec, objectionsSec, videoSec]
-              : [methodSec, objectionsSec, evidenceSec, limitsSec, videoSec]}
-        </main>
-      )}
+        </div>
+      </main>
     </div>
   );
 }

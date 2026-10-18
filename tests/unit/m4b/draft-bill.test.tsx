@@ -31,9 +31,7 @@ describe("the draft bill", () => {
         .getByRole("list", { name: "Booked headliners" })
         .querySelectorAll("li"),
     ).toHaveLength(2);
-    expect(
-      within(sheet).getByText("Draft, not announced"),
-    ).toBeTruthy();
+    expect(within(sheet).getByText("Draft, not announced")).toBeTruthy();
     expect(
       within(sheet).getByText(
         "Boise, Idaho · 3,000 capacity · crowd aged 25–34",
@@ -92,39 +90,33 @@ describe("the draft bill", () => {
     ).toBeTruthy();
   });
 
-  it("explains the marks beside the first mark, and says what Qloo is", () => {
+  // M9d: the tournament's ledger says on each row what the old key explained once, so the
+  // bill carries no separate key.
+  it("says on each row which venue's fans like the act and how far they lifted it, with no separate key", () => {
     bill({ top: { mid: 50, opener: 50 } });
-    const keys = screen.getAllByRole("note", { name: "How to read the marks" });
-    expect(keys).toHaveLength(1);
-    const key = keys[0];
-    // Beside the first act on the bill: in the same slot of the Mid tier.
+    expect(
+      screen.queryByRole("note", { name: "How to read the marks" }),
+    ).toBeNull();
     const firstSlot = within(
       screen.getByRole("region", { name: "Mid-size acts" }),
     ).getAllByRole("listitem")[0];
-    expect(firstSlot.contains(key)).toBe(true);
+    const row = within(firstSlot).getByRole("article", {
+      name: "Hollow Pines",
+    });
+    expect(within(row).getByText("The Lantern Room fans like it")).toBeTruthy();
+    expect(within(row).getByText("+11")).toBeTruthy();
     expect(
-      within(firstSlot).getByRole("article", { name: "Hollow Pines" }),
+      within(row).getByText("places higher in Qloo's ranking"),
     ).toBeTruthy();
-    expect(key.textContent).toContain("+11");
-    expect(key.textContent).toContain(
-      "Qloo ranks artists for the headliners' fans; adding the crowd at The Lantern Room, a Boise venue, lifts this act 11 places.",
-    );
-    expect(key.textContent).toContain(
-      "new: not in that top 50 until a venue's fans were added.",
-    );
-    expect(key.textContent).toContain(
-      "Qloo: data on what people like, across music, places and more.",
-    );
   });
 
-  it("keeps the key in the first slot while that act is refilled, so nothing jumps", () => {
+  it("keeps an unavailable act in its row, so nothing jumps", () => {
     bill({ unavailable: [acts[0].entityId] });
     const firstSlot = within(
       screen.getByRole("region", { name: "Mid-size acts" }),
     ).getAllByRole("listitem")[0];
-    expect(
-      within(firstSlot).getByRole("note", { name: "How to read the marks" }),
-    ).toBeTruthy();
+    const row = within(firstSlot).getByRole("article", { name: acts[0].name });
+    expect(within(row).getByText("Unavailable")).toBeTruthy();
   });
 
   it("says how many Qloo calls drafted it and when the build was saved", () => {

@@ -76,7 +76,9 @@ describe("the lift, visible, on the screen (M9a)", () => {
     await waitFor(
       () =>
         expect(
-          within(bill).getAllByText(/^\+\d+, The Lantern Room$/).length,
+          within(bill).getAllByText(
+            /^\+\d+, The Lantern Room \(was \d+(st|nd|rd|th)\)$/,
+          ).length,
         ).toBeGreaterThan(0),
       { timeout: 8000 },
     );
@@ -142,11 +144,25 @@ describe("the venues rail during the climb", () => {
         }}
       />,
     );
-    expect(screen.getByRole("region", { name: /venues whose fans shaped this lineup/ })).toBeTruthy();
-    fireEvent.click(screen.getAllByRole("button", { name: "Watch how it picked these acts" })[0]);
-    await waitFor(() =>
-      expect(screen.getByText(/How the town's venue crowds move acts up/)).toBeTruthy(),
+    expect(
+      screen.getByRole("region", {
+        name: /venues whose fans shaped this lineup/,
+      }),
+    ).toBeTruthy();
+    fireEvent.click(
+      screen.getAllByRole("button", {
+        name: "Watch how it picked these acts",
+      })[0],
     );
-    expect(screen.queryByRole("region", { name: /venues whose fans shaped this lineup/ })).toBeNull();
+    await waitFor(() =>
+      expect(
+        screen.getByText(/How the town's venue crowds move acts up/),
+      ).toBeTruthy(),
+    );
+    expect(
+      screen.queryByRole("region", {
+        name: /venues whose fans shaped this lineup/,
+      }),
+    ).toBeNull();
   });
 });

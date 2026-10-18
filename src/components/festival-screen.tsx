@@ -225,7 +225,6 @@ export function FestivalScreen({
   towns = ["boise"],
   custom,
   checked,
-  design = {},
 }: {
   festival: Festival;
   /** The latest saved build, read on the server; null falls back to the empty board. */
@@ -247,20 +246,6 @@ export function FestivalScreen({
    * opens, with the live run next to it; there's no town switcher, and a way back to the towns.
    */
   checked?: { onBack: () => void };
-  /**
-   * M9d's tournament candidates, shown only on the local lab route: the first screen's layout
-   * and where the climb plays. The defaults are the shipped design.
-   */
-  design?: {
-    first?:
-      | "ledger"
-      | "focus"
-      | "rail-left"
-      | "ledger-cta"
-      | "ledger-bars"
-      | "poster-compact";
-    climb?: "rail" | "wide" | "stepper" | "progress" | "focus" | "from";
-  };
 }) {
   const {
     state,
@@ -298,22 +283,6 @@ export function FestivalScreen({
   const [climbDone, setClimbDone] = useState(false);
   const finishClimb = useCallback(() => setClimbDone(true), []);
   const showClimb = !climbDone && state.climbs.length > 0;
-  const climbNode = showClimb ? (
-    <LiftClimb
-      steps={state.climbs}
-      bands={festival.feeBands}
-      live={state.status === "building"}
-      onDone={finishClimb}
-      stepper={design.climb === "stepper"}
-      progress={design.climb === "progress"}
-      showFrom={design.climb === "from"}
-    />
-  ) : null;
-  const climbWaitNote = (
-    <p className="mt-3 w-full border-t-2 border-rule pt-3 text-label text-muted">
-      The lineup prints once the venues have been read.
-    </p>
-  );
   const [printed, setPrinted] = useState<ReadonlySet<string> | null>(null);
   const rooms = roomsBehind(
     state.acts,
@@ -450,217 +419,184 @@ export function FestivalScreen({
           <LlmOnlyNote city={festival.city} />
         </main>
       ) : (
-        <>
-          {climbNode && design.climb === "wide" && (
-            <section className="px-4 pt-4 lg:px-6">{climbNode}</section>
-          )}
-          <main
-            className={
-              design.first === "focus"
-                ? "mx-auto grid w-full max-w-4xl flex-1 grid-cols-1 gap-6 px-4 py-4 lg:px-6"
-                : design.first === "rail-left"
-                  ? "grid flex-1 grid-cols-1 gap-6 px-4 py-4 lg:grid-cols-[336px_minmax(0,1fr)] lg:items-start lg:px-6"
-                  : "grid flex-1 grid-cols-1 gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_336px] lg:items-start lg:px-6"
-            }
-          >
-            <div className="flex min-w-0 flex-col gap-3">
-              <DraftBill
-                ledger={
-                  design.first === "ledger" ||
-                  design.first === "ledger-cta" ||
-                  design.first === "ledger-bars"
-                }
-                ledgerBars={design.first === "ledger-bars"}
-                noKey={design.first === "poster-compact"}
-                actionAlways={
-                  design.first === "focus" || design.first === "ledger-cta"
-                }
-                festival={festival}
-                acts={state.acts}
-                calls={calls}
-                createdAt={state.build?.createdAt}
-                top={firstBill?.baselineTop}
-                unavailable={state.unavailable}
-                openId={openAct?.entityId ?? null}
-                onOpen={(act) => setOpenId(act.entityId)}
-                printing={printing}
-                onPrinted={onPrinted}
-                drafting={state.status === "building"}
-                climb={
-                  !climbNode
-                    ? undefined
-                    : design.climb === "rail" || design.climb === "wide"
-                      ? climbWaitNote
-                      : climbNode
-                }
-                keeping={state.keeping}
-                redraft={
-                  !custom && state.build ? (
-                    <div className="flex flex-col items-center gap-3">
+        <main className="grid flex-1 grid-cols-1 gap-6 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_336px] lg:items-start lg:px-6">
+          <div className="flex min-w-0 flex-col gap-3">
+            <DraftBill
+              festival={festival}
+              acts={state.acts}
+              calls={calls}
+              createdAt={state.build?.createdAt}
+              top={firstBill?.baselineTop}
+              unavailable={state.unavailable}
+              openId={openAct?.entityId ?? null}
+              onOpen={(act) => setOpenId(act.entityId)}
+              printing={printing}
+              onPrinted={onPrinted}
+              drafting={state.status === "building"}
+              climb={
+                showClimb ? (
+                  <LiftClimb
+                    steps={state.climbs}
+                    bands={festival.feeBands}
+                    live={state.status === "building"}
+                    onDone={finishClimb}
+                  />
+                ) : undefined
+              }
+              keeping={state.keeping}
+              redraft={
+                !custom && state.build ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="flex flex-col items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOpenId(null);
+                          void runningOrder();
+                        }}
+                        disabled={
+                          state.status === "building" ||
+                          state.refilling !== null ||
+                          state.redrafting ||
+                          state.ordering
+                        }
+                        className="rounded-sm border-2 border-rule px-4 py-1.5 text-body font-bold hover:bg-ink hover:text-surface disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {state.ordering
+                          ? "Planning the running order…"
+                          : "Running order"}
+                      </button>
+                      <p className="text-label text-muted">
+                        Two stages; the acts on at the same time are the pairs
+                        whose fans&apos; tastes are least alike, from up to 10
+                        Qloo calls.
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                      <Link
+                        href={
+                          festival.id === SAGEBRUSH_SOUND.id
+                            ? "/compare"
+                            : `/compare?b=${encodeURIComponent(festival.id)}`
+                        }
+                        className="rounded-sm border-2 border-rule px-4 py-1.5 text-body font-bold hover:bg-ink hover:text-surface"
+                      >
+                        Compare with another town
+                      </Link>
+                      <p className="text-label text-muted">
+                        The same headliners in two towns, side by side.
+                      </p>
+                    </div>
+                    {state.keeping.length > 0 && (
                       <div className="flex flex-col items-center gap-1">
                         <button
                           type="button"
                           onClick={() => {
+                            setPrinting("refill");
                             setOpenId(null);
-                            void runningOrder();
+                            void redraft();
                           }}
                           disabled={
                             state.status === "building" ||
                             state.refilling !== null ||
-                            state.redrafting ||
-                            state.ordering
+                            state.redrafting
                           }
-                          className="rounded-sm border-2 border-rule px-4 py-1.5 text-body font-bold hover:bg-ink hover:text-surface disabled:cursor-not-allowed disabled:opacity-60"
+                          className="rounded-sm border-2 border-accent bg-accent px-4 py-1.5 text-body font-bold text-on-accent hover:bg-ink disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          {state.ordering
-                            ? "Planning the running order…"
-                            : "Running order"}
+                          {state.redrafting
+                            ? "Redrafting…"
+                            : "Redraft the rest"}
                         </button>
                         <p className="text-label text-muted">
-                          Two stages; the acts on at the same time are the pairs
-                          whose fans&apos; tastes are least alike, from up to 10
-                          Qloo calls.
+                          Keeps {state.keeping.length}{" "}
+                          {state.keeping.length === 1 ? "act" : "acts"} and
+                          refills the other slots from the same venues, in at
+                          most 3 Qloo calls.
                         </p>
                       </div>
-                      <div className="flex flex-col items-center gap-1">
-                        <Link
-                          href={
-                            festival.id === SAGEBRUSH_SOUND.id
-                              ? "/compare"
-                              : `/compare?b=${encodeURIComponent(festival.id)}`
-                          }
-                          className="rounded-sm border-2 border-rule px-4 py-1.5 text-body font-bold hover:bg-ink hover:text-surface"
-                        >
-                          Compare with another town
-                        </Link>
-                        <p className="text-label text-muted">
-                          The same headliners in two towns, side by side.
-                        </p>
-                      </div>
-                      {state.keeping.length > 0 && (
-                        <div className="flex flex-col items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPrinting("refill");
-                              setOpenId(null);
-                              void redraft();
-                            }}
-                            disabled={
-                              state.status === "building" ||
-                              state.refilling !== null ||
-                              state.redrafting
-                            }
-                            className="rounded-sm border-2 border-accent bg-accent px-4 py-1.5 text-body font-bold text-on-accent hover:bg-ink disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            {state.redrafting
-                              ? "Redrafting…"
-                              : "Redraft the rest"}
-                          </button>
-                          <p className="text-label text-muted">
-                            Keeps {state.keeping.length}{" "}
-                            {state.keeping.length === 1 ? "act" : "acts"} and
-                            refills the other slots from the same venues, in at
-                            most 3 Qloo calls.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  ) : undefined
-                }
-                phoneAction={
-                  <div className="flex flex-col items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => runBuild()}
-                      disabled={
-                        state.status === "building" || state.refilling !== null
-                      }
-                      className={WATCH_BUTTON}
-                    >
-                      {state.status === "building"
-                        ? "Building…"
-                        : state.build
-                          ? "Watch how it picked these acts"
-                          : "Build undercard"}
-                    </button>
-                    <p className="text-label text-muted">
-                      {state.build
-                        ? "Replays the saved build's Qloo calls; they list under the lineup."
-                        : "Runs the AI agent; its Qloo calls list under the lineup."}
-                    </p>
+                    )}
                   </div>
-                }
+                ) : undefined
+              }
+              phoneAction={
+                <div className="flex flex-col items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => runBuild()}
+                    disabled={
+                      state.status === "building" || state.refilling !== null
+                    }
+                    className={WATCH_BUTTON}
+                  >
+                    {state.status === "building"
+                      ? "Building…"
+                      : state.build
+                        ? "Watch how it picked these acts"
+                        : "Build undercard"}
+                  </button>
+                  <p className="text-label text-muted">
+                    {state.build
+                      ? "Replays the saved build's Qloo calls; they list under the lineup."
+                      : "Runs the AI agent; its Qloo calls list under the lineup."}
+                  </p>
+                </div>
+              }
+            />
+            {billControls}
+          </div>
+          <div className="flex flex-col gap-4">
+            {(custom || checked) &&
+              state.status !== "building" &&
+              state.errorCode && (
+                <RunNotice
+                  message={state.error ?? ""}
+                  code={state.errorCode}
+                  onEdit={custom?.onEdit ?? checked!.onBack}
+                  region={custom?.brief.region}
+                  onPick={custom?.onPick}
+                />
+              )}
+            {!openAct && state.order && (
+              <RunningOrderPanel
+                slots={state.order}
+                headliners={festival.headliners}
+                onClose={closeOrder}
               />
-              {billControls}
-            </div>
-            <div
-              className={`flex flex-col gap-4 ${design.first === "rail-left" ? "lg:order-first" : ""}`}
-            >
-              {climbNode && design.climb === "rail" && climbNode}
-              {(custom || checked) &&
-                state.status !== "building" &&
-                state.errorCode && (
-                  <RunNotice
-                    message={state.error ?? ""}
-                    code={state.errorCode}
-                    onEdit={custom?.onEdit ?? checked!.onBack}
-                    region={custom?.brief.region}
-                    onPick={custom?.onPick}
-                  />
-                )}
-              {!openAct && state.order && (
-                <RunningOrderPanel
-                  slots={state.order}
-                  headliners={festival.headliners}
-                  onClose={closeOrder}
-                />
-              )}
-              {!openAct && !showClimb && rooms.length > 0 && (
-                <RoomsRail
-                  rooms={rooms}
-                  compact={traceInUse}
-                  bands={festival.feeBands}
-                  placesListed={placesListed}
-                  city={festival.city}
-                />
-              )}
-              {openAct && (
-                <ActCardPanel
-                  act={openAct}
-                  unavailable={state.unavailable.includes(openAct.entityId)}
-                  disabled={
-                    state.refilling !== null || state.redrafting || !state.build
-                  }
-                  onUnavailable={custom ? undefined : refill}
-                  kept={state.keeping.includes(openAct.entityId)}
-                  onKeep={custom ? undefined : toggleKeep}
-                  onClose={() => setOpenId(null)}
-                  city={festival.city}
-                />
-              )}
-              {design.climb === "focus" && showClimb ? (
-                <p className="border-2 border-rule bg-surface p-3 text-label">
-                  Reading each venue&apos;s fans through Qloo; the full call
-                  list follows the lineup.
-                </p>
-              ) : (
-                <TracePanel
-                  state={state}
-                  savedCalls={firstBill?.calls}
-                  onBuild={runBuild}
-                  buttonOnPhones={false}
-                  button={
-                    design.first !== "focus" && design.first !== "ledger-cta"
-                  }
-                />
-              )}
-              {!traceInUse && !custom && !checked && (
-                <TownSwitcher current={townOf(festival).slug} onShow={towns} />
-              )}
-            </div>
-          </main>
-        </>
+            )}
+            {!openAct && !showClimb && rooms.length > 0 && (
+              <RoomsRail
+                rooms={rooms}
+                compact={traceInUse}
+                bands={festival.feeBands}
+                placesListed={placesListed}
+                city={festival.city}
+              />
+            )}
+            {openAct && (
+              <ActCardPanel
+                act={openAct}
+                unavailable={state.unavailable.includes(openAct.entityId)}
+                disabled={
+                  state.refilling !== null || state.redrafting || !state.build
+                }
+                onUnavailable={custom ? undefined : refill}
+                kept={state.keeping.includes(openAct.entityId)}
+                onKeep={custom ? undefined : toggleKeep}
+                onClose={() => setOpenId(null)}
+                city={festival.city}
+              />
+            )}
+            <TracePanel
+              state={state}
+              savedCalls={firstBill?.calls}
+              onBuild={runBuild}
+              buttonOnPhones={false}
+            />
+            {!traceInUse && !custom && !checked && (
+              <TownSwitcher current={townOf(festival).slug} onShow={towns} />
+            )}
+          </div>
+        </main>
       )}
     </div>
   );

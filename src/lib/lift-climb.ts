@@ -71,3 +71,11 @@ export function playClimbs(
 ): { step: ClimbEvent; holdMs: number }[] {
   return steps.map((step) => ({ step, holdMs: step.venue ? 1800 : 900 }));
 }
+
+/** Where a lifted act stood before the venue's fans were added (M9d): "was 50th". */
+export function wasPlace(rank: number, move: number): string {
+  const place = rank + move;
+  const teen = Math.floor((place % 100) / 10) === 1;
+  const suffix = teen ? "th" : (["th", "st", "nd", "rd"][place % 10] ?? "th");
+  return `was ${place}${suffix}`;
+}

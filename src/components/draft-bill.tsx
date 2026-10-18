@@ -5,14 +5,7 @@ import type { FeeBand, FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import { formatBandRange, formatCount } from "@/lib/format";
 import type { Act } from "@/lib/lineup";
-import { liftOf, markKey, markLabel } from "@/lib/marks";
-
-// Billing by band, as on a printed bill: headliners largest, then Mid, then Openers. The
-// headliners are the page's one display line (M6q); the acts are set in the body face.
-const BILLING = {
-  mid: "text-figure",
-  opener: "text-name",
-} satisfies Record<FeeBandId, string>;
+import { liftOf, markLabel } from "@/lib/marks";
 
 /** Each band in plain words first (M6q); the fee band's precise terms follow, smaller. */
 const PLAIN_BAND = {
@@ -50,24 +43,37 @@ const badgeWords = (act: Act, top?: number) => {
 };
 
 /**
- * The club whose fans like the act, in plain words (M6q), then the places its crowd lifted the
- * act in Qloo's ranking, in the blue Qloo ink.
+ * The venue whose fans like the act, in plain words (M6q), then the places its crowd lifted the
+ * act in Qloo's ranking, in the blue Qloo ink, over a bar as long as the move (M9d's ledger:
+ * 50 places fill the cell).
  */
 function Mark({ act, top }: { act: Act; top?: number }) {
   const lift = liftOf(act);
   return (
-    <div className="flex flex-col items-center text-label">
-      <p aria-hidden>{act.anchorVenue.name} fans like it</p>
-      {lift && (
-        <p aria-hidden>
-          <span className="rounded-sm border border-accent px-1 font-semibold text-accent">
-            {badgeOf(act)}
-          </span>{" "}
-          {badgeWords(act, top)}
-        </p>
-      )}
+    <>
+      <p aria-hidden className="text-label">
+        {act.anchorVenue.name} fans like it
+      </p>
+      <div aria-hidden className="text-label">
+        {lift && (
+          <p>
+            <span className="rounded-sm border border-accent px-1 font-semibold text-accent">
+              {badgeOf(act)}
+            </span>{" "}
+            {badgeWords(act, top)}
+          </p>
+        )}
+        {lift?.kind === "up" && (
+          <span
+            aria-hidden
+            data-lift-bar
+            className="mt-1 block h-1.5 bg-accent"
+            style={{ width: `${Math.min(100, (lift.places / 50) * 100)}%` }}
+          />
+        )}
+      </div>
       <p className="sr-only">{markLabel(act, top)}</p>
-    </div>
+    </>
   );
 }
 
@@ -104,15 +110,13 @@ function BillAct({
   return (
     <article
       aria-label={act.name}
-      className={`flex flex-col items-center gap-1.5 ${print ? "motion-safe:animate-print-in" : ""}`}
+      className={`grid w-full grid-cols-1 items-baseline gap-x-3 gap-y-0.5 py-1.5 text-left sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.3fr)] ${print ? "motion-safe:animate-print-in" : ""}`}
       style={
         print ? { animationDelay: `${print.delay.toFixed(2)}s` } : undefined
       }
       onAnimationStart={() => onPrinted?.(act.entityId)}
     >
-      <h3
-        className={`font-bold ${BILLING[act.band]} ${gone ? "text-muted" : ""}`}
-      >
+      <h3 className={`text-body font-bold ${gone ? "text-muted" : ""}`}>
         {onOpen ? (
           <button
             type="button"
@@ -126,128 +130,31 @@ function BillAct({
         ) : (
           act.name
         )}
+        {kept && !gone && (
+          <span className="ml-2 text-label font-semibold text-accent">
+            Kept
+          </span>
+        )}
       </h3>
       {gone ? (
-        <p className="rounded-sm border-2 border-danger px-1.5 text-label font-semibold text-danger">
+        <p className="justify-self-start rounded-sm border-2 border-danger px-1.5 text-label font-semibold text-danger">
           Unavailable
         </p>
       ) : (
         <Mark act={act} top={top} />
       )}
-      {kept && !gone && (
-        <p className="text-label font-semibold text-accent">Kept</p>
-      )}
     </article>
   );
 }
 
-/** The key to the marks, set beside the first one: what it means and what Qloo is. */
-function MarkKey({ example, lines }: { example: string; lines: string[] }) {
-  const [first, ...rest] = lines;
-  return (
-    <div
-      role="note"
-      aria-label="How to read the marks"
-      className="flex max-w-lg flex-col gap-1 border-l-2 border-rule pl-3 text-left text-label"
-    >
-      <p>
-        <span
-          aria-hidden
-          className="mr-1.5 inline-block rounded-sm border border-accent px-1 font-semibold text-accent"
-        >
-          {example}
-        </span>
-        {first}
-      </p>
-      {rest.map((line) => (
-        <p key={line}>{line}</p>
-      ))}
-    </div>
-  );
-}
-
 function OpenSlot() {
-  return (
-    <p className="border-2 border-dashed border-muted px-6 py-2 text-label text-muted">
-      Open slot
-    </p>
-  );
+  return <p className="py-1.5 text-left text-label text-muted">Open slot</p>;
 }
 
-/** One fee band's tier: its name, what sets it, and its slots in the lineup's order. */
-/** M9d's ledger candidate: one row per slot, the act, the venue whose fans like it, its move. */
-function LedgerRows({
-  bars = false,
-  slots,
-  unavailable,
-  top,
-  onOpen,
-}: {
-  bars?: boolean;
-  slots: (Act | null)[];
-  unavailable: readonly string[];
-  top?: number;
-  onOpen?: (act: Act) => void;
-}) {
-  return (
-    <table className="mt-2 w-full border-collapse text-left">
-      <tbody>
-        {slots.map((act, index) => (
-          <tr
-            key={act?.entityId ?? `open-${index}`}
-            className="border-b border-rule/50"
-          >
-            {act ? (
-              <>
-                <td className="py-1.5 pr-3 text-body font-bold">
-                  {onOpen ? (
-                    <button
-                      type="button"
-                      onClick={() => onOpen(act)}
-                      className="cursor-pointer text-left decoration-2 underline-offset-4 hover:underline focus-visible:underline"
-                    >
-                      {act.name}
-                    </button>
-                  ) : (
-                    act.name
-                  )}
-                  {unavailable.includes(act.entityId) && (
-                    <span className="ml-2 text-label text-danger">
-                      Unavailable
-                    </span>
-                  )}
-                </td>
-                <td className="py-1.5 pr-3 text-label">
-                  {act.anchorVenue.name} fans like it
-                </td>
-                <td className="py-1.5 text-label">
-                  <span className="rounded-sm border border-accent px-1 font-semibold text-accent">
-                    {badgeOf(act)}
-                  </span>{" "}
-                  {badgeWords(act, top)}
-                  {bars && liftOf(act)?.kind === "up" && (
-                    <span
-                      aria-hidden
-                      className="mt-1 block h-1.5 bg-accent"
-                      style={{
-                        width: `${Math.min(100, ((liftOf(act) as { places: number }).places / 50) * 100)}%`,
-                      }}
-                    />
-                  )}
-                </td>
-              </>
-            ) : (
-              <td colSpan={3} className="py-1.5 text-label text-muted">
-                Open slot
-              </td>
-            )}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
+/**
+ * One fee band's tier: its name, what sets it, and its slots in the lineup's order, as a ledger
+ * of rows (M9d's winner).
+ */
 function BandTier({
   band,
   acts,
@@ -256,12 +163,9 @@ function BandTier({
   top,
   openId,
   onOpen,
-  keyed,
   printing,
   order,
   onPrinted,
-  ledger = false,
-  ledgerBars = false,
 }: {
   band: FeeBand;
   acts: readonly Act[];
@@ -270,15 +174,10 @@ function BandTier({
   top?: number;
   openId: string | null;
   onOpen?: (act: Act) => void;
-  /** The act whose mark carries the key, and the key. */
-  keyed?: { act: Act; example: string; lines: string[] };
   printing: Printing;
   /** Billing order across the bands, by entity id. */
   order: ReadonlyMap<string, number>;
   onPrinted?: (entityId: string) => void;
-  /** M9d's ledger candidate: the band as rows of act, venue and move. */
-  ledger?: boolean;
-  ledgerBars?: boolean;
 }) {
   const billed = acts.filter((act) => act.band === band.id);
   const slots = Array.from(
@@ -301,47 +200,30 @@ function BandTier({
           {`(${formatBandRange(band)} percentile)`}
         </p>
       </div>
-      {ledger ? (
-        <LedgerRows
-          bars={ledgerBars}
-          slots={slots}
-          unavailable={unavailable}
-          top={top}
-          onOpen={onOpen}
-        />
-      ) : (
-        <ol className="mt-2.5 flex flex-wrap items-start justify-center gap-x-7 gap-y-3">
-          {slots.map((act, index) => (
-            <li
-              key={act?.entityId ?? `open-${index}`}
-              className={
-                act && act === keyed?.act
-                  ? "flex w-full flex-wrap items-center justify-center gap-x-6 gap-y-3"
-                  : undefined
-              }
-            >
-              {act ? (
-                <BillAct
-                  act={act}
-                  kept={keeping.includes(act.entityId)}
-                  gone={unavailable.includes(act.entityId)}
-                  top={top}
-                  open={openId === act.entityId}
-                  onOpen={onOpen}
-                  printing={printing}
-                  index={order.get(act.entityId) ?? 0}
-                  onPrinted={onPrinted}
-                />
-              ) : (
-                <OpenSlot />
-              )}
-              {act && act === keyed?.act && (
-                <MarkKey example={keyed.example} lines={keyed.lines} />
-              )}
-            </li>
-          ))}
-        </ol>
-      )}
+      <ol className="mt-2 flex w-full flex-col">
+        {slots.map((act, index) => (
+          <li
+            key={act?.entityId ?? `open-${index}`}
+            className="border-b border-rule/50"
+          >
+            {act ? (
+              <BillAct
+                act={act}
+                kept={keeping.includes(act.entityId)}
+                gone={unavailable.includes(act.entityId)}
+                top={top}
+                open={openId === act.entityId}
+                onOpen={onOpen}
+                printing={printing}
+                index={order.get(act.entityId) ?? 0}
+                onPrinted={onPrinted}
+              />
+            ) : (
+              <OpenSlot />
+            )}
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }
@@ -417,10 +299,6 @@ export function DraftBill({
   keeping = [],
   redraft,
   climb,
-  ledger = false,
-  ledgerBars = false,
-  noKey = false,
-  actionAlways = false,
 }: {
   festival: Festival;
   acts: readonly Act[];
@@ -447,29 +325,11 @@ export function DraftBill({
   redraft?: ReactNode;
   /** The lift, visible (M9a): while it plays, it takes the bands' place. */
   climb?: ReactNode;
-  /** M9d candidates: each band as a ledger of rows, and the button at every size. */
-  ledger?: boolean;
-  ledgerBars?: boolean;
-  noKey?: boolean;
-  actionAlways?: boolean;
 }) {
   const billed = festival.feeBands.flatMap((band) =>
     acts.filter((act) => act.band === band.id),
   );
   const order = new Map(billed.map((act, index) => [act.entityId, index]));
-  // The key sits beside the first mark on the bill, in billing order.
-  // It stays there while that act is refilled, so nothing on the bill jumps.
-  const firstMarked = billed.find((act) => liftOf(act));
-  const keyed = firstMarked && {
-    act: firstMarked,
-    ...markKey(firstMarked, {
-      acts,
-      top: top[firstMarked.band],
-      city: festival.city,
-    }),
-    // The key's example is the mark's blue badge, as the bill now shows it (M6q).
-    example: badgeOf(firstMarked),
-  };
   return (
     <section aria-label="Undercard draft" className={SHEET}>
       <BillHeader festival={festival} stamp="Draft, not announced">
@@ -480,9 +340,7 @@ export function DraftBill({
           " Click an act to see why, keep it or mark it unavailable."}
       </BillHeader>
       {phoneAction && (
-        <div className={`mt-3 w-full ${actionAlways ? "" : "lg:hidden"}`}>
-          {phoneAction}
-        </div>
+        <div className="mt-3 w-full lg:hidden">{phoneAction}</div>
       )}
       {climb}
       {!climb &&
@@ -496,12 +354,9 @@ export function DraftBill({
             top={top[band.id]}
             openId={openId}
             onOpen={onOpen}
-            keyed={!noKey && keyed?.act.band === band.id ? keyed : undefined}
             printing={printing}
             order={order}
             onPrinted={onPrinted}
-            ledger={ledger}
-            ledgerBars={ledgerBars}
           />
         ))}
       {redraft && <div className="mt-3 w-full">{redraft}</div>}

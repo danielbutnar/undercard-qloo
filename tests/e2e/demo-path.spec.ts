@@ -18,7 +18,9 @@ const band = (page: Page, name: RegExp) =>
 const traceRows = (page: Page) =>
   page.getByRole("list", { name: "Qloo calls" }).locator(":scope > li");
 const rooms = (page: Page) =>
-  page.getByRole("region", { name: "Boise venues whose fans shaped this lineup" });
+  page.getByRole("region", {
+    name: "Boise venues whose fans shaped this lineup",
+  });
 // Each act's mark, read out in words (the + and the room's initials are hidden from it).
 const MARK = /crowd: (up \d+ places|new, from outside)/;
 
@@ -51,13 +53,13 @@ test.describe("demo path", () => {
         .getByRole("list", { name: "Booked headliners" })
         .getByRole("listitem"),
     ).toHaveText(["Khruangbin", "Japanese Breakfast"]);
-    await expect(
-      bill(page).getByText("Draft, not announced"),
-    ).toBeVisible();
+    await expect(bill(page).getByText("Draft, not announced")).toBeVisible();
 
     // Every act is on the bill at first paint, in its fee band, with its mark.
     await expect(band(page, /^Mid/).getByRole("article")).toHaveCount(4);
-    await expect(band(page, /^Opening acts/).getByRole("article")).toHaveCount(6);
+    await expect(band(page, /^Opening acts/).getByRole("article")).toHaveCount(
+      6,
+    );
     await expect(
       page.getByText(
         "4 slots · fee range (Mid): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (80th–92nd percentile)",
@@ -73,11 +75,13 @@ test.describe("demo path", () => {
       await expect(act.getByRole("button")).toHaveCount(1);
     }
 
-    // The key beside the first mark, and the rooms behind the bill.
-    await expect(
-      page.getByRole("note", { name: "How to read the marks" }),
-    ).toContainText(
-      "Qloo: data on what people like, across music, places and more.",
+    // Each row says what the old key did (M9d), Qloo is explained in the first line, and the
+    // rooms behind the bill.
+    await expect(bill(page).getByRole("article").first()).toContainText(
+      /places higher in Qloo's ranking|to Qloo's top \d+/,
+    );
+    await expect(page.getByRole("banner")).toContainText(
+      "Qloo, a taste-data service that maps what fans of one artist, venue or film also like",
     );
     await expect(rooms(page)).toContainText(
       "These venues stand for the town's taste: the acts won't necessarily play there.",
@@ -118,9 +122,13 @@ test.describe("demo path", () => {
         bill(page).getByText(/^How the town's venue crowds move acts up/),
       ).toBeVisible();
       await expect(
-        bill(page).getByText(/^\+\d+, /).first(),
+        bill(page)
+          .getByText(/^\+\d+, /)
+          .first(),
       ).toBeVisible({ timeout: REPLAY_TIMEOUT });
-      await bill(page).getByRole("button", { name: "Skip to the lineup" }).click();
+      await bill(page)
+        .getByRole("button", { name: "Skip to the lineup" })
+        .click();
     }
     expect(callCount).toBeLessThanOrEqual(12);
     await expect(trace.getByLabel(/^\d+ results$/)).toHaveCount(callCount);
@@ -252,7 +260,9 @@ test.describe("demo path", () => {
     const picks = model.getByRole("article");
     await expect(picks.first()).toBeVisible({ timeout: 60_000 });
     for (const pick of await picks.all()) {
-      await expect(pick).toContainText("No Boise venue · fee range not checked");
+      await expect(pick).toContainText(
+        "No Boise venue · fee range not checked",
+      );
       await expect(pick).not.toContainText(/affinity/);
     }
     await expect(page.locator("main")).not.toContainText(/\d+\s*\/\s*\d+/);
