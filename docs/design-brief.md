@@ -172,3 +172,14 @@ The M6q lay-reader prompt isn't kept in the repository, so the prompts below wer
 - Squint test, shown only the 1440x810 first screen at a third of its size: "In one sentence, say what this product does and for whom. Then name the first thing you would click." Answer: an AI agent that drafts a festival's opening acts from what fans of a town's own venues like, for festival organisers; first click, the yellow Watch button. Pass.
 - Lay reader, shown the 1440 and 390 shots: "You have never worked in the music industry … What does this page do, and who is it for? Pick one act and explain why it is on the lineup. What would you click first? Anything you didn't understand?" Answer: it drafts the support acts for a Boise festival from what fans of Boise's own venues like, for festival organisers; one act explained by its old and new place in Qloo's ranking and the venue whose fans lifted it (its colour tab); first click Watch. It didn't understand the fee range bars or the slot squares, so both are now labelled in words ("Fee range, by popularity", "4 slots"). Pass.
 - Evidence section 25 found Watch under the headliners best in the old layout; this design moves it into the lead beside the chart, and both readers still named it as the first click.
+
+## 11. What I'd still improve
+
+- Give every row of Watch's editions a sleeve, not only the booked acts and the top rows, so the chart reads as pictures all the way down.
+- Show the 29 checked towns as dots on a map in Your festival, instead of a list of names.
+- Draw the headliners' samplers from their own genre words, as the acts' sleeves are, rather than from their names.
+- Add one more signature interaction of the product's own; this round spent its one on the venue switch.
+- Animate the method page's storyboard as a short loop of the same four panels.
+- Give the phone's first act more room: it fits on the first screen with about 4 px to spare at 390x844.
+- Check with a real screen reader, in Safari and on real phones.
+- Remove the components this direction no longer uses (the old bill, rooms rail, lineup board, festival header and lift climb, and the two tests that cover only the old bill), once Daniel agrees.
