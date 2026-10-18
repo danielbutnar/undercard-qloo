@@ -428,10 +428,10 @@ const asNumber = (word: string) => NUMBER_WORDS[word.toLowerCase()] ?? Number(wo
  */
 function ResultPicture({ result }: { result: string }) {
   const count =
-    /(d+|one|two|three|four|five|six|seven|eight|nine|ten) of (?:the )?(d+|one|two|three|four|five|six|seven|eight|nine|ten)/i.exec(
+    /(\d+|one|two|three|four|five|six|seven|eight|nine|ten) of (?:the )?(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b/i.exec(
       result,
     );
-  const bar = /bar(?: of)? (d+)/.exec(result);
+  const bar = /bar(?: of)? (\d+)/.exec(result);
   if (!count) {
     if (/^No-go/.test(result))
       return (
@@ -439,7 +439,7 @@ function ResultPicture({ result }: { result: string }) {
           no-go
         </span>
       );
-    if (/^Go/.test(result))
+    if (/^Go\b/.test(result))
       return (
         <span className="result-chip is-go" aria-hidden>
           go
