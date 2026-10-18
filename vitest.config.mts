@@ -10,5 +10,7 @@ export default defineConfig({
   test: {
     include: ["tests/unit/**/*.test.{ts,tsx}"],
     environment: "node",
+    // The jsdom screens take seconds to set up on a busy machine; 5 s timed out under load.
+    testTimeout: 20_000,
   },
 });

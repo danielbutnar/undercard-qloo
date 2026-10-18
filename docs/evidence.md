@@ -375,6 +375,8 @@ Written on 2026-10-18, before either measurement. The rules don't change after t
 
 **The spike.** Offline, from the 29 saved builds' replays (no Qloo calls): how many acts each town's lineup shares with Boise's. Go if a default pair exists where both marks show: some pair with Boise shares at least 1 act and differs in at least 3. The default pair is the first such town in the checked list's order. Counts per town are reported either way.
 
+**Spike result, 2026-10-18: go.** Lineups sharing acts with Boise's, of 10: Austin 3, Denver 3, Nashville 3, Raleigh 0, Chicago 1, Seattle 2, Minneapolis 3, Duluth 4, Kansas City 1, Asheville 2, Bozeman 3, Burlington 4, Calgary 2, Toronto 0, Montreal 3, Reykjavík 3, Oslo 4, Aarhus 0, Tallinn 2, Berlin 1, Hamburg 1, Utrecht 1, Rotterdam 1, Paris 1, Vienna 1, Bucharest 4, Cluj-Napoca 3, Wrexham 3. The first town where both marks show is Austin (3 shared, 7 its own), so Boise against Austin is the default pair.
+
 **The reader.** A fresh cold reader, shown only a 1280x800 shot of the two towns side by side, passes if they say why the two lineups differ: the headliners and fee ranges are the same, and each lineup comes from what fans of that town's own venues like.
 
 ## What these numbers don't establish

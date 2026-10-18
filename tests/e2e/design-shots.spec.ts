@@ -206,6 +206,8 @@ const SCENES: {
         .waitFor();
     },
   },
+  // M9b: town against town, Boise and Austin side by side.
+  { name: "compare", path: "/compare", viewports: [JUDGE, VIDEO, MOBILE] },
   {
     // M8a: the running order, answered in the browser with made-up scores unless the run may
     // call Qloo (E2E_LIVE_QLOO=1 against a deployment).

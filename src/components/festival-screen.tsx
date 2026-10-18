@@ -466,6 +466,21 @@ export function FestivalScreen({
                         Qloo calls.
                       </p>
                     </div>
+                    <div className="flex flex-col items-center gap-1">
+                      <Link
+                        href={
+                          festival.id === SAGEBRUSH_SOUND.id
+                            ? "/compare"
+                            : `/compare?b=${encodeURIComponent(festival.id)}`
+                        }
+                        className="rounded-sm border-2 border-rule px-4 py-1.5 text-body font-bold hover:bg-ink hover:text-surface"
+                      >
+                        Compare with another town
+                      </Link>
+                      <p className="text-label text-muted">
+                        The same headliners in two towns, side by side.
+                      </p>
+                    </div>
                     {state.keeping.length > 0 && (
                       <div className="flex flex-col items-center gap-1">
                         <button
