@@ -8,9 +8,13 @@ import {
   within,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { syntheticLlmOnly } from "../../e2e/synthetic-build";
+import {
+  syntheticLlmOnly,
+  syntheticVenueSwitch,
+} from "../../e2e/synthetic-build";
 import { FestivalScreen } from "@/components/festival-screen";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
+import type { VenueSwitchData } from "@/lib/venue-switch";
 import { FIRST_BILL } from "./first-bill-fixture";
 
 afterEach(() => {
@@ -22,18 +26,34 @@ const WITH = "With Qloo: the AI agent's lineup";
 const WITHOUT = "Without Qloo: an AI model's picks alone";
 const { lineup } = syntheticLlmOnly();
 
-function open(answer: () => Promise<Response>) {
-  const fetch = vi.fn(answer);
+// The screen also asks GET /api/venue-switch once on mount; unless a test hands it the saved
+// build's results it answers 404 (the switch then says it isn't available). Only POST
+// /api/llm-only counts as a call to the model.
+function open(answer: () => Promise<Response>, venueSwitch?: VenueSwitchData) {
+  const fetch = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>(
+    async (url) =>
+      url.startsWith("/api/venue-switch")
+        ? venueSwitch
+          ? Response.json(venueSwitch)
+          : new Response("", { status: 404 })
+        : answer(),
+  );
   vi.stubGlobal("fetch", fetch);
   render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />);
   return fetch;
 }
-const answered = () =>
-  open(async () => Response.json({ lineup, cached: true }));
+const modelCalls = (fetch: ReturnType<typeof open>) =>
+  fetch.mock.calls.filter(([url]) => url === "/api/llm-only");
+const answered = (venueSwitch?: VenueSwitchData) =>
+  open(async () => Response.json({ lineup, cached: true }), venueSwitch);
 const flip = (name: string) =>
   fireEvent.click(screen.getByRole("button", { name }));
 const modelBill = () =>
-  screen.findByRole("region", { name: "Without Qloo: an AI model's picks alone" });
+  screen.findByRole("region", {
+    name: "Without Qloo: an AI model's picks alone",
+  });
+// The picks print once the model answers; the section itself shows at once, asking.
+const picksOf = (sheet: HTMLElement) => within(sheet).findAllByRole("article");
 
 describe("the switch", () => {
   it("says what each side shows", () => {
@@ -53,7 +73,7 @@ describe("the switch", () => {
 });
 
 describe("Without Qloo", () => {
-  it("reprints the bill with the model's picks under the same headliners, stamped No Qloo data", async () => {
+  it("reprints the chart with the model's picks under the same headliners, stamped No Qloo data", async () => {
     const fetch = answered();
     flip(WITHOUT);
     const sheet = await modelBill();
@@ -61,9 +81,22 @@ describe("Without Qloo", () => {
       "/api/llm-only",
       expect.objectContaining({ method: "POST" }),
     );
+    expect(modelCalls(fetch)).toHaveLength(1);
     expect(within(sheet).getByText("No Qloo data")).toBeTruthy();
+    // The draft section is "The festival" now, and the headliners stay above the picks in it.
+    const festival = screen.getByRole("region", { name: "The festival" });
+    expect(festival.contains(sheet)).toBe(true);
+    const headliners = within(festival).getByRole("list", {
+      name: "Booked headliners",
+    });
     expect(
-      within(sheet).getByRole("list", { name: "Booked headliners" }),
+      within(headliners)
+        .getAllByRole("listitem")
+        .map((item) => item.textContent),
+    ).toEqual(SAGEBRUSH_SOUND.headliners);
+    expect(
+      headliners.compareDocumentPosition(sheet) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     expect(
       screen.queryByRole("region", { name: "Undercard draft" }),
@@ -74,7 +107,7 @@ describe("Without Qloo", () => {
     answered();
     flip(WITHOUT);
     const sheet = await modelBill();
-    const picks = within(sheet).getAllByRole("article");
+    const picks = await picksOf(sheet);
     expect(picks.map((pick) => pick.getAttribute("aria-label"))).toEqual(
       lineup.picks.map((pick) => pick.name),
     );
@@ -89,37 +122,47 @@ describe("Without Qloo", () => {
   it("puts no score, tally or 0/10 anywhere", async () => {
     answered();
     flip(WITHOUT);
-    await modelBill();
+    await picksOf(await modelBill());
     const text = document.body.textContent ?? "";
     expect(text).not.toMatch(/\d+\s*\/\s*\d+/);
     expect(text).not.toMatch(/\bscore\b/i);
   });
 
-  it("says in the rail what the model got, in place of the rooms and the trace", async () => {
-    answered();
+  it("says beside the picks what the model got, with the venue switch held still", async () => {
+    answered(syntheticVenueSwitch());
+    const venues = screen.getByRole("region", {
+      name: "Boise venues whose fans shaped this lineup",
+    });
+    const toggles = () =>
+      within(venues).getAllByRole("button") as HTMLButtonElement[];
+    // With Qloo, once the saved build's venue results are in, every venue can be switched.
+    await waitFor(() =>
+      expect(toggles().every((toggle) => !toggle.disabled)).toBe(true),
+    );
     flip(WITHOUT);
-    await modelBill();
+    await picksOf(await modelBill());
     const note = screen.getByRole("complementary", { name: "The model alone" });
     expect(note.textContent).toMatch(/Claude Sonnet 5\.5 with no tools/);
-    expect(
-      screen.queryByRole("region", { name: "Boise venues whose fans shaped this lineup" }),
-    ).toBeNull();
-    expect(
-      screen.queryByRole("button", { name: "Watch how it picked these acts" }),
-    ).toBeNull();
+    // The venue switch stays beside the chart, but nothing in it can be switched here.
+    expect(toggles().length).toBeGreaterThan(0);
+    expect(toggles().every((toggle) => toggle.disabled)).toBe(true);
+    // Flipping back gives the venues their switches again.
+    flip(WITH);
+    expect(toggles().every((toggle) => !toggle.disabled)).toBe(true);
   });
 
-  it("flips back to the agent's bill with its marks", async () => {
+  it("flips back to the agent's chart with its marks", async () => {
     answered();
     flip(WITHOUT);
     await modelBill();
     flip(WITH);
-    const bill = screen.getByRole("region", { name: "Undercard draft" });
+    const draft = screen.getByRole("region", { name: "Undercard draft" });
+    // The row's mark: the venue whose crowd lifted it, in words for a screen reader, and the climb.
+    const row = within(draft).getByRole("article", { name: "Hollow Pines" });
     expect(
-      within(
-        within(bill).getByRole("article", { name: "Hollow Pines" }),
-      ).getByText("The Lantern Room fans like it"),
+      within(row).getByText("The Lantern Room's crowd: up 11 places"),
     ).toBeTruthy();
+    expect(within(row).getByText("+11")).toBeTruthy();
   });
 
   it("shows the model's error with a way to try again", async () => {
@@ -137,6 +180,6 @@ describe("Without Qloo", () => {
       ),
     );
     fireEvent.click(within(sheet).getByRole("button", { name: "Try again" }));
-    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(modelCalls(fetch)).toHaveLength(2);
   });
 });

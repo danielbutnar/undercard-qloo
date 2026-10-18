@@ -7,28 +7,31 @@ import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 afterEach(cleanup);
 
 describe("the first screen with no saved build", () => {
-  it("is the bill in its design, its slots open, with Build undercard", () => {
+  it("is the chart in its design, its slots open, with Build undercard", () => {
     render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={null} />);
-    const bill = screen.getByRole("region", { name: "Undercard draft" });
+    const draft = screen.getByRole("region", { name: "Undercard draft" });
     expect(
-      within(bill)
+      within(draft)
         .getByRole("list", { name: "Booked headliners" })
         .querySelectorAll("li"),
     ).toHaveLength(2);
-    expect(within(bill).getAllByText("Open slot")).toHaveLength(10);
-    expect(within(bill).getByText("No undercard drafted yet.")).toBeTruthy();
+    expect(within(draft).getAllByText("Open slot")).toHaveLength(10);
+    expect(within(draft).getByText("No undercard drafted yet.")).toBeTruthy();
+    // The button sits in the lead above the chart, not inside the draft, and is the only one.
     expect(
-      within(screen.getByRole("region", { name: "Undercard draft" })).getByRole(
-        "button",
-        { name: "Build undercard" },
-      ),
+      screen.getAllByRole("button", { name: "Build undercard" }),
+    ).toHaveLength(1);
+    expect(
+      within(
+        screen.getByRole("region", { name: "What Undercard does" }),
+      ).getByRole("button", { name: "Build undercard" }),
     ).toBeTruthy();
     expect(
-      within(bill).getByRole("button", { name: "Build undercard" }),
-    ).toBeTruthy();
+      within(draft).queryByRole("button", { name: "Build undercard" }),
+    ).toBeNull();
   });
 
-  it("leaves out the rooms rail, with no rooms to count yet", () => {
+  it("leaves out the venue switch, with no venues to count yet", () => {
     render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={null} />);
     expect(
       screen.queryByRole("region", {
