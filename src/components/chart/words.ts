@@ -18,10 +18,15 @@ export const QLOO_LINE =
  * that everyone below is the AI agent's draft.
  */
 export function headlinersNote(festival: Festival, drafted = true): string {
+  return `${headlinersBooked(festival)} · the AI agent ${drafted ? "drafted" : "will draft"} the rest of the lineup (the bill)`;
+}
+
+/** Only who the headliners are: Without Qloo, nothing below them is the AI agent's. */
+export function headlinersBooked(festival: Festival): string {
   const bands =
     festival.headliners[0] === SAGEBRUSH_SOUND.headliners[0] &&
     festival.headliners[1] === SAGEBRUSH_SOUND.headliners[1];
-  return `${bands ? "The headliners, two bands, are" : "The headliners are"} already booked · the AI agent ${drafted ? "drafted" : "will draft"} the rest of the lineup (the bill)`;
+  return `${bands ? "The headliners, two bands, are" : "The headliners are"} already booked`;
 }
 
 /** The headline: what this screen is, in the two seconds a glance gives it. */
@@ -71,7 +76,6 @@ export function ordinal(place: number): string {
 
 /** A venue's short mark on a row: its bracketed abbreviation or initials, else its name. */
 export const venueShort = (name: string) => roomShortName(name);
-
 
 export const liftedWords = (lifted: number) =>
   lifted === 0

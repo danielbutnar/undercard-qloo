@@ -9,6 +9,9 @@ import {
 
 export type VenueSwitchStatus = "loading" | "ready" | "unavailable";
 
+/** How long the switch waits before asking a second time for a build it couldn't read. */
+const RETRY_MS = 1500;
+
 /**
  * The venue switch on the client: every combination is worked out on the server from the saved
  * build on screen (GET /api/venue-switch), fetched once per build, so switching a venue off and
@@ -36,21 +39,31 @@ export function useVenueSwitch(
   useEffect(() => {
     if (!enabled || !buildId) return;
     const controller = new AbortController();
-    fetch(
-      `/api/venue-switch?festival=${encodeURIComponent(festivalId)}&build=${encodeURIComponent(buildId)}`,
-      { signal: controller.signal },
-    )
-      .then(async (response) => {
-        if (!response.ok) throw new Error(String(response.status));
-        const data = (await response.json()) as VenueSwitchData;
-        // A synthetic build carries no id; any other answer must be for the build asked about.
-        if (data.buildId && data.buildId !== buildId) throw new Error("stale");
-        setAnswer({ build: buildId, data });
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) setFailedFor(buildId);
-      });
-    return () => controller.abort();
+    let again: ReturnType<typeof setTimeout> | undefined;
+    const ask = (first: boolean) =>
+      fetch(
+        `/api/venue-switch?festival=${encodeURIComponent(festivalId)}&build=${encodeURIComponent(buildId)}`,
+        { signal: controller.signal },
+      )
+        .then(async (response) => {
+          if (!response.ok) throw new Error(String(response.status));
+          const data = (await response.json()) as VenueSwitchData;
+          // A synthetic build carries no id; any other answer must be for the build asked about.
+          if (data.buildId && data.buildId !== buildId)
+            throw new Error("stale");
+          setAnswer({ build: buildId, data });
+        })
+        .catch(() => {
+          if (controller.signal.aborted) return;
+          // A live run's "done" arrives before the server has saved it: ask once more.
+          if (first) again = setTimeout(() => void ask(false), RETRY_MS);
+          else setFailedFor(buildId);
+        });
+    void ask(true);
+    return () => {
+      controller.abort();
+      clearTimeout(again);
+    };
   }, [festivalId, buildId, enabled]);
 
   // Data from an earlier build on this screen is never shown against the one there now.

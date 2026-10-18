@@ -10,6 +10,7 @@ import { Quilt } from "@/components/chart/sleeve";
 import { TopBar } from "@/components/chart/top-bar";
 import { VenueSwitch, type VenueLine } from "@/components/chart/venue-switch";
 import {
+  headlinersBooked,
   headlinersNote,
   factsLine,
   headline,
@@ -452,18 +453,15 @@ export function FestivalScreen({
   }));
   const slots = festival.feeBands.reduce((sum, band) => sum + band.slots, 0);
 
-  function runBuild(request: BuildRequest = {}) {
+  function startShow(replay: boolean) {
     // Watch shows the agent's build, so it brings the chart back from Without Qloo.
     setMode("qloo");
     setOpenId(null);
     switcher.reset();
     // The lineup prints in down the chart once Watch hands it back (reduced motion: at once).
     setPrinting(watch.reduced ? null : "replay");
-    setReplaying(
-      !request.fresh && (state.build !== null || checked !== undefined),
-    );
+    setReplaying(replay);
     watch.start();
-    void build(request);
     // On a phone the chart sits under the lead: bring the show into view.
     if (typeof window !== "undefined" && window.innerWidth < 1100)
       board.current?.scrollIntoView?.({
@@ -471,6 +469,23 @@ export function FestivalScreen({
         behavior: watch.reduced ? "auto" : "smooth",
       });
   }
+
+  function runBuild(request: BuildRequest = {}) {
+    startShow(
+      !request.fresh && (state.build !== null || checked !== undefined),
+    );
+    void build(request);
+  }
+
+  // A judge's own run is never saved, so Watch replays the run the screen holds: no request,
+  // no live run spent, the draft kept.
+  const ownRun =
+    custom !== undefined &&
+    state.status !== "building" &&
+    state.climbs.length > 0;
+  // Elsewhere Watch replays the saved build, whose count is the one on screen only while the
+  // screen shows that build.
+  const savedOnScreen = onFirst || state.build?.replayed === true;
 
   // A judge's own brief runs once, as soon as its screen opens; a checked town replays.
   const started = useRef(false);
@@ -651,35 +666,54 @@ export function FestivalScreen({
             venues like.
           </p>
           <div>
-            <button
-              type="button"
-              onClick={() => runBuild()}
-              disabled={busy || watching}
-              className="watch"
-            >
-              <span className="watch-play" aria-hidden>
-                <svg viewBox="0 0 20 20">
-                  <path d="M4 2v16l14-8z" />
-                </svg>
-              </span>
-              {watching
-                ? "Watching…"
-                : state.status === "building"
-                  ? "Building…"
-                  : state.build
-                    ? WATCH
-                    : "Build undercard"}
-            </button>
-            <p className="watch-sub">
-              <span className="ticks" aria-hidden>
-                {Array.from({ length: Math.min(calls ?? 12, 12) }, (_, i) => (
-                  <i key={i} />
-                ))}
-              </span>
-              {state.build
-                ? `Replays its ${calls ?? 12} Qloo calls`
-                : "Runs the AI agent; its Qloo calls list below"}
-            </p>
+            {/* A judge's run that drew no edition has nothing to watch; its notice says what next. */}
+            {!(
+              custom &&
+              !ownRun &&
+              !watching &&
+              (state.status === "done" || state.status === "error")
+            ) && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => (ownRun ? startShow(true) : runBuild())}
+                  disabled={busy || watching}
+                  className="watch"
+                >
+                  <span className="watch-play" aria-hidden>
+                    <svg viewBox="0 0 20 20">
+                      <path d="M4 2v16l14-8z" />
+                    </svg>
+                  </span>
+                  {watching
+                    ? "Watching…"
+                    : state.status === "building"
+                      ? "Building…"
+                      : state.build
+                        ? WATCH
+                        : "Build undercard"}
+                </button>
+                <p className="watch-sub">
+                  <span className="ticks" aria-hidden>
+                    {Array.from(
+                      { length: Math.min(calls ?? 12, 12) },
+                      (_, i) => (
+                        <i key={i} />
+                      ),
+                    )}
+                  </span>
+                  {custom
+                    ? ownRun
+                      ? `Replays its ${calls ?? state.calls.length} Qloo calls`
+                      : "Runs the AI agent; its Qloo calls list below"
+                    : !state.build
+                      ? "Runs the AI agent; its Qloo calls list below"
+                      : savedOnScreen
+                        ? `Replays its ${calls ?? 12} Qloo calls`
+                        : "Replays the saved build's Qloo calls"}
+                </p>
+              </>
+            )}
             <p className="qloo-line">{QLOO_LINE}</p>
           </div>
         </section>
@@ -707,13 +741,18 @@ export function FestivalScreen({
               ))}
             </ul>
             <p className="headliners-note">
-              {headlinersNote(festival, state.acts.length > 0)}
-              {mode === "qloo" && state.acts.length > 0 && !custom && (
-                <span className="click-hint">
-                  {" "}
-                  Click an act to see why, keep it or mark it unavailable.
-                </span>
-              )}
+              {mode === "qloo"
+                ? headlinersNote(festival, state.acts.length > 0)
+                : headlinersBooked(festival)}
+              {mode === "qloo" &&
+                state.acts.length > 0 &&
+                !custom &&
+                !whatIf && (
+                  <span className="click-hint">
+                    {" "}
+                    Click an act to see why, keep it or mark it unavailable.
+                  </span>
+                )}
             </p>
             {watching && (
               <EditionBanner
@@ -726,7 +765,7 @@ export function FestivalScreen({
                 note={note}
                 lifted={liftedHere}
                 headliners={festival.headliners}
-                replayed={state.build?.replayed ?? replaying}
+                replayed={replaying || state.build?.replayed === true}
                 onSkip={watch.skip}
               />
             )}
@@ -823,14 +862,15 @@ export function FestivalScreen({
                   other slots from the same venues, in at most 3 Qloo calls.
                 </p>
               )}
-            {mode === "llm" && <LlmOnlyNote city={festival.city} />}
-            <p className="drafted">
-              {calls && state.build?.createdAt
-                ? `Drafted by the AI agent from ${calls} Qloo calls · saved ${savedAt.format(new Date(state.build.createdAt))} UTC`
-                : state.status === "building"
-                  ? "The AI agent is drafting the undercard."
-                  : "No undercard drafted yet."}
-            </p>
+            {mode === "qloo" && (
+              <p className="drafted">
+                {calls && state.build?.createdAt
+                  ? `Drafted by the AI agent from ${calls} Qloo calls · saved ${savedAt.format(new Date(state.build.createdAt))} UTC`
+                  : state.status === "building"
+                    ? "The AI agent is drafting the undercard."
+                    : "No undercard drafted yet."}
+              </p>
+            )}
           </section>
         </main>
 
@@ -846,8 +886,10 @@ export function FestivalScreen({
                 onPick={custom?.onPick}
               />
             )}
+          {/* Without Qloo the model's picks stand alone: its note takes the venues' place. */}
+          {mode === "llm" && <LlmOnlyNote city={festival.city} />}
           {/* While Watch plays the switch steps aside: the lineup it counts is being re-drawn. */}
-          {!custom && !watching && allVenues.length > 0 && (
+          {mode === "qloo" && !custom && !watching && allVenues.length > 0 && (
             <VenueSwitch
               city={festival.city}
               venues={venueLines}
@@ -864,13 +906,17 @@ export function FestivalScreen({
               editable={!watching && !busy && mode === "qloo"}
             />
           )}
-          <RuleKey />
-          <TracePanel
-            state={state}
-            savedCalls={firstBill?.calls}
-            onBuild={runBuild}
-            button={false}
-          />
+          {mode === "qloo" && (
+            <>
+              <RuleKey />
+              <TracePanel
+                state={state}
+                savedCalls={firstBill?.calls}
+                onBuild={runBuild}
+                button={false}
+              />
+            </>
+          )}
           {!custom && !checked && (
             <TownSwitcher current={townOf(festival).slug} onShow={towns} />
           )}

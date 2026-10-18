@@ -128,13 +128,13 @@ describe("Without Qloo", () => {
     expect(text).not.toMatch(/\bscore\b/i);
   });
 
-  it("says beside the picks what the model got, with the venue switch held still", async () => {
+  it("says beside the picks what the model got, with nothing of the AI agent's beside them", async () => {
     answered(syntheticVenueSwitch());
-    const venues = screen.getByRole("region", {
-      name: "Boise venues whose fans shaped this lineup",
-    });
+    const VENUES = { name: "Boise venues whose fans shaped this lineup" };
     const toggles = () =>
-      within(venues).getAllByRole("button") as HTMLButtonElement[];
+      within(screen.getByRole("region", VENUES)).getAllByRole(
+        "button",
+      ) as HTMLButtonElement[];
     // With Qloo, once the saved build's venue results are in, every venue can be switched.
     await waitFor(() =>
       expect(toggles().every((toggle) => !toggle.disabled)).toBe(true),
@@ -143,12 +143,26 @@ describe("Without Qloo", () => {
     await picksOf(await modelBill());
     const note = screen.getByRole("complementary", { name: "The model alone" });
     expect(note.textContent).toMatch(/Claude Sonnet 5\.5 with no tools/);
-    // The venue switch stays beside the chart, but nothing in it can be switched here.
-    expect(toggles().length).toBeGreaterThan(0);
-    expect(toggles().every((toggle) => toggle.disabled)).toBe(true);
-    // Flipping back gives the venues their switches again.
+    // The model's picks stand alone: no venues, no Qloo calls, no rule, no credit to the agent.
+    expect(screen.queryByRole("region", VENUES)).toBeNull();
+    expect(
+      screen.queryByRole("complementary", { name: "Qloo calls" }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("region", { name: "How an act gets on" }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("region", { name: "The festival" }).textContent,
+    ).not.toMatch(/AI agent drafted|Drafted by the AI agent|Qloo calls ·/);
+    // Flipping back brings the venues, with their switches, and the agent's credit.
     flip(WITH);
     expect(toggles().every((toggle) => !toggle.disabled)).toBe(true);
+    expect(
+      screen.queryByRole("complementary", { name: "The model alone" }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("region", { name: "Undercard draft" }).textContent,
+    ).toMatch(/the AI agent drafted the rest/);
   });
 
   it("flips back to the agent's chart with its marks", async () => {

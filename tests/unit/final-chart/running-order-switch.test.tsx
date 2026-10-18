@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 // The running order is planned for the saved lineup, so it steps aside while a venue is off and
-// the chart shows the re-formed lineup, and comes back once every venue is on again.
+// the chart shows the re-formed lineup, and comes back once every venue is on again. So does the
+// hint to keep an act or mark it unavailable, since neither can be done to a what-if.
 import {
   cleanup,
   fireEvent,
@@ -22,8 +23,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("Running order while a venue is off", () => {
-  it("steps aside while the chart shows the re-formed lineup, and returns with every venue on", async () => {
+describe("While a venue is off", () => {
+  it("Running order and the keep-or-unavailable hint step aside, and return with every venue on", async () => {
     const server = syntheticServer();
     await readEvents(server.build({ fresh: true }));
     const saved = (await server.store.latest(SAGEBRUSH_SOUND.id))!;
@@ -82,6 +83,8 @@ describe("Running order while a venue is off", () => {
     );
     await screen.findByRole("region", { name: "Running order" });
 
+    const HINT = /keep it or mark it unavailable/;
+    expect(screen.getByText(HINT)).toBeTruthy();
     const venue = data!.venues[0];
     const toggle = screen.getByRole("button", {
       name: (name) => name.startsWith(`${venue.name}: on`),
@@ -89,11 +92,13 @@ describe("Running order while a venue is off", () => {
     await waitFor(() => expect(toggle.disabled).toBe(false));
     fireEvent.click(toggle);
     expect(screen.queryByRole("region", { name: "Running order" })).toBeNull();
+    expect(screen.queryByText(HINT)).toBeNull();
 
     // The what-if line and the switch each offer it.
     fireEvent.click(
       screen.getAllByRole("button", { name: "All venues on" })[0],
     );
     expect(screen.getByRole("region", { name: "Running order" })).toBeTruthy();
+    expect(screen.getByText(HINT)).toBeTruthy();
   });
 });
