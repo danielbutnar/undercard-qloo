@@ -379,6 +379,8 @@ Written on 2026-10-18, before either measurement. The rules don't change after t
 
 **The reader.** A fresh cold reader, shown only a 1280x800 shot of the two towns side by side, passes if they say why the two lineups differ: the headliners and fee ranges are the same, and each lineup comes from what fans of that town's own venues like.
 
+**Reader's result, 2026-10-18: pass.** "The lists differ because the AI agent built each one from what fans of that town's own venues like", with the same headliners and fee ranges in both, so only 3 of 10 acts are on both.
+
 ## 21. The method page (M9c), written before the reader
 
 Written on 2026-10-18, before the page is shown to anyone. The key doesn't change after the answers are in.

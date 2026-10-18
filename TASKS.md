@@ -259,6 +259,15 @@ Copied from SPEC.md section 6, M9a. Freeze: 2026-10-23. Done means: venues' resu
 - [x] The climb takes the bands' place while it plays (Web Animations FLIP), 0.9 s per headliners-only list and 1.8 s per venue, Skip to the lineup; reduced motion shows the end state; the venues rail steps aside meanwhile
 - [x] Live e2e passes (it sees the climb, then skips); both cold readers pass
 
+# TASKS: M9b Town against town
+
+Copied from SPEC.md section 6, M9b. Freeze: 2026-10-23. Done means: two towns side by side from saved builds, shared and different acts marked, one click from the bill; a cold reader explains why they differ.
+
+- [x] Bars first (docs/evidence.md section 20); spike from the saved builds: Austin is the first town with both marks (3 shared, 7 its own)
+- [x] src/lib/compare.ts and /compare: Boise against any checked town, each act "On both lineups" or "Only in <town>", the venues named (tests/unit/m9b)
+- [x] Compare with another town, one click from the bill; e2e on the live demo
+- [x] Reader passes: the lineups differ "because the AI agent built each one from what fans of that town's own venues like"
+
 # TASKS: for the 26-27 October redo (not now)
 
 Moved 2026-10-18: the video and the gallery stills are re-shot on 26-27 October, after a UI freeze at the end of 25 October; 28 October is buffer. Protected windows (no deploys, no offline Qloo runs): Monday 19 October 09:00-21:00 and Tuesday 20 October 09:00-22:00 Bucharest. The live e2e makes no Qloo calls by default; the redraft, running-order and refill steps run with E2E_LIVE_QLOO=1 once after each deploy, outside those windows.
@@ -286,6 +295,8 @@ Moved 2026-10-18: the video and the gallery stills are re-shot on 26-27 October,
 - [ ] Story: M8d's test on ten real festivals as a stated near miss (7 of 10, bar 8), with the lineups' partiality as its limit
 
 - [ ] Shipped in M9a: the climb after Watch; the capture script must wait for it or press Skip, and the video should show it (it is the product's moment)
+
+- [ ] Shipped in M9b: /compare, Boise against Austin by default; a still and a line in the story
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 
