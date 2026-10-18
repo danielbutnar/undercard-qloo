@@ -545,7 +545,7 @@ export function FestivalScreen({
                     ? state.status === "building"
                       ? "The AI agent is drafting this slot."
                       : state.status === "error"
-                        ? "The AI agent couldn't draft this slot: see why beside the chart."
+                        ? "The AI agent couldn't draft this slot; the note says why."
                         : "Empty until the AI agent drafts the lineup."
                     : "No act the venues lifted clears the bar.",
               )}
