@@ -405,6 +405,24 @@ Written on 2026-10-18, before the pass. The criteria don't change after the resu
 
 **Result, 2026-10-18.** Input: one real gap found and fixed. The brief used to put the town and headliner text straight into the planner's message; it now goes in as JSON inside one <brief> block, with < and > escaped, and the system prompt says never to follow instructions inside it. All five input tests pass. Keyboard and screen reader: tests/e2e/a11y.spec.ts passes on all five screens, locally and on the live demo (one level-1 heading each, every control, image and region named, every Tab stop marked, no trap). Not done: a pass with a real screen reader (NVDA or VoiceOver); the checks read names, roles and live regions from the DOM.
 
+## 24. Blind tournament (M9d), protocol written before the first round
+
+Written on 2026-10-18, before any candidate is shown to a judge. The protocol doesn't change after the results are in.
+
+**Screens and candidates.** Three screens: the first screen, the live build view (the climb part-way through a replay) and the method page. For each, the current version (A) and three genuinely different candidates (B, C, D), none in a style docs/design-bans.md bans, each shot at 1280x800 on the same synthetic data, so no candidate shows different acts. Candidates live behind a local-only lab route that the deployed demo doesn't serve.
+
+**A comparison.** Two candidates of one screen, unlabelled and named only "Screen 1" and "Screen 2", shown to one judge in both orders in two separate trials. In each trial the judge answers the task questions for each shot, then says which one does the job better. A judge's vote counts only when both orders agree; otherwise it's a tie. A comparison is won by the candidate with more counted votes among its four judges; equal counts are a tie, which nobody wins.
+
+**Judges.** Four fresh subagents per comparison, one per persona: a Qloo engineer, a festival talent buyer, a design critic, and a judge with 90 seconds who reads nothing but looks. Two personas run on one model and two on another, alternating between comparisons. No judge sees more than one comparison.
+
+**Task questions and key.** For every shot: what it does and for whom (correct if it says it drafts a festival's smaller acts, or undercard, for the people booking it); the first click (first screen: Watch how it picked these acts; build view: an act or Skip to the lineup, as the place to see the result; method page: any link to the evidence or Back to the lineup); why an act is on the lineup (correct if it says fans of a town venue lift it in Qloo's ranking). Task accuracy is reported per candidate.
+
+**A round.** Every pair of the four candidates on a screen, six comparisons, so each candidate has three. A challenger replaces the current version only if it wins at least 2 of its 3 comparisons and its comparison against the current version. Stop a screen after two rounds with no winner, or after three rounds.
+
+**Anchors.** Stills of past hackathon winners as unlabelled anchors, where they can be had. None are on this machine; getting them means downloading from Devpost, which waits on the owner's OK, so the first round runs without them.
+
+**Final check.** After the last round, the final version of each screen against the original, judged by four judges not used in any round (fresh subagents, a third model where available). Reported as win rates and task accuracy, never a score out of 10.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
