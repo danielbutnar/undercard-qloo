@@ -1,0 +1,1430 @@
+/*
+ * The weekly chart (docs/design-brief.md). Plain CSS scoped under .chart-app: a *.module.css
+ * gives no class map in this project (the turbopack *.css rule). Colours, type and radii come
+ * from the theme tokens in src/app/globals.css only.
+ */
+
+.chart-app {
+  min-height: 100dvh;
+  padding: 0 16px 48px;
+  color: var(--color-ink);
+}
+@media (min-width: 768px) {
+  .chart-app {
+    padding: 0 28px 56px;
+  }
+}
+
+/* ---------- the top bar: the product's name and the other screens ---------- */
+
+.chart-app .topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 20px;
+  padding: 14px 0 12px;
+}
+.chart-app .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1;
+  text-decoration: none;
+  color: var(--color-ink);
+}
+.chart-app .logo svg {
+  width: 30px;
+  height: 30px;
+}
+.chart-app .nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+}
+.chart-app .nav a,
+.chart-app .nav button {
+  font-size: var(--text-label);
+  font-weight: 700;
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+.chart-app .nav a:hover,
+.chart-app .nav button:hover {
+  text-decoration-thickness: 4px;
+}
+
+/* ---------- the two columns: the lead (what it is, Watch, the switch) and the chart ---------- */
+
+.chart-app .layout {
+  display: grid;
+  grid-template-areas: "top" "board" "side";
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+@media (min-width: 1100px) {
+  .chart-app .layout {
+    grid-template-areas: "top board" "side board";
+    grid-template-columns: minmax(320px, 360px) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    gap: 24px 32px;
+  }
+}
+
+.chart-app .lead {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.chart-app .lead-line {
+  font-family: var(--font-display);
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: 0.005em;
+}
+@media (min-width: 768px) {
+  .chart-app .lead-line {
+    font-size: 54px;
+  }
+}
+.chart-app .lead-what {
+  font-size: var(--text-body);
+  line-height: 1.42;
+  font-weight: 500;
+}
+.chart-app .lead-what strong {
+  font-weight: 800;
+}
+.chart-app .example {
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+
+/* ---------- Watch: the first click ---------- */
+
+.chart-app .watch {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 18px 12px 12px;
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 22px;
+  line-height: 1.1;
+  font-weight: 800;
+  text-align: left;
+  box-shadow: 6px 6px 0 var(--color-ink);
+  transition:
+    box-shadow 0.12s ease,
+    translate 0.12s ease;
+}
+.chart-app .watch:hover:not(:disabled) {
+  translate: 2px 2px;
+  box-shadow: 4px 4px 0 var(--color-ink);
+}
+.chart-app .watch:focus-visible {
+  outline: 4px solid var(--color-surface);
+  outline-offset: 3px;
+}
+.chart-app .watch:disabled {
+  cursor: wait;
+  background: var(--color-surface);
+}
+.chart-app .watch-play {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  background: var(--color-ink);
+}
+.chart-app .watch-play svg {
+  width: 20px;
+  height: 20px;
+  fill: var(--color-accent);
+}
+.chart-app .watch-sub {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+.chart-app .ticks {
+  display: inline-flex;
+  gap: 3px;
+}
+.chart-app .ticks i {
+  width: 5px;
+  height: 18px;
+  background: var(--color-ink);
+}
+.chart-app .ticks i.lit {
+  background: var(--color-accent);
+  box-shadow: 0 0 0 1.5px var(--color-ink);
+}
+.chart-app .live-run {
+  font-size: var(--text-label);
+  font-weight: 700;
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------- panels on the red: the switch, the rule, the trace ---------- */
+
+.chart-app .panel {
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  padding: 14px 16px 16px;
+}
+.chart-app .panel-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 1;
+}
+.chart-app .panel-sub {
+  margin-top: 4px;
+  font-size: var(--text-label);
+  color: var(--color-muted);
+}
+
+/* The venue switch: each venue the agent read, in its colour, with the acts its fans lifted. */
+.chart-app .venues-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+.chart-app .venue-toggle {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto 46px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 8px 6px 6px;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  text-align: left;
+  color: var(--color-ink);
+}
+.chart-app .venue-toggle:hover:not(:disabled) {
+  background: var(--color-quiet);
+}
+.chart-app .venue-toggle:disabled {
+  cursor: progress;
+}
+.chart-app .venue-toggle .swatch {
+  width: 36px;
+  height: 36px;
+  background: var(--venue);
+  border: 2px solid var(--color-ink);
+}
+.chart-app .venue-toggle .venue-name {
+  font-weight: 800;
+  font-size: var(--text-label);
+  line-height: 1.15;
+}
+.chart-app .venue-toggle .venue-lifted {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-label);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.chart-app .venue-toggle .pips {
+  display: inline-flex;
+  gap: 2px;
+}
+.chart-app .venue-toggle .pips i {
+  width: 6px;
+  height: 16px;
+  background: var(--venue);
+  box-shadow: 0 0 0 1px var(--color-ink);
+}
+.chart-app .rocker {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-ink);
+}
+.chart-app .rocker::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 22px;
+  width: 18px;
+  height: 18px;
+  background: var(--venue);
+  border: 2px solid var(--color-surface);
+  transition: left 0.15s ease;
+}
+.chart-app .venue-toggle[aria-pressed="false"] {
+  border-style: dashed;
+  color: var(--color-muted);
+}
+.chart-app .venue-toggle[aria-pressed="false"] .swatch {
+  background: var(--color-quiet);
+}
+.chart-app .venue-toggle[aria-pressed="false"] .rocker {
+  background: var(--color-quiet);
+}
+.chart-app .venue-toggle[aria-pressed="false"] .rocker::after {
+  left: 2px;
+  background: var(--color-surface);
+  border-color: var(--color-ink);
+}
+.chart-app .switch-state {
+  margin-top: 10px;
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+.chart-app .switch-reset {
+  margin-left: 8px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* How an act gets on: the booking rule as three pictures that add up. */
+.chart-app .rule {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.chart-app .rule li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--text-label);
+  line-height: 1.2;
+  font-weight: 700;
+}
+.chart-app .rule svg {
+  width: 100%;
+  height: 34px;
+}
+.chart-app .rule-sum {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-weight: 800;
+  font-size: var(--text-label);
+}
+.chart-app .rule-sum .check {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  background: var(--color-accent);
+  border: 2px solid var(--color-ink);
+}
+
+/* ---------- the chart: the festival's masthead, then a chart per fee range ---------- */
+
+.chart-app .board {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+.chart-app .masthead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-items: end;
+}
+@media (min-width: 768px) {
+  .chart-app .masthead {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+.chart-app .masthead h1 {
+  font-family: var(--font-display);
+  font-size: 46px;
+  line-height: 0.95;
+}
+@media (min-width: 768px) {
+  .chart-app .masthead h1 {
+    font-size: 60px;
+  }
+}
+.chart-app .facts {
+  margin-top: 4px;
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+.chart-app .stamp {
+  justify-self: start;
+  rotate: -2deg;
+  padding: 4px 10px;
+  border: 3px solid var(--color-ink);
+  background: var(--color-surface);
+  font-weight: 800;
+  font-size: var(--text-label);
+}
+@media (min-width: 768px) {
+  .chart-app .stamp {
+    justify-self: end;
+  }
+}
+
+.chart-app .headliners {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.chart-app .headliner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 8px 8px;
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+.chart-app .headliner .sleeve {
+  width: 58px;
+  height: 58px;
+}
+@media (min-width: 768px) {
+  .chart-app .headliner .sleeve {
+    width: 72px;
+    height: 72px;
+  }
+}
+.chart-app .headliner-name {
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1;
+}
+@media (min-width: 768px) {
+  .chart-app .headliner-name {
+    font-size: 32px;
+  }
+}
+.chart-app .headliner-role {
+  margin-top: 4px;
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.chart-app .bands {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+@media (min-width: 1100px) {
+  .chart-app .bands {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    align-items: start;
+  }
+}
+
+.chart-app .band-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding-bottom: 8px;
+  border-bottom: 4px solid var(--color-ink);
+}
+.chart-app .band-name {
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.chart-app .slots {
+  display: inline-flex;
+  gap: 3px;
+}
+.chart-app .slots i {
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--color-ink);
+}
+.chart-app .slots i.on {
+  background: var(--color-ink);
+}
+.chart-app .fee {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+.chart-app .fee-track {
+  position: relative;
+  width: 64px;
+  height: 10px;
+  background: color-mix(in srgb, var(--color-ink) 30%, transparent);
+}
+.chart-app .fee-lit {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-ink);
+}
+.chart-app .fee-why {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-weight: 800;
+}
+.chart-app .fee-words {
+  flex-basis: 100%;
+  padding: 8px 10px;
+  border: 2px solid var(--color-ink);
+  background: var(--color-surface);
+  font-weight: 500;
+}
+.chart-app .band-caption {
+  margin-top: 8px;
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+
+/* A row of the chart: place, climb, sleeve, name and genres, the venue's tab. */
+.chart-app .rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+.chart-app .row {
+  --venue: var(--color-quiet);
+  --on-venue: var(--color-ink);
+  position: relative;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) 30px;
+  grid-template-areas:
+    "place who venue"
+    "place climb venue";
+  align-items: center;
+  column-gap: 10px;
+  min-height: 72px;
+  padding: 6px 0 6px 8px;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.chart-app .row .row-sleeve {
+  display: none;
+}
+@media (min-width: 560px) {
+  .chart-app .row {
+    grid-template-columns: 50px 52px minmax(0, 1fr) 30px;
+    grid-template-areas:
+      "place sleeve who venue"
+      "place sleeve climb venue";
+  }
+  .chart-app .row .row-sleeve {
+    display: block;
+    grid-area: sleeve;
+  }
+}
+
+.chart-app .row-place {
+  grid-area: place;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 44px;
+  line-height: 1;
+}
+.chart-app .row .climb {
+  grid-area: climb;
+}
+.chart-app .row-who {
+  grid-area: who;
+  min-width: 0;
+}
+.chart-app .row-name {
+  font-family: var(--font-display);
+  font-size: 25px;
+  line-height: 1.05;
+}
+.chart-app .row-name button {
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.chart-app .row-name button:hover,
+.chart-app .row-name button:focus-visible,
+.chart-app .row-name button[aria-expanded="true"] {
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 4px;
+}
+.chart-app .row-name button::after {
+  /* The whole row opens the card. */
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.chart-app .row-genres {
+  margin-top: 2px;
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+.chart-app .row-venue {
+  grid-area: venue;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  margin: -6px 0;
+  background: var(--venue);
+  color: var(--on-venue);
+}
+.chart-app .row-venue span {
+  writing-mode: vertical-rl;
+  rotate: 180deg;
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.chart-app .row-venue-none {
+  background: transparent;
+}
+.chart-app .row-flag {
+  display: inline-block;
+  margin-top: 4px;
+  margin-right: 6px;
+  padding: 0 6px;
+  font-size: var(--text-label);
+  font-weight: 800;
+  border: 2px solid var(--color-ink);
+}
+.chart-app .row-kept {
+  background: var(--color-accent);
+}
+.chart-app .row-gone {
+  background: var(--color-surface);
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+.chart-app .row-booked {
+  background: var(--color-accent);
+}
+.chart-app .row.is-open {
+  box-shadow: inset 0 0 0 3px var(--color-ink);
+}
+.chart-app .row.is-gone .row-name,
+.chart-app .row.is-gone .row-place {
+  color: var(--color-muted);
+  text-decoration: line-through;
+}
+.chart-app .row-open {
+  grid-template-columns: 50px minmax(0, 1fr);
+  grid-template-areas: "place who";
+  background: transparent;
+  border: 3px dashed var(--color-ink);
+}
+.chart-app .row-open-words {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+.chart-app .row-open-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+}
+
+/* The climb: an arrow from the old place into the place now, as long as the move. */
+.chart-app .climb {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.chart-app .climb-track {
+  display: flex;
+  justify-content: flex-end;
+  height: 22px;
+}
+@media (max-width: 1399px) {
+  .chart-app .climb {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+  .chart-app .climb-track {
+    width: 96px;
+    flex: none;
+    justify-content: flex-start;
+  }
+}
+.chart-app .climb-arrow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 46px;
+  height: 22px;
+}
+.chart-app .climb-shaft {
+  flex: 1;
+  height: 6px;
+  background: var(--venue);
+  box-shadow: 0 0 0 1px var(--color-ink);
+}
+.chart-app .climb-head {
+  display: grid;
+  place-items: center;
+  height: 22px;
+  padding: 0 10px 0 6px;
+  background: var(--venue);
+  color: var(--on-venue);
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 9px) 0,
+    100% 50%,
+    calc(100% - 9px) 100%,
+    0 100%
+  );
+}
+.chart-app .climb-new .climb-shaft {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--venue) 0 6px,
+    transparent 6px 10px
+  );
+  box-shadow: none;
+}
+.chart-app .climb-new .climb-head {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  outline: 2px solid var(--color-ink);
+  text-transform: uppercase;
+}
+.chart-app .climb-was {
+  font-size: var(--text-label);
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--color-muted);
+  text-align: right;
+  white-space: nowrap;
+}
+@media (max-width: 1399px) {
+  .chart-app .climb-was {
+    text-align: left;
+  }
+}
+
+/* Venue colours, one per venue the agent read (src/lib/venue-colours.ts). */
+.chart-app .venue-0 {
+  --venue: var(--color-venue-0);
+  --on-venue: var(--color-on-venue-0);
+}
+.chart-app .venue-1 {
+  --venue: var(--color-venue-1);
+  --on-venue: var(--color-on-venue-1);
+}
+.chart-app .venue-2 {
+  --venue: var(--color-venue-2);
+  --on-venue: var(--color-on-venue-2);
+}
+.chart-app .venue-3 {
+  --venue: var(--color-venue-3);
+  --on-venue: var(--color-on-venue-3);
+}
+.chart-app .venue-4 {
+  --venue: var(--color-venue-4);
+  --on-venue: var(--color-on-venue-4);
+}
+.chart-app .venue-5 {
+  --venue: var(--color-venue-5);
+  --on-venue: var(--color-on-venue-5);
+}
+
+/* ---------- sleeves: the act's genres as cover art (src/lib/sleeve.ts) ---------- */
+
+.chart-app .sleeve,
+.sleeve {
+  display: block;
+  width: 52px;
+  height: 52px;
+  flex: none;
+  border: 2px solid var(--color-ink);
+  background: var(--color-ink);
+}
+.sleeve .sleeve-ground {
+  fill: var(--color-ink);
+}
+.sleeve .sleeve-ink {
+  color: var(--color-surface);
+}
+.sleeve .sleeve-fill {
+  fill: var(--venue, var(--color-surface));
+}
+.sleeve .sleeve-ground-ink {
+  color: var(--color-ink);
+}
+.chart-app .sleeve-blank {
+  background: linear-gradient(
+    135deg,
+    var(--color-quiet) 0 50%,
+    color-mix(in srgb, var(--color-ink) 12%, var(--color-surface)) 50% 100%
+  );
+}
+
+/* ---------- under the chart: the lineup's tools ---------- */
+
+.chart-app .tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.chart-app .tool {
+  padding: 8px 14px;
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-weight: 800;
+  font-size: var(--text-label);
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.chart-app .tool:hover:not(:disabled) {
+  background: var(--color-accent);
+}
+.chart-app .tool:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.chart-app .tool-strong {
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+.chart-app .tool-strong:hover:not(:disabled) {
+  background: var(--color-ink);
+  color: var(--color-accent);
+}
+.chart-app .mode {
+  display: inline-flex;
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.chart-app .mode button {
+  padding: 8px 12px;
+  background: var(--color-surface);
+  font-weight: 800;
+  font-size: var(--text-label);
+}
+.chart-app .mode button[aria-pressed="true"] {
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+.chart-app .drafted {
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+
+/* ---------- small helpers ---------- */
+
+.chart-app .link {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.chart-app .alert {
+  font-weight: 800;
+  color: var(--color-danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-app *,
+  .chart-app *::before,
+  .chart-app *::after {
+    transition: none !important;
+  }
+}
+
+.sleeve .quilt-paper {
+  fill: var(--color-surface);
+}
+.sleeve .quilt-lit {
+  fill: var(--color-accent);
+}
+.chart-app .lead-top {
+  grid-area: top;
+}
+.chart-app .lead-side {
+  grid-area: side;
+}
+.chart-app .board {
+  grid-area: board;
+}
+.chart-app .draft {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+@media (max-width: 767px) {
+  .chart-app .example {
+    display: none;
+  }
+}
+.chart-app .headliners-note {
+  margin-top: -6px;
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+
+/* ---------- Watch: the edition banner over the chart ---------- */
+
+.chart-app .edition {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px 18px;
+  padding: 12px 14px;
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  box-shadow: 6px 6px 0 var(--color-ink);
+}
+@media (min-width: 768px) {
+  .chart-app .edition {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+}
+.chart-app .edition-venue {
+  background: var(--venue);
+  color: var(--on-venue);
+}
+.chart-app .edition-title {
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 1;
+}
+.chart-app .edition-line {
+  margin-top: 4px;
+  font-weight: 700;
+  font-size: var(--text-body);
+}
+.chart-app .edition-call,
+.chart-app .edition-note {
+  margin-top: 4px;
+  font-size: var(--text-label);
+  font-weight: 500;
+}
+.chart-app .edition-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+@media (min-width: 768px) {
+  .chart-app .edition-side {
+    align-items: flex-end;
+  }
+}
+.chart-app .edition .ticks i {
+  background: color-mix(in srgb, currentColor 30%, transparent);
+}
+.chart-app .edition .ticks i.lit {
+  background: var(--color-accent);
+  box-shadow: 0 0 0 1.5px var(--color-ink);
+}
+.chart-app .edition-skip {
+  padding: 8px 16px;
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-weight: 800;
+  font-size: var(--text-label);
+}
+.chart-app .row-listed {
+  min-height: 56px;
+}
+.chart-app .row-listed .row-name {
+  font-size: 22px;
+}
+.chart-app .row-listed.is-booked {
+  box-shadow: inset 6px 0 0 var(--color-accent);
+}
+.chart-app .row-listed:not(.is-booked) .row-name,
+.chart-app .row-listed:not(.is-booked) .row-place {
+  color: var(--color-muted);
+}
+
+/* ---------- the venue switch: the what-if line ---------- */
+
+.chart-app .whatif {
+  padding: 10px 12px;
+  border: 3px dashed var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  font-weight: 700;
+  font-size: var(--text-label);
+}
+.chart-app .tools-note {
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+
+/* ---------- the act card, opened under its row ---------- */
+
+.chart-app .card-panel {
+  margin: 4px 0 8px;
+}
+.chart-app .card {
+  --venue: var(--color-quiet);
+  --on-venue: var(--color-ink);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  box-shadow: 6px 6px 0 var(--color-ink);
+}
+.chart-app .card-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+.chart-app .card-sleeve {
+  width: 76px;
+  height: 76px;
+}
+.chart-app .card-name {
+  font-family: var(--font-display);
+  font-size: 32px;
+  line-height: 1;
+}
+.chart-app .card-venue {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-weight: 700;
+  font-size: var(--text-label);
+}
+.chart-app .card-swatch {
+  width: 16px;
+  height: 16px;
+  background: var(--venue);
+  border: 2px solid var(--color-ink);
+}
+.chart-app .card-close {
+  align-self: start;
+  font-weight: 800;
+  font-size: var(--text-label);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.chart-app .card-climb {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+.chart-app .card-climb .climb {
+  flex-direction: column;
+}
+.chart-app .card-climb .climb-track {
+  width: 100%;
+  justify-content: stretch;
+}
+.chart-app .card-climb .climb-arrow {
+  width: 100% !important;
+}
+.chart-app .card-place {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 1;
+}
+.chart-app .card-place small {
+  max-width: 9rem;
+  margin-top: 4px;
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--color-muted);
+}
+.chart-app .card-why,
+.chart-app .card-kind,
+.chart-app .card-note {
+  font-size: var(--text-label);
+}
+.chart-app .card-note {
+  font-weight: 700;
+}
+.chart-app .card-figures {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 22px;
+}
+.chart-app .card-figures > div:not(.card-pop) {
+  display: flex;
+  flex-direction: column-reverse;
+}
+.chart-app .card-figures dt {
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+.chart-app .card-figures dd {
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 1;
+}
+.chart-app .card-pop {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.chart-app .card-track {
+  width: 160px;
+}
+.chart-app .card-pop-dot {
+  position: absolute;
+  top: -5px;
+  width: 6px;
+  height: 20px;
+  margin-left: -3px;
+  background: var(--color-ink);
+}
+.chart-app .card-pop-words {
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+.chart-app .card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chart-app .card-tags li {
+  padding: 2px 8px;
+  border: 2px solid var(--color-ink);
+  font-weight: 700;
+  font-size: var(--text-label);
+}
+.chart-app .card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.chart-app .card-keep[aria-pressed="true"] {
+  background: var(--color-accent);
+}
+.chart-app .card-unavailable {
+  color: var(--color-danger);
+}
+.chart-app .card-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.chart-app .card-reasons-title {
+  flex-basis: 100%;
+  font-weight: 800;
+  font-size: var(--text-label);
+}
+.chart-app .card-gone .card-name {
+  color: var(--color-muted);
+  text-decoration: line-through;
+}
+
+/* ---------- notices and town buttons ---------- */
+
+.chart-app .notice {
+  border-color: var(--color-danger);
+}
+.chart-app .notice-title {
+  color: var(--color-danger);
+}
+.chart-app .town-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.chart-app .town-button {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 6px 10px;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  text-align: left;
+}
+.chart-app .town-button:hover {
+  background: var(--color-accent);
+}
+.chart-app .town-city {
+  font-weight: 800;
+  font-size: var(--text-label);
+}
+.chart-app .town-where {
+  font-size: var(--text-label);
+  color: var(--color-muted);
+}
+
+/* ---------- the Qloo calls (the trace) ---------- */
+
+.chart-app .trace-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.chart-app .trace-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.chart-app .trace-tally,
+.chart-app .trace-line,
+.chart-app .trace-pitch {
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+.chart-app .trace-pitch {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.chart-app .trace-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 30rem;
+  min-height: 12rem;
+  overflow-y: auto;
+  border-top: 3px solid var(--color-ink);
+}
+.chart-app .trace-call {
+  padding: 8px 0 8px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-ink) 25%, transparent);
+  border-left: 5px solid transparent;
+}
+.chart-app .trace-call.is-live {
+  border-left-color: var(--color-accent);
+}
+.chart-app .trace-call-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.chart-app .trace-summary {
+  font-weight: 700;
+  font-size: var(--text-label);
+  overflow-wrap: anywhere;
+}
+.chart-app .trace-count {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 1;
+}
+.chart-app .trace-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  font-size: var(--text-label);
+  color: var(--color-muted);
+}
+.chart-app .trace-params {
+  margin-top: 4px;
+  font-size: var(--text-label);
+  overflow-wrap: anywhere;
+}
+.chart-app .trace-params code {
+  font-family: var(--font-body);
+}
+.chart-app .trace-note {
+  margin: 2px 0;
+  font-size: var(--text-label);
+}
+/* ---------- refinements after the first stills ---------- */
+
+.chart-app .lead-line {
+  font-size: 34px;
+}
+@media (min-width: 768px) {
+  .chart-app .lead-line {
+    font-size: 46px;
+  }
+}
+.chart-app .qloo-line {
+  margin-top: 10px;
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+@media (max-width: 767px) {
+  .chart-app .logo {
+    font-size: 24px;
+  }
+  .chart-app .logo svg {
+    width: 24px;
+    height: 24px;
+  }
+  .chart-app .nav {
+    gap: 4px 12px;
+  }
+  .chart-app .topbar {
+    flex-wrap: nowrap;
+  }
+  .chart-app .watch {
+    font-size: 20px;
+  }
+  .chart-app .watch-play {
+    width: 40px;
+    height: 40px;
+  }
+  .chart-app .masthead h1 {
+    font-size: 40px;
+  }
+  .chart-app .headliner {
+    gap: 8px;
+    padding: 6px 8px 6px 6px;
+  }
+  .chart-app .headliner .sleeve {
+    width: 40px;
+    height: 40px;
+  }
+  .chart-app .headliner-name {
+    font-size: 19px;
+    overflow-wrap: anywhere;
+  }
+  .chart-app .headliners-note {
+    margin-top: -4px;
+  }
+}
+
+/* The climb points into the place now: "was Nth, up N, now N". */
+@media (min-width: 1400px) {
+  .chart-app .row {
+    grid-template-columns: 108px 50px 52px minmax(0, 1fr) 30px;
+    grid-template-areas: "climb place sleeve who venue";
+    padding-left: 6px;
+  }
+}
+.chart-app .climb-arrow {
+  width: auto !important;
+  min-width: 0;
+}
+.chart-app .climb-shaft {
+  flex: none;
+  width: calc(var(--share, 0.2) * 72px);
+  min-width: 6px;
+}
+.chart-app .climb-new .climb-shaft {
+  width: 40px;
+}
+
+/* The venue switch on a phone: the name on its own line, the count under it. */
+.chart-app .venue-toggle {
+  grid-template-columns: 36px minmax(0, 1fr) 46px;
+  grid-template-areas:
+    "swatch name rocker"
+    "swatch lifted rocker";
+  row-gap: 2px;
+}
+.chart-app .venue-toggle .swatch {
+  grid-area: swatch;
+}
+.chart-app .venue-toggle .venue-name {
+  grid-area: name;
+}
+.chart-app .venue-toggle .venue-lifted {
+  grid-area: lifted;
+}
+.chart-app .venue-toggle .rocker {
+  grid-area: rocker;
+}
+
+/* The phone's first screen must reach the first act (Daniel's rule): tighter masthead. */
+@media (max-width: 767px) {
+  .chart-app .nav {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+  .chart-app .lead-line {
+    font-size: 32px;
+  }
+  .chart-app .lead-top {
+    gap: 12px;
+  }
+  .chart-app .masthead {
+    position: relative;
+  }
+  .chart-app .stamp {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    rotate: -4deg;
+    font-size: 15px;
+    padding: 2px 8px;
+  }
+  .chart-app .band-head {
+    flex-wrap: nowrap;
+  }
+  .chart-app .band-name {
+    font-size: 26px;
+    white-space: nowrap;
+  }
+  .chart-app .fee-label,
+  .chart-app .fee-track {
+    display: none;
+  }
+  .chart-app .draft {
+    gap: 12px;
+  }
+}
+
+@media (min-width: 1400px) {
+  .chart-app .layout {
+    grid-template-columns: minmax(340px, 400px) minmax(0, 1fr);
+  }
+}

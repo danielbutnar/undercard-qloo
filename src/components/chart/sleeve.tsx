@@ -1,5 +1,5 @@
 import { useId, type ReactNode } from "react";
-import { sleeveFor, sleeveWords, type SleeveForm } from "@/lib/sleeve";
+import { hashOf, sleeveFor, sleeveWords, type SleeveForm } from "@/lib/sleeve";
 
 // Each form fills a 100x100 box in currentColor; the sleeve clips it to its half.
 const range = (n: number) => Array.from({ length: n }, (_, i) => i);
@@ -243,6 +243,50 @@ export function Sleeve({
           {FORMS[spec.second]}
         </g>
       </g>
+    </svg>
+  );
+}
+
+const QUILT: SleeveForm[] = [
+  "dots",
+  "stripes",
+  "arcs",
+  "rings",
+  "blocks",
+  "crosses",
+  "bars",
+  "waves",
+  "grid",
+];
+
+/**
+ * A headliner's sleeve: a sampler of the forms, nine tiles turned by the headliner's name. The
+ * headliners are what every act is matched against, so theirs holds every kind of form rather
+ * than claiming two genres.
+ */
+export function Quilt({ name, className = "" }: { name: string; className?: string }) {
+  const seed = hashOf(name);
+  const order = QUILT.map((form, i) => QUILT[(i + seed) % QUILT.length]);
+  return (
+    <svg viewBox="0 0 99 99" className={`sleeve quilt ${className}`} aria-hidden>
+      <rect width="99" height="99" className="sleeve-ground" />
+      {order.map((form, i) => {
+        const x = (i % 3) * 33;
+        const y = Math.floor(i / 3) * 33;
+        const lit = (i + seed) % 4 === 0;
+        return (
+          <svg key={i} x={x} y={y} width="33" height="33" viewBox="0 0 100 100">
+            <rect
+              width="100"
+              height="100"
+              className={lit ? "quilt-lit" : (i + Math.floor(i / 3)) % 2 ? "sleeve-ground" : "quilt-paper"}
+            />
+            <g className={(i + Math.floor(i / 3)) % 2 ? "sleeve-ink" : "sleeve-ground-ink"}>
+              {FORMS[form]}
+            </g>
+          </svg>
+        );
+      })}
     </svg>
   );
 }

@@ -11,6 +11,21 @@ import type { Placed } from "@/lib/venue-switch";
 export const QLOO_CLAUSE =
   "Qloo, a taste-data service that maps what fans of one artist, venue or film also like";
 
+/** Qloo explained once, under the first click. */
+export const QLOO_LINE =
+  "Qloo is a taste-data service: it maps what fans of one artist, venue or film also like.";
+
+/**
+ * Under the headliners: who they are (M6q: the demo's are bands; a judge's own may not be) and
+ * that everyone below is the AI agent's draft.
+ */
+export function headlinersNote(festival: Festival): string {
+  const bands =
+    festival.headliners[0] === SAGEBRUSH_SOUND.headliners[0] &&
+    festival.headliners[1] === SAGEBRUSH_SOUND.headliners[1];
+  return `${bands ? "The headliners, two bands, are" : "The headliners are"} already booked · the AI agent drafted everyone below`;
+}
+
 /** The headline: what this screen is, in the two seconds a glance gives it. */
 export const headline = (festival: Festival) =>
   `A festival lineup, drafted from ${festival.city}'s own music venues.`;

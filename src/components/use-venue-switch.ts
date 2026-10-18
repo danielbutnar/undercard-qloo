@@ -56,8 +56,16 @@ export function useVenueSwitch(festivalId: string, enabled = true) {
     return switchedLineup(data, on);
   }, [data, off]);
 
+  /** Every act's places with every venue on, once the switch is in. */
+  const basePlaces = useMemo(() => {
+    if (!data) return null;
+    return switchedLineup(data, new Set(data.venues.map((venue) => venue.entityId)))
+      .places;
+  }, [data]);
+
   return {
     status: enabled ? status : ("unavailable" as const),
+    basePlaces,
     venues: data?.venues ?? [],
     off,
     toggle,

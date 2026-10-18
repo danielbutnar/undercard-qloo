@@ -56,7 +56,7 @@ export function ClimbArrow({
       <span className="climb-track">
         <span
           className={`climb-arrow ${fresh ? "climb-new" : ""}`}
-          style={{ width: `${share * 100}%` }}
+          style={{ ["--share" as string]: share }}
         >
           <span className="climb-shaft" />
           <span className="climb-head">{fresh ? "new" : `+${move}`}</span>
