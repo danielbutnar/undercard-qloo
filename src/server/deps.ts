@@ -1,6 +1,6 @@
 import { Redis } from "@upstash/redis";
 import { AiNotConfigured, createAgentModel } from "./ai";
-import { createBuildStore } from "./build-store";
+import { createBuildStore, previewSafe } from "./build-store";
 import { createQlooClient, type QlooClient } from "./qloo";
 import { createQlooCache, syntheticMode } from "./qloo-cache";
 import {
@@ -48,7 +48,7 @@ export function serverModel() {
 }
 
 export function serverBuildStore() {
-  return createBuildStore(createQlooCache());
+  return previewSafe(createBuildStore(createQlooCache()));
 }
 
 let processLimiter: RateLimiter | null = null;

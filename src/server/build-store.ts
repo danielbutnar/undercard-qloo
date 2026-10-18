@@ -87,3 +87,16 @@ export function createBuildStore(
 }
 
 export type BuildStore = ReturnType<typeof createBuildStore>;
+
+/**
+ * A preview deployment shares production's store, so it reads saved builds but never saves
+ * one: a fresh run there can't move a festival's latest build.
+ */
+export function previewSafe(
+  store: BuildStore,
+  env: Partial<Record<string, string | undefined>> = process.env,
+): BuildStore {
+  return env.VERCEL_ENV === "preview"
+    ? { ...store, save: async () => {} }
+    : store;
+}

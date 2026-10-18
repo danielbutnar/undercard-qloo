@@ -5,6 +5,7 @@
 // LLM only run on the server without Qloo, Claude or Upstash. Playwright intercepts the rest.
 import lineup from "../fixtures/lineup.synthetic.json";
 import type { SavedBuild } from "../../src/server/build-store";
+import type { VenueSwitchData } from "../../src/lib/venue-switch";
 import {
   UNAVAILABLE_REASONS,
   type UnavailableReason,
@@ -343,4 +344,43 @@ export function syntheticRedraftStream(
     { type: "redraft", pairs },
     { type: "done", calls: 1, ms: 1200 },
   ]);
+}
+
+/**
+ * The venue switch for the synthetic build (local e2e and design shots): every combination of
+ * its three rooms, where a room switched off takes its acts with it and their slots stay open.
+ * A real build's switch reruns the booking rule on its Qloo results (src/server/venue-switch.ts).
+ */
+export function syntheticVenueSwitch(): VenueSwitchData {
+  const venues = [LANTERN, FORT, COTTONWOOD];
+  const acts = lineup.acts as SavedBuild["lineup"]["acts"];
+  const ranking = { mid: baseline("mid"), opener: baseline("opener") };
+  const entries: VenueSwitchData["entries"] = {};
+  for (const act of acts) {
+    const up = /move it up (\d+) places/.exec(act.reason);
+    const into = /into the top (\d+)/.exec(act.reason);
+    const was = ranking[act.band].indexOf(act.entityId) + 1;
+    entries[`${act.entityId}@${act.anchorVenue.entityId}`] = {
+      act,
+      place: up
+        ? { now: was - Number(up[1]), was }
+        : into
+          ? { now: Number(into[1]), was: null }
+          : null,
+    };
+  }
+  const lineups: VenueSwitchData["lineups"] = {};
+  for (let bits = 0; bits < 2 ** venues.length; bits++) {
+    const mask = venues.map((_, i) => (bits & (1 << i) ? "1" : "0")).join("");
+    const on = new Set(venues.filter((_, i) => mask[i] === "1").map((v) => v.entityId));
+    const kept = acts.filter((act) => on.has(act.anchorVenue.entityId));
+    lineups[mask] = {
+      keys: kept.map((act) => `${act.entityId}@${act.anchorVenue.entityId}`),
+      shortfall: {
+        mid: 4 - kept.filter((act) => act.band === "mid").length,
+        opener: 6 - kept.filter((act) => act.band === "opener").length,
+      },
+    };
+  }
+  return { venues, entries, lineups };
 }
