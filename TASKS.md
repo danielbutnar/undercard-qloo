@@ -268,6 +268,16 @@ Copied from SPEC.md section 6, M9b. Freeze: 2026-10-23. Done means: two towns si
 - [x] Compare with another town, one click from the bill; e2e on the live demo
 - [x] Reader passes: the lineups differ "because the AI agent built each one from what fans of that town's own venues like"
 
+# TASKS: M9c The method page
+
+Copied from SPEC.md section 6, M9c. Freeze: 2026-10-24. Done means: one diagram, the evidence table with limits, a play-to-load video slot, five objections answered with links to evidence rows; a cold reader answers all five.
+
+- [x] Reader bar and answer key written first (docs/evidence.md section 21); a factual section 22 on who decides what
+- [x] /method in the bill's sheet style, no hero, no feature cards: one SVG diagram, five objections, 15-row evidence table, the limits, the video slot (tests/unit/m9c)
+- [x] Every claim links to its section of docs/evidence.md on GitHub (resolves for judges once the repository is public at M5)
+- [x] How it works, one click from the lineup; e2e on the live demo
+- [x] Reader passes 5 of 5 from the live page alone
+
 # TASKS: for the 26-27 October redo (not now)
 
 Moved 2026-10-18: the video and the gallery stills are re-shot on 26-27 October, after a UI freeze at the end of 25 October; 28 October is buffer. Protected windows (no deploys, no offline Qloo runs): Monday 19 October 09:00-21:00 and Tuesday 20 October 09:00-22:00 Bucharest. The live e2e makes no Qloo calls by default; the redraft, running-order and refill steps run with E2E_LIVE_QLOO=1 once after each deploy, outside those windows.
@@ -297,6 +307,8 @@ Moved 2026-10-18: the video and the gallery stills are re-shot on 26-27 October,
 - [ ] Shipped in M9a: the climb after Watch; the capture script must wait for it or press Skip, and the video should show it (it is the product's moment)
 
 - [ ] Shipped in M9b: /compare, Boise against Austin by default; a still and a line in the story
+
+- [ ] Shipped in M9c: /method; set DEMO_VIDEO_URL in src/lib/method.ts once the video is published; link the method page from the story
 
 PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the project's production domain, which always serves the latest production deploy; public, no login; e2e passed against it 2026-10-15)
 

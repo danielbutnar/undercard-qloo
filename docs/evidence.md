@@ -393,6 +393,8 @@ Written on 2026-10-18, before the page is shown to anyone. The key doesn't chang
 4. **What happens when a town is thin?** The town is resolved to its state or country; with too few venues the page says so in one sentence and offers checked towns; a band that can't fill is left with open slots, never padded.
 5. **Why trust a pick?** Each act shows the venue whose fans lifted it, by how many places, and its Qloo affinity and popularity; every Qloo call is in the trace and a replay repeats it; the limits are stated.
 
+**Reader's result, 2026-10-18: pass, 5 of 5.** From the live page's full-length shot alone, each answer matched the key in substance: not shown, with the lift as what is measured and both tests named; the agent plans calls, Qloo supplies the numbers, the app's rule books the acts; no location for artists, and Treefort books Boise's venues; resolved first, then one sentence and checked towns, open slots never padded; venue, lift, affinity and popularity per act, every call in the trace, a replay, the limits linked.
+
 ## 23. Accessibility and input hardening (M8e), written before the pass
 
 Written on 2026-10-18, before the pass. The criteria don't change after the results are in.
