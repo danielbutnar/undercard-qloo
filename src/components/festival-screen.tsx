@@ -7,6 +7,7 @@ import { BandChart } from "@/components/chart/band-chart";
 import { billRows, editionRows } from "@/components/chart/chart-rows";
 import { RuleKey } from "@/components/chart/rule-key";
 import { Quilt } from "@/components/chart/sleeve";
+import { TopBar } from "@/components/chart/top-bar";
 import { VenueSwitch, type VenueLine } from "@/components/chart/venue-switch";
 import {
   headlinersNote,
@@ -68,18 +69,6 @@ function downloadText(filename: string, text: string, type: string) {
   link.download = filename;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-/** The mark: a chart's three rising bars, the last one lit. */
-export function Logo() {
-  return (
-    <svg viewBox="0 0 30 30" aria-hidden>
-      <rect x="1" y="1" width="28" height="28" className="fill-ink" />
-      <rect x="6" y="17" width="5" height="8" className="fill-surface" />
-      <rect x="12.5" y="12" width="5" height="13" className="fill-surface" />
-      <rect x="19" y="6" width="5" height="19" className="fill-accent" />
-    </svg>
-  );
 }
 
 function ModeSwitch({
@@ -610,25 +599,13 @@ export function FestivalScreen({
 
   return (
     <div className="chart-app stage-bg">
-      <header className="topbar">
-        <Link
-          href="/"
-          className="logo"
-          aria-label="Undercard, back to Sagebrush Sound"
-        >
-          <Logo />
-          Undercard
-        </Link>
-        <nav aria-label="Other screens" className="nav">
-          {checked && (
-            <button type="button" onClick={checked.onBack}>
-              Pick another town
-            </button>
-          )}
-          <Link href="/method">How it works</Link>
-          <Link href="/your-festival">Your festival</Link>
-        </nav>
-      </header>
+      <TopBar>
+        {checked && (
+          <button type="button" onClick={checked.onBack}>
+            Pick another town
+          </button>
+        )}
+      </TopBar>
 
       <div className="layout">
         <section aria-label="What Undercard does" className="lead lead-top">

@@ -1,11 +1,11 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Sleeve } from "@/components/chart/sleeve";
+import { TopBar } from "@/components/chart/top-bar";
+import { MIN_LIFT } from "@/lib/assemble-lineup";
 import { DEMO_VIDEO_URL, evidenceHref } from "@/lib/method";
 import { VideoSlot } from "./video-slot";
-
-// The bill's sheet (draft-bill.tsx's SHEET), copied: that module is a client component.
-const SHEET =
-  "relative flex flex-col border-2 border-rule bg-surface px-4 pt-5 pb-4 after:pointer-events-none after:absolute after:inset-1.5 after:border after:border-rule lg:px-9";
+import "./chart/chart.css";
 
 const S = {
   boise: "1. Why a club's crowd: Boise's own festival books Boise's rooms",
@@ -38,161 +38,253 @@ const S = {
 /** A claim's source: a link to its section of docs/evidence.md. */
 function Ev({ to, children }: { to: keyof typeof S; children: ReactNode }) {
   return (
-    <a
-      href={evidenceHref(S[to])}
-      className="text-accent underline underline-offset-2 hover:text-ink"
-    >
+    <a href={evidenceHref(S[to])} className="link">
       {children}
     </a>
   );
 }
 
+type Verdict = "shown" | "partly" | "not";
+const VERDICT_WORDS: Record<Verdict, string> = {
+  shown: "Shown",
+  partly: "Partly shown",
+  not: "Not shown",
+};
+
+/** A verdict as a mark: a full disc, a half disc or an empty ring. */
+function VerdictMark({ verdict }: { verdict: Verdict }) {
+  return (
+    <svg viewBox="0 0 24 24" className="verdict-mark" aria-hidden>
+      <circle cx="12" cy="12" r="10" className="verdict-ring" />
+      {verdict === "shown" && (
+        <circle cx="12" cy="12" r="10" className="verdict-fill" />
+      )}
+      {verdict === "partly" && (
+        <path d="M12 2a10 10 0 0 1 0 20z" className="verdict-fill" />
+      )}
+    </svg>
+  );
+}
+
 function Objection({
   question,
+  verdict,
   children,
 }: {
   question: string;
+  /** How far the answer goes, when it is a claim about the method. */
+  verdict?: Verdict;
   children: ReactNode;
 }) {
   return (
-    <section
-      aria-label={question}
-      className="flex flex-col gap-1 border-t border-rule pt-3"
-    >
-      <h3 className="text-body font-bold">{question}</h3>
-      <div className="flex flex-col gap-1.5 text-body">{children}</div>
+    <section aria-label={question} className="objection">
+      <h3 className="objection-q">{question}</h3>
+      {verdict && (
+        <p className="verdict">
+          <VerdictMark verdict={verdict} />
+          {VERDICT_WORDS[verdict]}
+        </p>
+      )}
+      <div className="objection-a">{children}</div>
     </section>
   );
 }
 
-/** One diagram: headliners, the town's venues, the lift, the lineup. Text in the body face. */
-function Diagram() {
-  const box = "fill-[var(--color-page)] stroke-[var(--color-rule)]";
-  const text = "fill-[var(--color-ink)] text-[17px]";
-  const blue = "fill-[var(--color-accent)] text-[17px] font-semibold";
+/** A chart row in the storyboard: a place, a sleeve and a name. */
+function MiniRow({
+  place,
+  hue,
+  name,
+  climb,
+  genres,
+}: {
+  place: number;
+  hue?: number;
+  name: string;
+  climb?: string;
+  genres?: [string, string];
+}) {
   return (
-    <svg
-      role="img"
-      aria-label="How Undercard drafts a lineup: the headliners' fans give Qloo a ranked list of artists; adding the fans of one of the town's venues re-sorts it; an act that climbs 5 places or more is lifted; lifted acts in the fee range make the lineup."
-      viewBox="0 0 960 250"
-      className="h-auto w-full"
+    <span
+      className={`mini-row ${hue !== undefined ? `venue-${hue} is-lit` : ""}`}
     >
-      <defs>
-        <marker
-          id="arrow"
-          viewBox="0 0 10 10"
-          refX="9"
-          refY="5"
-          markerWidth="8"
-          markerHeight="8"
-          orient="auto"
-        >
-          <path d="M0,0 L10,5 L0,10 z" className="fill-[var(--color-ink)]" />
-        </marker>
-      </defs>
-      <rect
-        x="10"
-        y="20"
-        width="210"
-        height="90"
-        rx="3"
-        strokeWidth="2"
-        className={box}
-      />
-      <text x="24" y="52" className={`${text} font-bold`}>
-        The headliners
-      </text>
-      <text x="24" y="78" className={text}>
-        Qloo ranks the artists
-      </text>
-      <text x="24" y="100" className={text}>
-        their fans like
-      </text>
-      <rect
-        x="10"
-        y="140"
-        width="210"
-        height="90"
-        rx="3"
-        strokeWidth="2"
-        className={box}
-      />
-      <text x="24" y="172" className={`${text} font-bold`}>
-        The town&apos;s venues
-      </text>
-      <text x="24" y="198" className={text}>
-        their fans are added
-      </text>
-      <text x="24" y="220" className={text}>
-        one venue at a time
-      </text>
-      <line
-        x1="220"
-        y1="65"
-        x2="300"
-        y2="115"
-        strokeWidth="2"
-        markerEnd="url(#arrow)"
-        className="stroke-[var(--color-ink)]"
-      />
-      <line
-        x1="220"
-        y1="185"
-        x2="300"
-        y2="135"
-        strokeWidth="2"
-        markerEnd="url(#arrow)"
-        className="stroke-[var(--color-ink)]"
-      />
-      <rect
-        x="305"
-        y="80"
-        width="250"
-        height="90"
-        rx="3"
-        strokeWidth="2"
-        className={box}
-      />
-      <text x="319" y="112" className={`${text} font-bold`}>
-        The list re-sorts
-      </text>
-      <text x="319" y="138" className={blue}>
-        +N, Venue 227
-      </text>
-      <text x="319" y="160" className={text}>
-        places an act climbs
-      </text>
-      <line
-        x1="555"
-        y1="125"
-        x2="625"
-        y2="125"
-        strokeWidth="2"
-        markerEnd="url(#arrow)"
-        className="stroke-[var(--color-ink)]"
-      />
-      <rect
-        x="630"
-        y="60"
-        width="320"
-        height="130"
-        rx="3"
-        strokeWidth="2"
-        className={box}
-      />
-      <text x="644" y="92" className={`${text} font-bold`}>
-        The lineup
-      </text>
-      <text x="644" y="118" className={text}>
-        acts lifted 5 places or more,
-      </text>
-      <text x="644" y="140" className={text}>
-        in the fee range, sharing two
-      </text>
-      <text x="644" y="162" className={text}>
-        genres with the headliners
-      </text>
-    </svg>
+      <span className="mini-place">{place}</span>
+      {genres ? (
+        <Sleeve
+          genres={genres}
+          id={`${name}-${place}`}
+          label={false}
+          className="mini-sleeve"
+        />
+      ) : (
+        <span className="sleeve mini-sleeve sleeve-blank" />
+      )}
+      <span className="mini-name">{name}</span>
+      {climb && <span className="mini-climb">{climb}</span>}
+    </span>
+  );
+}
+
+/**
+ * The method as one picture in four panels: the headliners' fans give Qloo a ranked list; one
+ * venue's fans re-sort it; the rule decides who can be booked; the lineup. Every panel uses the
+ * chart's own marks, so the first screen reads the same way.
+ */
+function Storyboard() {
+  return (
+    <figure
+      role="img"
+      aria-label={`How Undercard drafts a lineup: the headliners' fans give Qloo a ranked list of artists; adding the fans of one of the town's venues re-sorts it; an act that climbs ${MIN_LIFT} places or more, sits in the fee range and shares two genres with the headliners can be booked; the strongest such acts make the lineup.`}
+      className="story"
+    >
+      <div className="story-panel">
+        <p className="story-step">1</p>
+        <p className="story-title">The headliners&apos; fans</p>
+        <span className="mini-chart">
+          <MiniRow place={1} name="An artist" />
+          <MiniRow place={2} name="An artist" />
+          <MiniRow place={3} name="An artist" />
+          <MiniRow place={45} name="An artist" />
+        </span>
+        <p className="story-caption">
+          Qloo ranks the artists they like: a top 50.
+        </p>
+      </div>
+      <span className="story-arrow" aria-hidden />
+      <div className="story-panel">
+        <p className="story-step">2</p>
+        <p className="story-title">+ one venue&apos;s fans</p>
+        <span className="mini-chart">
+          <MiniRow place={1} name="An artist" />
+          <MiniRow place={2} name="An artist" />
+          <MiniRow place={1} name="An artist" hue={0} climb="+N, was Nth" />
+          <MiniRow place={16} name="An artist" />
+        </span>
+        <p className="story-caption">
+          Qloo ranks again with a town venue&apos;s fans added. Some acts climb.
+        </p>
+      </div>
+      <span className="story-arrow" aria-hidden />
+      <div className="story-panel">
+        <p className="story-step">3</p>
+        <p className="story-title">The rule</p>
+        <span className="story-rule">
+          <span className="story-check">Climbs {MIN_LIFT}+ places</span>
+          <span className="story-check">In the fee range</span>
+          <span className="story-check">Two genres shared</span>
+        </span>
+        <p className="story-caption">
+          The app&apos;s own rule, on Qloo&apos;s numbers. No model picks acts.
+        </p>
+      </div>
+      <span className="story-arrow" aria-hidden />
+      <div className="story-panel">
+        <p className="story-step">4</p>
+        <p className="story-title">The lineup</p>
+        <span className="mini-chart">
+          <MiniRow
+            place={4}
+            name="On the lineup"
+            hue={0}
+            genres={["Rock", "Indie Rock"]}
+          />
+          <MiniRow
+            place={5}
+            name="On the lineup"
+            hue={1}
+            genres={["Indie Pop", "Soul"]}
+          />
+          <MiniRow
+            place={15}
+            name="On the lineup"
+            hue={0}
+            genres={["Indie Pop", "Indie"]}
+          />
+        </span>
+        <p className="story-caption">
+          The strongest Qloo affinity first; a slot nothing clears stays open.
+        </p>
+      </div>
+    </figure>
+  );
+}
+
+/** Who decides what (evidence 22), as three cards. */
+function WhoDecides() {
+  return (
+    <section aria-labelledby="who-title" className="panel">
+      <h2 id="who-title" className="panel-title">
+        Who decides what
+      </h2>
+      <div className="who-grid">
+        <div className="who-card">
+          <svg viewBox="0 0 64 40" className="who-icon" aria-hidden>
+            <rect x="2" y="6" width="16" height="28" className="fill-ink" />
+            <rect x="24" y="6" width="16" height="28" className="fill-quiet" />
+            <rect x="46" y="6" width="16" height="28" className="fill-ink" />
+            <path
+              d="M10 2v4M32 2v4M54 2v4"
+              className="stroke-ink"
+              strokeWidth="3"
+            />
+          </svg>
+          <p className="who-name">The AI agent (Claude)</p>
+          <p className="who-what">
+            Plans the Qloo calls: which venues to read and in what order, within
+            12 calls.
+          </p>
+        </div>
+        <div className="who-card">
+          <svg viewBox="0 0 64 40" className="who-icon" aria-hidden>
+            <rect x="4" y="24" width="10" height="14" className="fill-ink" />
+            <rect x="20" y="14" width="10" height="24" className="fill-ink" />
+            <rect
+              x="36"
+              y="6"
+              width="10"
+              height="32"
+              className="fill-accent stroke-ink"
+              strokeWidth="2"
+            />
+            <rect x="52" y="18" width="10" height="20" className="fill-ink" />
+          </svg>
+          <p className="who-name">Qloo</p>
+          <p className="who-what">
+            Supplies every ranking, affinity and popularity: what fans of one
+            artist or venue also like.
+          </p>
+        </div>
+        <div className="who-card">
+          <svg viewBox="0 0 64 40" className="who-icon" aria-hidden>
+            <rect
+              x="4"
+              y="8"
+              width="56"
+              height="26"
+              className="fill-surface stroke-ink"
+              strokeWidth="3"
+            />
+            <path
+              d="M14 21l7 7 14-14"
+              fill="none"
+              className="stroke-ink"
+              strokeWidth="4"
+            />
+          </svg>
+          <p className="who-name">The app&apos;s rule</p>
+          <p className="who-what">
+            Books the acts: a climb of {MIN_LIFT} places or more, the fee range,
+            two shared genres. The model doesn&apos;t choose acts.
+          </p>
+        </div>
+      </div>
+      <p className="panel-sub mt-3">
+        Qloo is a taste-data service that maps what fans of one artist, venue or
+        film also like. Artists in Qloo take no location, so Undercard adds the
+        fans of the town&apos;s own venues to the headliners&apos; and watches
+        which acts climb (<Ev to="decides">evidence 22</Ev>).
+      </p>
+    </section>
   );
 }
 
@@ -314,31 +406,68 @@ const ROWS: Row[] = [
   },
 ];
 
+/**
+ * A result as a picture where it counts something: one square per case, filled for each that
+ * passed, and the bar marked when the test had one. A count over 30 is drawn as a bar, and a
+ * result without a count as a go or no-go mark.
+ */
+function ResultPicture({ result }: { result: string }) {
+  const count = /(\d+) of (\d+)/.exec(result);
+  const bar = /bar(?: of)? (\d+)/.exec(result);
+  if (!count) {
+    const go = !/^No-go/.test(result);
+    return (
+      <span className={`result-chip ${go ? "is-go" : "is-nogo"}`} aria-hidden>
+        {go ? "go" : "no-go"}
+      </span>
+    );
+  }
+  const hit = Number(count[1]);
+  const of = Number(count[2]);
+  if (of > 30)
+    return (
+      <span className="result-bar" aria-hidden>
+        <span style={{ width: `${Math.max(2, (hit / of) * 100)}%` }} />
+      </span>
+    );
+  const mark = bar ? Number(bar[1]) : null;
+  return (
+    <span className="result-dots" aria-hidden>
+      {Array.from({ length: of }, (_, i) => (
+        <i
+          key={i}
+          className={`${i < hit ? "on" : ""} ${mark !== null && i === mark - 1 ? "bar" : ""}`}
+        />
+      ))}
+    </span>
+  );
+}
+
 /** One group of the evidence table: each row's question, result, limit and source. */
 function EvidenceTable({ title, rows }: { title: string; rows: Row[] }) {
   return (
-    <div className="flex w-full flex-col gap-1">
-      <h3 className="text-left text-body font-bold">{title}</h3>
-      <div className="w-full overflow-x-auto">
-        <table
-          aria-label={title}
-          className="w-full border-collapse text-left text-label"
-        >
+    <div className="evidence-group">
+      <h3 className="evidence-title">{title}</h3>
+      <div className="evidence-scroll">
+        <table aria-label={title} className="evidence">
           <thead>
-            <tr className="border-b-2 border-rule">
-              <th className="py-1 pr-3">Question</th>
-              <th className="py-1 pr-3">Result</th>
-              <th className="py-1 pr-3">Limit</th>
-              <th className="py-1">Source</th>
+            <tr>
+              <th>Question</th>
+              <th>Result</th>
+              <th>Limit</th>
+              <th>Source</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={row.to} className="border-b border-rule/50 align-top">
-                <td className="py-1.5 pr-3">{row.what}</td>
-                <td className="py-1.5 pr-3 font-semibold">{row.result}</td>
-                <td className="py-1.5 pr-3 text-muted">{row.limit}</td>
-                <td className="py-1.5">
+              <tr key={row.to}>
+                <td>{row.what}</td>
+                <td className="evidence-result">
+                  <ResultPicture result={row.result} />
+                  <span>{row.result}</span>
+                </td>
+                <td className="evidence-limit">{row.limit}</td>
+                <td>
                   <Ev to={row.to}>
                     {S[row.to].split(".")[0].match(/^\d+$/)
                       ? `evidence ${S[row.to].split(".")[0]}`
@@ -355,117 +484,84 @@ function EvidenceTable({ title, rows }: { title: string; rows: Row[] }) {
 }
 
 /**
- * The method page (M9c), one click from the bill and in its language: one diagram, the five
- * objections answered with every claim linked to its row in docs/evidence.md, the evidence
- * table with its limits, and the demo video, loaded only when played.
+ * The method page (M9c), one click from the chart, told in pictures first: the method as a
+ * four-panel storyboard, who decides what, the evidence with each result drawn, the five
+ * objections answered with every claim linked to its row in docs/evidence.md, the limits, and
+ * the demo video, loaded only when played.
  */
 export function MethodPage({
   videoUrl = DEMO_VIDEO_URL,
 }: { videoUrl?: string | null } = {}) {
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2 border-b-2 border-rule px-4 py-3 lg:px-6">
-        <h1 className="max-w-4xl text-body">
-          <strong className="font-bold">Undercard</strong>, how it works: how
-          the AI agent drafts a festival&apos;s smaller acts from what fans of
-          the town&apos;s own venues like, and what has and hasn&apos;t been
-          shown.
-        </h1>
-        <Link
-          href="/"
-          className="self-start text-label underline underline-offset-2 hover:text-accent"
-        >
-          Back to the lineup
-        </Link>
-      </header>
-      <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-4 lg:px-6">
-        <section aria-label="The method" className={SHEET}>
-          <h2 className="text-figure font-bold">The method</h2>
-          <Diagram />
-          <p className="text-body">
-            Qloo is a taste-data service that maps what fans of one artist,
-            venue or film also like. Artists in Qloo take no location, so
-            Undercard adds the fans of the town&apos;s own venues to the
-            headliners&apos; and watches which acts climb.
+    <div className="chart-app stage-bg">
+      <TopBar method={false}>
+        <Link href="/">Back to the lineup</Link>
+      </TopBar>
+      <main className="method">
+        <div className="method-lead">
+          <h1 className="compare-title">How it works</h1>
+          <p className="compare-what">
+            How the AI agent drafts a festival&apos;s smaller acts from what
+            fans of the town&apos;s own venues like, and what has and
+            hasn&apos;t been shown.
           </p>
+        </div>
+
+        <section aria-label="The method" className="method-story">
+          <h2 className="band-name">The method</h2>
+          <Storyboard />
         </section>
 
-        {/* M9d: the method full width, then the evidence and the objections side by side. */}
-        <div
-          data-columns
-          className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-start"
-        >
-          <div className="flex min-w-0 flex-col gap-5">
-            <section aria-label="Evidence" className={`${SHEET} gap-2`}>
-              <h2 className="text-figure font-bold">What was tested</h2>
-              <ul className="flex w-full flex-col gap-1 text-left text-body">
-                <li>
-                  <strong className="font-semibold">Shown:</strong> the AI agent
-                  drafts a full lineup from a town&apos;s own venues, through
-                  Qloo, in each of the 29 towns checked, and lists every Qloo
-                  call it makes.
-                </li>
-                <li>
-                  <strong className="font-semibold">Partly shown:</strong> that
-                  a town&apos;s venues point to the acts its festivals book.
-                  Treefort 2026 used two of the three Boise venues tested, and
-                  at ten real festivals the booked acts out-lifted matched
-                  random ones in 7, one short of the bar of 8.
-                </li>
-                <li>
-                  <strong className="font-semibold">Not shown:</strong> that the
-                  town&apos;s crowd knows these acts, or that they would sell
-                  tickets, take the slot or fit a budget.
-                </li>
-              </ul>
-              <EvidenceTable
-                title="Does the idea hold?"
-                rows={ROWS.filter((row) => row.group === "idea")}
-              />
-              <EvidenceTable
-                title="Does the product work?"
-                rows={ROWS.filter((row) => row.group === "product")}
-              />
-            </section>
+        <WhoDecides />
 
-            <section
-              aria-label="What these numbers don't establish"
-              className={`${SHEET} gap-1`}
-            >
-              <h2 className="text-figure font-bold">
-                What these numbers don&apos;t establish
-              </h2>
-              <ul className="list-disc pl-5 text-body">
-                <li>
-                  That the acts would sell tickets, take the slot or fit the
-                  budget: the fee ranges are popularity ranges the buyer sets,
-                  not fees.
-                </li>
-                <li>That a town&apos;s crowd knows the undercard acts.</li>
-                <li>
-                  That every venue behind a lineup is a club: a park or an arena
-                  can still anchor one, and is labelled.
-                </li>
-                <li>
-                  That a town&apos;s venues pick out what its festivals book:
-                  the real-festival test fell one short.
-                </li>
-                <li>
-                  Stability beyond the runs shown: a few runs per town, on one
-                  day, with one pair of headliners.
-                </li>
-              </ul>
-              <p className="text-label">
-                <Ev to="limits">The full list in docs/evidence.md</Ev>
-              </p>
-            </section>
-          </div>
-          <div className="flex min-w-0 flex-col gap-5">
-            <section aria-label="Five objections" className={`${SHEET} gap-3`}>
-              <h2 className="text-figure font-bold">
-                Five objections, answered
-              </h2>
-              <Objection question="Does the town know these acts?">
+        <div className="method-columns">
+          <section aria-label="Evidence" className="panel">
+            <h2 className="panel-title">What was tested</h2>
+            <ul className="verdicts">
+              <li>
+                <VerdictMark verdict="shown" />
+                <span>
+                  <strong>Shown:</strong> the AI agent drafts a full lineup from
+                  a town&apos;s own venues, through Qloo, in each of the 29
+                  towns checked, and lists every Qloo call it makes.
+                </span>
+              </li>
+              <li>
+                <VerdictMark verdict="partly" />
+                <span>
+                  <strong>Partly shown:</strong> that a town&apos;s venues point
+                  to the acts its festivals book. Treefort 2026 used two of the
+                  three Boise venues tested, and at ten real festivals the
+                  booked acts out-lifted matched random ones in 7, one short of
+                  the bar of 8.
+                </span>
+              </li>
+              <li>
+                <VerdictMark verdict="not" />
+                <span>
+                  <strong>Not shown:</strong> that the town&apos;s crowd knows
+                  these acts, or that they would sell tickets, take the slot or
+                  fit a budget.
+                </span>
+              </li>
+            </ul>
+            <EvidenceTable
+              title="Does the idea hold?"
+              rows={ROWS.filter((row) => row.group === "idea")}
+            />
+            <EvidenceTable
+              title="Does the product work?"
+              rows={ROWS.filter((row) => row.group === "product")}
+            />
+          </section>
+
+          <div className="method-side">
+            <section aria-label="Five objections" className="panel">
+              <h2 className="panel-title">Five objections, answered</h2>
+              <Objection
+                question="Does the town know these acts?"
+                verdict="not"
+              >
                 <p>
                   Not shown. Undercard measures that fans of the town&apos;s
                   venues like an act more than fans of the headliners alone: its
@@ -486,7 +582,7 @@ export function MethodPage({
                   <Ev to="decides">evidence 22</Ev>).
                 </p>
               </Objection>
-              <Objection question="Why venues?">
+              <Objection question="Why venues?" verdict="partly">
                 <p>
                   Qloo takes no location for artists, so a venue&apos;s fans are
                   how a town&apos;s taste gets into the ranking (
@@ -504,7 +600,7 @@ export function MethodPage({
                   never padded (<Ev to="decides">evidence 22</Ev>).
                 </p>
               </Objection>
-              <Objection question="Why trust a pick?">
+              <Objection question="Why trust a pick?" verdict="shown">
                 <p>
                   Each act shows the venue whose fans lifted it, by how many
                   places, and its Qloo affinity and popularity. Every Qloo call
@@ -518,9 +614,43 @@ export function MethodPage({
               </Objection>
             </section>
 
-            <section aria-label="The demo video" className={`${SHEET} gap-2`}>
-              <h2 className="text-figure font-bold">The demo video</h2>
-              <VideoSlot url={videoUrl} />
+            <section
+              aria-label="What these numbers don't establish"
+              className="panel"
+            >
+              <h2 className="panel-title">
+                What these numbers don&apos;t establish
+              </h2>
+              <ul className="limits">
+                <li>
+                  That the acts would sell tickets, take the slot or fit the
+                  budget: the fee ranges are popularity ranges the buyer sets,
+                  not fees.
+                </li>
+                <li>That a town&apos;s crowd knows the undercard acts.</li>
+                <li>
+                  That every venue behind a lineup is a club: a park or an arena
+                  can still anchor one, and is labelled.
+                </li>
+                <li>
+                  That a town&apos;s venues pick out what its festivals book:
+                  the real-festival test fell one short.
+                </li>
+                <li>
+                  Stability beyond the runs shown: a few runs per town, on one
+                  day, with one pair of headliners.
+                </li>
+              </ul>
+              <p className="mt-2 text-label">
+                <Ev to="limits">The full list in docs/evidence.md</Ev>
+              </p>
+            </section>
+
+            <section aria-label="The demo video" className="panel">
+              <h2 className="panel-title">The demo video</h2>
+              <div className="mt-2">
+                <VideoSlot url={videoUrl} />
+              </div>
             </section>
           </div>
         </div>

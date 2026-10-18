@@ -1,3 +1,5 @@
+"use client";
+
 import { useId, type ReactNode } from "react";
 import { hashOf, sleeveFor, sleeveWords, type SleeveForm } from "@/lib/sleeve";
 
