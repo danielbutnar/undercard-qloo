@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { labShot } from "@/server/lab";
+import { labShot } from "@/server/lab-shots";
 
 const roots: string[] = [];
 

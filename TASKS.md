@@ -361,5 +361,5 @@ Daniel's inputs: his words on the live design are C1-C4 in docs/design-bans.md; 
   - [x] /lab shows all six: stills, clips, sentences, a link to each live screen, and the live design for comparison
 - [ ] 3. Stop: Daniel picks one or two and says why (by Tuesday evening)
 - [ ] 4. Two or three variants of the pick; gate, not judge: a fresh AI lay reader (the M6q prompt) says what the page does and for whom and names Watch as the first click; a variant that fails is fixed or dropped
-- [ ] 5. The finalist on a Vercel preview URL (not production, saved builds only); three people on their phones; fix what they trip on
+- [ ] 5. The finalist on a Vercel preview URL (not production, saved builds only); three people on their phones; fix what they trip on. Before any deploy made from this machine: `pnpm build`, then `node scripts/trace-check.mjs` must report that no route carries .design or other project files (checked 2026-10-18 on 97a721a plus the lab-shots split: clean; a local production server answered 404 on every /lab route)
 - [ ] 6. Merge main in; build it into the app with loading, empty and error states, motion that respects prefers-reduced-motion, and the method page's diagram in the same direction; C1's scan widened to all of src; the e2e and `pnpm gate` pass
