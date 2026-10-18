@@ -339,3 +339,27 @@ PREVIEW_URL: https://undercard-daniel-51ed.vercel.app (the judge URL: the projec
 ## Before judging starts (2026-11-02)
 - [ ] Check that the saved build replays on the live URL. If it's gone, run one fresh build before 2026-11-02, because replays come from the saved build in Upstash, not from `pnpm seed`
 - [ ] If the organizers haven't answered about rate limits by 2026-10-27, decide whether to raise the per-IP limits for judging, keeping the shared daily caps as the cost ceiling
+
+# TASKS: Design round (branch design-round, worktree .claude/worktrees/design-round)
+
+Daniel's brief of 2026-10-18: he doesn't like the live design. This round he judges taste, real people judge clarity, and AI readers are only a pass/fail check that the page is understood. Not up for redesign: the first sentence, M6r's plain words, the venue-and-climb reason on every act, the method page's evidence and limits, and Watch as the first click. CLAUDE.md, RULES.md and the frontend-anti-slop skill still apply; SPEC.md section 7 still rules out artist photos. Merge main in before step 6; never rebase. Main keeps its own TASKS.md sections; this one lives only on design-round until the merge.
+
+Dates (Bucharest): no production deploys Monday 19 October 09:00-21:00 or Tuesday 20 October 09:00-22:00, and no live-Qloo e2e on either day. Step 3 by Tuesday evening; on production by Thursday 22 October; if it isn't on production by Friday 23 October 22:00, stop and polish the current design. UI freeze at the end of Sunday 25 October; video and stills 26-27 October.
+
+Daniel's inputs: his words on the live design are C1-C4 in docs/design-bans.md; references only if none of the six lands. He approved the six directions below; the set-time clash grid is left out because the saved build has no running order, so its set times would be invented.
+
+- [x] 1. The live look in docs/design-bans.md as C1, scan regex scoped to src/app/lab until step 6 replaces the look; his three points as C2-C4 screenshot checks; scripts/design-check.mjs takes the `in:` scope (tests/unit/design-round)
+- [ ] 2. Six directions behind a local-only /lab on the saved Boise build, no Qloo data committed: each with its first screen at 1440x810 and 390 wide, a 10-15 s clip of the agent building the lineup, and one sentence on why it suits a talent buyer; all six on one local page
+  - [ ] /lab answers only under `next dev`, never on Vercel; stills and clips live in .design/lab (git-ignored) and are served only in dev
+  - [ ] Capture script: the two stills and the clip per direction, from the real replay (no Qloo or Claude calls)
+  - [ ] The weekly chart
+  - [ ] The mixing desk
+  - [ ] The split-flap board
+  - [ ] The club marquees
+  - [ ] The booker's magnet board
+  - [ ] The rock family tree
+  - [ ] /lab shows all six: stills, clips, sentences, a link to each live screen
+- [ ] 3. Stop: Daniel picks one or two and says why (by Tuesday evening)
+- [ ] 4. Two or three variants of the pick; gate, not judge: a fresh AI lay reader (the M6q prompt) says what the page does and for whom and names Watch as the first click; a variant that fails is fixed or dropped
+- [ ] 5. The finalist on a Vercel preview URL (not production, saved builds only); three people on their phones; fix what they trip on
+- [ ] 6. Merge main in; build it into the app with loading, empty and error states, motion that respects prefers-reduced-motion, and the method page's diagram in the same direction; C1's scan widened to all of src; the e2e and `pnpm gate` pass
