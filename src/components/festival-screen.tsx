@@ -359,7 +359,8 @@ export function FestivalScreen({
     firstBill?.build.id ?? null,
   );
   // Adopted during render once a build has finished (React: adjusting state when props change).
-  const finished = state.status !== "building" ? (state.build?.id ?? null) : null;
+  const finished =
+    state.status !== "building" ? (state.build?.id ?? null) : null;
   if (finished && finished !== switchBuild) setSwitchBuild(finished);
   const switcher = useVenueSwitch(festival.id, switchBuild, !custom);
   // What the server read at first paint belongs to that build only.
@@ -451,7 +452,9 @@ export function FestivalScreen({
     switcher.reset();
     // The lineup prints in down the chart once Watch hands it back (reduced motion: at once).
     setPrinting(watch.reduced ? null : "replay");
-    setReplaying(!request.fresh && (state.build !== null || checked !== undefined));
+    setReplaying(
+      !request.fresh && (state.build !== null || checked !== undefined),
+    );
     watch.start();
     void build(request);
     // On a phone the chart sits under the lead: bring the show into view.
@@ -461,7 +464,6 @@ export function FestivalScreen({
         behavior: watch.reduced ? "auto" : "smooth",
       });
   }
-
 
   // A judge's own brief runs once, as soon as its screen opens; a checked town replays.
   const started = useRef(false);
@@ -604,7 +606,9 @@ export function FestivalScreen({
                   city={festival.city}
                   place={placeOf[act.entityId]}
                   hue={hues.get(act.anchorVenue.entityId) ?? null}
-                  band={festival.feeBands.find((entry) => entry.id === act.band)}
+                  band={festival.feeBands.find(
+                    (entry) => entry.id === act.band,
+                  )}
                   note={
                     whatIf
                       ? "Turn every venue back on to keep or replace acts."
@@ -732,14 +736,19 @@ export function FestivalScreen({
               </p>
             )}
             {bandsView}
-            {mode === "qloo" && !watching && state.order && !openAct && (
-              <RunningOrderPanel
-                slots={state.order}
-                headliners={festival.headliners}
-                onClose={closeOrder}
-                acts={state.acts}
-              />
-            )}
+            {/* The running order is planned for the saved lineup: it steps aside while a venue is off. */}
+            {mode === "qloo" &&
+              !watching &&
+              !whatIf &&
+              state.order &&
+              !openAct && (
+                <RunningOrderPanel
+                  slots={state.order}
+                  headliners={festival.headliners}
+                  onClose={closeOrder}
+                  acts={state.acts}
+                />
+              )}
             {!watching && (
               <div className="tools">
                 {!custom && <ModeSwitch mode={mode} onChange={changeMode} />}
