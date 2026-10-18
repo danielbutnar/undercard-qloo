@@ -181,5 +181,6 @@ The M6q lay-reader prompt isn't kept in the repository, so the prompts below wer
 - Add one more signature interaction of the product's own; this round spent its one on the venue switch.
 - Animate the method page's storyboard as a short loop of the same four panels.
 - Give the phone's first act more room: it fits on the first screen with about 4 px to spare at 390x844.
+- After a live run that isn't saved (a preview deployment), read each act's place from the run's own editions: today those rows show the climb but a dot for the place.
 - Check with a real screen reader, in Safari and on real phones.
 - Remove the components this direction no longer uses (the old bill, rooms rail, lineup board, festival header and lift climb, and the two tests that cover only the old bill), once Daniel agrees.

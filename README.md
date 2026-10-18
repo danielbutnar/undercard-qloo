@@ -182,7 +182,7 @@ There is no starter kit. The app was generated with
   [Anthropic TypeScript SDK](https://github.com/anthropics/anthropic-sdk-typescript) for the
   agent's planner, and [@upstash/redis](https://github.com/upstash/redis-js) for the Qloo
   response cache.
-- Styling: [Tailwind CSS](https://tailwindcss.com) 4, with Big Shoulders and Libre Franklin
+- Styling: [Tailwind CSS](https://tailwindcss.com) 4, with Anton and Schibsted Grotesk
   from [Google Fonts](https://fonts.google.com) (SIL Open Font License) through `next/font`.
 - Tooling: TypeScript 5, ESLint 9 with `eslint-config-next`, Prettier 3,
   [Vitest](https://vitest.dev) 5 with `@vitejs/plugin-react`, jsdom and
