@@ -1,4 +1,5 @@
 import type { AssemblyInput, VenueRef, VenueRun } from "@/lib/assemble-lineup";
+import type { FeeBand } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import {
   lineupWith,
@@ -38,7 +39,7 @@ export async function assemblyFromSaved(
 ): Promise<AssemblyInput | null> {
   const { context } = saved;
   const pair = context.headliners.map((headliner) => headliner.entityId);
-  const venueRuns: VenueRun[] = [];
+  const runs: { band: FeeBand; venue: VenueRef }[] = [];
   for (const call of saved.trace) {
     if (call.tool !== "venue_artists") continue;
     const band = festival.feeBands.find((entry) =>
@@ -50,25 +51,37 @@ export async function assemblyFromSaved(
         )
       : undefined;
     if (!band || !anchor) return null;
-    try {
-      const { data } = await qloo.artists({
-        signalEntityIds: [...pair, anchor.entityId],
-        popularityMin: band.minPopularity,
-        popularityMax: band.maxPopularity,
-        excludeEntityIds: pair,
-        ages: context.ages ?? [],
-      });
-      const kind = kindIn(call.summary, anchor.name);
-      const venue: VenueRef = {
+    const kind = kindIn(call.summary, anchor.name);
+    runs.push({
+      band,
+      venue: {
         entityId: anchor.entityId,
         name: anchor.name,
         ...(kind ? { kind } : {}),
-      };
-      venueRuns.push({ venue, band: band.id, artists: data });
-    } catch (error) {
-      if (error instanceof QlooCacheMiss) return null;
-      throw error;
-    }
+      },
+    });
+  }
+  // The cache reads run together; the runs keep the trace's order, which breaks the rule's ties.
+  let venueRuns: VenueRun[];
+  try {
+    venueRuns = await Promise.all(
+      runs.map(async ({ band, venue }) => ({
+        venue,
+        band: band.id,
+        artists: (
+          await qloo.artists({
+            signalEntityIds: [...pair, venue.entityId],
+            popularityMin: band.minPopularity,
+            popularityMax: band.maxPopularity,
+            excludeEntityIds: pair,
+            ages: context.ages ?? [],
+          })
+        ).data,
+      })),
+    );
+  } catch (error) {
+    if (error instanceof QlooCacheMiss) return null;
+    throw error;
   }
   return {
     bands: festival.feeBands,

@@ -1,5 +1,6 @@
 import type { FeeBandId } from "./fee-bands";
 import type { Act, Venue } from "./lineup";
+import type { Placed } from "./venue-switch";
 
 /** What the first screen needs from the latest saved build, read on the server. */
 export interface FirstBill {
@@ -13,4 +14,6 @@ export interface FirstBill {
   anchors: Partial<Record<FeeBandId, Venue[]>>;
   /** Per band, how many acts the headliners-only ranking listed. */
   baselineTop: Partial<Record<FeeBandId, number>>;
+  /** Each act's place on the chart now and for the headliners alone (src/lib/places.ts). */
+  places?: Record<string, Placed>;
 }

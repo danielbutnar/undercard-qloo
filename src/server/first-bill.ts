@@ -1,5 +1,6 @@
 import type { FeeBandId } from "@/lib/fee-bands";
 import type { FirstBill } from "@/lib/first-bill";
+import { billPlaces } from "@/lib/places";
 import type { BuildStore, SavedBuild } from "./build-store";
 
 export type { FirstBill };
@@ -17,6 +18,7 @@ function toFirstBill(saved: SavedBuild): FirstBill {
     placesListed: venueSearch?.resultCount ?? null,
     anchors: saved.context.anchors,
     baselineTop,
+    places: billPlaces(saved.lineup.acts, saved.context.baselines),
   };
 }
 
