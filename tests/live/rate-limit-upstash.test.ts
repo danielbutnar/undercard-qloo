@@ -1,5 +1,6 @@
 // Opt-in check of the Upstash-backed limiter against a real Upstash database:
-//   LIVE_UPSTASH=1 pnpm vitest run tests/unit/m4/rate-limit-upstash.test.ts
+//   LIVE_UPSTASH=1 pnpm vitest run --config vitest.live.mts
+// It lives outside tests/unit because unit tests never reach the network (tests/unit/setup.ts).
 // It reads UPSTASH_REDIS_REST_URL and _TOKEN from .env.local and uses its own key prefix,
 // so it never touches the app's counters. Skipped otherwise.
 import { existsSync } from "node:fs";
