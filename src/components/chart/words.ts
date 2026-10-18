@@ -1,0 +1,91 @@
+import type { FeeBand, FeeBandId } from "@/lib/fee-bands";
+import type { Festival } from "@/lib/festival";
+import { formatBandRange, formatCount } from "@/lib/format";
+import type { Act } from "@/lib/lineup";
+import { liftOf, roomShortName } from "@/lib/marks";
+import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
+import type { Placed } from "@/lib/venue-switch";
+
+/** What the chart says, in one place. Plain words first (M6q, M6r); pictures carry the rest. */
+
+export const QLOO_CLAUSE =
+  "Qloo, a taste-data service that maps what fans of one artist, venue or film also like";
+
+/** The headline: what this screen is, in the two seconds a glance gives it. */
+export const headline = (festival: Festival) =>
+  `A festival lineup, drafted from ${festival.city}'s own music venues.`;
+
+/** What Undercard does, with Qloo explained once. */
+export const WHAT_IT_DOES = `Undercard is an AI agent. It picks the acts that play before the headliners from what fans of the town's own venues like, read from ${QLOO_CLAUSE}.`;
+
+/**
+ * The example (M6q), in words a non-musician follows. The demo's headliners are bands; a judge's
+ * own may not be, so theirs are only named.
+ */
+export function exampleLine(festival: Festival): string {
+  const [first, second] = festival.headliners;
+  const where = festival.region
+    ? `${festival.city}, ${festival.region}`
+    : festival.city;
+  const bands =
+    first === SAGEBRUSH_SOUND.headliners[0] &&
+    second === SAGEBRUSH_SOUND.headliners[1];
+  return `Example: a ${formatCount(festival.capacity)}-person festival in ${where}. Its headliners, ${first} and ${second}, ${bands ? "are bands" : "are already booked"}.`;
+}
+
+export const factsLine = ({ city, region, capacity, crowdAge }: Festival) =>
+  `${region ? `${city}, ${region}` : city} · ${formatCount(capacity)} capacity · crowd aged ${crowdAge.min}–${crowdAge.max}`;
+
+export const PLAIN_BAND: Record<FeeBandId, string> = {
+  mid: "Mid-size acts",
+  opener: "Opening acts",
+};
+
+export const STAMP = "Draft, not announced";
+export const WATCH = "Watch how it picked these acts";
+export const SKIP = "Skip to the lineup";
+export const RUN_LIVE = "Run the agent live instead";
+
+/** The fee range in plain words (M6r): the plain term first, the buyer's once in brackets. */
+export const feeRangeWords = (band: FeeBand) =>
+  `${band.slots} slots · fee range (${band.label}): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (${formatBandRange(band)} percentile)`;
+
+export function ordinal(place: number): string {
+  const teen = Math.floor((place % 100) / 10) === 1;
+  const suffix = teen ? "th" : (["th", "st", "nd", "rd"][place % 10] ?? "th");
+  return `${place}${suffix}`;
+}
+
+/** A venue's short mark on a row: its bracketed abbreviation or initials, else its name. */
+export const venueShort = (name: string) => roomShortName(name);
+
+/**
+ * The row's reason in words, for screen readers and the card: the venue, then the climb. Never a
+ * bare +N (M6r).
+ */
+export function climbSentence(
+  act: Act,
+  place: Placed | undefined,
+  top?: number,
+): string {
+  const lift = liftOf(act);
+  const venue = act.anchorVenue.name;
+  if (lift?.kind === "new")
+    return `${venue} fans like it: new to Qloo's top ${top ?? lift.top}, in at ${ordinal(place?.now ?? lift.top)}.`;
+  if (lift?.kind === "up")
+    return place?.was
+      ? `${venue} fans like it: ${lift.places} places higher in Qloo's ranking, from ${ordinal(place.was)} to ${ordinal(place.now)}.`
+      : `${venue} fans like it: ${lift.places} places higher in Qloo's ranking.`;
+  return `${venue} fans like it.`;
+}
+
+export const liftedWords = (lifted: number) =>
+  lifted === 0
+    ? "lifted none"
+    : `${lifted} ${lifted === 1 ? "act" : "acts"} lifted`;
+
+export const venuesTitle = (city: string) =>
+  `${city} venues whose fans shaped this lineup`;
+
+export const VENUES_STAND_FOR =
+  "These venues stand for the town's taste: the acts won't necessarily play there.";

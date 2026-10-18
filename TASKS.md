@@ -391,9 +391,9 @@ Daniel's brief of 2026-10-18 (Sunday): one of three sessions, each building a di
 - [x] Worktree .claude/worktrees/final-chart on branch final-chart from design-round; branch pushed, its preview builds at https://undercard-git-final-chart-daniel-51ed.vercel.app (public, but the Preview environment has no Upstash or Qloo settings: it shows the empty board; asked Daniel)
 - [x] One Qloo call (Sunday): /search returned 3 artists, each with properties.image.url on images.qloo.com; the app's Qloo cache drops the field, so showing images would need new Qloo calls per act: not shown
 - [ ] Brainstorm: five first-screen ideas and three Watch ideas, each its own subagent; stills checked against the bans and gates; the strongest built, the rest in docs/design-brief.md with one line on why each lost
-- [ ] The venue switch: the lineup re-forms from the saved build by the rule in src/lib/assemble-lineup.ts with only the venues left on, no Qloo or model calls, open slots stay open; unit test on made-up data (tests/unit/final-chart)
-- [ ] One-off check against the 29 saved builds: with every venue on, the recomputed lineup equals the saved one (results not committed)
-- [ ] Preview deployments never save a build (a fresh run there can't move a saved build's pointer)
+- [x] The venue switch: the lineup re-forms from the saved build by the rule in src/lib/assemble-lineup.ts with only the venues left on, no Qloo or model calls, open slots stay open; unit test on made-up data (tests/unit/final-chart)
+- [x] One-off check against the 29 saved builds: with every venue on, the recomputed lineup equals the saved one (results not committed): 29 of 29 equal act for act, 0 Qloo fetches (2026-10-18)
+- [x] Preview deployments never save a build (a fresh run there can't move a saved build's pointer)
 - [ ] The first screen in the chart direction (two seconds: a festival lineup drafted from a town's own venues; Watch is the first click; venue as a colour or mark with the words one tap away; at least one act on a phone's first screen)
 - [ ] Watch: one orchestrated reveal under 20 s, something changes every 1-2 s, Skip always there; reduced motion shows the end state
 - [ ] The act card (why, Keep, Unavailable with its reason, the refill), Redraft the rest, Running order
@@ -404,4 +404,5 @@ Daniel's brief of 2026-10-18 (Sunday): one of three sessions, each building a di
 - [ ] Gates: squint test, lay reader (M6q prompt) at 1440 and 390, design scan, pnpm gate, e2e against the preview with no live-Qloo tests
 - [ ] Merge main in (never rebase); deploy the branch to its preview URL
 - [ ] A fresh subagent reviews the diff against main for merge-blocking problems; none left
+- [ ] Brainstorm so far: five first-screen mockups (chart sheet, bump chart, biggest climber, venue records, sleeves) done; the three Watch mockups were stopped unfinished at the usage limit. Chosen: the chart sheet palette and type (Anton, Schibsted Grotesk, red with a yellow Watch) carrying the sleeves mockup headline, layout and genre sleeves; biggest climber fails the phone rule (no act on the first screen)
 - [ ] Deliver: the preview URL, stills of every screen at 1440x810 and 390 wide, a 30-second recording of the demo path, docs/design-brief.md, what I'd still improve
