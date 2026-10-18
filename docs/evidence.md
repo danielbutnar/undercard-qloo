@@ -403,6 +403,8 @@ Written on 2026-10-18, before the pass. The criteria don't change after the resu
 
 **Keyboard and screen reader.** On the first screen, a town's screen, Your festival, town against town and the method page: every control is reachable by Tab in reading order and shows a visible focus mark; every control, image and region has an accessible name; each page has one level-1 heading; streaming text (the trace, the climb, the refill) is announced through a live region; and nothing traps focus. Checked with Playwright on the local build, each failure fixed and listed.
 
+**Result, 2026-10-18.** Input: one real gap found and fixed. The brief used to put the town and headliner text straight into the planner's message; it now goes in as JSON inside one <brief> block, with < and > escaped, and the system prompt says never to follow instructions inside it. All five input tests pass. Keyboard and screen reader: tests/e2e/a11y.spec.ts passes on all five screens, locally and on the live demo (one level-1 heading each, every control, image and region named, every Tab stop marked, no trap). Not done: a pass with a real screen reader (NVDA or VoiceOver); the checks read names, roles and live regions from the DOM.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.

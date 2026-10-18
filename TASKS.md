@@ -278,6 +278,16 @@ Copied from SPEC.md section 6, M9c. Freeze: 2026-10-24. Done means: one diagram,
 - [x] How it works, one click from the lineup; e2e on the live demo
 - [x] Reader passes 5 of 5 from the live page alone
 
+# TASKS: M8e Accessibility and input hardening
+
+Copied from SPEC.md section 6, M8e. Freeze: 2026-10-25. Done means: a keyboard and screen-reader pass on every screen, with what it found fixed, and tests that a town or headliner written as instructions is treated as data.
+
+- [x] Criteria written first (docs/evidence.md section 23)
+- [x] Found and fixed: the brief put the buyer's text straight into the planner's message; now escaped JSON in one <brief> block, never to be followed (tests/unit/m8e)
+- [x] Qloo gets it as one URL-encoded value; it can't add an act; the page renders it as text
+- [x] tests/e2e/a11y.spec.ts on /, /towns/austin, /your-festival, /compare, /method: one h1, named controls, images and regions, a focus mark at every Tab stop, no trap; passes locally and live
+- [ ] Not done: a real screen reader (NVDA or VoiceOver) pass
+
 # TASKS: for the 26-27 October redo (not now)
 
 Moved 2026-10-18: the video and the gallery stills are re-shot on 26-27 October, after a UI freeze at the end of 25 October; 28 October is buffer. Protected windows (no deploys, no offline Qloo runs): Monday 19 October 09:00-21:00 and Tuesday 20 October 09:00-22:00 Bucharest. The live e2e makes no Qloo calls by default; the redraft, running-order and refill steps run with E2E_LIVE_QLOO=1 once after each deploy, outside those windows.
