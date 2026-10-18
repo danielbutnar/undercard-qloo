@@ -2295,3 +2295,29 @@
 .chart-app .limits li + li {
   margin-top: 4px;
 }
+
+/* Nothing under 16 px at 1440 wide (video legibility). */
+.chart-app .row-venue span,
+.chart-app .climb-head,
+.chart-app .row-listed .climb-was,
+.chart-app .row-listed .row-flag,
+.chart-app .result-chip {
+  font-size: 16px;
+}
+/* During Watch the banner names the venue, so its tab is colour alone. */
+.chart-app .row-listed .row-venue span {
+  display: none;
+}
+.chart-app .slots {
+  align-items: center;
+}
+.chart-app .slots-words {
+  margin-left: 6px;
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+@media (max-width: 767px) {
+  .chart-app .slots-words {
+    display: none;
+  }
+}

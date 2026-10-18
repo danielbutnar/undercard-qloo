@@ -91,7 +91,9 @@ const SCENES: {
         .click();
       await page.getByText(/^Replayed the build saved/).waitFor();
       // M9a: the climb plays first on a deployment; skip to the reprinted lineup.
-      const skip = bill(page).getByRole("button", { name: "Skip to the lineup" });
+      const skip = bill(page).getByRole("button", {
+        name: "Skip to the lineup",
+      });
       if (await skip.isVisible()) await skip.click();
       await test.expect.poll(() => liftedTotal(page)).toBe(10);
     },
@@ -130,10 +132,14 @@ const SCENES: {
     viewports: [WIDE, VIDEO, MOBILE],
     prepare: async (page) => {
       await page
-        .getByRole("button", { name: "Without Qloo: an AI model's picks alone" })
+        .getByRole("button", {
+          name: "Without Qloo: an AI model's picks alone",
+        })
         .click();
       await page
-        .getByRole("region", { name: "Without Qloo: an AI model's picks alone" })
+        .getByRole("region", {
+          name: "Without Qloo: an AI model's picks alone",
+        })
         .getByRole("article")
         .first()
         .waitFor();
@@ -146,7 +152,9 @@ const SCENES: {
     prepare: async (page) => {
       await page.route("**/api/llm-only", never);
       await page
-        .getByRole("button", { name: "Without Qloo: an AI model's picks alone" })
+        .getByRole("button", {
+          name: "Without Qloo: an AI model's picks alone",
+        })
         .click();
       await page.getByText("Asking the model, without Qloo…").waitFor();
     },
@@ -162,13 +170,15 @@ const SCENES: {
         }),
       );
       await page
-        .getByRole("button", { name: "Without Qloo: an AI model's picks alone" })
+        .getByRole("button", {
+          name: "Without Qloo: an AI model's picks alone",
+        })
         .click();
       await page.getByRole("button", { name: "Try again" }).waitFor();
     },
   },
   {
-    // Loading: the replay request is held open, so the bill waits in open slots.
+    // Loading: the replay request is held open, so Watch waits on its first edition.
     name: "home-replay-loading",
     viewports: [VIDEO],
     prepare: async (page) => {
@@ -176,7 +186,26 @@ const SCENES: {
       await page
         .getByRole("button", { name: "Watch how it picked these acts" })
         .click();
-      await page.getByText("Open slot").first().waitFor();
+      await page
+        .getByText("Waiting for this band's first ranking…")
+        .first()
+        .waitFor();
+    },
+  },
+  {
+    // The venue switch: the venue that lifted most acts switched off, the lineup re-formed.
+    name: "home-whatif",
+    viewports: [VIDEO, MOBILE],
+    prepare: async (page) => {
+      const toggle = page
+        .getByRole("button", { name: /: on, \d+ acts? lifted$/ })
+        .first();
+      await toggle.waitFor();
+      await test.expect(toggle).toBeEnabled({ timeout: 15_000 });
+      await toggle.click();
+      await bill(page)
+        .getByText(/^What if /)
+        .waitFor();
     },
   },
   {

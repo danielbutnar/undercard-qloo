@@ -152,7 +152,7 @@ export function ActCard({
             onClick={() => onKeep(act)}
             className="tool card-keep"
           >
-            {kept ? "Kept" : "Keep"}
+            Keep
           </button>
         )}
         {onUnavailable && !unavailable && !asking && (

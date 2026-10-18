@@ -428,6 +428,8 @@ export function FestivalScreen({
   const slots = festival.feeBands.reduce((sum, band) => sum + band.slots, 0);
 
   function runBuild(request: BuildRequest = {}) {
+    // Watch shows the agent's build, so it brings the chart back from Without Qloo.
+    setMode("qloo");
     setOpenId(null);
     switcher.reset();
     setPrinting(null);
@@ -798,7 +800,8 @@ export function FestivalScreen({
                 onPick={custom?.onPick}
               />
             )}
-          {!custom && allVenues.length > 0 && (
+          {/* While Watch plays the switch steps aside: the lineup it counts is being re-drawn. */}
+          {!custom && !watching && allVenues.length > 0 && (
             <VenueSwitch
               city={festival.city}
               venues={venueLines}

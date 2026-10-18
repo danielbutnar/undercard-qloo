@@ -131,7 +131,11 @@ export function TracePanel({
   const folded =
     state.status === "idle" && state.build !== null && buildCalls === 0;
   const refillCalls = state.calls.length - buildCalls;
-  const refillCount = `${refillCalls} refill ${refillCalls === 1 ? "call" : "calls"}`;
+  // Calls after the build: refills, a redraft or the running order, named by what they were.
+  const onlyRefills = state.calls.every(
+    (call) => call.tool !== "redraft" && call.tool !== "running_order",
+  );
+  const refillCount = `${refillCalls} ${onlyRefills ? "refill " : "more "}${refillCalls === 1 ? "call" : "calls"}`;
   const refillingName = state.acts.find(
     (act) => act.entityId === state.refilling,
   )?.name;

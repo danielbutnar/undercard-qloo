@@ -180,6 +180,9 @@ function Slots({ filled, slots }: { filled: number; slots: number }) {
       {Array.from({ length: slots }, (_, i) => (
         <i key={i} className={i < filled ? "on" : ""} />
       ))}
+      <span className="slots-words" aria-hidden>
+        {slots} slots
+      </span>
     </span>
   );
 }
@@ -191,7 +194,7 @@ function FeeRange({ band }: { band: FeeBand }) {
   const width = (band.maxPopularity - band.minPopularity) * 100;
   return (
     <div className="fee">
-      <span className="fee-label">Fee range</span>
+      <span className="fee-label">Fee range, by popularity</span>
       <span className="fee-track" aria-hidden>
         <span
           className="fee-lit"
@@ -257,13 +260,13 @@ export function BandChart({
   const listing = rows.some((row) => row.kind === "listed");
   return (
     <section aria-labelledby={headingId} className="band">
-      <header className="band-head">
+      <div className="band-head">
         <h2 id={headingId} className="band-name">
           {PLAIN_BAND[band.id]}
         </h2>
         {!listing && <Slots filled={filled} slots={band.slots} />}
         <FeeRange band={band} />
-      </header>
+      </div>
       {caption && (
         <p className="band-caption" aria-live="polite">
           {caption}
