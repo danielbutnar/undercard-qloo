@@ -86,38 +86,50 @@ export async function replayClimbs(
   if (!qloo) return out;
   const { context } = saved;
   const pair = context.headliners.map((headliner) => headliner.entityId);
-  const baselines = new Map<string, RankedArtist[]>();
-  for (const [index, call] of saved.trace.entries()) {
+  const lists = saved.trace.flatMap((call, index) => {
     if (call.tool !== "baseline_artists" && call.tool !== "venue_artists")
-      continue;
+      return [];
     const band = festival.feeBands.find((entry) =>
       call.summary.startsWith(`${entry.label}-band`),
     );
-    if (!band) continue;
+    if (!band) return [];
     const venue =
       call.tool === "venue_artists"
         ? (context.anchors[band.id] ?? []).find((anchor) =>
             call.summary.includes(`headliners and ${anchor.name}`),
           )
         : undefined;
-    if (call.tool === "venue_artists" && !venue) continue;
-    try {
-      const { data } = await qloo.artists({
-        signalEntityIds: venue ? [...pair, venue.entityId] : pair,
-        popularityMin: band.minPopularity,
-        popularityMax: band.maxPopularity,
-        excludeEntityIds: pair,
-        ages: context.ages ?? [],
-      });
-      if (!venue) {
-        baselines.set(band.id, data);
-        out.set(index, climbBaseline(band.id, data));
-      } else {
-        const base = baselines.get(band.id);
-        if (base) out.set(index, climbAfter(band.id, band, venue, base, data));
+    if (call.tool === "venue_artists" && !venue) return [];
+    return [{ index, band, venue }];
+  });
+  // The cache reads run together, so Watch starts sooner; the steps keep the trace's order.
+  const answers = await Promise.all(
+    lists.map(async ({ band, venue }) => {
+      try {
+        const { data } = await qloo.artists({
+          signalEntityIds: venue ? [...pair, venue.entityId] : pair,
+          popularityMin: band.minPopularity,
+          popularityMax: band.maxPopularity,
+          excludeEntityIds: pair,
+          ages: context.ages ?? [],
+        });
+        return data;
+      } catch (error) {
+        if (!(error instanceof QlooCacheMiss)) throw error;
+        return null;
       }
-    } catch (error) {
-      if (!(error instanceof QlooCacheMiss)) throw error;
+    }),
+  );
+  const baselines = new Map<string, RankedArtist[]>();
+  for (const [k, { index, band, venue }] of lists.entries()) {
+    const data = answers[k];
+    if (!data) continue;
+    if (!venue) {
+      baselines.set(band.id, data);
+      out.set(index, climbBaseline(band.id, data));
+    } else {
+      const base = baselines.get(band.id);
+      if (base) out.set(index, climbAfter(band.id, band, venue, base, data));
     }
   }
   return out;
