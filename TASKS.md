@@ -363,3 +363,25 @@ Daniel's inputs: his words on the live design are C1-C4 in docs/design-bans.md; 
 - [ ] 4. Two or three variants of the pick; gate, not judge: a fresh AI lay reader (the M6q prompt) says what the page does and for whom and names Watch as the first click; a variant that fails is fixed or dropped
 - [ ] 5. The finalist on a Vercel preview URL (not production, saved builds only); three people on their phones; fix what they trip on. Before any deploy made from this machine: `pnpm build`, then `node scripts/trace-check.mjs` must report that no route carries .design or other project files (checked 2026-10-18 on 97a721a plus the lab-shots split: clean; a local production server answered 404 on every /lab route)
 - [ ] 6. Merge main in; build it into the app with loading, empty and error states, motion that respects prefers-reduced-motion, and the method page's diagram in the same direction; C1's scan widened to all of src; the e2e and `pnpm gate` pass
+
+# TASKS: Final design round, direction 1: the weekly chart (branch final-chart, worktree .claude/worktrees/final-chart)
+
+Daniel's brief of 2026-10-18 (Sunday): one of three sessions, each building a direction as the whole product; he picks one from the three preview URLs. Dev server on port 3103 only. Deliver by Wednesday 21 October 12:00 Bucharest. No Qloo calls and no live runs Monday 09:00-21:00 and Tuesday 09:00-22:00; never deploy to production; read saved builds, never rebuild or overwrite them; no Qloo response data in the repo.
+
+- [x] Worktree .claude/worktrees/final-chart on branch final-chart from design-round; branch pushed, its preview builds at https://undercard-git-final-chart-daniel-51ed.vercel.app (public, but the Preview environment has no Upstash or Qloo settings: it shows the empty board; asked Daniel)
+- [x] One Qloo call (Sunday): /search returned 3 artists, each with properties.image.url on images.qloo.com; the app's Qloo cache drops the field, so showing images would need new Qloo calls per act: not shown
+- [ ] Brainstorm: five first-screen ideas and three Watch ideas, each its own subagent; stills checked against the bans and gates; the strongest built, the rest in docs/design-brief.md with one line on why each lost
+- [ ] The venue switch: the lineup re-forms from the saved build by the rule in src/lib/assemble-lineup.ts with only the venues left on, no Qloo or model calls, open slots stay open; unit test on made-up data (tests/unit/final-chart)
+- [ ] One-off check against the 29 saved builds: with every venue on, the recomputed lineup equals the saved one (results not committed)
+- [ ] Preview deployments never save a build (a fresh run there can't move a saved build's pointer)
+- [ ] The first screen in the chart direction (two seconds: a festival lineup drafted from a town's own venues; Watch is the first click; venue as a colour or mark with the words one tap away; at least one act on a phone's first screen)
+- [ ] Watch: one orchestrated reveal under 20 s, something changes every 1-2 s, Skip always there; reduced motion shows the end state
+- [ ] The act card (why, Keep, Unavailable with its reason, the refill), Redraft the rest, Running order
+- [ ] Compare with another town; With and Without Qloo; Export CSV; town pages
+- [ ] Your festival: the 29 checked towns, free-text towns, the thin-town message, Run the agent live
+- [ ] The method page told with visuals (C3)
+- [ ] Loading, empty and error states designed; prefers-reduced-motion respected; 390 wide and 1280x800 without sideways scroll
+- [ ] Gates: squint test, lay reader (M6q prompt) at 1440 and 390, design scan, pnpm gate, e2e against the preview with no live-Qloo tests
+- [ ] Merge main in (never rebase); deploy the branch to its preview URL
+- [ ] A fresh subagent reviews the diff against main for merge-blocking problems; none left
+- [ ] Deliver: the preview URL, stills of every screen at 1440x810 and 390 wide, a 30-second recording of the demo path, docs/design-brief.md, what I'd still improve
