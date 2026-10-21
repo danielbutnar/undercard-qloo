@@ -517,15 +517,15 @@ export function FestivalScreen({
   // Elsewhere Watch replays the saved build, whose count is the one on screen only while the
   // screen shows that build.
   const savedOnScreen = onFirst || state.build?.replayed === true;
-  // Qloo's image of each act, only while ARTIST_IMAGES is on (item 4); the drawn covers otherwise.
+  // Qloo's image of each act on the saved lineup, while ARTIST_IMAGES is on, on the lineup and in
+  // Watch's editions (whose rows carry the act's id as their key); the drawn covers otherwise.
   const images = firstBill?.images;
   const pictured = (rows: ChartRowData[]) =>
     images
-      ? rows.map((row) =>
-          row.act && images[row.act.entityId]
-            ? { ...row, image: images[row.act.entityId] }
-            : row,
-        )
+      ? rows.map((row) => {
+          const image = images[row.act?.entityId ?? row.key];
+          return image ? { ...row, image } : row;
+        })
       : rows;
 
   // A judge's own brief runs once, as soon as its screen opens; a checked town replays.
@@ -600,7 +600,9 @@ export function FestivalScreen({
                 band={band}
                 current={!step || step.band === band.id}
                 rows={
-                  edition ? editionRows(edition, state.acts, placeOf, hues) : []
+                  edition
+                    ? pictured(editionRows(edition, state.acts, placeOf, hues))
+                    : []
                 }
                 sortKey={edition ?? "calls"}
                 motion={!watch.reduced}

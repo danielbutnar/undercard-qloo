@@ -1,5 +1,6 @@
-// Artist images (item 4 of Daniel's brief of 2026-10-21): built, and off. Synthetic ids and
-// invented image URLs; no Qloo response data.
+// Artist images (item 4 of Daniel's brief of 2026-10-21): built, and on since Qloo's hackathon
+// manager agreed on 21 October (RULES.md, Unclear 5). Synthetic ids and invented image URLs; no
+// Qloo response data.
 import { describe, expect, it } from "vitest";
 import { ARTIST_IMAGES } from "@/lib/artist-images";
 import { readArtistImages, withArtistImages } from "@/server/artist-images";
@@ -34,9 +35,9 @@ const entities = (url: URL) => ({
     })),
 });
 
-describe("artist images, built but off", () => {
-  it("is off until Daniel says Qloo agreed", () => {
-    expect(ARTIST_IMAGES).toBe(false);
+describe("artist images from Qloo", () => {
+  it("is on, now that Qloo agreed", () => {
+    expect(ARTIST_IMAGES).toBe(true);
   });
 
   it("reads a whole lineup's image URLs in one Qloo call, cached", async () => {
@@ -77,10 +78,17 @@ describe("artist images, built but off", () => {
     expect(await readArtistImages(null, ids)).toBeNull();
   });
 
-  it("leaves a saved build as it is, and calls nothing, while the setting is off", async () => {
+  it("leaves a saved build as it is, and calls nothing, with the setting off", async () => {
     const { qloo, requests } = client(entities);
-    expect(await withArtistImages(FIRST_BILL, qloo)).toBe(FIRST_BILL);
+    expect(await withArtistImages(FIRST_BILL, qloo, false)).toBe(FIRST_BILL);
     expect(requests).toHaveLength(0);
+  });
+
+  it("serves the saved build with its lineup's images by default", async () => {
+    const { qloo, requests } = client(entities);
+    const bill = await withArtistImages(FIRST_BILL, qloo);
+    expect(Object.keys(bill!.images!)).toEqual(acts.map((act) => act.entityId));
+    expect(requests).toHaveLength(1);
   });
 
   it("adds the lineup's images to the saved build once it's on", async () => {

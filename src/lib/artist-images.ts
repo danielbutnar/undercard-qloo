@@ -1,10 +1,10 @@
 /**
- * Artist images from Qloo (item 4 of Daniel's brief of 2026-10-21): built, and off. Daniel has
- * asked Qloo whether the app may show its artist image URLs (RULES.md, Unclear 5). Until Qloo
- * agrees this stays false: no image call is made and every act shows its drawn cover. Turning it
- * on also changes SPEC.md section 7's "text only" line, which is Daniel's call.
+ * Artist images from Qloo (item 4 of Daniel's brief of 2026-10-21): on since Qloo's hackathon
+ * manager agreed on 21 October that the app may show them (RULES.md, Unclear 5; SPEC.md section
+ * 7). Each saved build's acts get their image URLs from one cached Qloo call; false turns that
+ * call off and every act shows its drawn cover.
  */
-export const ARTIST_IMAGES = false;
+export const ARTIST_IMAGES = true;
 
 /** Each act's image URL on Qloo, by entity id: read at runtime, never stored in the repository. */
 export type ArtistImages = Readonly<Record<string, string>>;
