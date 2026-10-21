@@ -2388,3 +2388,68 @@
     display: none;
   }
 }
+
+/*
+ * The phone's first screen reaches the first act with the browser's bars in view (Daniel's
+ * brief, 2026-10-21): Safari on a 390x844 iPhone shows about 664 px of the page, an estimate
+ * (tests/e2e/phone-first-screen.spec.ts). Sizes and gaps only; no words change.
+ */
+@media (max-width: 767px) {
+  .chart-app .topbar {
+    padding: 8px 0 6px;
+  }
+  .chart-app .layout {
+    gap: 12px;
+  }
+  .chart-app .lead-top {
+    gap: 8px;
+  }
+  .chart-app .lead-line {
+    font-size: 28px;
+  }
+  .chart-app .lead-what {
+    font-size: 16px;
+    line-height: 1.38;
+  }
+  .chart-app .watch {
+    gap: 10px;
+    padding: 8px 12px 8px 8px;
+    font-size: 17px;
+  }
+  .chart-app .watch-play {
+    width: 32px;
+    height: 32px;
+  }
+  .chart-app .watch-play svg {
+    width: 16px;
+    height: 16px;
+  }
+  .chart-app .qloo-line {
+    margin-top: 6px;
+    font-size: 15px;
+  }
+  .chart-app .board {
+    gap: 10px;
+  }
+  .chart-app .draft {
+    gap: 8px;
+  }
+  .chart-app .masthead {
+    gap: 6px;
+  }
+  .chart-app .masthead h1,
+  .chart-app .draft.is-watching .masthead h1 {
+    font-size: 30px;
+  }
+  .chart-app .facts {
+    margin-top: 2px;
+    font-size: 14px;
+  }
+  .chart-app .headliner .sleeve {
+    width: 32px;
+    height: 32px;
+  }
+  .chart-app .headliners-note {
+    font-size: 14px;
+  }
+}
