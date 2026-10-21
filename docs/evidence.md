@@ -494,6 +494,24 @@ Written on 2026-10-21, before either variant is built or shown to a reader. The 
 
 **The bar.** A variant passes if all three answers say, in any words, that Act 84 climbed that many places when one Boise venue's fans were added, and name that venue: a climb, not a lineup position, a rank or a score; the number of places the shot shows; and that venue's fans as the reason, not a stage she plays on. The key (the number and the venue in the saved build) is Qloo-derived, so it stays in .design/m10a/. In variant (b) the big number is the lineup slot, so an answer there passes only if it also explains the climb this way; an answer that explains only the slot doesn't. If a variant fails, a one-line key may be added to each band of that variant, and only then; the keyed variant goes to three new readers on the same three models under the same bar. The variant that passes ships; if both pass, (a) ships; if neither passes, nothing ships and the shots and answers go to Daniel.
 
+**Result, 2026-10-21: both pass, so (a) ships, with its key.** The shots came from the local app reading the saved Boise build.
+- (b), the lineup slot: 3 of 3. Each reader called the big number her slot or the first pick, then explained the evidence line: the places she climbed and the venue whose fans were counted. The Sonnet reader put the climb "among" that venue's fans rather than with them added; it is counted as a pass.
+- (a), the climb as the hero, first round: 2 of 3. All three read the climb and its ladder right; the Haiku reader gave no reason for the climb ("the screenshots don't say what the two rankings measure"), while the other two found it in the venue tab. Every reader said the page doesn't say what the two places measure.
+- (a) with its key, one line under each band ("places it climbed with its venue's fans added"), second round, three new readers on the same three models: 3 of 3, each naming the climb and the venue whose fans were added. The Opus reader called the ranking "the AI agent's"; it is Qloo's.
+- Also from the readers: on a phone the fee range ("80th–92nd") sits by the band's name without its label, and two readers asked why no act on the lineup holds one of the top places.
+
+The answers, which quote the shots' numbers, stay in .design/m10a/ with the key. Shipped: the climb as each lineup row's big number, the ladder under the name, the key under each band; Watch's editions keep their places, since each edition is one list.
+
+## 28. How it works, rebuilt (M10b), written before the page is built
+
+Written on 2026-10-21, before the page is built or shown to a reader. The key doesn't change after the answer is in.
+
+**The page.** /method in the chart's look, top to bottom: a slot for the demo video; the method as four small cards (the headliners' fans, a Boise venue's fans, the acts that climb, your undercard); one act followed through the saved Boise build, a step at a time, with the first screen's rows and badges, and the AI agent's choices beside it (the venues it read, and the one whose fans lifted no act); one venue switch to try; who does what as three cards of one line each; the shown, partly shown and not shown summary; and a link to /method/evidence, which holds the evidence tables and the five objections with no result and no wording changed. Every number on the page is read from the saved build when the page is served; none is written into the code.
+
+**The reader.** One fresh AI lay reader, a new subagent that has seen nothing of this project, on Claude Haiku 5.5, the quickest model, as the design round's gates were. It is told it has never worked in the music industry, is shown only screenshots of the new page from top to bottom, cut into screen-sized pieces at 390 wide and at 1440 wide, and is asked: "In your own words, how does one act end up on this festival's lineup? Who or what does each part of the work?"
+
+**The bar.** It passes if the answer does both: (1) says how one act ends up on the lineup: Qloo ranks acts for the headliners' fans, a town venue's fans are added and the act climbs, it sits in the fee range and shares genres with the headliners, and so it goes on the lineup; and (2) names the three parties correctly: the AI agent plans the Qloo calls (which venues to read) and doesn't pick the acts, Qloo supplies the taste (the rankings), and the app's rule picks the acts. An answer that has the AI agent or Qloo picking the acts fails. If it fails, the page is changed, not the question, and a new reader is asked.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.

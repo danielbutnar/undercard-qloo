@@ -437,9 +437,9 @@ Done means every item below is finished and deployed, with `pnpm gate`, the desi
 - [x] The bar in docs/evidence.md section 27 before building (the key, being Qloo-derived, in .design/m10a)
 - [x] Variant a: the climb as the hero (a big climb where the place was, a small ladder from the old place to the new one, the venue tab, NEW for acts from outside the top 50); rows by climb, a new entry by the least it can have climbed (tests/unit/m10a)
 - [x] Variant b: the lineup slot as the row number, with the climb, the ladder and the venue as the evidence line; rows in the lineup's order (tests/unit/m10a); both behind the chart's numbers setting, today's place still the default, and shot from dev-only /lab/numbers-a and -b on the saved build
-- [ ] Three fresh AI lay readers per variant, shown only the shots at 390 and 1440
-- [ ] A one-line key per section only if a variant fails without it
-- [ ] Ship the variant that passes (a if both pass); if neither passes, stop and show Daniel the shots and the answers
+- [x] Three fresh AI lay readers per variant, shown only the shots at 390 and 1440: (b) 3 of 3; (a) 2 of 3 (evidence section 27; answers in .design/m10a)
+- [x] A one-line key per section only if a variant fails without it: added to (a) after its first round ("places it climbed with its venue's fans added"); three new readers, 3 of 3
+- [x] Ship the variant that passes (a if both pass): both passed, (a) shipped with its key (4b8827c); (b) and the lab pages removed; the synthetic baseline now gives real places
 - [ ] Gate, design scan, e2e; deployed; the live e2e passes
 
 3. M10b How it works
