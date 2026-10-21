@@ -701,6 +701,8 @@ Written on 2026-10-21 (plan.md item 9, the review's section 9b.3), before any of
 
 **Test 2, Boise with a second pair of headliners.** The same town, fee ranges and crowd, with a second pair of headliners of similar popularity, one fresh run with an empty cache (12 Qloo calls), compared with the saved Khruangbin and Japanese Breakfast draft. **Bar:** both groups fill, and at least 6 of the 10 acts differ from that draft. **The pair**, fixed by this rule before any search: the first of these, in this order, whose two acts both resolve on Qloo's search with a popularity within 0.NN of the mean of Khruangbin's and Japanese Breakfast's (read from the cache; the values are Qloo's and stay in .design/cheap-tests/): Fleet Foxes and Bon Iver; Alvvays and Big Thief; Turnstile and IDLES; Mitski and Beach House. Each pair checked costs two searches.
 
+**The pair, chosen by that rule on 2026-10-21 before the run:** Alvvays and Big Thief. Fleet Foxes and Bon Iver fell outside the window; 4 searches in all.
+
 **How.** The runs go through the agent offline with a memory cache (scripts/cheap-tests.ts): nothing is written to Redis and no saved build changes; afterwards Boise and the four towns are checked to replay the same ten acts. About 56 to 68 Qloo calls in all, one build at a time, plus the planner's model turns. Counts only in this file; names stay in .design/cheap-tests/.
 
 ## 22. Who decides what, and what a thin town gets
