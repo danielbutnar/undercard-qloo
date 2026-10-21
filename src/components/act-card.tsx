@@ -1,21 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import type { FeeBandId } from "@/lib/fee-bands";
-import { formatAffinity, formatPercentile } from "@/lib/format";
+import { ClimbArrow } from "@/components/chart/band-chart";
+import { Sleeve } from "@/components/chart/sleeve";
+import { ordinal } from "@/components/chart/words";
+import type { FeeBand } from "@/lib/fee-bands";
+import {
+  formatAffinity,
+  formatBandRange,
+  formatPercentile,
+} from "@/lib/format";
 import type { Act } from "@/lib/lineup";
+import { liftOf } from "@/lib/marks";
 import {
   UNAVAILABLE_REASON_IDS,
   UNAVAILABLE_REASONS,
   type UnavailableReason,
 } from "@/lib/unavailable";
+import type { Placed } from "@/lib/venue-switch";
 
-// Billing size follows the fee band, as on a printed bill: Mid acts set larger than Openers.
-const BILLING = {
-  mid: { name: "text-figure", figure: "text-band" },
-  opener: { name: "text-name", figure: "text-figure" },
-} satisfies Record<FeeBandId, { name: string; figure: string }>;
-
+/**
+ * An act's card, opened under its row on the chart: the climb drawn large with the venue whose
+ * fans lifted it, the words behind the row's marks (Why Boise), Qloo's affinity and popularity,
+ * the two genres it shares with the headliners, then Keep and Unavailable.
+ */
 export function ActCard({
   act,
   unavailable = false,
@@ -25,145 +33,192 @@ export function ActCard({
   city = "Boise",
   kept = false,
   onKeep,
+  place,
+  hue = null,
+  note,
+  band,
 }: {
   act: Act;
-  /** Stamped and printed in worn ink while its slot is refilled, or when no refill was found. */
+  /** Struck through while its slot is refilled, or when no refill was found. */
   unavailable?: boolean;
   disabled?: boolean;
   /** Called with the reason the buyer picks: a radius clause, routing or the fee. */
   onUnavailable?: (act: Act, reason: UnavailableReason) => void;
-  /** Shown as Close beside the name when the card is opened from the bill. */
+  /** Shown as Close beside the name when the card is opened from the chart. */
   onClose?: () => void;
   /** The festival's town, which names the Why line. */
   city?: string;
   /** The buyer keeps this act (M8c); a redraft refills every other slot. */
   kept?: boolean;
   onKeep?: (act: Act) => void;
+  /** Its place now and for the headliners alone, when the build tells. */
+  place?: Placed;
+  /** Its venue's colour on the chart. */
+  hue?: number | null;
+  /** Why Keep and Unavailable are missing, when they are. */
+  note?: string;
+  /** The act's fee range, lit on the popularity scale. */
+  band?: FeeBand;
 }) {
   const [asking, setAsking] = useState(false);
-  const billing = BILLING[act.band];
-  const ink = unavailable ? "text-muted" : "text-accent";
+  const lift = liftOf(act);
+  const popularity = Math.round(act.popularity * 100);
   return (
     <article
       aria-label={act.name}
-      className={`flex h-full flex-col gap-3 border-2 bg-surface p-3 ${unavailable ? "border-muted" : "border-rule"}`}
+      className={`card ${hue !== null ? `venue-${hue}` : ""} ${unavailable ? "card-gone" : ""}`}
     >
-      {unavailable && (
-        <p className="self-start rounded-sm border-2 border-danger px-2 font-display text-name font-extrabold uppercase text-danger">
-          Unavailable
-        </p>
-      )}
-      <div className="flex items-start justify-between gap-3">
-        <h4
-          className={`font-display font-extrabold uppercase ${billing.name} ${unavailable ? "text-muted" : ""}`}
-        >
-          {act.name}
-        </h4>
+      <div className="card-head">
+        <Sleeve
+          genres={act.sharedTags.map((tag) => tag.name)}
+          id={act.entityId}
+          className="card-sleeve"
+        />
+        <div className="min-w-0">
+          {unavailable && <p className="row-flag row-gone">Unavailable</p>}
+          <h4 className="card-name">{act.name}</h4>
+          <p className="card-venue">
+            <span className="card-swatch" aria-hidden />
+            {act.anchorVenue.name} fans like it
+          </p>
+        </div>
         {onClose && (
           <button
             type="button"
             onClick={onClose}
             aria-label="Close the card"
-            className="shrink-0 text-label text-ink underline underline-offset-2 hover:text-accent"
+            className="card-close"
           >
             Close
           </button>
         )}
       </div>
-      <dl className="flex flex-wrap gap-x-4 gap-y-2">
-        <div className="flex flex-col-reverse">
-          <dt className="text-label text-muted">Qloo affinity</dt>
-          <dd className={`font-semibold ${ink} ${billing.figure}`}>
-            {formatAffinity(act.affinity)}
-          </dd>
-        </div>
-        <div className="flex flex-col-reverse">
-          <dt className="text-label text-muted">Popularity</dt>
-          <dd className={`font-semibold ${ink} ${billing.figure}`}>
-            {formatPercentile(act.popularity)}
-          </dd>
-        </div>
-      </dl>
-      <p className={`text-label ${unavailable ? "text-muted" : ""}`}>
-        <span className="font-semibold">Why {city}: </span>
+      <div className="card-climb" aria-hidden>
+        <span className="card-place">
+          {place?.was
+            ? ordinal(place.was)
+            : lift?.kind === "new"
+              ? "outside"
+              : "–"}
+          <small>
+            {lift?.kind === "new" ? "the top 50" : "headliners' fans alone"}
+          </small>
+        </span>
+        <ClimbArrow
+          move={lift?.kind === "up" ? lift.places : null}
+          fresh={lift?.kind === "new"}
+          was={null}
+        />
+        <span className="card-place">
+          {place
+            ? ordinal(place.now)
+            : lift?.kind === "new"
+              ? ordinal(lift.top)
+              : "–"}
+          <small>with {act.anchorVenue.name}&apos;s fans</small>
+        </span>
+      </div>
+      <p className="card-why">
+        <strong>Why {city}: </strong>
         {act.reason}
       </p>
       {act.anchorVenue.kind && (
-        <p className="text-label text-muted">
+        <p className="card-kind">
           {act.anchorVenue.name} is {act.anchorVenue.kind}, not a club.
         </p>
       )}
-      <ul
-        aria-label="Tags shared with the headliners"
-        className="mt-auto flex flex-wrap gap-2"
-      >
+      <dl className="card-figures">
+        <div>
+          <dt>Qloo affinity</dt>
+          <dd>{formatAffinity(act.affinity)}</dd>
+        </div>
+        <div>
+          <dt>Popularity</dt>
+          <dd>{formatPercentile(act.popularity)}</dd>
+        </div>
+        <div className="card-pop" aria-hidden>
+          <span className="fee-track card-track">
+            {band && (
+              <span
+                className="fee-lit"
+                style={{
+                  left: `${band.minPopularity * 100}%`,
+                  width: `${(band.maxPopularity - band.minPopularity) * 100}%`,
+                }}
+              />
+            )}
+            <span className="card-pop-dot" style={{ left: `${popularity}%` }} />
+          </span>
+          <span className="card-pop-words">
+            {band
+              ? `popularity on Qloo, inside the ${band.id === "mid" ? "mid-size" : "opening"} fee range (${formatBandRange(band)})`
+              : "percentile on Qloo: it stands in for the fee"}
+          </span>
+        </div>
+      </dl>
+      <ul aria-label="Tags shared with the headliners" className="card-tags">
         {act.sharedTags.map((tag) => (
-          <li
-            key={tag.id}
-            className={`rounded-sm border px-2 text-label ${unavailable ? "border-muted text-muted" : "border-accent text-accent"}`}
-          >
-            {tag.name}
-          </li>
+          <li key={tag.id}>{tag.name}</li>
         ))}
       </ul>
-      {onKeep && !unavailable && !asking && (
-        <button
-          type="button"
-          aria-pressed={kept}
-          disabled={disabled}
-          onClick={() => onKeep(act)}
-          className="self-start rounded-sm border-2 border-accent px-3 py-0.5 text-label font-semibold text-accent hover:bg-accent hover:text-on-accent aria-pressed:bg-accent aria-pressed:text-on-accent disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          Keep
-        </button>
-      )}
-      {onUnavailable && !unavailable && !asking && (
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => setAsking(true)}
-          className="self-start text-label text-muted underline underline-offset-2 hover:text-danger disabled:cursor-not-allowed disabled:no-underline"
-        >
-          Unavailable
-        </button>
-      )}
-      {onUnavailable && !unavailable && asking && (
-        <div
-          role="group"
-          aria-labelledby={`why-${act.entityId}`}
-          className="flex flex-wrap items-center gap-2"
-        >
-          <p
-            id={`why-${act.entityId}`}
-            className="w-full text-label font-semibold"
-          >
-            Why is it unavailable?
-          </p>
-          {UNAVAILABLE_REASON_IDS.map((reason) => (
-            <button
-              key={reason}
-              type="button"
-              disabled={disabled}
-              onClick={() => {
-                setAsking(false);
-                onUnavailable(act, reason);
-              }}
-              className="rounded-sm border-2 border-danger px-2 text-label text-danger hover:bg-danger hover:text-on-accent disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {UNAVAILABLE_REASONS[reason].replace(/^./, (first) =>
-                first.toUpperCase(),
-              )}
-            </button>
-          ))}
+      {note && <p className="card-note">{note}</p>}
+      <div className="card-actions">
+        {onKeep && !unavailable && !asking && (
           <button
             type="button"
-            onClick={() => setAsking(false)}
-            className="text-label text-muted underline underline-offset-2 hover:text-ink"
+            aria-pressed={kept}
+            disabled={disabled}
+            onClick={() => onKeep(act)}
+            className="tool card-keep"
           >
-            Cancel
+            Keep
           </button>
-        </div>
-      )}
+        )}
+        {onUnavailable && !unavailable && !asking && (
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => setAsking(true)}
+            className="link card-unavailable"
+          >
+            Unavailable
+          </button>
+        )}
+        {onUnavailable && !unavailable && asking && (
+          <div
+            role="group"
+            aria-labelledby={`why-${act.entityId}`}
+            className="card-reasons"
+          >
+            <p id={`why-${act.entityId}`} className="card-reasons-title">
+              Why is it unavailable?
+            </p>
+            {UNAVAILABLE_REASON_IDS.map((reason) => (
+              <button
+                key={reason}
+                type="button"
+                disabled={disabled}
+                onClick={() => {
+                  setAsking(false);
+                  onUnavailable(act, reason);
+                }}
+                className="tool card-reason"
+              >
+                {UNAVAILABLE_REASONS[reason].replace(/^./, (first) =>
+                  first.toUpperCase(),
+                )}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setAsking(false)}
+              className="link"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+      </div>
     </article>
   );
 }

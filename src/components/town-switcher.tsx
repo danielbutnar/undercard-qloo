@@ -2,8 +2,8 @@ import Link from "next/link";
 import { TOWNS, townHref } from "@/lib/towns";
 
 /**
- * The same brief, other towns: a link to each town on show, one click from the bill. The
- * headliners stay; each town's own rooms draft its undercard.
+ * The same brief, other towns: a link to each town on show, one click from the chart. The
+ * headliners stay; each town's own venues draft its undercard.
  */
 export function TownSwitcher({
   current,
@@ -15,32 +15,26 @@ export function TownSwitcher({
   const towns = TOWNS.filter((town) => onShow.includes(town.slug));
   if (towns.length < 2) return null;
   return (
-    <nav
-      aria-label="Same brief, other towns"
-      className="flex flex-col gap-1 border-2 border-rule bg-surface p-4"
-    >
-      <h2 className="text-body font-bold">Same brief, other towns</h2>
-      <p className="text-label text-muted">
+    <nav aria-label="Same brief, other towns" className="panel">
+      <h2 className="panel-title">Same brief, other towns</h2>
+      <p className="panel-sub">
         The same headliners and fee ranges, with each town&apos;s own venues
         drafting the undercard.
       </p>
-      <ul className="flex flex-wrap gap-x-4 gap-y-1">
+      <ul className="town-links">
         {towns.map((town) => (
           <li key={town.slug}>
             <Link
               href={townHref(town.slug)}
               aria-current={town.slug === current ? "page" : undefined}
-              className="text-body font-semibold underline underline-offset-2 hover:text-accent aria-[current=page]:text-accent aria-[current=page]:no-underline"
+              className="town-link"
             >
               {town.festival.city}
             </Link>
           </li>
         ))}
       </ul>
-      <Link
-        href="/your-festival"
-        className="mt-1 self-start text-label font-semibold underline underline-offset-2 hover:text-accent"
-      >
+      <Link href="/your-festival" className="link mt-3 inline-block text-label">
         Or draft one for your own town and headliners
       </Link>
     </nav>

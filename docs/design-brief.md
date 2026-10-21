@@ -1,158 +1,186 @@
-# Design brief: Undercard
+# Design brief: Undercard, the weekly chart
 
-Pass 1 of the frontend-anti-slop skill. Status: **approved on 2026-10-15**; section 5 redrawn from the approved draft-bill mockup on 2026-10-17 (M4b).
+Final design round, direction 1 (branch final-chart, 2026-10-18). This replaces the brief of 2026-10-15, whose letterpress show bill is now banned as C1 in docs/design-bans.md.
 
 ## 1. Direction
 
-A letterpress show bill from a Western print shop: wood-type names billed by size, black and blue ink on kraft chipboard, with the printer's job ticket pinned beside the proof.
+A printed weekly singles chart: this week's place, last week's place and the arrow between them, the climbers and the new entries, each record's cover beside its title, and the label column naming where it came from.
 
-**Why this direction.** A talent buyer's finished product is the bill, and on a bill an act's fee band already shows as its type size: Mid acts print larger than Openers. That gives the board and the Poster one visual language. The second ink has a job: everything Qloo returned (affinity, popularity, the call trace) prints in blue, everything else in black, so "LLM only" visibly loses its blue.
+Why this direction: a chart is where the music business already reads who is moving, and here every move is a town venue's crowd lifting an act, so the climb reads as booking evidence at a glance. The cover column gives every unknown name a picture without a photo: each act's sleeve is drawn from its two genre words and coloured by the venue that lifted it, which answers Daniel's C2 ("a lot of words … without pictures"). The label column becomes the venue's colour tab, so the reason is a mark on the row and its words are one tap away on the act's card.
 
 ## 2. Tokens
 
+`@theme` in src/app/globals.css; components use these tokens only.
+
 | Token | Hex | Use |
 |---|---|---|
-| page | `#CDB38A` | kraft chipboard page |
-| surface | `#E4D3B2` | lighter poster stock: act cards, the trace (job ticket), inputs |
-| border | `#231B14` | ink rules: 2px around cards and panels |
-| text | `#1C1611` | black ink |
-| muted | `#54412F` | worn ink: labels, empty slots, older trace rows |
-| accent | `#1F3F8C` | blue second ink: Qloo data, the trace, the Build button |
-| on-accent | `#F1E5CD` | text on blue or red fills |
-| danger | `#801B12` | red stamp ink: "Unavailable", "No Qloo data", rate-limit errors |
+| page | #FF3B2A | the red page, the dominant colour |
+| page-hot / page-deep | #FF6B4A / #F03222 | the stage light (top left) and the shade (bottom right) in the page's radial gradients, over a 9 px halftone |
+| surface | #FFFFFF | the chart's rows, cards and panels (pure white: never cream) |
+| ink / rule / on-page | #0B0B0C | all text on red, every border and hard shadow |
+| muted | #4A4F57 | secondary text on white only, never on red |
+| accent / on-accent | #FFD60A / #0B0B0C | the one sharp accent: Watch, Skip, new entries, kept acts, what-ifs, shared acts |
+| up | #FF3B2A | the bar a counted result must reach (method page) |
+| danger | #B3261E | Unavailable, errors, "No Qloo data" |
+| quiet | #E9EAEC | blank sleeves, off switches |
+| venue-0 … venue-5 | #1D4ED8, #22C3E6, #9BD13B, #B5175F, #0E7A50, #F2B84B | one per venue the agent read (most acts lifted first, src/lib/venue-colours.ts), with on-venue text #FFFFFF / #0B0B0C / #0B0B0C / #FFFFFF / #FFFFFF / #0B0B0C |
 
-`node scripts/design-check.mjs contrast` output:
+`node scripts/design-check.mjs contrast …` on every text pair:
 
-```text
-#1C1611 on #CDB38A: 8.88:1 PASS (needs 4.5:1)
-#1C1611 on #E4D3B2: 12.16:1 PASS (needs 4.5:1)
-#54412F on #CDB38A: 4.79:1 PASS (needs 4.5:1)
-#54412F on #E4D3B2: 6.56:1 PASS (needs 4.5:1)
-#1F3F8C on #CDB38A: 4.85:1 PASS (needs 4.5:1)
-#1F3F8C on #E4D3B2: 6.64:1 PASS (needs 4.5:1)
-#F1E5CD on #1F3F8C: 7.84:1 PASS (needs 4.5:1)
-#801B12 on #CDB38A: 5.00:1 PASS (needs 4.5:1)
-#801B12 on #E4D3B2: 6.84:1 PASS (needs 4.5:1)
-#F1E5CD on #801B12: 8.08:1 PASS (needs 4.5:1)
-#231B14 on #CDB38A: 8.41:1 PASS (needs 3:1, large text or UI)
 ```
+#0b0b0c on #ff3b2a: 5.54:1 PASS (needs 4.5:1)
+#0b0b0c on #ff6b4a: 6.98:1 PASS (needs 4.5:1)
+#0b0b0c on #f03222: 4.86:1 PASS (needs 4.5:1)
+#0b0b0c on #ffffff: 19.67:1 PASS (needs 4.5:1)
+#4a4f57 on #ffffff: 8.24:1 PASS (needs 4.5:1)
+#0b0b0c on #ffd60a: 13.94:1 PASS (needs 4.5:1)
+#ffd60a on #0b0b0c: 13.94:1 PASS (needs 4.5:1)
+#ffffff on #0b0b0c: 19.67:1 PASS (needs 4.5:1)
+#b3261e on #ffffff: 6.54:1 PASS (needs 4.5:1)
+#ffffff on #1d4ed8: 6.70:1 PASS (needs 4.5:1)
+#0b0b0c on #22c3e6: 9.38:1 PASS (needs 4.5:1)
+#0b0b0c on #9bd13b: 10.85:1 PASS (needs 4.5:1)
+#ffffff on #b5175f: 6.46:1 PASS (needs 4.5:1)
+#ffffff on #0e7a50: 5.36:1 PASS (needs 4.5:1)
+#0b0b0c on #f2b84b: 10.99:1 PASS (needs 4.5:1)
+#0b0b0c on #e9eaec: 16.34:1 PASS (needs 4.5:1)
+#4a4f57 on #e9eaec: 6.85:1 PASS (needs 4.5:1)
+#1d4ed8 on #ffffff: 6.70:1 PASS (needs 3:1, large text or UI)
+```
+
+The first run had #E2261A for the shade, at 4.24:1 under ink; it was lightened to #F03222 so text that lands on the bottom-right shade still passes.
 
 ## 3. Type
 
-- **Display:** Big Shoulders, weight 800, set in capitals like wood type. Festival name, headliners, band names, act names. (Google Fonts merged Big Shoulders Display into Big Shoulders; its optical-size axis gives the display cut at these sizes.)
-- **Body:** Libre Franklin, weights 400 and 600. Labels, the Why Boise line, tags, the trace. Large standalone numbers use proportional figures; tabular figures only where numbers align in a column (trace result counts), per the dataviz skill.
-- Request parameters in the trace are real code, so they sit in `<code>` in the body face, not a monospace face.
-- Scale (px): 16 · 18 · 22 · 28 · 36 · 48 · 72. Body copy 18, labels and tags 16, Opener act names 22, key numbers 28 (Opener) and 36 (Mid), band names 36, festival name 48, headliners 72 (36 once the board has acts, so the Qloo numbers carry the frame).
+- Display: **Anton** (Google Fonts, 400): the chart's places, act names, headings, the headline. A printed chart sets its numbers in a tall condensed gothic; the places run 44 px on the chart, 28 px during Watch, 34 px on the card.
+- Body: **Schibsted Grotesk** (Google Fonts, variable): everything read, at 500, 600, 700 and 800. A news face, for a chart page.
+- Scale: 16 (label), 18 (body), 22–26 (names), 30–34 (band and panel titles, figures), 46–64 (headline, festival, page titles).
+- Not Archivo (the lab's chart), not Big Shoulders (C1), not Inter, Roboto, Geist or Space Grotesk.
 
 ## 4. Shape
 
-- Radius: `--radius-sm: 2px` for buttons, chips and inputs (a 44px button stays far under 22px); cards and panels are square-cut stock, 0px.
-- Borders, not shadows: 2px ink rules around cards and panels, 1px muted rules between trace rows. No shadows.
-- Elevation: none. The Poster is its own full screen, not a floating layer.
-- Spacing scale (px): 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64. Page gutter 24 at 1440 wide, 16 on mobile.
+- Radius 3 px everywhere (a button's radius stays far under half its height; no pills).
+- Borders: 2–3 px ink. One elevation: a hard 6 px offset ink shadow on Watch, the edition banner, the card and the storyboard panels. No blur, no glass, no glow.
+- Spacing: 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 28, 32.
+- Motion: rows glide to new places (FLIP, Web Animations), the lineup prints in 0.12 s apart; nothing scales on hover; everything respects prefers-reduced-motion.
 
 ## 5. Screens (1440x810, the video viewport)
 
-Redrawn on 2026-10-17 from the approved draft-bill mockup, for M4b. Tokens and type are unchanged: every size below comes from the scale in section 3. There is one route, `/`, and it opens on the latest saved build, set as the buyer's draft bill. `[Q]` marks Qloo output, printed in blue ink. Names below are the synthetic ones the design shots use.
+First screen. Qloo's output (each act's place, its old place and the climb) is the chart itself, the first thing past the headline. The wireframes use placeholder acts and illustrative numbers: no Qloo data is kept in the repository.
 
-**Step 1: the draft bill loads.** `[Q]` The eye lands on the bill: the headliners, then the Mid acts and their blue room marks. The key sits beside the first mark, so the marks are explained where they are first seen.
-
-```text
-+------------------------------------------------------------------------------------------------+
-| UNDERCARD  Booking desk · Sagebrush Sound    [ With Qloo: the agent's bill | Without Qloo: the model's picks ] [ Export CSV ]
-+------------------------------------------------------------------------------------------------+
-| +- bill sheet: surface, 2px rule, inner 1px rule ------------------------+  +- rooms ------------+
-| | Boise, Idaho · 3,000 capacity · crowd aged 25–34   [UNDERCARD DRAFT ·  |  | BOISE CROWDS BEHIND |
-| |                                                      NOT ANNOUNCED] red |  | THIS BILL      22px |
-| |                          SAGEBRUSH SOUND                          36px  |  | Qloo listed 8 Boise |
-| |               KHRUANGBIN · JAPANESE BREAKFAST                     48px  |  | live-music places;  |
-| |        Headliners booked. The agent drafted the undercard below.  16px  |  | the agent tested 3. |
-| | ----------------------------------------------------------------------- |  | A room is a crowd   |
-| |  MID  4 slots · the buyer's fee band, in Qloo popularity percentiles: 80th–92nd |  | here, not a stage.  |
-| |                                                                         |  |                     |
-| |     HOLLOW PINES   36px   | [The Lantern Room +11] Qloo ranks artists   |  | The Lantern Room  7 |
-| |  [The Lantern Room +11]   | by how much the headliners' fans like them. |  | lifted 7 acts  48px |
-| |          [Q] 22px         | Adding The Lantern Room's crowd moves this  |  | Fort Street       3 |
-| |                           | act up 11 places. Qloo: data on what people |  | Ballroom (FSB)      |
-| |                           | like, across music, places and more.  16px  |  | Cottonwood Social 0 |
-| |   MARISOL VEY        THE DITCH RIDERS        KESTREL & BLOOM            |  | Hall: lifted none   |
-| |    [FSB +7]       [The Lantern Room +26]  [The Lantern Room +9]         |  +---------------------+
-| | ----------------------------------------------------------------------- |  [ WATCH THE AGENT     ]
-| |  OPENER  6 slots · the buyer's fee band, in Qloo popularity percentiles: 55th–80th  [ BUILD IT       28px ]
-| |    JUNIPER STATIC    OWYHEE DRIFT    SALTGRASS    TEDDY ARCANA    28px  |  Replays the saved build:
-| |         LOW BENCH CHOIR [The Lantern Room new]    CASS WREN             |  12 Qloo calls, then the
-| | ----------------------------------------------------------------------- |  bill reprints.
-| | Drafted by the agent from 12 Qloo calls · saved Oct 15, 14:02 UTC ·     |  Run the agent live instead
-| | click an act to open its card, where you can mark it unavailable        |
-| +-------------------------------------------------------------------------+
+```
++--------------------------------------------------------------------------------------------+
+| [|||] Undercard                                                 How it works  Your festival |
+|                                   |                                                        |
+| A festival lineup,                | Sagebrush Sound                   [Draft, not announced]|
+| drafted from Boise's              | Boise, Idaho · 3,000 capacity · crowd aged 25-34        |
+| own music venues.                 | [quilt] Khruangbin        | [quilt] Japanese Breakfast  |
+| Undercard is an AI agent: it      | The headliners, two bands, are already booked · ...    |
+| drafts the acts ... venues like.  | MID-SIZE ACTS ####  fee ▭▮ 80th-92nd [?] | OPENING ACTS ###### fee 55th-80th [?] |
+| [▶ Watch how it picked these acts]| was 20th ━+12▶ 8 [sleeve] Act A  |V| was 30th ━━+20▶ 10 [sleeve] Act E |V|
+| |||||||||||| Replays its 12 Qloo  |           Genre · Genre       |1|           Genre · Genre        |0|
+| Qloo is a taste-data service ...  | was 14th ━+6▶  8 [sleeve] Act B  |V| ...                              |V|
+| +---------------------------+     | ...                                     | was 40th ━━━━+25▶ 15 Act F         |
+| | Switch a venue off        |     |                                         | ┄┄┄NEW▶ 30 Act G                  |
+| | [■ Venue 1  7 acts lifted (o)] | [With Qloo|Without Qloo] [Running order] [Export CSV] [Compare with another town] |
+| | [■ Venue 2  3 acts lifted (o)] | Drafted by the AI agent from 12 Qloo calls · saved <date> UTC |
++--------------------------------------------------------------------------------------------+
 ```
 
-- **The bill** is the sheet from the Poster, now the board. Fact line 16px, red stamp 22px, festival 36px, headliners 48px on one line, band names 22px, Mid act names 36px, Opener act names 28px, all Big Shoulders 800. Each band stays a region of `<article>`s, so the tests' selectors hold.
-- **The mark** under each act: the room's short name (its initials when the name has three or more words, the full name otherwise) and the places it gained, "+11", in 22px blue Big Shoulders (the face has no ▲, and its ↑ sets too small to read) inside a 2px blue rule. An act that was outside the headliners-only top 50 reads "new" instead of a count. The places come from the act's Why Boise line, so the build saved on Oct 15 needs no new field.
-- **The key** sits beside the first Mid act, the two on a row of their own, in 16px Libre Franklin: what the first mark means, what "new" means when an act on the bill carries it, and what Qloo is (what people like, across music, places and more). It stays in that slot while the act is refilled, so nothing jumps.
-- **Each act is a button:** a pointer, an underline on hover and on keyboard focus, and the act's name as its accessible name. No hover-scale (B7).
-- **The rooms rail** counts what each tested room lifted, a 48px blue number per room and a muted 0 for a room that lifted none, and says the rooms are crowds, not stages. While the trace is in use (streaming, listing calls, refilling or showing a refusal) it compacts to names and 28px counts, so the trace stays in frame at 810 tall.
-- **The rail** is 336px, so "Watch the agent build it" sets on one line at 28px.
-- Presale is off the first screen; the component and the seed stay.
+Watch, one edition (Qloo's output is the re-sorted chart and the banner's call line):
 
-**Step 2: "Watch the agent build it".** `[Q]` The trace panel opens in the rail under the rooms and replays the saved build's calls, the newest row with the 4px blue rule. The bill's undercard clears to dashed open slots while the calls stream. When the lineup lands, the acts print in one at a time (0.38 s each, 0.12 s apart), each with its mark, and the rooms' counts tick up with them. This is the screen's one motion moment; under `prefers-reduced-motion` the end state shows at once. Afterwards the panel reads "Replayed the build saved Oct 15, 14:02 UTC: 12 Qloo calls, served from the cache.", and "Run the agent live instead" offers a fresh, rate-limited run.
-
-```text
-+- rooms: counts tick 0 -> 7 -----+
-+- trace -------------------------+
-| [ WATCH THE AGENT BUILD IT ]    |
-| QLOO CALLS             9 of 12  |
-| 8. Mid-band artists for the  50 |
-|    headliners and The Lantern…  |
-|| 9. Mid-band artists for the 50 |  <- newest row, blue rule [Q]
-||   headliners and FSB…          |
-+---------------------------------+
+```
+| Sagebrush Sound                                                                    |
+| +-[venue colour]--------------------------------------------------------------+   |
+| | + <venue>'s fans                                           ||||||||||||  [Skip] |   |
+| | The chart re-sorts with this venue's fans added: N acts climb onto the lineup.|  |
+| | Qloo call n of 12: Opener-band artists for the headliners and <venue> · count  | |
+| | The AI agent: <the planner's own line, said before this call>                 |  |
+| +-----------------------------------------------------------------------------+   |
+| MID-SIZE ACTS                         | OPENING ACTS                               |
+| 1 [ ] Act H                           | 1 [ ] Act K                                |
+| 3 ━+9▶ Act J (was 12th, not booked)   | 4 ━━+20▶ [sleeve] Act E [On the lineup]   |
+| 6 ━+6▶ [sleeve] Act B [On the lineup] | ...  15 ━━━━+25▶ Act F                    |
 ```
 
-**Step 3: open an act.** A click on an act opens its card at the top of the rail, in place of the rooms: the existing act card with the name, Qloo affinity and popularity `[Q]` (36px on a Mid card, 28px on an Opener card), the Why Boise line, two shared tags and "Unavailable". "Close", inside the card beside the name, brings the rooms back. On a phone the card opens under the bill and takes focus.
+Act card (opens under its row): sleeve, name, "<venue> fans like it"; "<was> ━━+N▶ <now>"; Why Boise; affinity and popularity (with the popularity on Qloo's scale); two genre tags; Keep, Unavailable (radius clause, routing, fee).
 
-**Step 4: "Unavailable".** The card and the act on the bill take the red "Unavailable" stamp and muted ink. `[Q]` The refill call joins the trace with the blue rule, and the replacement prints into the same slot with its mark; the card closes.
+What-if (a venue off): a yellow dashed line over the chart ("What if that venue's fans weren't asked? … no new Qloo call. All venues on"); the chart re-forms (acts re-attributed to the venues left on, new acts in, open slots dashed); the switch shows "4 of 10 slots filled".
 
-**Step 5: "Without Qloo: the model's picks".** The sheet reprints with the model's ten picks under the same headliners, in black ink only, three across at 1400px and wider, two below. A red "No Qloo data" stamp replaces the draft stamp. Each pick shows its name (28px), the model's own reason (16px), and two plain facts: "No Boise room · fee band not checked". There is no score or tally. The rail says what the model got (the same brief, no tools) in place of the rooms and the trace. "With Qloo: the agent's bill" brings back the blue, and "Export CSV" in the bar downloads the agent's bill.
+Without Qloo: the same masthead; "THE MODEL'S PICKS" with a red "No Qloo data" stamp; ten picks with blank grey sleeves, no places, no climbs, no venue colours, each "No Boise venue · fee range not checked".
 
-**No saved build, or the store can't be reached.** The bill loads in its own design, never an error: the festival, the headliners and both tiers with their slots open in dashed outlines, "No undercard drafted yet." in the footer, and "Build undercard" in the rail (and under the headliners on a phone). The rooms rail waits for rooms to count. Once a build starts, the trace streams and the acts print in.
+Compare: "Boise against Austin", the same-headliners sentence, two overlapping circles (7 · 3 · 7), two charts with sleeves, shared acts in yellow marked "On both lineups".
 
-**1280x800 (a judge's laptop):** the same layout; the bill fills the left column and the rail stays 336px.
+Method: "How it works", the method as a four-panel storyboard (the headliners' fans → + one venue's fans → the rule → the lineup) drawn with the chart's own rows, "Who decides what" as three drawn cards, the evidence with each counted result as dots against its bar, verdict marks on the objections, the limits, the video slot.
 
-**Mobile (390 wide):** one column. The bar wraps (the wordmark, then the switch and Export CSV), then the bill: "Watch the agent build it" sits right under the headliners on phones only (the rail's copy shows from 1024px up), then the tiers with the key under the first act, then the rooms and the trace. An opened card sits under the bill and takes focus.
+Your festival: the two headliner fields, each with a sleeve that redraws as you type; the 29 checked towns as a grid of buttons; another town by name; the live-run limits.
 
 ## 6. Avoided, and what instead
 
-| Ban | Where this kind of app usually shows it | What this design does instead |
+| Ban | What this kind of app would show | What this design does instead |
 |---|---|---|
-| A1 Cream page | A warm "editorial" off-white page | Kraft chipboard `#CDB38A`, a mid-tone (lowest channel 0.54), with darker ink |
-| A2 Italic accents | "Build your *perfect* lineup" headings | No italics; emphasis comes from type size and the blue ink |
-| A3 01 / 02 / 03 labels | Numbered "how it works" steps | No step labels; the trace numbers calls 1, 2, 3 because the count against the 12-call cap is data |
-| A4 Monospace labels | Metric labels and IDs in a mono face | Labels in Libre Franklin; only real request parameters sit in `<code>` |
-| A5 Pill buttons | Rounded "Build" and "Export" buttons | 2px-radius cut-card buttons with a 2px ink rule |
-| B1 Purple gradients | An "AI" gradient on the build button | Flat ink; no gradients anywhere |
-| B2 Inter or Geist only | The scaffold's Geist | Big Shoulders with Libre Franklin |
-| B3 Emoji | A ticket or music-note emoji per card | Text labels only; no icons needed |
-| B4 Sparkles for AI | A sparkle on "Build undercard" | The agent shows itself through its Qloo calls in the trace |
-| B5 Glass cards | Blurred cards over a photo | Opaque stock with ink rules; no photos (SPEC.md section 7) |
-| B6 Eyebrow labels | "HEADLINERS" in small spaced caps | Band names are 36px display words; small labels are sentence case at 16px with no tracking |
-| B7 Hover scale | Cards that grow on hover | Hover reverses the ink: a button fills blue, a card's rule thickens to 4px |
-| B8 Placeholder copy | "Artist Name", "Venue" | A named fictional festival and named synthetic acts and venues |
-| B9 Centered hero | A landing page before the tool | The app opens on the working board; no landing page |
-| B10 KPI cards | Capacity, age, sold and days as four tiles | One typeset line of facts and one sparkline with one number |
-| B11 Neon on black | A "nightlife" dark theme | A light kraft page with dark ink |
-| B12 Low contrast | Muted gray labels | Every pair above passes; muted ink is 0.NN:1 on the page |
-
-Checked against the lists: kraft with two inks is neither pure white with black buttons nor a dark page with neon accents.
+| A1 cream page | an off-white "paper" chart | a red page with stage light and halftone; white only for the chart's rows |
+| A2 italic accent words | an italic word in the headline | weight and size jumps only (Anton against Schibsted 500) |
+| A3 01/02/03 labels | numbered method steps | the storyboard's steps are numbered tiles inside one picture, not section labels |
+| A4 monospace labels | mono for parameters and counts | Schibsted for parameters; Anton for numbers |
+| A5 pills | pill toggles and chips | 3 px corners; the venue switch is a square rocker |
+| B1 purple gradients | an indigo AI gradient | red and yellow; one mockup's periwinkle page was rejected (C6) |
+| B2 default fonts | Inter | Anton + Schibsted Grotesk |
+| B3/B4 emoji, sparkles | a sparkle for "AI agent" | the words "AI agent"; drawn bars and checks for the agent, Qloo and the rule |
+| B5 glass | blurred cards over the gradient | opaque white panels with hard ink shadows |
+| B6 eyebrows | "WEEKLY CHART" over the headline | none; band names are full-size headings |
+| B7 hover-scale | rows that grow on hover | an underline on the act's name; buttons shift 2 px with their shadow |
+| B9 hero with twin buttons | a centred headline and two CTAs | one yellow Watch button beside the chart |
+| B10 feature cards, KPI row | "12 calls · 10 acts · 3 venues" tiles | the counts live where they belong: ticks under Watch, pips by each band, counts on the switch |
+| B11 neon on near-black | a dark "music app" with glowing accents | a light-on-red chart; the brainstorm's dark teal default was rejected (C5) |
+| B12 low contrast | grey text on red | muted grey only on white; every text pair above passes |
+| C1 letterpress bill | kraft, wood type, a centred sheet | a chart with drawn covers on a red page |
+| C2 words without pictures | names as text | a sleeve per act, colour per venue, arrows for climbs, the fee range as a scale |
+| C3 how it works in words | paragraphs | a storyboard, three drawn cards, results as dots |
+| C4 nothing catches the eye | a calm table | the red page, the yellow Watch, and Watch itself, which re-sorts the chart venue by venue |
 
 ## 7. Video legibility
 
-- No text under 16px at 1440 wide; trace parameters are 16px too.
-- Key numbers: affinity and popularity 36px on Mid cards and 28px on Opener cards; tickets sold 28px; trace result counts 28px.
+At 1440 wide no text is under 16 px: the climb arrows' "+N", the vertical venue tabs, Watch's flags and the method's result chips are set at 16 px bold (during Watch the venue tab is colour alone, because the banner names the venue). Only the phone's stamp drops to 14 px. Key numbers: places 44 px (28 px during Watch), the card's figures 34 px, the trace's result counts 28 px.
 
 ## 8. Couldn't confirm
 
-- Qloo brand guidelines: RULES.md links none, and I did not search for them. The blue ink is this product's color, not Qloo's.
-- Resolved in Pass 2: `next/font/google` serves the family as Big Shoulders (Big Shoulders Display no longer exists there). next/font warns it has no fallback metrics for it; harmless.
-- Resolved in Pass 2: six Opener cards fit across 1440 beside a 360px trace column, but at 810 tall their Why Boise lines and tags fall below the fold on the filled board; the names and Qloo numbers stay in frame.
-- How kraft reads after video compression: checked on the M5 render.
+- Whether Qloo's terms allow showing its artist images. One Qloo call on 2026-10-18 found `properties.image.url` on images.qloo.com for 3 of 3 artists, but the app's cache drops the field and showing them would need new Qloo calls per act, so no photos are shown. Looked at: Qloo's hackathon developer guide (no mention of images) and qloo.com/legal/terms-of-use (no mention of images; the API's additional terms sit behind a client login). RULES.md question 5 is still open.
+- A real screen reader pass (NVDA or VoiceOver) on the new screens: not done; the accessibility tree was checked through the unit and e2e tests only.
+- Rendering in Safari and on real phones: checked in Chromium only, at 390x844, 1280x800 and 1440x810.
+- Contrast over the page's gradient is checked at its token colours, not at every pixel of the blend.
+
+## 9. The brainstorm (final round, 2026-10-18)
+
+Eight subagents, each with its own seed, mocked up five first screens and three versions of Watch on the real Boise build; their stills were checked against the bans and the gates. The build takes the chart sheet's palette, type and arrows, the sleeves mockup's headline, layout and drawn covers, and the editions Watch with the countdown's last move (the booked acts dropping into their slots as the lineup prints back).
+
+| Idea | Verdict |
+|---|---|
+| First screen 1, the chart sheet: red page, Anton numerals, arrows sized to the climb, venue tabs, "How an act gets on" as three pictures | Partly built: its palette, type, arrows and tabs won, but it led with the product's name rather than "a festival lineup", and its acts had no pictures |
+| First screen 2, the climb lines: a bump chart from "headliners' fans alone" to "with a venue's fans" on deep green | Lost: the most visual climb, but at a glance it reads as an analytics chart rather than a lineup, its names were small, and its teal was the brainstorm's default (C5) |
+| First screen 3, climber of the week: one giant "+30" arrow over a compact chart, yellow page | Lost: one artist's arrow reads as that artist's stats rather than a festival lineup, and no act showed on a phone's first screen |
+| First screen 4, the venues' editions: the venues as big record sleeves that switch on and off, over the chart | Lost: records read as albums (artists), not venues, and its periwinkle page sits next to the banned indigo look (C6) |
+| First screen 5, chart with sleeves: "A festival lineup, drafted from Boise's own music venues.", a drawn sleeve per act, the headliners as samplers | Partly built: its headline, layout and sleeves won; its small house-shaped climb badges and orange-on-brown palette lost to the chart sheet's numerals, arrows and red |
+| Watch 1, each venue prints a new edition: the chart re-sorts per Qloo result in the venue's colour, new entries rise in, booked acts lock | Built: it replays the agent's real order, shows that Venue 166 lifted nothing, and ends on the lineup |
+| Watch 2, the lines climb: a bump chart grows one column per venue | Lost: beautiful, but dense lines are hard to read at video size and little changes in its first 4 seconds |
+| Watch 3, the chart countdown: acts revealed one by one, smallest climb to biggest, dropping into their slots | Lost: it reorders the acts instead of replaying the agent's order and hides the venue that lifted nothing; its drop-into-the-slot ending was kept |
+
+## 10. Gates (2026-10-18)
+
+The M6q lay-reader prompt isn't kept in the repository, so the prompts below were written for this round; both readers were fresh subagents shown only the screenshots, on the quickest model.
+
+- Squint test, shown only the 1440x810 first screen at a third of its size: "In one sentence, say what this product does and for whom. Then name the first thing you would click." Answer: an AI agent that drafts a festival's opening acts from what fans of a town's own venues like, for festival organisers; first click, the yellow Watch button. Pass.
+- Lay reader, shown the 1440 and 390 shots: "You have never worked in the music industry … What does this page do, and who is it for? Pick one act and explain why it is on the lineup. What would you click first? Anything you didn't understand?" Answer: it drafts the support acts for a Boise festival from what fans of Boise's own venues like, for festival organisers; one act explained by its old and new place in Qloo's ranking and the venue whose fans lifted it (its colour tab); first click Watch. It didn't understand the fee range bars or the slot squares, so both are now labelled in words ("Fee range, by popularity", "4 slots"). Pass.
+- Evidence section 25 found Watch under the headliners best in the old layout; this design moves it into the lead beside the chart, and both readers still named it as the first click.
+
+## 11. What I'd still improve
+
+- Give every row of Watch's editions a sleeve, not only the booked acts and the top rows, so the chart reads as pictures all the way down.
+- Show the 29 checked towns as dots on a map in Your festival, instead of a list of names.
+- Draw the headliners' samplers from their own genre words, as the acts' sleeves are, rather than from their names.
+- Add one more signature interaction of the product's own; this round spent its one on the venue switch.
+- Animate the method page's storyboard as a short loop of the same four panels.
+- Give the phone's first act more room: it fits on the first screen with about 4 px to spare at 390x844.
+- After a live run that isn't saved (a preview deployment), read each act's place from the run's own editions: today those rows show the climb but a dot for the place.
+- Check with a real screen reader, in Safari and on real phones.
+- Remove the components this direction no longer uses (the old bill, rooms rail, lineup board, festival header and lift climb, and the two tests that cover only the old bill), once Daniel agrees.

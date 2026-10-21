@@ -1,0 +1,383 @@
+/*
+ * The club marquees (design round, direction 4): the town's own clubs, the source of every pick,
+ * as facades with changeable-letter marquees; the festival's marquee is on top. Tokens live here
+ * only. Contrast (scripts/design-check.mjs): on-wall on wall 8.49, wall-soft on wall 6.48,
+ * letter on box 18.88, box-muted on box 7.46, on-wall on street 16.30, street-soft on street
+ * 11.61, on-wall on frame-a 4.67, letter on frame-b 10.13, on-wall on frame-c 6.39, letter on
+ * bulb 13.38.
+ */
+.lab-marquee {
+  --wall: #7a3a2e;
+  --wall-soft: #f3dcd5;
+  --street: #2a1d19;
+  --street-soft: #e8d6cf;
+  --on-wall: #ffffff;
+  --box: #ffffff;
+  --letter: #111111;
+  --box-muted: #555555;
+  --hair: #dedede;
+  --frame-a: #2f7f86;
+  --frame-b: #e3b93c;
+  --frame-c: #5f5f5f;
+  --bulb: #f5d77a;
+  --bulb-off: #8a5a4f;
+  --mortar: rgb(0 0 0 / 0.16);
+  --shade: rgb(0 0 0 / 0.3);
+
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--wall);
+  background-image:
+    linear-gradient(var(--mortar) 2px, transparent 2px),
+    linear-gradient(90deg, var(--mortar) 2px, transparent 2px);
+  background-size:
+    100% 26px,
+    56px 52px;
+  color: var(--on-wall);
+  font-family: var(--marquee-face), Arial, sans-serif;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.lab-marquee .top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px 32px;
+  padding: 14px 32px 12px;
+  background: var(--street);
+}
+.lab-marquee .firstLine {
+  max-width: 1100px;
+}
+.lab-marquee .example {
+  font-size: 16px;
+  color: var(--street-soft);
+}
+.lab-marquee .textLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.lab-marquee .textLink:focus-visible,
+.lab-marquee .watch:focus-visible,
+.lab-marquee .quiet:focus-visible {
+  outline: 3px solid var(--bulb);
+  outline-offset: 2px;
+}
+
+.lab-marquee .street {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px 32px 18px;
+}
+
+.lab-marquee .festival {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 18px 28px;
+  align-items: center;
+}
+.lab-marquee .box {
+  position: relative;
+  padding: 14px 22px 12px;
+  border: 10px solid var(--street);
+  background: var(--box);
+  color: var(--letter);
+  box-shadow: 0 6px 0 var(--shade);
+}
+.lab-marquee .bulbs {
+  position: absolute;
+  inset: -10px;
+  pointer-events: none;
+  background-image: radial-gradient(circle, var(--bulb) 3px, transparent 3.6px);
+  background-size: 22px 22px;
+  background-position: 5px 5px;
+  -webkit-mask:
+    linear-gradient(#000 0 0) top / 100% 10px no-repeat,
+    linear-gradient(#000 0 0) bottom / 100% 10px no-repeat,
+    linear-gradient(#000 0 0) left / 10px 100% no-repeat,
+    linear-gradient(#000 0 0) right / 10px 100% no-repeat;
+  mask:
+    linear-gradient(#000 0 0) top / 100% 10px no-repeat,
+    linear-gradient(#000 0 0) bottom / 100% 10px no-repeat,
+    linear-gradient(#000 0 0) left / 10px 100% no-repeat,
+    linear-gradient(#000 0 0) right / 10px 100% no-repeat;
+}
+.lab-marquee .letters {
+  display: block;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 1.02;
+}
+.lab-marquee .word {
+  white-space: nowrap;
+}
+.lab-marquee .letter {
+  display: inline-block;
+  white-space: pre;
+}
+.lab-marquee .letter.placed {
+  animation: lab-marquee-place 0.32s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes lab-marquee-place {
+  from {
+    opacity: 0;
+    transform: translateY(-0.45em) rotate(-6deg);
+  }
+}
+.lab-marquee .festName {
+  font-size: 54px;
+}
+.lab-marquee .festHeads {
+  margin-top: 4px;
+  font-size: 30px;
+}
+.lab-marquee .festLine {
+  margin-top: 6px;
+  font-size: 16px;
+  color: var(--box-muted);
+}
+.lab-marquee .stamp {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 0 8px;
+  border: 2px solid var(--letter);
+  color: var(--letter);
+  font-size: 16px;
+  font-weight: 700;
+}
+.lab-marquee .slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin-top: 6px;
+  font-size: 18px;
+  font-weight: 700;
+}
+.lab-marquee .side {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.lab-marquee .watch {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 18px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--bulb);
+  color: var(--letter);
+  font: inherit;
+  font-size: 21px;
+  line-height: 1.15;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 5px 0 var(--shade);
+}
+.lab-marquee .watch:hover {
+  background: var(--box);
+}
+.lab-marquee .watch:disabled {
+  cursor: wait;
+}
+.lab-marquee .watch svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+.lab-marquee .watchNote,
+.lab-marquee .note {
+  font-size: 16px;
+  color: var(--wall-soft);
+}
+.lab-marquee .now {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--bulb);
+}
+
+.lab-marquee .clubs {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+  gap: 18px 26px;
+  align-items: start;
+}
+.lab-marquee .club.wide {
+  grid-row: span 2;
+}
+.lab-marquee .club.wide .clubActs {
+  columns: 2;
+  column-gap: 28px;
+}
+.lab-marquee .clubAct {
+  break-inside: avoid;
+}
+.lab-marquee .club {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.lab-marquee .sign {
+  align-self: flex-start;
+  margin-left: 18px;
+  padding: 4px 14px;
+  background: var(--frame);
+  color: var(--sign-ink);
+  font-size: 20px;
+  line-height: 1.15;
+  font-weight: 800;
+  box-shadow: 0 4px 0 var(--shade);
+}
+.lab-marquee .club .box {
+  margin-top: 8px;
+  padding: 10px 16px 10px;
+  border-color: var(--frame);
+}
+.lab-marquee .club.testing .box {
+  outline: 4px solid var(--bulb);
+  outline-offset: 4px;
+}
+.lab-marquee .club.dark .bulbs {
+  background-image: radial-gradient(
+    circle,
+    var(--bulb-off) 3px,
+    transparent 3.6px
+  );
+}
+.lab-marquee .boxHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 16px;
+  color: var(--box-muted);
+}
+.lab-marquee .clubActs {
+  list-style: none;
+}
+.lab-marquee .clubAct {
+  padding: 5px 0 6px;
+  border-bottom: 1px solid var(--hair);
+}
+.lab-marquee .clubAct:last-child {
+  border-bottom: 0;
+}
+.lab-marquee .actLetters {
+  font-size: 26px;
+}
+.lab-marquee .actWhy {
+  font-size: 16px;
+  line-height: 1.25;
+  color: var(--box-muted);
+}
+.lab-marquee .actWhy strong {
+  color: var(--letter);
+}
+.lab-marquee .none {
+  padding: 10px 0;
+  font-size: 22px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--box-muted);
+}
+.lab-marquee .tested {
+  margin: 6px 0 0 18px;
+  font-size: 16px;
+  color: var(--wall-soft);
+}
+.lab-marquee .tested strong {
+  font-size: 22px;
+  color: var(--on-wall);
+}
+
+.lab-marquee .tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  padding: 12px 32px 16px;
+  background: var(--street);
+}
+.lab-marquee .switch {
+  display: flex;
+  flex-wrap: wrap;
+  border: 2px solid var(--street-soft);
+  border-radius: 3px;
+}
+.lab-marquee .switch button,
+.lab-marquee .quiet {
+  padding: 5px 12px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.lab-marquee .switch [aria-pressed="true"] {
+  background: var(--box);
+  color: var(--letter);
+}
+.lab-marquee .quiet {
+  border: 2px solid var(--street-soft);
+  border-radius: 3px;
+}
+.lab-marquee .quiet:hover {
+  background: var(--box);
+  color: var(--letter);
+}
+.lab-marquee .fee {
+  font-size: 16px;
+  color: var(--street-soft);
+}
+
+@media (max-width: 1023px) {
+  .lab-marquee .top,
+  .lab-marquee .street,
+  .lab-marquee .tools {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .lab-marquee .top {
+    flex-direction: column;
+  }
+  .lab-marquee .festival {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lab-marquee .festName {
+    font-size: 36px;
+  }
+  .lab-marquee .festHeads {
+    font-size: 22px;
+  }
+  .lab-marquee .clubs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lab-marquee .club.wide .clubActs {
+    columns: 1;
+  }
+  .lab-marquee .actLetters {
+    font-size: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-marquee .letter.placed {
+    animation: none;
+  }
+}

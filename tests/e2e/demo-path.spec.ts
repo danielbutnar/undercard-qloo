@@ -60,11 +60,23 @@ test.describe("demo path", () => {
     await expect(band(page, /^Opening acts/).getByRole("article")).toHaveCount(
       6,
     );
+    // The fee range is a scale on each band; its words are one tap away (the "?").
+    await expect(band(page, /^Mid/).getByText("80th–92nd")).toBeVisible();
+    await band(page, /^Mid/)
+      .getByRole("button", {
+        name: "What the fee range for mid-size acts means",
+      })
+      .click();
     await expect(
       page.getByText(
         "4 slots · fee range (Mid): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (80th–92nd percentile)",
       ),
     ).toBeVisible();
+    await band(page, /^Opening acts/)
+      .getByRole("button", {
+        name: "What the fee range for opening acts means",
+      })
+      .click();
     await expect(
       page.getByText(
         "6 slots · fee range (Opener): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (55th–80th percentile)",
@@ -75,13 +87,15 @@ test.describe("demo path", () => {
       await expect(act.getByRole("button")).toHaveCount(1);
     }
 
-    // Each row says what the old key did (M9d), Qloo is explained in the first line, and the
-    // rooms behind the bill.
+    // Each row draws its climb, never a bare +N: the old place sits with it. Qloo is explained
+    // once, beside Watch; then the venues behind the lineup.
     await expect(bill(page).getByRole("article").first()).toContainText(
-      /places higher in Qloo's ranking|to Qloo's top \d+/,
+      /was \d+(st|nd|rd|th)|not in top 50/,
     );
-    await expect(page.getByRole("banner")).toContainText(
-      "Qloo, a taste-data service that maps what fans of one artist, venue or film also like",
+    await expect(
+      page.getByRole("region", { name: "What Undercard does" }),
+    ).toContainText(
+      "Qloo is a taste-data service: it maps what fans of one artist, venue or film also like.",
     );
     await expect(rooms(page)).toContainText(
       "These venues stand for the town's taste: the acts won't necessarily play there.",
@@ -119,13 +133,15 @@ test.describe("demo path", () => {
     // lists re-sort with real moves; Skip goes straight to the lineup.
     if (!SYNTHETIC) {
       await expect(
-        bill(page).getByText(/^How the town's venue crowds move acts up/),
-      ).toBeVisible();
-      await expect(
         bill(page)
-          .getByText(/^\+\d+, /)
+          .getByText(/^\+ .+'s fans$/)
           .first(),
       ).toBeVisible({ timeout: REPLAY_TIMEOUT });
+      await expect(
+        bill(page)
+          .getByText(/^With .+'s fans added$/)
+          .first(),
+      ).toBeVisible();
       await bill(page)
         .getByRole("button", { name: "Skip to the lineup" })
         .click();
@@ -285,6 +301,48 @@ test.describe("demo path", () => {
       "act,band,affinity,popularity,anchor_venue,reason,replaces,unavailable_reason",
     );
     expect(lines).toHaveLength(11);
+  });
+
+  test("the venue switch: a venue off re-forms the lineup from the saved build, with no Qloo call; on again brings it back", async ({
+    page,
+  }) => {
+    const sent: string[] = [];
+    page.on("request", (request) => {
+      const path = new URL(request.url()).pathname;
+      if (path.startsWith("/api/") && path !== "/api/venue-switch")
+        sent.push(path);
+    });
+    await page.goto("/");
+    const names = () =>
+      bill(page)
+        .getByRole("article")
+        .evaluateAll((acts) =>
+          acts.map((act) => act.getAttribute("aria-label")),
+        );
+    const saved = await names();
+    expect(saved).toHaveLength(10);
+
+    const switcher = rooms(page);
+    const first = switcher
+      .getByRole("button", { name: /: on, \d+ acts? lifted$/ })
+      .first();
+    await expect(first).toBeEnabled({ timeout: 15_000 });
+    const venue = (await first.getAttribute("aria-label"))!.split(":")[0];
+    await first.click();
+
+    await expect(
+      switcher.getByRole("button", { name: `${venue}: off, lifted none` }),
+    ).toHaveAttribute("aria-pressed", "false");
+    await expect(bill(page).getByText(/^What if /)).toBeVisible();
+    const reformed = await names();
+    expect(reformed).not.toEqual(saved);
+    // A slot nothing qualifies for stays open rather than padded.
+    if (reformed.length < 10)
+      await expect(bill(page).getByText("Open slot").first()).toBeVisible();
+
+    await switcher.getByRole("button", { name: "All venues on" }).click();
+    await expect.poll(names).toEqual(saved);
+    expect(sent).toEqual([]);
   });
 
   test("first paint: the server sends the whole bill, on screen in under 5 seconds with no click", async ({

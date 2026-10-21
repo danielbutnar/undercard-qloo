@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { readFileSync } from "node:fs";
 import {
   cleanup,
   fireEvent,
@@ -18,11 +19,47 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+const NDJSON = { headers: { "content-type": "application/x-ndjson" } };
+
+// The server's read of where each mid-size act stands now and for the headliners alone
+// (src/lib/places.ts); the chart sorts a band by it, lowest place first.
+const idOf = (name: string) => acts.find((act) => act.name === name)!.entityId;
+const BILL = {
+  ...FIRST_BILL,
+  places: {
+    [idOf("Hollow Pines")]: { now: 1, was: 12 },
+    [idOf("The Ditch Riders")]: { now: 2, was: 28 },
+    [idOf("Marisol Vey")]: { now: 4, was: 11 },
+    [idOf("Kestrel & Bloom")]: { now: 6, was: 15 },
+  },
+};
+
 const open = () =>
-  render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />);
+  render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={BILL} />);
 const bill = () => screen.getByRole("region", { name: "Undercard draft" });
 const actButton = (name: string) =>
   within(bill()).getByRole("button", { name });
+const midNames = () =>
+  within(within(bill()).getByRole("region", { name: "Mid-size acts" }))
+    .getAllByRole("article")
+    .map((article) => article.getAttribute("aria-label"));
+
+// The chart's stylesheet as selector and declaration pairs. jsdom doesn't load it, so what a
+// stylesheet does for the act's name (the pointer, the underline) is read from the file.
+const CHART_CSS = readFileSync("src/components/chart/chart.css", "utf8");
+const rules = [
+  ...CHART_CSS.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(
+    /([^{}]+)\{([^{}]*)\}/g,
+  ),
+].map(([, selectors, body]) => ({
+  selectors: selectors.split(",").map((s) => s.trim().replace(/\s+/g, " ")),
+  body: body.replace(/\s+/g, " "),
+}));
+const declares = (selector: string, declaration: string) =>
+  rules.some(
+    (rule) =>
+      rule.selectors.includes(selector) && rule.body.includes(declaration),
+  );
 
 describe("an act on the bill", () => {
   it("is a button named by the act, with a pointer and an underline on hover and keyboard focus", () => {
@@ -30,34 +67,59 @@ describe("an act on the bill", () => {
     for (const act of acts) {
       const button = actButton(act.name);
       expect(button.getAttribute("aria-expanded")).toBe("false");
-      expect(button.className).toMatch(/\bcursor-pointer\b/);
-      expect(button.className).toMatch(/\bhover:underline\b/);
-      expect(button.className).toMatch(/\bfocus-visible:underline\b/);
+      expect(button.getAttribute("aria-controls")).toBeNull();
+      expect(button.closest("h3")).not.toBeNull();
       expect(button.className).not.toMatch(/scale/);
     }
+    const name = ".chart-app .row-name button";
+    expect(declares(name, "cursor: pointer")).toBe(true);
+    expect(declares(`${name}:hover`, "text-decoration: underline")).toBe(true);
+    expect(
+      declares(`${name}:focus-visible`, "text-decoration: underline"),
+    ).toBe(true);
+    // Nothing on the chart grows on hover.
+    expect(
+      rules.some(
+        (rule) =>
+          rule.selectors.some((selector) => selector.includes(":hover")) &&
+          /scale/.test(rule.body),
+      ),
+    ).toBe(false);
   });
 
   it("says what a click does", () => {
     open();
     expect(
-      within(bill()).getByText(
-        /Click an act to see why, keep it or mark it unavailable./,
+      screen.getByText(
+        /Click an act to see why, keep it or mark it unavailable\./,
       ),
     ).toBeTruthy();
   });
 
-  it("opens its card: the Why Boise line, Qloo's numbers, the shared tags and Unavailable", () => {
+  it("opens its card under its row: the Why Boise line, Qloo's numbers, the shared tags and Unavailable", () => {
     open();
     fireEvent.click(actButton("Marisol Vey"));
     const card = screen.getByRole("region", { name: "Act card" });
+    // Inside its band's list, under the act's row.
+    expect(
+      within(screen.getByRole("region", { name: "Mid-size acts" })).getByRole(
+        "region",
+        { name: "Act card" },
+      ),
+    ).toBe(card);
     const article = within(card).getByRole("article", { name: "Marisol Vey" });
+    expect(within(article).getByText("Why Boise:")).toBeTruthy();
     expect(
       within(article).getByText(
-        /Fort Street Ballroom fans move it up 7 places/,
+        "Fort Street Ballroom fans move it up 7 places.",
       ),
     ).toBeTruthy();
-    expect(within(article).getByText("Qloo affinity")).toBeTruthy();
-    expect(within(article).getByText("Popularity")).toBeTruthy();
+    expect(
+      within(article).getByText("Qloo affinity").parentElement?.textContent,
+    ).toBe("Qloo affinity0.91");
+    expect(
+      within(article).getByText("Popularity").parentElement?.textContent,
+    ).toBe("Popularity88th");
     expect(
       within(article)
         .getByRole("list", { name: "Tags shared with the headliners" })
@@ -67,6 +129,10 @@ describe("an act on the bill", () => {
       within(article).getByRole("button", { name: "Unavailable" }),
     ).toBeTruthy();
     expect(actButton("Marisol Vey").getAttribute("aria-expanded")).toBe("true");
+    expect(actButton("Marisol Vey").getAttribute("aria-controls")).toBe(
+      card.id,
+    );
+    expect(card.id).toBe("act-card");
     expect(document.activeElement).toBe(card);
   });
 
@@ -78,18 +144,32 @@ describe("an act on the bill", () => {
     expect(actButton("Marisol Vey").getAttribute("aria-expanded")).toBe(
       "false",
     );
+    // Clicking the act's name again closes it too.
+    fireEvent.click(actButton("Marisol Vey"));
+    expect(screen.getByRole("region", { name: "Act card" })).toBeTruthy();
+    fireEvent.click(actButton("Marisol Vey"));
+    expect(screen.queryByRole("region", { name: "Act card" })).toBeNull();
   });
 
-  it("is marked unavailable from its card, and the replacement takes its slot on the bill", async () => {
-    const fetch = vi.fn(
-      async (_url: string, init: RequestInit) =>
-        new Response(
-          syntheticRefillStream(JSON.parse(String(init.body)).unavailableId),
-          { headers: { "content-type": "application/x-ndjson" } },
-        ),
+  it("is marked unavailable from its card, and the replacement joins its band after the acts the build can place", async () => {
+    const fetch = vi.fn(async (url: string, init?: RequestInit) =>
+      url === "/api/refill"
+        ? new Response(
+            syntheticRefillStream(JSON.parse(String(init?.body)).unavailableId),
+            NDJSON,
+          )
+        : // The venue switch reads the saved build's results on mount: not a refill.
+          new Response(null, { status: 404 }),
     );
     vi.stubGlobal("fetch", fetch);
     open();
+    // The band sorts by place, lowest first.
+    expect(midNames()).toEqual([
+      "Hollow Pines",
+      "The Ditch Riders",
+      "Marisol Vey",
+      "Kestrel & Bloom",
+    ]);
     fireEvent.click(actButton("Hollow Pines"));
     fireEvent.click(
       within(screen.getByRole("region", { name: "Act card" })).getByRole(
@@ -98,28 +178,27 @@ describe("an act on the bill", () => {
       ),
     );
     // M6e: the card asks why before it refills.
-    fireEvent.click(screen.getByRole("button", { name: "Radius clause" }));
-    expect(fetch).toHaveBeenCalledWith(
-      "/api/refill",
-      expect.objectContaining({ method: "POST" }),
+    fireEvent.click(
+      within(
+        screen.getByRole("group", { name: "Why is it unavailable?" }),
+      ).getByRole("button", { name: "Radius clause" }),
     );
-    expect(JSON.parse(String(fetch.mock.calls[0][1].body))).toMatchObject({
+    const refills = fetch.mock.calls.filter(([url]) => url === "/api/refill");
+    expect(refills).toHaveLength(1);
+    expect(refills[0][1]).toMatchObject({ method: "POST" });
+    expect(JSON.parse(String(refills[0][1]?.body))).toMatchObject({
       buildId: FIRST_BILL.build.id,
       unavailableId: acts[0].entityId,
       band: "mid",
       reason: "radius",
     });
     await waitFor(() => expect(actButton("Sego Lily")).toBeTruthy());
-    const mid = within(bill()).getByRole("region", { name: "Mid-size acts" });
-    expect(
-      within(mid)
-        .getAllByRole("article")
-        .map((article) => article.getAttribute("aria-label")),
-    ).toEqual([
-      "Sego Lily",
-      "Marisol Vey",
+    // The replacement's place isn't in the build, so it follows the placed acts.
+    expect(midNames()).toEqual([
       "The Ditch Riders",
+      "Marisol Vey",
       "Kestrel & Bloom",
+      "Sego Lily",
     ]);
     expect(screen.queryByRole("region", { name: "Act card" })).toBeNull();
   });

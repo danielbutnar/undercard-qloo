@@ -27,7 +27,7 @@ export function VideoSlot({ url }: { url: string | null }) {
     <button
       type="button"
       onClick={() => setPlaying(true)}
-      className="self-start rounded-sm border-2 border-accent bg-accent px-4 py-2 text-body font-bold text-on-accent hover:bg-ink"
+      className="self-start rounded-sm border-2 border-accent bg-accent px-4 py-2 text-body font-bold text-on-accent hover:bg-ink hover:text-accent"
     >
       Play the demo video
     </button>

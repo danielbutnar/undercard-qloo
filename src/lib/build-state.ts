@@ -40,6 +40,8 @@ export interface BuildState {
   kept: BuildState | null;
   /** Why the last fresh build was refused; the trace shows it with the replay as next step. */
   refusal: string | null;
+  /** The refusal's code, when the server gave one ("limit": the day's live runs are used). */
+  refusalCode: string | null;
   /** Acts the buyer keeps (M8c): a redraft refills every other slot. */
   keeping: string[];
   /** A redraft is running; it shares the refill's trace numbering and error line. */
@@ -71,6 +73,7 @@ export const IDLE_BUILD: BuildState = {
   replaced: {},
   kept: null,
   refusal: null,
+  refusalCode: null,
   keeping: [],
   redrafting: false,
   order: null,
@@ -118,7 +121,12 @@ function replaceAct(acts: Act[], replaces: string, act: Act): Act[] {
 
 /** Puts the kept board back, with the reason the fresh build didn't start. */
 function restoreKept(state: BuildState, refusal: string): BuildState {
-  return { ...state.kept!, kept: null, refusal };
+  return {
+    ...state.kept!,
+    kept: null,
+    refusal,
+    refusalCode: state.refusalCode,
+  };
 }
 
 function applyRefillEvent(state: BuildState, event: BuildEvent): BuildState {
@@ -178,6 +186,7 @@ export function buildReducer(
           ...state,
           kept: null,
           refusal: null,
+          refusalCode: null,
           climbs: [],
         };
         return { ...board, status: "building", kept: board };
@@ -304,7 +313,12 @@ export function buildReducer(
         case "running-order":
           return applyRefillEvent(state, event);
         case "error":
-          if (state.kept) return { ...state, refusal: event.message };
+          if (state.kept)
+            return {
+              ...state,
+              refusal: event.message,
+              refusalCode: event.code ?? null,
+            };
           return {
             ...state,
             error: event.message,

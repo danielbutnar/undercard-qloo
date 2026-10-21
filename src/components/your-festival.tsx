@@ -9,6 +9,9 @@ import {
   type CheckedTown,
 } from "@/lib/checked-towns";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
+import { Quilt } from "@/components/chart/sleeve";
+import { TopBar } from "@/components/chart/top-bar";
+import "./chart/chart.css";
 import { checkedFestival } from "@/lib/towns";
 import {
   FREE_TEXT_TOWNS,
@@ -16,9 +19,6 @@ import {
   yourFestival,
   type YourBrief,
 } from "@/lib/your-festival";
-
-const FIELD =
-  "rounded-sm border-2 border-rule bg-page px-3 py-2 text-body text-ink focus:outline-2 focus:outline-offset-2 focus:outline-accent";
 
 /** What's wrong with a brief, in plain words, the town first. */
 function problemWith(values: {
@@ -149,123 +149,122 @@ export function YourFestival({
     label: string,
     placeholder: string,
   ) => (
-    <label className="flex flex-col gap-1 text-label font-semibold">
-      {label}
-      <input
-        name={id}
-        value={values[id]}
-        placeholder={placeholder}
-        autoComplete="off"
-        maxLength={id === "city" || id === "region" ? 60 : 80}
-        onChange={(event) =>
-          setValues((current) => ({ ...current, [id]: event.target.value }))
-        }
-        className={FIELD}
-      />
+    <label className="field">
+      <span className="field-label">{label}</span>
+      <span className="field-row">
+        {(id === "first" || id === "second") && (
+          <Quilt name={values[id] || label} className="field-quilt" />
+        )}
+        <input
+          name={id}
+          value={values[id]}
+          placeholder={placeholder}
+          autoComplete="off"
+          maxLength={id === "city" || id === "region" ? 60 : 80}
+          onChange={(event) =>
+            setValues((current) => ({ ...current, [id]: event.target.value }))
+          }
+          className="field-input"
+        />
+      </span>
     </label>
   );
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="flex flex-wrap items-baseline gap-x-3.5 border-b-2 border-rule px-4 py-2 lg:px-6">
-        <p className="font-display text-name font-extrabold uppercase">
-          Undercard
-        </p>
-        <p className="text-label text-muted">Booking desk · Your festival</p>
-      </header>
-      <main className="flex flex-1 justify-center px-4 py-8 lg:px-6">
+    <div className="chart-app stage-bg">
+      <TopBar yours={false} />
+      <main className="yours">
         <form
           onSubmit={submit}
           noValidate
           aria-labelledby="your-festival-title"
-          className="flex w-full max-w-4xl flex-col gap-4 self-start border-2 border-rule bg-surface p-6"
+          className="yours-form"
         >
-          <h1
-            id="your-festival-title"
-            className="font-display text-band font-extrabold uppercase"
-          >
-            Your festival
-          </h1>
-          <p className="text-body">
-            Two booked headliners, then a town. The AI agent reads that
-            town&apos;s own music venues through Qloo, a taste-data service that
-            maps what fans of one artist, venue or film also like, and drafts
-            the undercard, with Sagebrush Sound&apos;s crowd (aged 25–34) and
-            fee ranges.
-          </p>
-          {fromLink && (
-            <p className="text-label font-semibold">
-              {freeText
-                ? "Filled in from your link. Check it, then press Draft my undercard to run it."
-                : "Filled in from your link. Pick your town below to run it."}
+          <div className="yours-lead">
+            <h1 id="your-festival-title" className="compare-title">
+              Your festival
+            </h1>
+            <p className="compare-what">
+              Two booked headliners, then a town. The AI agent reads that
+              town&apos;s own music venues through Qloo, a taste-data service
+              that maps what fans of one artist, venue or film also like, and
+              drafts the undercard, with Sagebrush Sound&apos;s crowd (aged
+              25–34) and fee ranges.
             </p>
-          )}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {fromLink && (
+              <p className="whatif mt-3">
+                {freeText
+                  ? "Filled in from your link. Check it, then press Draft my undercard to run it."
+                  : "Filled in from your link. Pick your town below to run it."}
+              </p>
+            )}
+          </div>
+          <div className="panel yours-heads">
             {field("first", "First headliner", "Such as Khruangbin")}
             {field("second", "Second headliner", "Such as Japanese Breakfast")}
           </div>
-          <h2
-            id="checked-towns-title"
-            className="mt-2 font-display text-name font-extrabold uppercase"
-          >
-            Towns Undercard has already read
-          </h2>
-          <p className="text-label text-muted">
-            Each has a saved build that fills both bands with these headliners.
-            One click replays it, with the live run next to it; change a
-            headliner and the click runs the agent live instead.
-          </p>
-          <ul
-            aria-label="Towns Undercard has already read"
-            className="grid grid-cols-2 gap-2 lg:grid-cols-3"
-          >
-            {CHECKED_TOWNS.map((town) => (
-              <li key={`${town.city}|${town.region}`}>
-                <button
-                  type="button"
-                  onClick={() => runTown(town)}
-                  aria-label={checkedTownLabel(town)}
-                  className="group flex h-full w-full flex-col rounded-sm border-2 border-rule bg-page px-3 py-2 text-left hover:bg-ink hover:text-surface"
-                >
-                  <span className="text-body font-semibold">{town.city}</span>
-                  <span className="text-label text-muted group-hover:text-surface">
-                    {town.region === town.country
-                      ? town.country
-                      : `${town.region}, ${town.country}`}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <section aria-labelledby="checked-towns-title" className="panel">
+            <h2 id="checked-towns-title" className="panel-title">
+              Towns Undercard has already read
+            </h2>
+            <p className="panel-sub">
+              Each has a saved build that fills both bands with these
+              headliners. One click replays it, with the live run next to it;
+              change a headliner and the click runs the agent live instead.
+            </p>
+            <ul
+              aria-label="Towns Undercard has already read"
+              className="town-grid yours-towns mt-3"
+            >
+              {CHECKED_TOWNS.map((town) => (
+                <li key={`${town.city}|${town.region}`}>
+                  <button
+                    type="button"
+                    onClick={() => runTown(town)}
+                    aria-label={checkedTownLabel(town)}
+                    className="town-button"
+                  >
+                    <span className="town-city">{town.city}</span>
+                    <span className="town-where">
+                      {town.region === town.country
+                        ? town.country
+                        : `${town.region}, ${town.country}`}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
           {problem && (
-            <p role="alert" className="text-label font-semibold text-danger">
+            <p role="alert" className="panel alert">
               {problem}
             </p>
           )}
           {freeText && (
-            <>
-              <h2 className="mt-2 font-display text-name font-extrabold uppercase">
+            <section aria-labelledby="free-town-title" className="panel yours-free">
+              <h2 id="free-town-title" className="panel-title">
                 Or name another town
               </h2>
-              {field("city", "Town", "Such as Duluth")}
-              {field("region", "State or country", "Such as Minnesota")}
-              <button
-                type="submit"
-                className="self-start rounded-sm bg-accent px-4 py-2 font-display text-name font-extrabold uppercase text-on-accent hover:bg-ink"
-              >
+              <div className="yours-free-fields">
+                {field("city", "Town", "Such as Duluth")}
+                {field("region", "State or country", "Such as Minnesota")}
+              </div>
+              <button type="submit" className="watch yours-go">
+                <span className="watch-play" aria-hidden>
+                  <svg viewBox="0 0 20 20">
+                    <path d="M4 2v16l14-8z" />
+                  </svg>
+                </span>
                 Draft my undercard
               </button>
-            </>
+            </section>
           )}
-          <p className="text-label text-muted">
+          <p className="yours-note">
             Your own headliners or town run live: about 15 seconds and up to 12
             Qloo calls, limited to 5 runs a day from your address. Nothing is
             saved, and Sagebrush Sound&apos;s lineup stays as it is.
           </p>
-          <Link
-            href="/"
-            className="self-start text-label underline underline-offset-2 hover:text-accent"
-          >
+          <Link href="/" className="link yours-back">
             Back to Sagebrush Sound
           </Link>
         </form>

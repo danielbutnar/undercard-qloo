@@ -50,7 +50,14 @@ describe("Your festival opens on the checked towns", () => {
     });
 
   it("lists each town with its country, and one click replays its saved build (M6m)", async () => {
-    const fetch = vi.fn(async () => ndjson());
+    // The town's screen also asks GET /api/venue-switch once on mount; a 404 is fine (the
+    // switch then says it isn't available), and it isn't a build.
+    const fetch = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>(
+      async (url) =>
+        url.startsWith("/api/venue-switch")
+          ? new Response("", { status: 404 })
+          : ndjson(),
+    );
     vi.stubGlobal("fetch", fetch);
     render(<YourFestival />);
     const list = screen.getByRole("list", {
@@ -63,9 +70,10 @@ describe("Your festival opens on the checked towns", () => {
       CHECKED_TOWNS.length,
     );
     fireEvent.click(tallinn);
-    await waitFor(() => expect(fetch).toHaveBeenCalled());
-    const [, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
-    expect(JSON.parse(String(init.body))).toMatchObject({
+    const builds = () =>
+      fetch.mock.calls.filter(([url]) => url === "/api/undercard");
+    await waitFor(() => expect(builds()).toHaveLength(1));
+    expect(JSON.parse(String(builds()[0][1]?.body))).toMatchObject({
       festival: "sagebrush-sound-tallinn",
       replayOnly: true,
     });

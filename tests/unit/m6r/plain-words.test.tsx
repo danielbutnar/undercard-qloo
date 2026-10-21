@@ -1,12 +1,21 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { FestivalScreen } from "@/components/festival-screen";
 import { RunningOrderPanel } from "@/components/running-order-panel";
 import { YourFestival } from "@/components/your-festival";
 import { planRunningOrder } from "@/lib/running-order";
+import { liftOf } from "@/lib/marks";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
+import { readFirstBill } from "@/server/first-bill";
 import { readEvents, syntheticServer } from "../m3/scripted";
+import { acts as fixtureActs, FIRST_BILL } from "../m4b/first-bill-fixture";
 
 afterEach(cleanup);
 
@@ -14,63 +23,116 @@ async function firstScreen() {
   const server = syntheticServer();
   await readEvents(server.build());
   const saved = (await server.store.latest(SAGEBRUSH_SOUND.id))!;
-  render(
-    <FestivalScreen
-      festival={SAGEBRUSH_SOUND}
-      firstBill={{
-        build: { id: saved.id, createdAt: saved.createdAt },
-        acts: saved.lineup.acts,
-        calls: saved.trace.length,
-        placesListed: 8,
-        anchors: saved.context.anchors,
-        baselineTop: { mid: 50, opener: 50 },
-      }}
-    />,
-  );
+  // The first bill as the page reads it from the saved build, with each act's places.
+  const firstBill = (await readFirstBill(server.store, SAGEBRUSH_SOUND.id))!;
+  render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={firstBill} />);
   return saved;
 }
 
-// The page's visible text, without the words kept for screen readers.
-const visibleText = () => {
-  const clone = document.body.cloneNode(true) as HTMLElement;
-  clone.querySelectorAll(".sr-only").forEach((node) => node.remove());
+// The words kept for screen readers, away from a node's text.
+const withoutSrOnly = (node: Node) => {
+  const clone = node.cloneNode(true) as HTMLElement;
+  clone.querySelectorAll(".sr-only").forEach((child) => child.remove());
   return clone.textContent ?? "";
 };
+
+// The page's visible text, without the words kept for screen readers.
+const visibleText = () => withoutSrOnly(document.body);
 
 describe("plain words, round 2 (M6r)", () => {
   it("opens on an AI agent, and says what Qloo is where it's first named", async () => {
     await firstScreen();
-    const first = screen.getByRole("banner").querySelector("p")!.textContent!;
-    expect(first.startsWith("Undercard is an AI agent")).toBe(true);
-    expect(visibleText().indexOf("Qloo")).toBe(
-      visibleText().indexOf(first) + first.indexOf("Qloo"),
+    const lead = screen.getByRole("region", { name: "What Undercard does" });
+    const lines = [...lead.querySelectorAll("p")].map((p) => p.textContent!);
+    expect(lines[1].startsWith("Undercard is an AI agent")).toBe(true);
+    // The first "agent" on the page is the AI agent.
+    const text = visibleText();
+    const agent = text.search(/\bagent\b/);
+    expect(text.slice(agent - 3, agent)).toBe("AI ");
+    // The first "Qloo" on the page is in the lead...
+    const leadText = withoutSrOnly(lead);
+    expect(text.indexOf("Qloo")).toBe(
+      text.indexOf(leadText) + leadText.indexOf("Qloo"),
     );
-    expect(first).toMatch(/Qloo, a taste-data service/);
+    // ...and the line that names it is followed at once by the one saying what it is.
+    const naming = lines.findIndex((line) => line.includes("Qloo"));
+    const saying = lines.findIndex((line) =>
+      line.startsWith("Qloo is a taste-data service"),
+    );
+    expect(saying).toBeGreaterThanOrEqual(naming);
+    expect(saying - naming).toBeLessThanOrEqual(1);
+    expect(lines[saying]).toMatch(
+      /^Qloo is a taste-data service: it maps what fans of one artist, venue or film also like\.$/,
+    );
   });
 
-  it("says fee range, never fee band, and lineup (the bill) at first use", async () => {
+  it("says fee range, never fee band", async () => {
     await firstScreen();
+    // Each band's fee range is explained behind its "?": open both so their words are on the page.
+    for (const band of ["mid-size acts", "opening acts"])
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: `What the fee range for ${band} means`,
+        }),
+      );
     const text = visibleText();
     expect(text).not.toMatch(/fee band/i);
-    expect(text).toMatch(/fee range/);
-    expect(text.indexOf("lineup (the bill)")).toBeGreaterThan(-1);
-    // The first "lineup" carries the buyer's word once, and no bare "bill" comes before it.
-    const first = text.indexOf("lineup");
-    expect(text.slice(first, first + "lineup (the bill)".length)).toBe(
-      "lineup (the bill)",
-    );
-    expect(text.slice(0, first)).not.toMatch(/bill/);
+    expect(text).toMatch(/Fee range/);
+    // The plain word first, the buyer's term once in brackets.
+    for (const band of SAGEBRUSH_SOUND.feeBands)
+      expect(text).toContain(`fee range (${band.label})`);
+  });
+
+  // M6r: the plain word first, the buyer's word once in brackets. The weekly chart's headline
+  // says "lineup" on its own; the buyer's word comes once, under the headliners, before any
+  // bare "bill".
+  it("names the buyer's word once, in brackets after the plain one, with no bare bill before it", async () => {
+    await firstScreen();
+    const text = visibleText();
+    const at = text.indexOf("lineup (the bill)");
+    expect(at).toBeGreaterThan(-1);
+    expect(text.slice(0, at)).not.toMatch(/\bbill\b/);
   });
 
   it("puts what each +N counts next to it, in words", async () => {
     await firstScreen();
     const bill = screen.getByRole("region", { name: "Undercard draft" });
-    for (const article of within(bill).getAllByRole("article")) {
-      const text = article.textContent ?? "";
-      expect(text).toMatch(
-        /(\+\d+ places higher in Qloo's ranking|new to Qloo's top \d+)/,
+    const rows = within(bill).getAllByRole("article");
+    expect(rows).toHaveLength(10);
+    for (const row of rows) {
+      // Seen: the climb sits with the place it came from, "+49" beside "was 50th".
+      expect(withoutSrOnly(row)).toMatch(/\+\d+\s*was \d+(st|nd|rd|th)/);
+      // Heard: the venue's crowd and how many places it moved the act up.
+      expect(row.querySelector(".sr-only")!.textContent).toMatch(
+        /'s crowd: up \d+ places$/,
       );
     }
+    // The card says it as a sentence: the venue's fans move it up N places.
+    const first = rows[0].querySelector("button")!;
+    fireEvent.click(first);
+    const card = screen.getByRole("region", { name: "Act card" });
+    expect(card.textContent).toMatch(
+      /Why Boise: .+ fans move it up \d+ places\./,
+    );
+  });
+
+  it("says a new entry is new to the top 50, in words", () => {
+    render(
+      <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
+    );
+    const fresh = fixtureActs.find((act) => liftOf(act)?.kind === "new")!;
+    const bill = screen.getByRole("region", { name: "Undercard draft" });
+    const row = within(bill).getByRole("article", { name: fresh.name });
+    // Seen: "new" with where it was, outside the top 50. Heard: the same, with the venue's crowd.
+    expect(withoutSrOnly(row)).toMatch(/new\s*not in top 50/);
+    expect(row.querySelector(".sr-only")!.textContent).toBe(
+      `${fresh.anchorVenue.name}'s crowd: new, from outside the headliners-only top 50`,
+    );
+    // The card says it as a sentence.
+    fireEvent.click(within(row).getByRole("button", { name: fresh.name }));
+    expect(
+      screen.getByRole("region", { name: "Act card" }).textContent,
+    ).toMatch(/Why Boise: .+ fans move it into the top \d+\./);
   });
 
   it("says venue, not room", async () => {
@@ -79,7 +141,7 @@ describe("plain words, round 2 (M6r)", () => {
     let text = visibleText();
     for (const act of saved.lineup.acts)
       text = text.split(act.anchorVenue.name).join("");
-    expect(text).not.toMatch(/rooms?/i);
+    expect(text).not.toMatch(/rooms?/i);
   });
 
   it("names the AI agent first on Your festival too", () => {

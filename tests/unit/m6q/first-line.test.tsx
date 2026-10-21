@@ -7,21 +7,64 @@ import { yourFestival } from "@/lib/your-festival";
 
 afterEach(cleanup);
 
+const follows = (first: Element, second: Element) =>
+  Boolean(
+    first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING,
+  );
+
 describe("the first screen for a lay reader (M6q)", () => {
-  it("opens on what Undercard does, in plain words, then the example", () => {
+  it("opens on what Undercard does, in plain words, then on what Qloo is", () => {
     render(<FestivalScreen festival={SAGEBRUSH_SOUND} />);
-    const banner = screen.getByRole("banner");
-    const lines = [...banner.querySelectorAll("p")].map((p) => p.textContent);
+    const lead = screen.getByRole("region", { name: "What Undercard does" });
+    const lines = [...lead.querySelectorAll("p")].map((p) => p.textContent);
     expect(lines[0]).toBe(
-      "Undercard is an AI agent that helps a music festival choose the smaller acts that play before the stars, using what fans of the town's own music venues already like. It reads that from Qloo, a taste-data service that maps what fans of one artist, venue or film also like.",
+      "A festival lineup, drafted from Boise's own music venues.",
     );
     expect(lines[1]).toBe(
-      "Example: a 3,000-person festival in Boise, Idaho. Its headliners, Khruangbin and Japanese Breakfast, are bands.",
+      "Undercard is an AI agent: it drafts the acts that play before the headliners from what fans of the town's own venues like.",
     );
+    expect(lines.at(-1)).toBe(
+      "Qloo is a taste-data service: it maps what fans of one artist, venue or film also like.",
+    );
+    // The lead comes first; the With Qloo / Without Qloo switch sits below the bill, not up here.
+    const draft = screen.getByRole("region", { name: "Undercard draft" });
+    expect(follows(lead, draft)).toBe(true);
+    const mode = screen.getByRole("group", { name: "Which bill" });
     expect(
-      within(banner).queryByRole("group", { name: "Which bill" }),
+      within(screen.getByRole("banner")).queryByRole("group", {
+        name: "Which bill",
+      }),
     ).toBeNull();
-    expect(screen.getByRole("group", { name: "Which bill" })).toBeTruthy();
+    expect(
+      within(lead).queryByRole("group", { name: "Which bill" }),
+    ).toBeNull();
+    expect(
+      follows(screen.getByRole("region", { name: "Opening acts" }), mode),
+    ).toBe(true);
+  });
+
+  it("says under the headliners that the demo's two headliners are bands", () => {
+    render(<FestivalScreen festival={SAGEBRUSH_SOUND} />);
+    const draft = screen.getByRole("region", { name: "Undercard draft" });
+    const headliners = within(draft).getByRole("list", {
+      name: "Booked headliners",
+    });
+    expect(
+      within(headliners)
+        .getAllByRole("listitem")
+        .map((item) => item.textContent),
+    ).toEqual(["Khruangbin", "Japanese Breakfast"]);
+    // The old example line's town and size are in the facts line above them.
+    expect(
+      within(draft).getByText(
+        "Boise, Idaho · 3,000 capacity · crowd aged 25–34",
+      ),
+    ).toBeTruthy();
+    // No lineup yet on this screen, so the agent will draft the rest.
+    const note = within(draft).getByText(
+      "The headliners, two bands, are already booked · the AI agent will draft the rest of the lineup (the bill)",
+    );
+    expect(follows(headliners, note)).toBe(true);
   });
 
   it("doesn't call a judge's own headliners bands", () => {
@@ -36,11 +79,18 @@ describe("the first screen for a lay reader (M6q)", () => {
         custom={{ brief, onEdit: () => {} }}
       />,
     );
+    const draft = screen.getByRole("region", { name: "Undercard draft" });
     expect(
-      within(screen.getByRole("banner")).getByText(
-        /Its headliners, Mitski and Khruangbin, are already booked\./,
+      within(within(draft).getByRole("list", { name: "Booked headliners" }))
+        .getAllByRole("listitem")
+        .map((item) => item.textContent),
+    ).toEqual(["Mitski", "Khruangbin"]);
+    expect(
+      within(draft).getByText(
+        "The headliners are already booked · the AI agent will draft the rest of the lineup (the bill)",
       ),
     ).toBeTruthy();
+    expect(screen.queryByText(/two bands/)).toBeNull();
   });
 
   it("names each band in plain words first", () => {
@@ -48,9 +98,9 @@ describe("the first screen for a lay reader (M6q)", () => {
     expect(screen.getByRole("region", { name: "Mid-size acts" })).toBeTruthy();
     expect(screen.getByRole("region", { name: "Opening acts" })).toBeTruthy();
     expect(
-      screen.getAllByRole("button", {
+      screen.getByRole("button", {
         name: /Build undercard|Watch how it picked these acts/,
-      }).length,
-    ).toBeGreaterThan(0);
+      }),
+    ).toBeTruthy();
   });
 });

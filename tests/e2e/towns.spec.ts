@@ -32,8 +32,9 @@ test.describe("the same brief in other towns", () => {
         .getByRole("list", { name: "Booked headliners" })
         .getByRole("listitem"),
     ).toHaveText(["Khruangbin", "Japanese Breakfast"]);
+    // The town's own venues, in the venue switch beside its chart.
     await expect(
-      page.getByRole("heading", {
+      page.getByRole("region", {
         name: `${city} venues whose fans shaped this lineup`,
       }),
     ).toBeVisible();

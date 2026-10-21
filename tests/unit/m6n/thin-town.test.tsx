@@ -94,22 +94,27 @@ describe("a thin town's state", () => {
     );
 
   it("offers the checked towns in the same country, one click each", async () => {
-    const fetch = vi.fn(async () =>
-      ndjson([
-        {
-          type: "build",
-          id: "yours-1",
-          createdAt: "2026-10-17T10:00:00.000Z",
-          replayed: false,
-        },
-        {
-          type: "error",
-          code: "too-few-rooms",
-          message:
-            "Qloo lists only 1 live-music place in Brighton, too few for the agent to compare rooms.",
-        },
-        { type: "done", calls: 3, ms: 900 },
-      ]),
+    // The checked town's screen also asks GET /api/venue-switch once on mount; a 404 is fine
+    // (the switch then says it isn't available), and it isn't a build.
+    const fetch = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>(
+      async (url) =>
+        url.startsWith("/api/venue-switch")
+          ? new Response("", { status: 404 })
+          : ndjson([
+              {
+                type: "build",
+                id: "yours-1",
+                createdAt: "2026-10-17T10:00:00.000Z",
+                replayed: false,
+              },
+              {
+                type: "error",
+                code: "too-few-rooms",
+                message:
+                  "Qloo lists only 1 live-music place in Brighton, too few for the agent to compare rooms.",
+              },
+              { type: "done", calls: 3, ms: 900 },
+            ]),
     );
     vi.stubGlobal("fetch", fetch);
     render(<YourFestival />);
@@ -128,9 +133,11 @@ describe("a thin town's state", () => {
       "Wrexham, Wales, United Kingdom",
     ]);
     fireEvent.click(buttons[0]);
-    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
-    const [, init] = fetch.mock.calls[1] as unknown as [string, RequestInit];
-    expect(JSON.parse(String(init.body))).toMatchObject({
+    // The brief's own live run came first; the checked town's replay is the second build.
+    const builds = () =>
+      fetch.mock.calls.filter(([url]) => url === "/api/undercard");
+    await waitFor(() => expect(builds()).toHaveLength(2));
+    expect(JSON.parse(String(builds()[1][1]?.body))).toMatchObject({
       festival: "sagebrush-sound-wrexham",
       replayOnly: true,
     });

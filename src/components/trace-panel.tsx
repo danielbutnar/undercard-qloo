@@ -18,22 +18,20 @@ const savedAt = new Intl.DateTimeFormat("en-US", {
 
 export type BuildRequest = { fresh?: boolean };
 
-/** The blue Build / Watch button, shared with the bill's phone copy. */
-export const WATCH_BUTTON =
-  "w-full rounded-sm border-2 border-accent bg-accent px-2 py-2 text-body font-bold text-on-accent hover:border-ink hover:bg-ink disabled:cursor-wait disabled:border-muted disabled:bg-surface disabled:text-muted";
+/** The yellow Watch button's class, shared with screens that place it themselves. */
+export const WATCH_BUTTON = "watch";
 
-// The newest call shows its parameters as it streams in; the rest fold behind a toggle so the
-// trace stays readable at 1440x810.
 /** One of the planner's lines, printed in the trace where it was said. */
 function PlannerLine({ text }: { text: string }) {
   return (
-    <p className="text-label">
-      <span className="font-semibold">Agent: </span>
+    <p className="trace-note">
+      <span className="font-bold">Agent: </span>
       {text}
     </p>
   );
 }
 
+// The newest call shows its parameters as it streams in; the rest fold behind a toggle.
 function CallRow({
   call,
   highlighted,
@@ -51,29 +49,20 @@ function CallRow({
   const showParams = highlighted || expanded;
   const count = call.resultCount ?? "—";
   return (
-    <li
-      className={`border-l-4 py-2 pl-3 ${highlighted ? "border-accent" : "border-transparent"}`}
-    >
-      {before.length > 0 && (
-        <div className="mb-1 flex flex-col gap-1">
-          {before.map((text, index) => (
-            <PlannerLine key={index} text={text} />
-          ))}
-        </div>
-      )}
-      <div className="flex items-baseline justify-between gap-3">
-        <p className="text-label font-semibold wrap-anywhere">
+    <li className={`trace-call ${highlighted ? "is-live" : ""}`}>
+      {before.map((text, index) => (
+        <PlannerLine key={index} text={text} />
+      ))}
+      <div className="trace-call-head">
+        <p className="trace-summary">
           {call.n}. {call.summary}
         </p>
-        <p
-          aria-label={`${count} results`}
-          className="shrink-0 text-figure font-semibold tabular-nums text-accent"
-        >
+        <p aria-label={`${count} results`} className="trace-count">
           {count}
         </p>
       </div>
-      <div className="flex flex-wrap items-baseline gap-x-3">
-        <p className="text-label text-muted">
+      <div className="trace-meta">
+        <p>
           GET {call.endpoint} · {seconds(call.ms)}
           {call.cached ? " · cached" : ""}
           {call.retried?.length
@@ -85,55 +74,53 @@ function CallRow({
             type="button"
             aria-expanded={expanded}
             onClick={() => setExpanded((open) => !open)}
-            className="text-label text-ink underline underline-offset-2 hover:text-accent"
+            className="link"
           >
             Parameters
           </button>
         )}
       </div>
       {showParams && (
-        <ul className="mt-1 flex flex-col">
+        <ul className="trace-params">
           {call.params.map((param) => (
-            <li key={param.key} className="text-label wrap-anywhere">
-              <code className="font-body">
+            <li key={param.key}>
+              <code>
                 {param.key}={param.value}
               </code>
             </li>
           ))}
         </ul>
       )}
-      {call.error && <p className="text-label text-danger">{call.error}</p>}
-      {after.length > 0 && (
-        <div className="mt-1 flex flex-col gap-1">
-          {after.map((text, index) => (
-            <PlannerLine key={index} text={text} />
-          ))}
-        </div>
-      )}
+      {call.error && <p className="alert">{call.error}</p>}
+      {after.map((text, index) => (
+        <PlannerLine key={index} text={text} />
+      ))}
     </li>
   );
 }
 
 /**
- * The job ticket beside the board: the Build button and every Qloo call the agent makes, in
- * blue ink, with its parameters and result count.
+ * Every Qloo call the AI agent makes, with its parameters and result count, and the agent's own
+ * lines where it said them. Folded on the first screen until Watch replays the saved build.
  */
 export function TracePanel({
   state,
   savedCalls,
+  replay = true,
   onBuild,
   button = true,
 }: {
   state: BuildState;
   /** Qloo calls in the saved build the first screen shows, for the replay's description. */
   savedCalls?: number;
+  /** False on a judge's own run, which is never saved: nothing offers to replay it. */
+  replay?: boolean;
   onBuild: (request?: BuildRequest) => void;
-  /** False when the bill carries the button itself, under the headliners (FestivalScreen). */
+  /** False when the screen places the Watch button itself (FestivalScreen). */
   button?: boolean;
 }) {
   const listRef = useRef<HTMLOListElement>(null);
   const building = state.status === "building";
-  // The first screen shows a saved build; its trace stays folded until it is replayed.
   const busy =
     building || state.refilling !== null || state.redrafting || state.ordering;
   const buildCalls = state.calls.filter(
@@ -147,7 +134,11 @@ export function TracePanel({
   const folded =
     state.status === "idle" && state.build !== null && buildCalls === 0;
   const refillCalls = state.calls.length - buildCalls;
-  const refillCount = `${refillCalls} refill ${refillCalls === 1 ? "call" : "calls"}`;
+  // Calls after the build: refills, a redraft or the running order, named by what they were.
+  const onlyRefills = state.calls.every(
+    (call) => call.tool !== "redraft" && call.tool !== "running_order",
+  );
+  const refillCount = `${refillCalls} ${onlyRefills ? "refill " : "more "}${refillCalls === 1 ? "call" : "calls"}`;
   const refillingName = state.acts.find(
     (act) => act.entityId === state.refilling,
   )?.name;
@@ -159,30 +150,35 @@ export function TracePanel({
   }, [state.calls.length]);
 
   return (
-    <aside
-      aria-label="Qloo calls"
-      className="flex flex-col border-2 border-rule bg-surface"
-    >
+    <aside aria-label="Qloo calls" className="panel trace">
       {button && (
-        <div className="border-b-2 border-rule p-3">
-          <button
-            type="button"
-            onClick={() => onBuild()}
-            disabled={busy}
-            className={WATCH_BUTTON}
-          >
-            {building
-              ? "Building…"
-              : state.build
-                ? "Watch how it picked these acts"
-                : "Build undercard"}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => onBuild()}
+          disabled={busy}
+          className="watch mb-3"
+        >
+          {building
+            ? "Building…"
+            : state.build
+              ? "Watch how it picked these acts"
+              : "Build undercard"}
+        </button>
       )}
-      <div className="flex min-h-0 flex-col gap-2 p-4">
+      <div className="trace-body">
+        <div className="trace-head">
+          <h2 className="panel-title">Qloo calls</h2>
+          {(!folded || refillCalls > 0) && (
+            <p className="trace-tally">
+              {folded
+                ? refillCount
+                : `${buildCalls} of ${CALL_CAP}${refillCalls > 0 ? ` · ${refillCount}` : ""}`}
+            </p>
+          )}
+        </div>
         {folded && (
-          <div className="flex flex-col items-start gap-1">
-            <p className="text-label">
+          <div className="trace-pitch">
+            <p>
               {savedCalls
                 ? `Replays the saved build: ${savedCalls} Qloo calls, then the lineup reprints.`
                 : "Replays the saved build call by call, then the lineup reprints."}
@@ -191,37 +187,27 @@ export function TracePanel({
               <button
                 type="button"
                 onClick={() => onBuild({ fresh: true })}
-                className="text-label text-ink underline underline-offset-2 hover:text-accent"
+                className="link"
               >
                 Run the agent live instead
               </button>
             )}
           </div>
         )}
-        {(!folded || refillCalls > 0) && (
-          <div className="flex items-baseline justify-between gap-4">
-            <h2 className="text-body font-bold">Qloo calls</h2>
-            <p className="text-label text-muted">
-              {folded
-                ? refillCount
-                : `${buildCalls} of ${CALL_CAP}${refillCalls > 0 ? ` · ${refillCount}` : ""}`}
-            </p>
-          </div>
-        )}
         {state.status === "idle" && !state.build && (
-          <p className="text-label text-muted">
+          <p className="trace-line">
             Every Qloo call the AI agent makes will list here, with its
             parameters and result count.
           </p>
         )}
         {building && (
-          <p aria-live="polite" className="text-label">
+          <p aria-live="polite" className="trace-line">
             {state.note ?? "Planning the Qloo calls"}
           </p>
         )}
         {state.status === "done" && state.summary && state.build?.replayed && (
-          <div className="flex flex-col items-start gap-1">
-            <p className="text-label">
+          <div className="trace-pitch">
+            <p>
               Replayed the build saved{" "}
               {savedAt.format(new Date(state.build.createdAt))} UTC:{" "}
               {state.summary.calls} Qloo calls, served from the cache.
@@ -231,7 +217,7 @@ export function TracePanel({
               <button
                 type="button"
                 onClick={() => onBuild({ fresh: true })}
-                className="text-label text-ink underline underline-offset-2 hover:text-accent"
+                className="link"
               >
                 Run the agent live instead
               </button>
@@ -239,70 +225,58 @@ export function TracePanel({
           </div>
         )}
         {state.status === "done" && state.summary && !state.build?.replayed && (
-          <p className="text-label">
+          <p className="trace-line">
             Built with {state.summary.calls} Qloo calls in{" "}
             {seconds(state.summary.ms)}.
           </p>
         )}
         {refillingName && (
-          <p aria-live="polite" className="text-label">
+          <p aria-live="polite" className="trace-line">
             Finding a replacement for {refillingName} in the same fee range…
           </p>
         )}
         {state.ordering && (
-          <p aria-live="polite" className="text-label">
+          <p aria-live="polite" className="trace-line">
             Asking Qloo how much the acts&apos; fans overlap…
           </p>
         )}
         {state.redrafting && (
-          <p aria-live="polite" className="text-label">
+          <p aria-live="polite" className="trace-line">
             Redrafting every slot you didn&apos;t keep…
           </p>
         )}
         {state.refillError && (
-          <p role="alert" className="text-label font-semibold text-danger">
+          <p role="alert" className="alert">
             {state.refillError}
           </p>
         )}
         {state.error && (
-          <div className="flex flex-col items-start gap-1">
-            <p role="alert" className="text-label font-semibold text-danger">
+          <div className="trace-pitch">
+            <p role="alert" className="alert">
               {state.error}
             </p>
             {/* A busy Qloo (M6g): the saved build still replays, with no Qloo call. */}
             {state.errorCode === "qloo-busy" && savedCalls ? (
-              <button
-                type="button"
-                onClick={() => onBuild()}
-                className="text-label text-ink underline underline-offset-2 hover:text-accent"
-              >
+              <button type="button" onClick={() => onBuild()} className="link">
                 Watch the saved build instead
               </button>
             ) : null}
           </div>
         )}
         {state.refusal && (
-          <div className="flex flex-col items-start gap-1">
-            <p role="alert" className="text-label font-semibold text-danger">
+          <div className="trace-pitch">
+            <p role="alert" className="alert">
               {state.refusal}
             </p>
-            {state.build && (
-              <button
-                type="button"
-                onClick={() => onBuild()}
-                className="text-label text-ink underline underline-offset-2 hover:text-accent"
-              >
+            {state.build && replay && (
+              <button type="button" onClick={() => onBuild()} className="link">
                 Replay the saved build
               </button>
             )}
           </div>
         )}
         {state.calls.length > 0 && (
-          <ol
-            ref={listRef}
-            aria-label="Qloo calls"
-            className="flex max-h-[28rem] min-h-48 flex-col divide-y divide-muted/40 overflow-y-auto lg:max-h-[calc(100dvh-33rem)]"
-          >
+          <ol ref={listRef} aria-label="Qloo calls" className="trace-list">
             {state.calls.map((call, index) => (
               <CallRow
                 key={call.n}

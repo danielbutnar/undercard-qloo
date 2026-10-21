@@ -233,14 +233,19 @@ function customRules() {
   return readFileSync("docs/design-bans.md", "utf8")
     .split("\n")
     .flatMap((line) => {
-      const match = /^- (C\d+)\b.*?scan:\s*`([^`]+)`/.exec(line);
+      const match =
+        /^- (C\d+)\b.*?scan:\s*`([^`]+)`(?:\s+in:\s*`([^`]+)`)?/.exec(line);
       if (!match) return [];
       const regex = new RegExp(match[2], "i");
+      // `in: path` bans a rejected look only under that path while the live code still uses it.
+      const scope = match[3]?.replace(/\\/g, "/").replace(/\/+$/, "");
+      const inScope = (file) =>
+        !scope || `${file.replace(/\\/g, "/")}/`.startsWith(`${scope}/`);
       return [
         {
           id: match[1],
           what: line.replace(/^- C\d+\s*/, "").replace(/\s*scan:.*$/, ""),
-          test: (text) => regex.test(text),
+          test: (text, _context, file) => inScope(file) && regex.test(text),
         },
       ];
     });

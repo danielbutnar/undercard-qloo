@@ -5,7 +5,6 @@ import {
   render,
   screen,
   waitFor,
-  within,
 } from "@testing-library/react";
 import { Activity } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -29,9 +28,12 @@ describe("a replay in flight", () => {
     });
     vi.stubGlobal(
       "fetch",
-      vi.fn(async (_url: string, init: RequestInit) => {
+      vi.fn(async (url: string, init?: RequestInit) => {
+        // The venue switch reads the saved build's results on mount; it isn't the replay.
+        if (url.startsWith("/api/venue-switch"))
+          return new Response(null, { status: 404 });
         await gate;
-        if (init.signal?.aborted)
+        if (init?.signal?.aborted)
           throw new DOMException("The request was aborted.", "AbortError");
         return new Response(syntheticBuildStream({ replayed: true }), {
           headers: { "content-type": "application/x-ndjson" },
@@ -44,11 +46,9 @@ describe("a replay in flight", () => {
       </Activity>
     );
     const { rerender } = render(screenIn("visible"));
+    // Watch sits in the lead beside the chart, not inside the draft.
     fireEvent.click(
-      within(screen.getByRole("region", { name: "Undercard draft" })).getByRole(
-        "button",
-        { name: "Watch how it picked these acts" },
-      ),
+      screen.getByRole("button", { name: "Watch how it picked these acts" }),
     );
     rerender(screenIn("hidden"));
     rerender(screenIn("visible"));
@@ -57,6 +57,13 @@ describe("a replay in flight", () => {
     await waitFor(() =>
       expect(screen.getByText(/^Replayed the build saved/)).toBeTruthy(),
     );
-    expect(screen.getAllByRole("article")).toHaveLength(10);
+    // Watch hands the chart back a beat after the build is in; then the lineup returns.
+    await waitFor(() =>
+      expect(screen.getAllByRole("article")).toHaveLength(10),
+    );
+    // Watch is ready to play again: the screen isn't stuck on "Building…" or "Watching…".
+    expect(
+      screen.getByRole("button", { name: "Watch how it picked these acts" }),
+    ).toHaveProperty("disabled", false);
   });
 });

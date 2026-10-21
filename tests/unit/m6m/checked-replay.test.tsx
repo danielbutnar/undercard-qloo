@@ -98,7 +98,9 @@ describe("a replay-only request with a saved build", () => {
       }),
     );
     expect(server.planner.turns()).toBe(turns);
-    expect(events.find((event) => event.type === "build")).toMatchObject({ replayed: true });
+    expect(events.find((event) => event.type === "build")).toMatchObject({
+      replayed: true,
+    });
     expect(events.some((event) => event.type === "lineup")).toBe(true);
   });
 });
@@ -113,8 +115,13 @@ describe("a checked-town button", () => {
     );
 
   it("replays the town's saved build when the headliners are the demo's", async () => {
-    const fetch = vi.fn(async () =>
-      ndjson([{ type: "done", calls: 0, ms: 0 }]),
+    // The town's screen also asks GET /api/venue-switch once on mount; a 404 is fine (the
+    // switch then says it isn't available), and it isn't a build.
+    const fetch = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>(
+      async (url) =>
+        url.startsWith("/api/venue-switch")
+          ? new Response("", { status: 404 })
+          : ndjson([{ type: "done", calls: 0, ms: 0 }]),
     );
     vi.stubGlobal("fetch", fetch);
     render(<YourFestival />);
@@ -125,9 +132,10 @@ describe("a checked-town button", () => {
         name: /^Tallinn, Estonia/,
       }),
     );
-    await waitFor(() => expect(fetch).toHaveBeenCalled());
-    const [, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
-    const body = JSON.parse(String(init.body));
+    const builds = () =>
+      fetch.mock.calls.filter(([url]) => url === "/api/undercard");
+    await waitFor(() => expect(builds()).toHaveLength(1));
+    const body = JSON.parse(String(builds()[0][1]?.body));
     expect(body).toMatchObject({
       fresh: false,
       replayOnly: true,

@@ -2,12 +2,15 @@
 
 import { useEffect, useRef } from "react";
 import { ActCard } from "@/components/act-card";
+import type { FeeBand } from "@/lib/fee-bands";
 import type { Act } from "@/lib/lineup";
 import type { UnavailableReason } from "@/lib/unavailable";
+import type { Placed } from "@/lib/venue-switch";
 
 /**
- * An act's card, opened from the bill: Qloo's numbers, the Why Boise line, the shared tags and
- * Unavailable. It takes focus when it opens, so on a phone it scrolls into view under the bill.
+ * An act's card, opened from the chart under its row: the climb, the Why Boise line, Qloo's
+ * numbers, the shared tags, Keep and Unavailable. It takes focus when it opens, so on a phone it
+ * scrolls into view.
  */
 export function ActCardPanel({
   act,
@@ -18,6 +21,10 @@ export function ActCardPanel({
   city,
   kept,
   onKeep,
+  place,
+  hue,
+  note,
+  band,
 }: {
   act: Act;
   unavailable: boolean;
@@ -28,6 +35,10 @@ export function ActCardPanel({
   city?: string;
   kept?: boolean;
   onKeep?: (act: Act) => void;
+  place?: Placed;
+  hue?: number | null;
+  note?: string;
+  band?: FeeBand;
 }) {
   const ref = useRef<HTMLElement>(null);
 
@@ -42,7 +53,7 @@ export function ActCardPanel({
       ref={ref}
       tabIndex={-1}
       aria-label="Act card"
-      className="outline-none"
+      className="card-panel outline-none"
     >
       <ActCard
         act={act}
@@ -53,6 +64,10 @@ export function ActCardPanel({
         city={city}
         kept={kept}
         onKeep={onKeep}
+        place={place}
+        hue={hue}
+        note={note}
+        band={band}
       />
     </section>
   );

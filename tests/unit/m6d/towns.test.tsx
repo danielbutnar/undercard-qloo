@@ -95,38 +95,61 @@ describe("the town switcher", () => {
 describe("a town's screen", () => {
   const austin = townBySlug("austin")!.festival;
 
-  it("names the town wherever the bill named Boise", () => {
+  it("names the town wherever the chart named Boise", () => {
     render(<FestivalScreen festival={austin} firstBill={{ ...FIRST_BILL }} />);
     expect(
-      screen.getByRole("heading", {
-        name: "Austin venues whose fans shaped this lineup",
-      }),
+      screen.getByText(
+        "A festival lineup, drafted from Austin's own music venues.",
+      ),
     ).toBeTruthy();
-    const bill = screen.getByRole("region", { name: "Undercard draft" });
-    fireEvent.click(within(bill).getByRole("button", { name: "Hollow Pines" }));
+    // The venue switch is a region named for the town, with "Switch a venue off" under it.
+    const venues = screen.getByRole("region", {
+      name: "Austin venues whose fans shaped this lineup",
+    });
+    expect(
+      within(venues).getByRole("heading", { name: "Switch a venue off" }),
+    ).toBeTruthy();
+    const draft = screen.getByRole("region", { name: "Undercard draft" });
+    fireEvent.click(
+      within(draft).getByRole("button", { name: "Hollow Pines" }),
+    );
     const card = screen.getByRole("region", { name: "Act card" });
     expect(within(card).getByText("Why Austin:")).toBeTruthy();
     expect(screen.queryByText(/Boise/)).toBeNull();
   });
 
-  it("asks for its own festival's build", () => {
-    const fetch = vi.fn(
-      async () =>
-        new Response("", {
-          headers: { "content-type": "application/x-ndjson" },
-        }),
+  it("asks for its own festival's build and venue switch", () => {
+    // The venue switch also asks GET /api/venue-switch once on mount; a 404 is fine (the switch
+    // then says it isn't available), and it isn't a build.
+    const fetch = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>(
+      async (url) =>
+        url.startsWith("/api/venue-switch")
+          ? new Response("", { status: 404 })
+          : new Response("", {
+              headers: { "content-type": "application/x-ndjson" },
+            }),
     );
     vi.stubGlobal("fetch", fetch);
     render(<FestivalScreen festival={austin} firstBill={FIRST_BILL} />);
     fireEvent.click(
-      screen.getAllByRole("button", { name: "Watch how it picked these acts" })[0],
+      screen.getByRole("button", { name: "Watch how it picked these acts" }),
     );
     expect(fetch).toHaveBeenCalledWith(
       "/api/undercard",
       expect.objectContaining({ method: "POST" }),
     );
-    const [, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
-    const body = JSON.parse(String(init.body));
+    const builds = fetch.mock.calls.filter(([url]) => url === "/api/undercard");
+    expect(builds).toHaveLength(1);
+    const body = JSON.parse(String(builds[0][1]?.body));
     expect(body).toMatchObject({ festival: austin.id });
+    const switches = fetch.mock.calls.filter(([url]) =>
+      url.startsWith("/api/venue-switch"),
+    );
+    // Once, for the town's own festival and the saved build on screen.
+    expect(switches).toHaveLength(1);
+    const asked = String(switches[0][0]);
+    expect(asked.startsWith(`/api/venue-switch?festival=${austin.id}&build=`)).toBe(
+      true,
+    );
   });
 });

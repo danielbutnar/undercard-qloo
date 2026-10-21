@@ -1,24 +1,24 @@
 import type { Metadata } from "next";
-import { Big_Shoulders, Libre_Franklin } from "next/font/google";
+import { Anton, Schibsted_Grotesk } from "next/font/google";
 import "./globals.css";
 
-// Big Shoulders is the Google Fonts family that absorbed Big Shoulders Display; its optical
-// size axis gives the display cut at the large sizes the bill uses.
-const display = Big_Shoulders({
-  variable: "--font-big-shoulders",
+// The weekly chart's type (docs/design-brief.md): Anton for the chart's places and names, the
+// way a printed chart sets its numbers; Schibsted Grotesk, a news face, for everything read.
+const display = Anton({
+  variable: "--font-anton",
   subsets: ["latin"],
-  axes: ["opsz"],
+  weight: "400",
 });
 
-const body = Libre_Franklin({
-  variable: "--font-libre-franklin",
+const body = Schibsted_Grotesk({
+  variable: "--font-schibsted",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
   title: "Undercard",
   description:
-    "A lineup agent for festival talent buyers: two booked headliners in, a fee-banded undercard grounded in local taste out, powered by Qloo.",
+    "An AI agent that drafts a festival's smaller acts from what fans of the town's own music venues like, through Qloo.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

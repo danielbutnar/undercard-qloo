@@ -4,7 +4,8 @@ import { defineConfig, devices } from "@playwright/test";
 // local dev server on its own port in synthetic mode: the server reads the synthetic saved build
 // from tests/e2e/synthetic-build.ts and never calls Qloo, Claude or Upstash.
 const deployedUrl = process.env.E2E_BASE_URL;
-const SYNTHETIC_PORT = 3100;
+// E2E_PORT moves it, so sessions in other worktrees never reuse each other's server.
+const SYNTHETIC_PORT = Number(process.env.E2E_PORT ?? 3100);
 const baseURL = deployedUrl ?? `http://localhost:${SYNTHETIC_PORT}`;
 
 export default defineConfig({

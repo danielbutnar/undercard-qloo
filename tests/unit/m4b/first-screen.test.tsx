@@ -12,7 +12,12 @@ import { firstBoard, IDLE_BUILD } from "@/lib/build-state";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { acts, FIRST_BILL } from "./first-bill-fixture";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
+
+const draft = () => screen.getByRole("region", { name: "Undercard draft" });
 
 describe("the first screen", () => {
   it("opens on the saved bill: every act is on screen before any click", () => {
@@ -23,16 +28,17 @@ describe("the first screen", () => {
     expect(screen.queryByText("Open slot")).toBeNull();
   });
 
+  // Watch and Build undercard sit in the lead beside the chart, not inside the draft.
   it("falls back to the bill with open slots and Build undercard when no build is saved", () => {
     render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={null} />);
     expect(screen.queryAllByRole("article")).toHaveLength(0);
     expect(screen.getAllByText("Open slot")).toHaveLength(10);
     expect(
-      within(screen.getByRole("region", { name: "Undercard draft" })).getByRole(
-        "button",
-        { name: "Build undercard" },
-      ),
+      screen.getByRole("button", { name: "Build undercard" }),
     ).toBeTruthy();
+    expect(
+      screen.queryByRole("button", { name: "Watch how it picked these acts" }),
+    ).toBeNull();
   });
 
   it("leaves presale off the first screen, with or without a saved bill", () => {
@@ -55,32 +61,55 @@ describe("the first screen", () => {
         name: "Export CSV",
       }),
     ).toBeNull();
-    expect(screen.getByRole("button", { name: "Export CSV" })).toBeTruthy();
+    // In the tools row under the bands, still inside the draft.
+    const exportCsv = within(draft()).getByRole("button", {
+      name: "Export CSV",
+    });
+    const opening = within(draft()).getByRole("region", {
+      name: "Opening acts",
+    });
+    expect(
+      opening.compareDocumentPosition(exportCsv) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     cleanup();
     render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={null} />);
     expect(screen.queryByRole("button", { name: "Export CSV" })).toBeNull();
   });
 
-  it("keeps the bill on screen, in open slots, while a replay waits for its first event", () => {
+  it("keeps the draft on screen, its bands waiting for the first ranking, while a replay waits for its first event", () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(() => new Promise<Response>(() => {})),
+      vi.fn((url: string) =>
+        // The venue switch reads the saved build's results on mount; the replay never answers.
+        url.startsWith("/api/venue-switch")
+          ? Promise.resolve(new Response(null, { status: 404 }))
+          : new Promise<Response>(() => {}),
+      ),
     );
     render(
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
     );
     fireEvent.click(
-      within(screen.getByRole("region", { name: "Undercard draft" })).getByRole(
-        "button",
-        { name: "Watch how it picked these acts" },
-      ),
+      screen.getByRole("button", { name: "Watch how it picked these acts" }),
+    );
+    expect(draft()).toBeTruthy();
+    // Watch is playing, with its banner up, and no act waits under it.
+    expect(screen.getByRole("button", { name: "Watching…" })).toHaveProperty(
+      "disabled",
+      true,
     );
     expect(
-      screen.getByRole("region", { name: "Undercard draft" }),
+      within(draft()).getByText("Replaying the AI agent's build"),
     ).toBeTruthy();
-    expect(screen.getAllByText("Open slot")).toHaveLength(10);
-    expect(screen.queryByRole("region", { name: "Lineup board" })).toBeNull();
-    vi.unstubAllGlobals();
+    expect(screen.queryAllByRole("article")).toHaveLength(0);
+    // Both bands stay on the chart, each saying what it waits for.
+    for (const band of ["Mid-size acts", "Opening acts"])
+      expect(
+        within(within(draft()).getByRole("region", { name: band })).getByText(
+          "Waiting for this band's first ranking…",
+        ),
+      ).toBeTruthy();
   });
 
   it("starts the board from the saved build, so a refill can name it", () => {

@@ -1,0 +1,584 @@
+/*
+ * The mixing desk (design round, direction 2): a front-of-house console. One channel per Boise
+ * venue, named on console tape; the bill is the setlist taped beside the faders. Tokens live
+ * here only. Contrast (scripts/design-check.mjs): legend on page 8.00, legend-soft on page 6.30,
+ * legend on groove 10.25, ink on sheet 18.88, muted on sheet 6.79, ink on tape 15.16, ink on
+ * cap-b 11.27, on-red on cap-c 5.17, ink on cap-a 9.73, lcd-ink on lcd 8.28, legend on well 15.85.
+ */
+.lab-desk {
+  --page: #46525d;
+  --groove: #38424b;
+  --well: #1d2329;
+  --legend: #ffffff;
+  --legend-soft: #dfe5ea;
+  --tape: #ede6d3;
+  --ink: #111111;
+  --sheet: #ffffff;
+  --muted: #5b5b5b;
+  --hair: #d7d7d2;
+  --lcd: #c9d2a8;
+  --lcd-ink: #2a3418;
+  --cap-head: #ffffff;
+  --cap-a: #7fc7bf;
+  --cap-b: #f2c230;
+  --cap-c: #c2402c;
+  --cap-d: #9fb2d9;
+  --on-red: #ffffff;
+  --led-green: #6cc04a;
+  --led-amber: #f2b632;
+  --led-red: #e0503a;
+  --led-off: #2b333a;
+  --shade: rgb(0 0 0 / 0.26);
+  --shade-soft: rgb(0 0 0 / 0.18);
+  --shade-hard: rgb(0 0 0 / 0.35);
+
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--page);
+  color: var(--legend);
+  font-family: var(--desk-face), Arial, sans-serif;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.lab-desk .top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px 32px;
+  padding: 14px 28px 12px;
+  background: var(--groove);
+}
+.lab-desk .firstLine {
+  max-width: 1100px;
+}
+.lab-desk .example {
+  font-size: 16px;
+  color: var(--legend-soft);
+}
+.lab-desk .textLink {
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.lab-desk .console {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 520px;
+  gap: 20px;
+  padding: 16px 28px 20px;
+}
+.lab-desk .surface {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.lab-desk .show {
+  order: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 24px;
+}
+.lab-desk .showTape {
+  justify-self: start;
+  padding: 2px 18px 4px;
+  background: var(--tape);
+  color: var(--ink);
+  font-family: var(--desk-marker), var(--desk-face), sans-serif;
+  font-size: 40px;
+  line-height: 1.1;
+  transform: rotate(-0.6deg);
+}
+.lab-desk .facts {
+  font-size: 16px;
+  color: var(--legend-soft);
+}
+.lab-desk .headliners {
+  font-size: 20px;
+  font-weight: 800;
+}
+.lab-desk .headliners span {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--legend-soft);
+}
+.lab-desk .stamp {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 0 8px;
+  border: 2px solid var(--legend);
+  font-size: 16px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+.lab-desk .transport {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  max-width: 410px;
+}
+.lab-desk .play {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px 12px 12px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--cap-c);
+  color: var(--on-red);
+  font: inherit;
+  font-size: 21px;
+  line-height: 1.15;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset 0 -4px 0 var(--shade);
+}
+.lab-desk .play:hover {
+  background: var(--ink);
+}
+.lab-desk .play:disabled {
+  cursor: wait;
+}
+.lab-desk .play:focus-visible,
+.lab-desk .textLink:focus-visible,
+.lab-desk .quiet:focus-visible {
+  outline: 3px solid var(--cap-b);
+  outline-offset: 2px;
+}
+.lab-desk .playIcon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--on-red);
+  color: var(--cap-c);
+}
+.lab-desk .playIcon svg {
+  width: 16px;
+  height: 16px;
+  margin-left: 3px;
+  fill: currentColor;
+}
+.lab-desk .transportNote {
+  font-size: 16px;
+  color: var(--legend-soft);
+}
+
+.lab-desk .lcd {
+  order: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 14px 12px;
+  border: 6px solid var(--well);
+  border-radius: 4px;
+  background: var(--lcd);
+  color: var(--lcd-ink);
+}
+.lab-desk .lcdHead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2px 16px;
+  font-size: 16px;
+}
+.lab-desk .lcdTitle {
+  font-size: 18px;
+  font-weight: 800;
+}
+.lab-desk .lcdRows {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-flow: column;
+  grid-template-rows: repeat(6, auto);
+  gap: 0 24px;
+}
+.lab-desk .lcdRow {
+  display: grid;
+  grid-template-columns: 30px 56px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 16px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+.lab-desk .lcdRow .who {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.lab-desk .lcdRow.mover .who,
+.lab-desk .lcdRow.mover .up {
+  font-weight: 800;
+}
+.lab-desk .routed {
+  padding: 0 6px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.lab-desk .lcdIdle {
+  font-size: 16px;
+  max-width: 62ch;
+}
+.lab-desk .lcdNote {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.lab-desk .strips {
+  order: 2;
+  display: grid;
+  grid-template-columns: repeat(var(--channels), minmax(0, 1fr));
+  gap: 0;
+  border: 4px solid var(--groove);
+  border-radius: 4px;
+}
+.lab-desk .strip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 8px 12px;
+  border-right: 3px solid var(--groove);
+}
+.lab-desk .strip:last-child {
+  border-right: 0;
+}
+.lab-desk .strip.solo {
+  background: var(--groove);
+}
+.lab-desk .scribble {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 54px;
+  padding: 4px 6px;
+  background: var(--tape);
+  color: var(--ink);
+  font-family: var(--desk-marker), var(--desk-face), sans-serif;
+  font-size: 19px;
+  line-height: 1.15;
+  text-align: center;
+}
+.lab-desk .tested {
+  font-size: 16px;
+  line-height: 1.2;
+  color: var(--legend-soft);
+  text-align: center;
+}
+.lab-desk .controls {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 16px;
+  height: 138px;
+}
+.lab-desk .meter {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 3px;
+  width: 14px;
+  padding: 3px;
+  background: var(--well);
+}
+.lab-desk .led {
+  flex: 1;
+  background: var(--led-off);
+  transition: background-color 0.18s;
+}
+.lab-desk .led.on {
+  background: var(--led-green);
+}
+.lab-desk .led.on.amber {
+  background: var(--led-amber);
+}
+.lab-desk .led.on.peak {
+  background: var(--led-red);
+}
+.lab-desk .fader {
+  position: relative;
+  width: 44px;
+}
+.lab-desk .slot {
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  bottom: 6px;
+  width: 6px;
+  transform: translateX(-50%);
+  border-radius: 3px;
+  background: var(--well);
+}
+.lab-desk .tick {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--legend-soft);
+  opacity: 0.45;
+}
+.lab-desk .cap {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  height: 28px;
+  margin-bottom: -14px;
+  border-radius: 3px;
+  background: var(--cap);
+  box-shadow:
+    inset 0 -6px 0 var(--shade-soft),
+    0 2px 0 var(--shade-hard);
+  transition: bottom 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.lab-desk .cap::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 12px;
+  height: 2px;
+  background: var(--ink);
+  opacity: 0.6;
+}
+.lab-desk .soloKey {
+  min-width: 64px;
+  padding: 2px 10px;
+  border: 2px solid var(--legend-soft);
+  border-radius: 3px;
+  font-size: 16px;
+  font-weight: 800;
+  text-align: center;
+  color: var(--legend-soft);
+}
+.lab-desk .strip.solo .soloKey {
+  border-color: var(--cap-b);
+  background: var(--cap-b);
+  color: var(--ink);
+}
+.lab-desk .lifted {
+  font-size: 16px;
+  line-height: 1.1;
+  text-align: center;
+}
+.lab-desk .lifted strong {
+  display: block;
+  font-size: 32px;
+  line-height: 1;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.lab-desk .sheet {
+  position: relative;
+  align-self: start;
+  padding: 18px 20px 14px;
+  background: var(--sheet);
+  color: var(--ink);
+  box-shadow: 0 3px 0 var(--shade);
+}
+.lab-desk .sheet::before,
+.lab-desk .sheet::after {
+  content: "";
+  position: absolute;
+  top: -10px;
+  width: 86px;
+  height: 22px;
+  background: var(--tape);
+  opacity: 0.92;
+}
+.lab-desk .sheet::before {
+  left: 18px;
+  transform: rotate(-4deg);
+}
+.lab-desk .sheet::after {
+  right: 18px;
+  transform: rotate(5deg);
+}
+.lab-desk .sheetTitle {
+  font-size: 22px;
+  line-height: 1.15;
+  font-weight: 800;
+}
+.lab-desk .small {
+  font-size: 16px;
+  color: var(--muted);
+}
+.lab-desk .band {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0 10px;
+  margin-top: 10px;
+  padding-bottom: 2px;
+  border-bottom: 2px solid var(--ink);
+}
+.lab-desk .bandName {
+  font-size: 19px;
+  font-weight: 800;
+}
+.lab-desk .acts {
+  list-style: none;
+}
+.lab-desk .act {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  align-items: center;
+  gap: 2px 10px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--hair);
+}
+.lab-desk .chip {
+  align-self: stretch;
+  width: 14px;
+  border-radius: 2px;
+  background: var(--cap);
+}
+.lab-desk .actName {
+  font-size: 19px;
+  line-height: 1.15;
+  font-weight: 800;
+}
+.lab-desk .actWhy {
+  font-size: 16px;
+  line-height: 1.25;
+  color: var(--muted);
+}
+.lab-desk .actName .genre {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.lab-desk .actWhy .badge {
+  color: var(--ink);
+  font-weight: 800;
+}
+.lab-desk .open {
+  padding: 5px 0 5px 24px;
+  border-bottom: 1px dashed var(--hair);
+  font-size: 16px;
+  color: var(--muted);
+}
+.lab-desk .feeNote {
+  margin-top: 4px;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--muted);
+}
+.lab-desk .drafted {
+  margin-top: 10px;
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.lab-desk .tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  padding: 12px 28px 16px;
+  background: var(--groove);
+}
+.lab-desk .switch {
+  display: flex;
+  flex-wrap: wrap;
+  border: 2px solid var(--legend-soft);
+  border-radius: 3px;
+}
+.lab-desk .switch button,
+.lab-desk .quiet {
+  padding: 5px 12px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.lab-desk .switch [aria-pressed="true"] {
+  background: var(--legend);
+  color: var(--ink);
+}
+.lab-desk .quiet {
+  border: 2px solid var(--legend-soft);
+  border-radius: 3px;
+}
+.lab-desk .quiet:hover {
+  background: var(--legend);
+  color: var(--ink);
+}
+
+@media (max-width: 1023px) {
+  .lab-desk .top,
+  .lab-desk .console,
+  .lab-desk .tools {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .lab-desk .top {
+    flex-direction: column;
+  }
+  .lab-desk .console {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lab-desk .show {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lab-desk .showTape {
+    font-size: 30px;
+  }
+  .lab-desk .transport {
+    max-width: none;
+  }
+  .lab-desk .lcdRows {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-flow: row;
+    grid-template-rows: none;
+  }
+  .lab-desk .strips {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .lab-desk .strip {
+    padding: 8px 6px 10px;
+    border-bottom: 3px solid var(--groove);
+  }
+  .lab-desk .scribble {
+    font-size: 17px;
+    min-height: 58px;
+  }
+  .lab-desk .controls {
+    gap: 8px;
+    height: 120px;
+  }
+  .lab-desk .fader {
+    width: 30px;
+  }
+  .lab-desk .lifted strong {
+    font-size: 26px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-desk .cap,
+  .lab-desk .led {
+    transition: none;
+  }
+}
