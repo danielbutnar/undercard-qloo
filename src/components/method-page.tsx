@@ -87,6 +87,7 @@ function WhoDoesWhat({ calls }: { calls: number }) {
   return (
     <section aria-label="Who does what" className="how-section">
       <h2 className="band-name">Who does what</h2>
+      <p className="how-sub">Qloo decides, the model plans, the rule books.</p>
       <ul className="who-grid how-who">
         <li className="who-card">
           <svg viewBox="0 0 64 40" className="who-icon" aria-hidden>
@@ -164,7 +165,8 @@ export function MethodPage({
           <h1 className="compare-title">How it works</h1>
           <p className="compare-what">
             How the AI agent drafts a festival&apos;s smaller acts from what
-            fans of the town&apos;s own venues like.
+            fans of the town&apos;s own venues like. Undercard drafts a
+            shortlist with its evidence attached; the buyer makes every call.
           </p>
         </div>
 

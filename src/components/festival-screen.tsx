@@ -761,9 +761,8 @@ export function FestivalScreen({
         <section aria-label="What Undercard does" className="lead lead-top">
           <p className="lead-line">{headline(festival)}</p>
           <p className="lead-what">
-            <strong>Undercard is an AI agent:</strong> it drafts the acts that
-            play before the headliners from what fans of the town&apos;s own
-            venues like.
+            <strong>Undercard is an AI agent:</strong> it drafts a shortlist
+            with its evidence attached; the buyer makes every call.
           </p>
           <div>
             {thinTown

@@ -8,6 +8,9 @@ A festival talent buyer fills the undercard from acts the town's own venue crowd
 inside the buyer's fee bands, and refills a slot when an act drops out; Undercard finds each
 act through Qloo and shows why.
 
+Undercard drafts a shortlist with its evidence attached; the buyer makes every call. Qloo
+decides, the model plans, the rule books.
+
 **Live demo: https://undercard-daniel-51ed.vercel.app** (no login, no API key).
 
 Entry for the [Qloo Agentic Hackathon](https://qloo.devpost.com/). The brief is in

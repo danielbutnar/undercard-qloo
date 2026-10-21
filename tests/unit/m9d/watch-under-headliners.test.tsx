@@ -49,7 +49,7 @@ describe("Watch in the lead (section 25)", () => {
       "A festival lineup, drafted from Boise's own music venues.",
     );
     expect(what).toBe(
-      "Undercard is an AI agent: it drafts the acts that play before the headliners from what fans of the town's own venues like.",
+      "Undercard is an AI agent: it drafts a shortlist with its evidence attached; the buyer makes every call.",
     );
     // The Qloo line is a sentence of its own, after what Undercard does.
     expect(what).not.toMatch(/Qloo/);

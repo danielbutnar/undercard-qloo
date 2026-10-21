@@ -61,8 +61,8 @@ export function RuleKey() {
             />
           </svg>
         </span>
-        On the lineup, strongest Qloo affinity first. Qloo supplies the numbers;
-        the AI agent picks which venues to read.
+        On the lineup, strongest Qloo affinity first. Qloo decides, the model
+        plans, the rule books.
       </p>
     </section>
   );

@@ -21,7 +21,7 @@ describe("the first screen for a lay reader (M6q)", () => {
       "A festival lineup, drafted from Boise's own music venues.",
     );
     expect(lines[1]).toBe(
-      "Undercard is an AI agent: it drafts the acts that play before the headliners from what fans of the town's own venues like.",
+      "Undercard is an AI agent: it drafts a shortlist with its evidence attached; the buyer makes every call.",
     );
     expect(lines.at(-1)).toBe(
       "Qloo is a taste-data service: it maps what fans of one artist, venue or film also like.",
