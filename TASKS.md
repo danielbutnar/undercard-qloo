@@ -433,8 +433,8 @@ Done means every item below is finished and deployed, with `pnpm gate`, the desi
 - [ ] Gate, design scan and local e2e pass; main pushed (production deploys); the live e2e passes
 
 2. M10a The numbers beside each act
-- [ ] M10a and M10b in SPEC.md section 6
-- [ ] The bar in docs/evidence.md before building
+- [x] M10a and M10b in SPEC.md section 6
+- [x] The bar in docs/evidence.md section 27 before building (the key, being Qloo-derived, in .design/m10a)
 - [ ] Variant a: the climb as the hero (a big climb where the place was, a small ladder from the old place to the new one, the venue tab, NEW for acts from outside the top 50)
 - [ ] Variant b: the lineup slot as the row number, with the climb, the ladder and the venue as the evidence line
 - [ ] Three fresh AI lay readers per variant, shown only the shots at 390 and 1440

@@ -480,6 +480,20 @@ Written on 2026-10-18, before any festival is chosen and before any Qloo call. T
 
 **The bar.** Supported if at least 20 of the 30 festivals support it: the same standard as section 18's 8 of 10 (a one-sided sign test; 20 or more of 30 happens by chance about 4.9% of the time, 8 of 10 about 5.5%). Otherwise it isn't, and the result is reported either way. It goes on the method page next to the 7 of 10, which stays. Counts and lifts only in this file; names stay in .design/.
 
+## 27. The numbers beside each act (M10a), written before either variant is built
+
+Written on 2026-10-21, before either variant is built or shown to a reader. The bar doesn't change after the answers are in.
+
+**The problem.** The big number on each row of the first screen is the act's place in one list: Qloo's ranking of its band for the headliners' fans with one venue's fans added, a different list for each venue. Read down a band, the numbers skip, repeat across the two bands and don't make one chart, though they read as lineup positions. What every row can compare is its climb: how many places the act rose when that venue's fans were added.
+
+**The variants**, both on the saved Boise build:
+- (a) The climb as the hero: the climb, large, where the place was; a small ladder from the act's place for the headliners' fans alone to its place with the venue's fans; the venue tab as now; NEW for an act that came from outside the headliners-only top 50.
+- (b) The lineup slot as the row number (1 to 4 for mid-size acts, 1 to 6 for opening acts), with the climb, the ladder and the venue's fans as the evidence line under the name.
+
+**The readers.** For each variant, three fresh AI lay readers, each a new subagent that has seen nothing of this project: one on Claude Haiku 5.5, one on Sonnet 5.5 and one on Opus 5.5. Each is told it has never worked in the music industry, is shown only two screenshots of the first screen, at 390x844 and at 1440x810, and is asked one question: "What does the big number next to Act 84 mean?" The shots come from the local app reading the saved build, with no Qloo or model call.
+
+**The bar.** A variant passes if all three answers say, in any words, that Act 84 climbed that many places when one Boise venue's fans were added, and name that venue: a climb, not a lineup position, a rank or a score; the number of places the shot shows; and that venue's fans as the reason, not a stage she plays on. The key (the number and the venue in the saved build) is Qloo-derived, so it stays in .design/m10a/. In variant (b) the big number is the lineup slot, so an answer there passes only if it also explains the climb this way; an answer that explains only the slot doesn't. If a variant fails, a one-line key may be added to each band of that variant, and only then; the keyed variant goes to three new readers on the same three models under the same bar. The variant that passes ships; if both pass, (a) ships; if neither passes, nothing ships and the shots and answers go to Daniel.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
