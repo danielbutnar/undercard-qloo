@@ -118,12 +118,13 @@ describe("plain words, round 2 (M6r)", () => {
         "places it climbed in Qloo's ranking with its venue's fans added",
       ),
     ).toHaveLength(2);
-    // The card says it as a sentence: the venue's fans move it up N places.
+    // The card says it as a sentence (plan.md item 5): the venue's fans' place, the headliners'
+    // fans' place and the climb.
     const first = rows[0].querySelector("button")!;
     fireEvent.click(first);
     const card = screen.getByRole("region", { name: "Act card" });
     expect(card.textContent).toMatch(
-      /Why Boise: .+ fans move it up \d+ places\./,
+      /Why Boise: Fans of .+ rank .+ \d+(st|nd|rd|th); fans of the headliners alone rank them \d+(st|nd|rd|th)\. That climb of \d+ is why .+ is here\./,
     );
   });
 
@@ -146,7 +147,9 @@ describe("plain words, round 2 (M6r)", () => {
     fireEvent.click(within(row).getByRole("button", { name: fresh.name }));
     expect(
       screen.getByRole("region", { name: "Act card" }).textContent,
-    ).toMatch(/Why Boise: .+ fans move it into the top \d+\./);
+    ).toMatch(
+      /Why Boise: Fans of .+ rank .+ \d+(st|nd|rd|th); fans of the headliners alone don't rank them in their top 50\. That climb into the top 50 is why .+ is here\./,
+    );
   });
 
   it("says venue, not room", async () => {
