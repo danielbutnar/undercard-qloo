@@ -408,7 +408,7 @@ Daniel's brief of 2026-10-18 (Sunday): one of three sessions, each building a di
   - [x] e2e against the deployment with data (2026-10-21): the Preview environment has no variables, so at Daniel's request the 1669345 preview was promoted to undercard's Production, the one environment that has them (deployment 9D4YHrpwQ on https://undercard-delta.vercel.app; Instant Rollback returns main's 700e852, deployment undercard-qazgk7jzq). Against it, with no live-Qloo tests: 31 passed, 4 skipped, and 4 failed on network errors on this machine's connection (reset, timed out, network changed) that passed when run again (Your festival 5 of 5, the refilling shots 2 of 2)
 - [x] Merge main in (never rebase): main hasn't moved since the branch took it in (checked 2026-10-21 08:52); the branch is on its preview URL and, promoted, on production
 - [x] A fresh subagent reviews the diff against main for merge-blocking problems; none left
-  - [x] First review (fresh Opus subagent, 2026-10-18): four blocking problems, all fixed in 770e87c: Qloo-derived act names and places in docs/design-brief.md and TASKS.md (the earlier commits 4988e25 and a450aff still hold them: rewriting history is Daniel's call); the venue switch could show another build's data after a live run; checked-town replays labelled as live runs; the phone's scroll to Watch ignored reduced motion
+  - [x] First review (fresh Opus subagent, 2026-10-18): four blocking problems, all fixed in 770e87c: Qloo-derived act names and places in docs/design-brief.md and TASKS.md (the earlier commits 4988e25 and a450aff still held them; rewritten with Daniel's OK on 2026-10-21, see the next section); the venue switch could show another build's data after a live run; checked-town replays labelled as live runs; the phone's scroll to Watch ignored reduced motion
   - [x] Second review (fresh Opus subagent, 2026-10-18): one blocking problem, the method page's result pictures never drew (a scripted edit had dropped the escapes in their patterns), fixed in eeb2722 with a test that counts them; its one minor note, an open Running order staying under the re-formed chart while a venue is off, fixed in e30ba49
   - [x] Third review (fresh Opus subagent, 2026-10-18): one blocking problem, during a live run each venue's edition in Watch said no act climbed onto the lineup, because a live run sends its lineup last; fixed in 0838c7f (until the lineup is in, the banner counts the climbs its own edition shows), with tests for both orders; its minor notes fixed in 16a38a5 (the README's font credit, the demo video button's hover colour)
   - [x] Fourth review (fresh Opus subagent, 2026-10-18): two blocking problems, both fixed in bd6a1a2 with tests: Without Qloo credited the AI agent and its Qloo calls and kept the venue switch beside the model's picks (it now shows only the model's note beside them); on a judge's own run, Watch promised a replay but ran the agent live again, spending a live run and dropping the draft (it now replays the run the screen holds), and the line under Watch could give a wrong count (it now counts only while the screen shows the saved build); from its minor notes, the venue switch asks once more when a just-finished build isn't saved yet, and the keep-or-unavailable hint hides while a venue is off
@@ -417,3 +417,41 @@ Daniel's brief of 2026-10-18 (Sunday): one of three sessions, each building a di
   - [x] Seventh review (2026-10-21, of 1d5160c, 55ecb91 and 1669345): nothing blocks the merge
 - [x] Deliver: the preview URL, stills of every screen at 1440x810 and 390 wide, a 30-second recording of the demo path, docs/design-brief.md, what I'd still improve (2026-10-21: production https://undercard-delta.vercel.app, the preview https://undercard-git-final-chart-daniel-51ed.vercel.app)
   - [x] Stills of every screen at 1440x810 and 390 wide (11 screens), the designed states, the brainstorm stills and a 30-second recording of the demo path in .design/final-chart (git-ignored); after the fourth review's fixes (2026-10-21) the Without Qloo and what-if stills were retaken and the recording made again
+
+# TASKS: Daniel's brief of 2026-10-21 (Wednesday): main up to date, M10a, M10b, artist images
+
+Done means every item below is finished and deployed, with `pnpm gate`, the design scan and the e2e passing, by Saturday 24 October 22:00 Bucharest. The UI freezes at the end of Sunday 25 October. Item 4 only if items 1-3 are done by Friday 23 October. A push to main deploys production: push only when the gates pass. No Qloo-derived numbers in committed files: bars and answer keys that need a real act's places keep them in .design/ (git-ignored).
+
+1. Main up to date
+- [x] 4988e25 and a450aff shown to Daniel: docs/design-brief.md's mockups held five real acts' Qloo places and climbs, and TASKS.md a lay reader's quote of one; 770e87c had already replaced both at the tip; no other commit on any branch matched. Daniel's OK: final-chart rewritten from 4988e25 on to carry 770e87c's placeholders (27 commits, messages, authors and dates kept byte for byte, the tip's tree identical; 4988e25 is now de49058 and a450aff e5aecef)
+- [ ] The rewritten final-chart force-pushed to origin: the permission check here refused it, so it waits on Daniel
+- [x] final-chart merged into main with a merge commit (8aef8af); work continues on main
+- [ ] The unused old components and their two tests deleted
+- [ ] Watch steps through its editions without animation when reduced motion is on
+- [ ] After "Qloo couldn't find this town" or "too few venues", the checked towns instead of "Run the agent again"
+- [ ] On a 390x844 phone, the first act shows on the first screen
+- [ ] Gate, design scan and local e2e pass; main pushed (production deploys); the live e2e passes
+
+2. M10a The numbers beside each act
+- [ ] M10a and M10b in SPEC.md section 6
+- [ ] The bar in docs/evidence.md before building
+- [ ] Variant a: the climb as the hero (a big climb where the place was, a small ladder from the old place to the new one, the venue tab, NEW for acts from outside the top 50)
+- [ ] Variant b: the lineup slot as the row number, with the climb, the ladder and the venue as the evidence line
+- [ ] Three fresh AI lay readers per variant, shown only the shots at 390 and 1440
+- [ ] A one-line key per section only if a variant fails without it
+- [ ] Ship the variant that passes (a if both pass); if neither passes, stop and show Daniel the shots and the answers
+- [ ] Gate, design scan, e2e; deployed; the live e2e passes
+
+3. M10b How it works
+- [ ] The bar in docs/evidence.md before building
+- [ ] One picture: the headliners' fans and a venue's fans, the acts that climb, your undercard, as four small cards
+- [ ] One act through the real Boise build, step by step, with the first screen's rows and badges; the agent's choices (the venues it read, the one that moved nothing)
+- [ ] Try it: one venue switch
+- [ ] Who does what: three cards, one line each
+- [ ] Shown, partly shown, not shown stays; the evidence tables and the five objections move to /method/evidence, linked, with no result or wording changed
+- [ ] A slot at the top for the demo video
+- [ ] Gate: a fresh AI lay reader at 390 and 1440 explains how one act ends up on the lineup and names the AI agent, Qloo and the rule correctly
+- [ ] Gate, design scan, e2e; deployed; the live e2e passes
+
+4. Artist images, built but off (only if items 1-3 are done by Friday 23 October)
+- [ ] The cheapest way to show Qloo's image URL on each act's row and card at runtime, behind one setting that is off, falling back to the drawn covers; no image and no Qloo response data in the repo
