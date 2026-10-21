@@ -494,6 +494,7 @@ A. Artist images on (Daniel's message of 2026-10-21: Qloo's hackathon manager ag
 - [x] The first act's row at 390x844 still ends above 664 px with the images on: 659 px, as before (a phone's rows carry no cover)
 - [x] A fresh lay reader on the first screen and one act card: does the picture help them say what the act is? (bar in evidence section 30 first). Fail by the bar: a music act, yes, and the picture read as her photo, but it helps "only a little" (recognising her, matching row to card) while the genre words say what she is; it also found that a phone's rows show no pictures and the photo has no caption. To Daniel with the shots (.design/images-on/); the images stay on
 - [x] Section 29's four readers again, on the page with images (A before the final reader checks): all four pass again (evidence section 29; answers in .design/review-fixes/images-on-answers.md)
+- [x] Found while re-checking the phone row live: the bill's rows, already painted by the server, rose in again from 28 px below when the page came alive (the chart's FLIP hook, since the weekly chart), so the 664 px check caught the row low in 4 of 6 live runs. The hook now leaves rows on screen at its first pass in place; later rows still rise in and moved rows glide (tests/unit/review-fixes/first-paint-motion.test.tsx); on a local production build the row holds at 659 px from load, and the phone check passed 10 of 10
 - [ ] Gate, design scan, e2e; deployed; the live e2e passes
 
 B. The manager's answers in RULES.md

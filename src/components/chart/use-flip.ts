@@ -5,7 +5,8 @@ import { useCallback, useLayoutEffect, useRef } from "react";
 /**
  * Rows that glide to their new places when a chart re-sorts (FLIP, Web Animations API only): a
  * row that moved slides from where it was, a new row rises in from below. `key` changes once
- * per re-sort; with `enabled` false (reduced motion) rows simply appear in place.
+ * per re-sort; with `enabled` false (reduced motion) rows simply appear in place. Rows already
+ * there on the first pass were painted with the page, so they stay put.
  */
 export function useFlip<T extends HTMLElement>(
   key: unknown,
@@ -14,13 +15,16 @@ export function useFlip<T extends HTMLElement>(
 ) {
   const nodes = useRef(new Map<string, T>());
   const last = useRef(new Map<string, DOMRect>());
+  const first = useRef(true);
 
   useLayoutEffect(() => {
     const next = new Map<string, DOMRect>();
+    const painted = first.current;
+    first.current = false;
     for (const [id, node] of nodes.current) {
       const box = node.getBoundingClientRect();
       next.set(id, box);
-      if (!enabled || typeof node.animate !== "function") continue;
+      if (painted || !enabled || typeof node.animate !== "function") continue;
       const before = last.current.get(id);
       if (before && Math.abs(before.top - box.top) < 1) continue;
       node.animate(
