@@ -117,3 +117,54 @@ describe("The line under Watch on a saved town", () => {
     expect(under()).toBe("Replays the saved build's Qloo calls");
   }, 15000);
 });
+
+describe("A judge's run that didn't finish", () => {
+  const brief = {
+    city: "Duluth",
+    region: "Minnesota",
+    headliners: ["Khruangbin", "Japanese Breakfast"] as [string, string],
+  };
+  // Every POST /api/undercard, with its body; the first is answered by `first`, later ones wait.
+  function serve(first: () => Promise<Response>) {
+    const bodies: { fresh?: boolean }[] = [];
+    const fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url !== "/api/undercard") return new Response("{}", { status: 404 });
+      bodies.push(JSON.parse(String(init?.body)));
+      return bodies.length === 1 ? first() : new Promise<Response>(() => {});
+    });
+    vi.stubGlobal("fetch", fetch);
+    render(
+      <FestivalScreen
+        festival={yourFestival(brief, "yours-duluth")}
+        custom={{ brief, onEdit: () => {} }}
+      />,
+    );
+    return bodies;
+  }
+  const AGAIN = { name: "Run the agent again" };
+
+  it("offers to run the agent again after the stream stops partway, and does", async () => {
+    const server = syntheticServer();
+    const events = await readEvents(server.build({ fresh: true }));
+    const climbs = events.flatMap((event, index) =>
+      event.type === "climb" ? [index] : [],
+    );
+    // The stream ends after the fourth edition, with no lineup and no "done".
+    const bodies = serve(async () => ndjson(events.slice(0, climbs[3] + 1)));
+    const again = await screen.findByRole("button", AGAIN, { timeout: 5000 });
+    expect(under()).toBe("Runs the AI agent again; its Qloo calls list below");
+    fireEvent.click(again);
+    await waitFor(() => expect(bodies).toHaveLength(2));
+    expect(bodies[1].fresh).toBe(true);
+  }, 15000);
+
+  it("offers to run the agent again when the build service can't be reached", async () => {
+    const bodies = serve(async () => {
+      throw new TypeError("Failed to fetch");
+    });
+    const again = await screen.findByRole("button", AGAIN);
+    fireEvent.click(again);
+    await waitFor(() => expect(bodies).toHaveLength(2));
+    expect(bodies[1].fresh).toBe(true);
+  });
+});
