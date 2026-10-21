@@ -7,8 +7,11 @@ import {
   venuesOf,
   type VenueSwitchData,
 } from "@/lib/venue-switch";
+import type { FirstBill } from "@/lib/first-bill";
 import type { BuildStore, SavedBuild } from "./build-store";
+import { serverBuildStore, serverCachedQloo } from "./deps";
 import { QlooCacheMiss, type QlooClient } from "./qloo";
+import { syntheticMode } from "./qloo-cache";
 
 // The labels a venue's trace line can carry after its name (M6l, M6o; src/lib/place-kinds.ts).
 const KINDS = [
@@ -134,4 +137,41 @@ export async function readVenueSwitch({
   if (!sameLineup(lineupWith(input, every).acts, saved.lineup.acts))
     return null;
   return { buildId: saved.id, ...venueSwitch(input) };
+}
+
+/**
+ * A saved build's venue switch for the server, as GET /api/venue-switch answers it: worked out
+ * from the Qloo cache with no call, the synthetic answer in synthetic mode.
+ */
+export async function venueSwitchFor(
+  festival: Festival,
+  buildId?: string,
+): Promise<VenueSwitchData | null> {
+  if (syntheticMode()) {
+    const { syntheticVenueSwitch } =
+      await import("../../tests/e2e/synthetic-build");
+    return syntheticVenueSwitch();
+  }
+  return readVenueSwitch({
+    store: serverBuildStore(),
+    festival,
+    qloo: serverCachedQloo(),
+    buildId,
+  });
+}
+
+/**
+ * The first bill with its venue switch, so the page's first paint and a plain fetch show the
+ * venue results rather than a loading line (plan.md item 4). Without one, the browser asks the
+ * route as before.
+ */
+export async function withVenueSwitch(
+  bill: FirstBill | null,
+  festival: Festival,
+): Promise<FirstBill | null> {
+  if (!bill) return bill;
+  const venueSwitch = await venueSwitchFor(festival, bill.build.id).catch(
+    () => null,
+  );
+  return venueSwitch ? { ...bill, venueSwitch } : bill;
 }

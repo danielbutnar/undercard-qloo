@@ -6,6 +6,7 @@ import { withArtistImages } from "@/server/artist-images";
 import { serverBuildStore } from "@/server/deps";
 import { readFirstBill } from "@/server/first-bill";
 import { townsOnShow } from "@/server/towns";
+import { withVenueSwitch } from "@/server/venue-switch";
 
 // The same brief in another town (M6d): its own saved build, read on the server and cached for
 // a minute like Boise's. A town with no saved build isn't on show.
@@ -15,8 +16,9 @@ async function townPage(slug: string) {
   const town = townBySlug(slug);
   if (!town || slug === "boise") return null;
   const store = serverBuildStore();
-  const firstBill = await withArtistImages(
-    await readFirstBill(store, town.festival.id),
+  const firstBill = await withVenueSwitch(
+    await withArtistImages(await readFirstBill(store, town.festival.id)),
+    town.festival,
   );
   if (!firstBill) return null;
   return {

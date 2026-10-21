@@ -23,12 +23,22 @@ export function useVenueSwitch(
   /** The saved build on screen: the switch is worked out from it, and refetched when it changes. */
   buildId: string | null,
   enabled = true,
+  /** The switch the server worked out with the page, for the saved build on it (plan.md item 4). */
+  initial?: VenueSwitchData | null,
 ) {
+  // The server's answer counts for the build it was worked out for (a synthetic one has no id).
+  const fromServer = (build: string | null) =>
+    initial && build && (!initial.buildId || initial.buildId === build)
+      ? initial
+      : null;
   // What came back, and for which build; a build whose answer failed.
   const [answer, setAnswer] = useState<{
     build: string;
     data: VenueSwitchData;
-  } | null>(null);
+  } | null>(() => {
+    const data = fromServer(buildId);
+    return data && buildId ? { build: buildId, data } : null;
+  });
   const [failedFor, setFailedFor] = useState<string | null>(null);
   // The venues switched off, kept with the build they were switched off on.
   const [switched, setSwitched] = useState<{
@@ -38,6 +48,8 @@ export function useVenueSwitch(
 
   useEffect(() => {
     if (!enabled || !buildId) return;
+    // The page came with this build's switch: nothing to ask.
+    if (fromServer(buildId)) return;
     const controller = new AbortController();
     let again: ReturnType<typeof setTimeout> | undefined;
     const ask = (first: boolean) =>
@@ -64,6 +76,7 @@ export function useVenueSwitch(
       controller.abort();
       clearTimeout(again);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the server's answer is fixed for the page
   }, [festivalId, buildId, enabled]);
 
   // Data from an earlier build on this screen is never shown against the one there now.

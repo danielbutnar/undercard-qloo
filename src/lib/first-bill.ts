@@ -1,7 +1,7 @@
 import type { ArtistImages } from "./artist-images";
 import type { FeeBandId } from "./fee-bands";
 import type { Act, Venue } from "./lineup";
-import type { Placed } from "./venue-switch";
+import type { Placed, VenueSwitchData } from "./venue-switch";
 
 /** What the first screen needs from the latest saved build, read on the server. */
 export interface FirstBill {
@@ -19,4 +19,6 @@ export interface FirstBill {
   places?: Record<string, Placed>;
   /** Each act's image on Qloo, only while ARTIST_IMAGES is on (src/lib/artist-images.ts). */
   images?: ArtistImages;
+  /** The venue switch worked out on the server from the Qloo cache, so it's on first paint. */
+  venueSwitch?: VenueSwitchData;
 }

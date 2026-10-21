@@ -416,7 +416,12 @@ export function FestivalScreen({
   const finished =
     state.status !== "building" ? (state.build?.id ?? null) : null;
   if (finished && finished !== switchBuild) setSwitchBuild(finished);
-  const switcher = useVenueSwitch(festival.id, switchBuild, !custom);
+  const switcher = useVenueSwitch(
+    festival.id,
+    switchBuild,
+    !custom,
+    firstBill?.venueSwitch,
+  );
   // What the server read at first paint belongs to that build only.
   const onFirst = firstBill !== null && switchBuild === firstBill.build.id;
   const [mode, setMode] = useState<Mode>("qloo");

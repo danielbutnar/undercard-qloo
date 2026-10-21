@@ -5,6 +5,7 @@ import { withArtistImages } from "@/server/artist-images";
 import { serverBuildStore } from "@/server/deps";
 import { readFirstBill } from "@/server/first-bill";
 import { townsOnShow } from "@/server/towns";
+import { withVenueSwitch } from "@/server/venue-switch";
 
 // The latest saved build, read on the server and cached for a minute, so the page is served
 // as static HTML with the bill on first paint. A fresh build shows up within that minute.
@@ -12,8 +13,12 @@ async function firstBill() {
   "use cache";
   cacheLife("minutes");
   // Qloo's artist images join only while ARTIST_IMAGES is on (src/lib/artist-images.ts).
-  return withArtistImages(
-    await readFirstBill(serverBuildStore(), SAGEBRUSH_SOUND.id),
+  // The venue switch comes with it, so the first paint shows the venue results (plan.md item 4).
+  return withVenueSwitch(
+    await withArtistImages(
+      await readFirstBill(serverBuildStore(), SAGEBRUSH_SOUND.id),
+    ),
+    SAGEBRUSH_SOUND,
   );
 }
 

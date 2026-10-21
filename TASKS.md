@@ -554,7 +554,7 @@ Corrections kept throughout: a private reply is kept out of the public record; t
 3. The agent's reason in Watch (T4)
 - [x] One line per venue choice from the saved trace; a fixed line on what the agent decides if the reasons aren't saved; never invented. Already there on a laptop: Watch's banner shows the agent's own latest line ("The AI agent: Venue 166 lifted nothing; try Venue 227 for both bands"), but a phone hid it, and 10 of the 29 saved builds hold no planner line at all (17 hold one, 2 hold two). Now a phone shows the line too, and a step with no saved line says "The AI agent chose which venues to read, and in what order; Qloo's numbers and the rule pick the acts." (tests/unit/review-plan/agent-line.test.tsx; tests/e2e/phone-first-screen.spec.ts on real builds)
 4. Venue results server-rendered for saved builds (D2)
-- [ ] First paint and a plain fetch show the results, not a loading line
+- [x] First paint and a plain fetch show the results, not a loading line: the home page and each town's page work the venue switch out on the server from the Qloo cache with the first bill (src/server/venue-switch.ts withVenueSwitch, the route's own code), and the browser no longer asks for it; a live run still does (tests/unit/review-plan/venue-switch-ssr.test.tsx; tests/e2e/first-paint-venues.spec.ts, red then green on / and /towns/austin). How it works' Try it still loads its own copy after first paint
 5. One sentence of "why" per act when expanded (D3)
 - [ ] Prompt D's shape, from the saved build's numbers only
 6. A "Listen" link per act (D6)
