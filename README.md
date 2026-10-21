@@ -192,6 +192,8 @@ returned, as counts only.
   Qloo's artist images once Qloo's hackathon manager agreed, and fixed two bugs found while
   checking them (a photo that failed before the page came alive stayed broken, and the first
   screen's rows rose in again on every load).
+- 21 October, evening: Claude (Opus 5.5) prepared stills and docs for an outside review, then
+  gave How it works the same Qloo artist photos as the first screen, from the same cached call.
 - Kept current as each milestone lands.
 
 ## Built on

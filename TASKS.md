@@ -534,6 +534,6 @@ Done means items 1-4 are deployed with `pnpm gate`, the design scan and the e2e 
 
 # TASKS: Daniel's message of 2026-10-21 (evening): the same photo wherever an act appears
 
-- [ ] /method: "Follow one act" (every step, the lineup included) and Try it show the act's Qloo photo, as the first screen does, from the same cached call (tests/unit/artist-images/method-covers.test.tsx)
-- [ ] Gate, design scan, build; committed; deploy waits on Daniel
+- [x] /method: "Follow one act" (every step, the lineup included) and Try it show the act's Qloo photo, as the first screen does, from the same cached call (tests/unit/artist-images/method-covers.test.tsx)
+- [x] Gate (519 tests) and design scan, build; checked on a local production build on the saved Boise build: Act 84's photo on every walkthrough step and Try it is the first screen's; committed, not pushed (a push to main deploys production): deploy waits on Daniel
 - [ ] Your festival (checked-town replays and live runs) and Watch's non-lineup acts: Daniel's call, since photos there need Qloo calls the saved Boise lineup doesn't

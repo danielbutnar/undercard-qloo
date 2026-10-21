@@ -1,3 +1,4 @@
+import type { ArtistImages } from "./artist-images";
 import type { FeeBand } from "./fee-bands";
 import type { Festival } from "./festival";
 import type { FirstBill } from "./first-bill";
@@ -33,6 +34,8 @@ export interface MethodStory {
   /** The lineup and each act's places, as the first screen shows them. */
   acts: Act[];
   places: Record<string, Placed>;
+  /** Each act's image on Qloo, as on the first screen, while ARTIST_IMAGES is on. */
+  images?: ArtistImages;
 }
 
 export function methodStory(
@@ -67,5 +70,6 @@ export function methodStory(
     placesListed: bill.placesListed,
     acts: bill.acts,
     places: bill.places ?? {},
+    ...(bill.images ? { images: bill.images } : {}),
   };
 }

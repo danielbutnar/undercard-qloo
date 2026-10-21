@@ -5,6 +5,7 @@ import { BandChart } from "@/components/chart/band-chart";
 import { billRows } from "@/components/chart/chart-rows";
 import { useVenueSwitch } from "@/components/use-venue-switch";
 import { useReducedMotion } from "@/components/use-watch";
+import { pictured } from "@/lib/artist-images";
 import type { Act } from "@/lib/lineup";
 import type { MethodStory } from "@/lib/method-story";
 import { venueHues } from "@/lib/venue-colours";
@@ -95,14 +96,17 @@ export function TryIt({
       </p>
       <BandChart
         band={band}
-        rows={billRows(
-          band,
-          acts,
-          places,
-          hues,
-          open,
-          "No act from the venues left on clears the bar.",
-          "climb",
+        rows={pictured(
+          billRows(
+            band,
+            acts,
+            places,
+            hues,
+            open,
+            "No act from the venues left on clears the bar.",
+            "climb",
+          ),
+          story.images,
         )}
         sortKey={off ? "off" : "on"}
         motion={!reduced}

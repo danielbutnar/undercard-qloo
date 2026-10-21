@@ -15,6 +15,7 @@ import {
 import { billRows } from "@/components/chart/chart-rows";
 import { liftedWords, ordinal, PLAIN_BAND } from "@/components/chart/words";
 import { useReducedMotion } from "@/components/use-watch";
+import { pictured } from "@/lib/artist-images";
 import { MIN_LIFT } from "@/lib/assemble-lineup";
 import { formatBandRange, formatPercentile } from "@/lib/format";
 import type { MethodStory } from "@/lib/method-story";
@@ -158,14 +159,9 @@ export function FollowOneAct({
     () => venueHues(story.venues, story.acts),
     [story.venues, story.acts],
   );
-  const [row] = billRows(
-    band,
-    [act],
-    story.places,
-    hues,
-    0,
-    undefined,
-    "climb",
+  const [row] = pictured(
+    billRows(band, [act], story.places, hues, 0, undefined, "climb"),
+    story.images,
   );
   const was = place?.was ?? null;
   const now = place?.now ?? row.place;
@@ -277,14 +273,17 @@ export function FollowOneAct({
               {step === last && (
                 <BandChart
                   band={band}
-                  rows={billRows(
-                    band,
-                    story.acts,
-                    story.places,
-                    hues,
-                    open,
-                    undefined,
-                    "climb",
+                  rows={pictured(
+                    billRows(
+                      band,
+                      story.acts,
+                      story.places,
+                      hues,
+                      open,
+                      undefined,
+                      "climb",
+                    ),
+                    story.images,
                   )}
                   sortKey="lineup"
                   motion={!reduced}
