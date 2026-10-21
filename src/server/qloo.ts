@@ -416,8 +416,9 @@ export function createQlooClient({
 
     /**
      * GET /v2/insights with filter.type=urn:entity:artist: artists ranked by affinity to the
-     * signal entities, inside a popularity band. Artists take no location parameter, so local
-     * taste enters only as venue entities in the signal (SPEC.md section 7).
+     * signal entities, inside a popularity band. Artists have no location of their own in Qloo,
+     * and its location data for them was too thin to build on (docs/evidence.md section 6), so
+     * local taste enters only as venue entities in the signal (SPEC.md section 7).
      */
     artists({
       signalEntityIds,

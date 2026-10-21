@@ -430,11 +430,13 @@ export function MethodEvidencePage() {
               </Objection>
               <Objection question="Why venues?" verdict="partly">
                 <p>
-                  Qloo takes no location for artists, so a venue&apos;s fans are
-                  how a town&apos;s taste gets into the ranking (
-                  <Ev to="local">evidence 6</Ev>). And a town&apos;s festival
-                  books its venues: Treefort 2026 used two of the three Boise
-                  venues tested (<Ev to="boise">evidence 1</Ev>).
+                  Artists have no location of their own in Qloo, and its
+                  location data for them gave a usable local reading for at most
+                  7 of 10 acts (<Ev to="local">evidence 6</Ev>), so a
+                  venue&apos;s fans are how a town&apos;s taste gets into the
+                  ranking. And a town&apos;s festival books its venues: Treefort
+                  2026 used two of the three Boise venues tested (
+                  <Ev to="boise">evidence 1</Ev>).
                 </p>
               </Objection>
               <Objection question="What happens when a town is thin?">

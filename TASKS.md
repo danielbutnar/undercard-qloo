@@ -537,3 +537,39 @@ Done means items 1-4 are deployed with `pnpm gate`, the design scan and the e2e 
 - [x] /method: "Follow one act" (every step, the lineup included) and Try it show the act's Qloo photo, as the first screen does, from the same cached call (tests/unit/artist-images/method-covers.test.tsx)
 - [x] Gate (519 tests) and design scan, build; checked on a local production build on the saved Boise build: Act 84's photo on every walkthrough step and Try it is the first screen's; committed, not pushed (a push to main deploys production): deploy waits on Daniel
 - [ ] Your festival (checked-town replays and live runs) and Watch's non-lineup acts: Daniel's call, since photos there need Qloo calls the saved Boise lineup doesn't
+
+# TASKS: the plan after the outside review (.design/review/plan.md, Daniel's decision, 2026-10-21)
+
+UI items 1-8 live by Friday 23 October 22:00 Bucharest (else Saturday 24 October 22:00); items 9-11 by Saturday 22:00. Where plan.md and the review differ, plan.md wins. Before building anything the review recommends, check it isn't already there.
+
+Corrections kept throughout: a private reply is kept out of the public record; the first tester's words go public only once Daniel confirms she agreed (until then: "The first person to see an early design couldn't tell what it was for."); no outreach after submission, no repo or site change after Thursday 29 October except fixes; "27 of 40" and a chance line only if sections 18 and 26 measured the same thing.
+
+1. The location claim
+- [x] Check docs/evidence.md section 6 is the location-signal test; replace every "Qloo takes no location for artists" (pages, README, docs, video notes) with the plan's sentence, shortened where tight, never back to the old claim. Section 6 isn't quite that test: it tried three routes, and its 7 of 10 came from Qloo's heatmap; the location signal on the artist ranking (signal.location.query) was usable for none of the 10. So the sentence is worded from section 6: "Artists have no location of their own in Qloo. Its location data for artists, tried three ways, gave a usable local reading for at most 7 of 10 acts, short of the bar of 8 (evidence 6), so Undercard reads a town's taste through the fans of its venues." Replaced in the README, the evidence page's "Why venues?", the Devpost story and a code comment; evidence section 21's key keeps its 18 October wording with a dated correction under it; SPEC.md section 7's line is accurate as written (it says the parameter guide lists no location parameters for artists) and stays; the video project has none
+2. Judging-window resilience (prompt A)
+- [ ] Caps as environment variables with today's values as defaults, tested at the boundaries and with bad values
+- [ ] Busy and over-cap states land on the nearest checked town's replay, one Playwright test each
+- [ ] A daily smoke test (GitHub Actions cron) against production, no live Qloo build, failure alerts the owner
+- [ ] The production function timeout against the 45 s retry budget; recommended judging-window cap values with reasons (Daniel sets them in Vercel)
+3. The agent's reason in Watch (T4)
+- [ ] One line per venue choice from the saved trace; a fixed line on what the agent decides if the reasons aren't saved; never invented
+4. Venue results server-rendered for saved builds (D2)
+- [ ] First paint and a plain fetch show the results, not a loading line
+5. One sentence of "why" per act when expanded (D3)
+- [ ] Prompt D's shape, from the saved build's numbers only
+6. A "Listen" link per act (D6)
+- [ ] Only if the cached /entities results carry a Spotify id (or another public streaming page) for at least 8 of Boise's 10 acts; outbound link only; else skipped with the count
+7. Positioning (I1, Q2)
+- [ ] "Undercard drafts a shortlist with its evidence attached; the buyer makes every call" and "Qloo decides, the model plans, the rule books" on the home page (replacing words, not adding), How it works and the README
+8. The With and Without number, the review's measures (section 9b.1)
+- [ ] The bar in docs/evidence.md before counting (results already seen marked exploratory)
+- [ ] The count; one line under the toggle and on How it works, saying only what the bar allows
+9. Two cheap tests (prompt C, bars from section 9b.3 first)
+- [ ] Stability across days for evidence 5's four towns
+- [ ] Boise with a second pair of headliners of similar popularity, chosen and recorded before any run
+10. The evidence page copy (section 9c) with corrections 2, 3 and 6
+- [ ] Every number from docs/evidence.md; stop and ask on any conflict; visible placeholders where results are still coming
+11. Qloo calls in one named module (prompt E, first part only)
+- [ ] src/lib/qloo/, one file per endpoint, its own commit, tests unchanged and green
+Also
+- [ ] The bar for the test with real people (section 9b.2) in docs/evidence.md before Friday

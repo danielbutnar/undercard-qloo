@@ -95,7 +95,9 @@ the trace panel lists every call with its parameters and result count.
 | `GET /v2/analysis/compare` | Find the taste tags the two headliners share; they rank the two tags each card shows. |
 | `GET /v2/insights` with `filter.type=urn:entity:artist` | Rank artists inside each fee band's popularity range (`filter.popularity.min/max`), first for the headliners alone, then for the headliners plus one anchor venue in `signal.interests.entities`. |
 
-Qloo's artist type takes no location parameter, so local taste enters only through the
+Artists have no location of their own in Qloo. Its location data for artists, tried three
+ways, gave a usable local reading for at most 7 of 10 acts, short of the bar of 8
+([docs/evidence.md](docs/evidence.md), section 6), so local taste enters only through the
 city's venues as signals. An act makes the board when an anchor venue lifts it at least five
 places above the headliners-only ranking; its "Why Boise" line says by how much. Affinity,
 popularity percentile, fee band, anchor venue and shared tags on every card come from those
