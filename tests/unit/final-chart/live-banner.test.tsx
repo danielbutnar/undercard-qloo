@@ -89,7 +89,7 @@ describe("Watch's banner during a live run", () => {
     const climbs = edition.acts.filter((listed) => listed.move !== null).length;
     expect(climbs).toBeGreaterThan(1);
     expect(bill.querySelector(".edition-line")?.textContent).toBe(
-      `The chart re-sorts with this venue's fans added: ${climbs} of the top ${edition.acts.length} climb 5 places or more.`,
+      `Qloo's ranking re-sorts with this venue's fans added: ${climbs} of the top ${edition.acts.length} climb 5 places or more.`,
     );
   }, 15000);
 
@@ -147,7 +147,7 @@ describe("Watch's banner during a live run", () => {
     ).length;
     expect(booked).toBeGreaterThan(1);
     expect(bill.querySelector(".edition-line")?.textContent).toBe(
-      `The chart re-sorts with this venue's fans added: ${booked} acts climb onto the lineup.`,
+      `Qloo's ranking re-sorts with this venue's fans added: ${booked} acts climb onto the lineup.`,
     );
   }, 15000);
 });

@@ -58,7 +58,8 @@ function Picture({ story }: { story: MethodStory | null }) {
           </span>
           <p className="how-card-title">The acts that climb</p>
           <p className="how-card-line">
-            {MIN_LIFT} places or more, in the fee range, two genres shared
+            {MIN_LIFT} places or more in Qloo&apos;s ranking, in the fee range,
+            two genres shared
           </p>
         </div>
         <span className="how-join how-arrow" aria-hidden />

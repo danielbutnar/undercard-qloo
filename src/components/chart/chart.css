@@ -2931,3 +2931,120 @@
 .chart-app .cover-photo {
   object-fit: cover;
 }
+
+/* Readers' fixes (2026-10-21): the fee range in plain words on a phone, why no act is at the
+   top, and the card naming the ranking as Qloo's. */
+.chart-app .fee-plain {
+  display: none;
+}
+@media (max-width: 767px) {
+  .chart-app .fee-plain {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .chart-app .band-head .fee-range {
+    display: none;
+  }
+}
+.chart-app .numbers-why {
+  margin-top: 2px;
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+@media (max-width: 767px) {
+  .chart-app .numbers-why {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+}
+.chart-app .card-climb-title {
+  margin-top: 10px;
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+
+/* The phone's first screen still ends the first act above 664 px with the fee line, the key in
+   Qloo's words and why no act is at the top (2026-10-21): the stamp beside the festival's name,
+   smaller headliner cards and tighter gaps; no words change. */
+@media (max-width: 767px) {
+  .chart-app .topbar {
+    padding: 6px 0 4px;
+  }
+  .chart-app .layout {
+    gap: 10px;
+  }
+  .chart-app .lead-top {
+    gap: 6px;
+  }
+  .chart-app .lead-what {
+    font-size: 15px;
+  }
+  .chart-app .watch {
+    padding: 6px 12px 6px 6px;
+  }
+  .chart-app .qloo-line {
+    margin-top: 4px;
+    font-size: 14px;
+  }
+  .chart-app .board,
+  .chart-app .draft {
+    gap: 6px;
+  }
+  .chart-app .masthead {
+    padding-right: 152px;
+  }
+  .chart-app .masthead h1,
+  .chart-app .draft.is-watching .masthead h1 {
+    font-size: 28px;
+  }
+  .chart-app .stamp {
+    position: absolute;
+    top: 2px;
+    right: 0;
+    margin: 0;
+    font-size: 12px;
+  }
+  .chart-app .facts {
+    margin-right: -152px;
+  }
+  .chart-app .headliner {
+    padding: 3px 6px 3px 3px;
+  }
+  .chart-app .headliner .sleeve {
+    width: 26px;
+    height: 26px;
+  }
+  .chart-app .headliners-note {
+    font-size: 13px;
+  }
+  .chart-app .band-head {
+    padding-bottom: 6px;
+    border-bottom-width: 3px;
+  }
+  .chart-app .fee-plain,
+  .chart-app .numbers-key {
+    margin-top: 3px;
+  }
+  .chart-app .numbers-climb .rows {
+    margin-top: 3px;
+  }
+}
+@media (max-width: 767px) {
+  .chart-app .stamp {
+    bottom: auto;
+    padding: 1px 6px;
+  }
+  .chart-app .numbers-key {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+  .chart-app .numbers-why {
+    line-height: 1.25;
+  }
+}
+.chart-app .numbers-why {
+  color: var(--color-ink);
+}

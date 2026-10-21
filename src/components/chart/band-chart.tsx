@@ -400,11 +400,23 @@ export function BandChart({
         {!listing && <Slots filled={filled} slots={band.slots} />}
         <FeeRange band={band} />
       </div>
+      {/* On a phone, the fee range in plain words (the bare range reads as a ranking). */}
+      <p className="fee-plain">
+        fee range: {formatBandRange(band)} percentile of Qloo popularity
+      </p>
       {/* The climb's one-line key, added after its first readers (evidence section 27). */}
       {numbers === "climb" && rows.some((row) => row.kind === "act") && (
         <p className="numbers-key">
           <Tri />
-          places it climbed with its venue&apos;s fans added
+          places it climbed in Qloo&apos;s ranking with its venue&apos;s fans
+          added
+        </p>
+      )}
+      {/* Why no act sits at the top (2026-10-21 readers): those places need no venue. */}
+      {numbers === "climb" && rows.some((row) => row.kind === "act") && (
+        <p className="numbers-why">
+          The top places go to acts the headliners&apos; fans like anywhere; the
+          lineup is the acts the venues push up.
         </p>
       )}
       {caption && (

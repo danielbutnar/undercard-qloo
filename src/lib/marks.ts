@@ -60,8 +60,8 @@ export function markLabel(act: Act, top?: number): string {
   const lift = liftOf(act);
   if (!lift) return crowd;
   return lift.kind === "up"
-    ? `${crowd}: up ${lift.places} places`
-    : `${crowd}: new, from outside ${outsideTop(top)}`;
+    ? `${crowd}: up ${lift.places} places in Qloo's ranking`
+    : `${crowd}: new in Qloo's ranking, from outside ${outsideTop(top)}`;
 }
 
 const RANKING = "Qloo ranks artists for the headliners' fans";

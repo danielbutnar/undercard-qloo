@@ -458,3 +458,31 @@ Done means every item below is finished and deployed, with `pnpm gate`, the desi
 - [x] The cheapest way to show Qloo's image URL on each act's row and card at runtime, behind one setting that is off, falling back to the drawn covers; no image and no Qloo response data in the repo: ARTIST_IMAGES in src/lib/artist-images.ts (false); while on, one Qloo GET /entities call per saved build, cached server-side, https images on images.qloo.com only; rows and the card fall back to the drawn sleeve with no image or when one fails to load (tests/unit/artist-images). One live call (2026-10-21) confirmed the hackathon key answers /entities with an image URL for all 10 Boise acts; not seen in a browser with the setting on (the switch stays off)
 - [x] Deployed with the setting off (406261f, 2026-10-21 14:22 Bucharest): gate 497 tests and the scan, local e2e 66 passed, 5 skipped; live e2e 64 passed, 7 skipped; the live-Qloo steps 9 passed
 - [ ] Turn it on only when Daniel says Qloo agreed (then SPEC.md section 7's text-only line changes too)
+
+# TASKS: Daniel's brief of 2026-10-21 (second): small fixes before the outside review, then evidence
+
+Done means items 1-3 are deployed with `pnpm gate`, the design scan and the e2e passing, and items 4-5 are reported, by Friday 23 October 22:00 Bucharest.
+
+1. Old commits in pull requests
+- [x] Reported, nothing changed: the repository has never had a pull request (gh pr list --state all: none), GitHub links none to 4988e25 or a450aff, origin/final-chart is gone (404) and no remote branch holds either commit; GitHub still serves both by their full hashes until it collects them
+
+2. What the readers tripped on (questions and keys in docs/evidence.md section 29, before the readers)
+- [x] On a phone, the fee range in plain words under each band's name ("fee range: 80th-92nd percentile of Qloo popularity"); the first act's row on the saved Boise build still ends at 659 px at 390x844 (the stamp beside the festival's name, smaller headliner cards, tighter gaps; no words change)
+- [x] Why no act is at the top, one line under the key; the first wording failed its reader, the second passed
+- [x] The climb is Qloo's ranking wherever it's described: the key, the rule key, the mark a screen reader hears, the card, Watch's banner, How it works' card and check; a test keeps "the agent's ranking" out of src
+- [x] Watch's editions mark an act new to the top 50 NEW, not a climb from 51st
+- [x] A fresh lay reader per change, on the screen it touches: all four pass (evidence section 29)
+
+3. The walkthrough's steps, linkable
+- [x] /method?step=N opens on that step, in view; each step tab is its link and the address follows the reader
+- [x] Stills of all four steps at 1440 and 390 in .design/stills/method/ (git-ignored)
+- [ ] Gate, design scan, e2e; deployed; the live e2e passes
+
+4. With and Without Qloo as a number
+- [x] Stopped before spending, as the brief says: the saved builds hold only the Qloo lineup. The model's picks are cached separately for 2 of the 29 festivals (20 picks), each a name and a note with no Qloo data. The comparison would cost 27 model calls (one per festival without a cached answer) and up to 290 Qloo searches (one per pick, none cached), then no more calls for the climb (read from the builds' cached venue lists). Waiting on Daniel
+
+5. M8f, the second premise test
+- [x] In SPEC.md since 2026-10-18, with its bar (at least 20 of 30) in docs/evidence.md section 26, written before any run
+- [ ] 30 festivals in the 29 towns, none of M8d's ten, each with its own site's complete lineup, listed in .design/m8f/ before any Qloo call
+- [ ] The run, one call at a time; the result either way in evidence section 26
+- [ ] On the evidence page next to the 7 of 10, which stays

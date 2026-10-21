@@ -99,7 +99,9 @@ export function editionRows(
 
   const top: ChartRowData[] = step.acts.map((listed, index) => {
     const act = byId.get(listed.entityId);
-    const climbed = venueId !== null && listed.move !== null;
+    // An act the headliners-only list didn't have is new to the top 50, not a climb from 51st.
+    const fresh = venueId !== null && listed.fresh === true;
+    const climbed = venueId !== null && listed.move !== null && !fresh;
     const row: ChartRowData = {
       key: listed.entityId,
       kind: "listed",
@@ -107,10 +109,11 @@ export function editionRows(
       place: index + 1,
       was: climbed ? index + 1 + listed.move! : null,
       move: climbed ? listed.move : null,
-      fresh: false,
+      fresh,
       genres: act ? act.sharedTags.map((tag) => tag.name) : null,
-      hue: climbed || booked.has(listed.entityId) ? hue : null,
-      venueShort: climbed && step.venue ? venueShort(step.venue.name) : null,
+      hue: climbed || fresh || booked.has(listed.entityId) ? hue : null,
+      venueShort:
+        (climbed || fresh) && step.venue ? venueShort(step.venue.name) : null,
       act: null,
       booked: booked.has(listed.entityId),
     };

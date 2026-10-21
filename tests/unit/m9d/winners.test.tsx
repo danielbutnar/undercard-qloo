@@ -81,7 +81,7 @@ describe("the first screen's chart (M9d winner)", () => {
     ).toBeTruthy();
     expect(
       within(row).getByText(
-        `${first.anchorVenue.name}'s crowd: up ${move} places`,
+        `${first.anchorVenue.name}'s crowd: up ${move} places in Qloo's ranking`,
       ),
     ).toBeTruthy();
     // ...the climb as the big number (M10a), and under the name the ladder from the place it
@@ -172,4 +172,3 @@ describe("the evidence's layout (M9d winner; on /method/evidence since M10b)", (
     expect(columns!.contains(objections)).toBe(true);
   });
 });
-

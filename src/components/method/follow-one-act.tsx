@@ -1,6 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import {
   BandChart,
   ChartRow,
@@ -13,6 +19,19 @@ import { MIN_LIFT } from "@/lib/assemble-lineup";
 import { formatBandRange, formatPercentile } from "@/lib/format";
 import type { MethodStory } from "@/lib/method-story";
 import { venueHues } from "@/lib/venue-colours";
+
+/** How many steps the walkthrough has; each opens on its own link, /method?step=N. */
+const STEPS = 4;
+
+/** The step a link names (?step=N), from 0; null when it names none the walkthrough has. */
+function linkedStep(): number | null {
+  const n = Number(new URLSearchParams(window.location.search).get("step"));
+  return Number.isInteger(n) && n >= 1 && n <= STEPS ? n - 1 : null;
+}
+const onPopState = (change: () => void) => {
+  window.addEventListener("popstate", change);
+  return () => window.removeEventListener("popstate", change);
+};
 
 /** The places the climb chart shows: down past the act's old place. */
 const rungsFor = (was: number | null) => Math.max(20, (was ?? 20) + 1);
@@ -71,8 +90,8 @@ function AgentChoices({
       <p className="panel-sub">
         {story.placesListed !== null &&
           `Qloo listed ${story.placesListed} live-music places in ${city}. `}
-        The AI agent chose whose fans to read, in {story.calls} Qloo calls.
-        Here is how many acts each venue&apos;s fans lifted onto the whole lineup,
+        The AI agent chose whose fans to read, in {story.calls} Qloo calls. Here
+        is how many acts each venue&apos;s fans lifted onto the whole lineup,
         mid-size and opening:
       </p>
       <ul className="how-venues">
@@ -114,7 +133,25 @@ export function FollowOneAct({
   city: string;
   headliners: readonly string[];
 }) {
-  const [step, setStep] = useState(0);
+  // The step on screen: the one its link names until the reader picks another. The server and
+  // the first render show the first step, so the page hydrates cleanly.
+  const linked = useSyncExternalStore(onPopState, linkedStep, () => null);
+  const [chosen, setChosen] = useState<number | null>(null);
+  const step = chosen ?? linked ?? 0;
+  const section = useRef<HTMLElement>(null);
+  // Opened from a step's link: bring the walkthrough into view, for stills and the video.
+  useEffect(() => {
+    if (linkedStep() !== null)
+      section.current?.scrollIntoView?.({ block: "start" });
+  }, []);
+  const go = (index: number) => {
+    setChosen(index);
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${window.location.pathname}?step=${index + 1}${window.location.hash}`,
+    );
+  };
   const reduced = useReducedMotion();
   const { act, band, place, climb, fresh } = story;
   const hues = useMemo(
@@ -146,7 +183,7 @@ export function FollowOneAct({
     words: `${act.name}: ${was !== null ? ordinal(was) : "outside the top 50"} for the headliners' fans alone`,
   };
   const checks = [
-    `Climbs ${MIN_LIFT} places or more: ${fresh ? "new to the top 50" : climb}`,
+    `Climbs ${MIN_LIFT} places or more in Qloo's ranking: ${fresh ? "new to the top 50" : climb}`,
     `Inside the fee range (${formatBandRange(band)}): ${formatPercentile(act.popularity)}`,
     `Shares two genres with the headliners: ${act.sharedTags.map((tag) => tag.name).join(", ")}`,
   ];
@@ -175,7 +212,11 @@ export function FollowOneAct({
   );
 
   return (
-    <section aria-label="Follow one act" className="how-section how-follow">
+    <section
+      ref={section}
+      aria-label="Follow one act"
+      className="how-section how-follow"
+    >
       <h2 className="band-name">Follow one act</h2>
       <p className="how-sub">
         {act.name}, through the saved {city} build, a step at a time.
@@ -183,15 +224,18 @@ export function FollowOneAct({
       <ol className="how-steps">
         {steps.map((entry, index) => (
           <li key={entry.title}>
-            <button
-              type="button"
+            <a
+              href={`/method?step=${index + 1}`}
               className="how-step-tab"
               aria-current={index === step ? "step" : undefined}
-              onClick={() => setStep(index)}
+              onClick={(event) => {
+                event.preventDefault();
+                go(index);
+              }}
             >
               <span className="how-step-n">{index + 1}</span>
               {entry.title}
-            </button>
+            </a>
           </li>
         ))}
       </ol>
@@ -255,7 +299,7 @@ export function FollowOneAct({
             <button
               type="button"
               className="tool"
-              onClick={() => setStep((current) => Math.max(0, current - 1))}
+              onClick={() => go(Math.max(0, step - 1))}
               disabled={step === 0}
             >
               Back
@@ -263,7 +307,7 @@ export function FollowOneAct({
             <button
               type="button"
               className="tool how-next"
-              onClick={() => setStep((current) => Math.min(last, current + 1))}
+              onClick={() => go(Math.min(last, step + 1))}
               disabled={step === last}
             >
               Next step

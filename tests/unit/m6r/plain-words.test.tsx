@@ -109,13 +109,13 @@ describe("plain words, round 2 (M6r)", () => {
       expect(Number(was) - Number(now)).toBe(climb);
       // Heard: the venue's crowd and how many places it moved the act up.
       expect(row.querySelector(".sr-only")!.textContent).toMatch(
-        /'s crowd: up \d+ places$/,
+        /'s crowd: up \d+ places in Qloo's ranking$/,
       );
     }
     // Each band's key says in words what the climb counts.
     expect(
       within(bill).getAllByText(
-        "places it climbed with its venue's fans added",
+        "places it climbed in Qloo's ranking with its venue's fans added",
       ),
     ).toHaveLength(2);
     // The card says it as a sentence: the venue's fans move it up N places.
@@ -140,7 +140,7 @@ describe("plain words, round 2 (M6r)", () => {
       /^outside the top 50\d+(st|nd|rd|th)$/,
     );
     expect(row.querySelector(".sr-only")!.textContent).toBe(
-      `${fresh.anchorVenue.name}'s crowd: new, from outside the headliners-only top 50`,
+      `${fresh.anchorVenue.name}'s crowd: new in Qloo's ranking, from outside the headliners-only top 50`,
     );
     // The card says it as a sentence.
     fireEvent.click(within(row).getByRole("button", { name: fresh.name }));

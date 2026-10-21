@@ -22,7 +22,8 @@ const rooms = (page: Page) =>
     name: "Boise venues whose fans shaped this lineup",
   });
 // Each act's mark, read out in words (the + and the room's initials are hidden from it).
-const MARK = /crowd: (up \d+ places|new, from outside)/;
+const MARK =
+  /crowd: (up \d+ places in Qloo's ranking|new in Qloo's ranking, from outside)/;
 
 /** The acts each room lifted, from the rail: their sum is the acts on the bill. */
 async function liftedTotal(page: Page): Promise<number> {
@@ -61,7 +62,9 @@ test.describe("demo path", () => {
       6,
     );
     // The fee range is a scale on each band; its words are one tap away (the "?").
-    await expect(band(page, /^Mid/).getByText("80th–92nd")).toBeVisible();
+    await expect(
+      band(page, /^Mid/).getByText("80th–92nd", { exact: true }),
+    ).toBeVisible();
     await band(page, /^Mid/)
       .getByRole("button", {
         name: "What the fee range for mid-size acts means",
@@ -94,7 +97,9 @@ test.describe("demo path", () => {
       /\d+(st|nd|rd|th)\s*\d+(st|nd|rd|th)|outside the top 50/,
     );
     await expect(
-      bill(page).getByText("places it climbed with its venue's fans added"),
+      bill(page).getByText(
+        "places it climbed in Qloo's ranking with its venue's fans added",
+      ),
     ).toHaveCount(2);
     await expect(
       page.getByRole("region", { name: "What Undercard does" }),

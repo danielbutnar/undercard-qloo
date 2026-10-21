@@ -20,6 +20,8 @@ export const ClimbEventSchema = z.object({
       name: z.string(),
       /** Places gained over the headliners-only list, when the venue lifts it past the bar. */
       move: z.number().int().nullable(),
+      /** Not in the headliners-only list at all: new to the top 50 with this venue's fans. */
+      fresh: z.boolean().optional(),
     }),
   ),
 });
@@ -52,9 +54,10 @@ export function climbAfter(
     type: "climb",
     band,
     venue: { entityId: venue.entityId, name: venue.name },
-    acts: lifts.map(({ artist, lift }) => ({
+    acts: lifts.map(({ artist, lift, inBaseline }) => ({
       entityId: artist.entityId,
       name: artist.name,
+      ...(inBaseline ? {} : { fresh: true }),
       move:
         lift >= MIN_LIFT &&
         artist.popularity >= range.minPopularity &&

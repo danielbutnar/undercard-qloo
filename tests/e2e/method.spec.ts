@@ -59,3 +59,23 @@ test("How it works follows one act through the saved build, with the evidence a 
     page.getByRole("region", { name: "Undercard draft" }),
   ).toBeVisible();
 });
+
+test("a walkthrough step's own link opens How it works on that step, in view", async ({
+  page,
+}) => {
+  await page.goto("/method?step=3");
+  const follow = page.getByRole("region", { name: "Follow one act" });
+  await expect(
+    follow.getByRole("list", { name: "The rule's checks" }),
+  ).toBeVisible({
+    timeout: 30_000,
+  });
+  await expect(
+    follow.getByRole("heading", { name: "Follow one act" }),
+  ).toBeInViewport();
+  await follow.getByRole("button", { name: "Next step" }).click();
+  await expect(page).toHaveURL(/\/method\?step=4$/);
+  await expect(
+    follow.getByRole("region", { name: "Mid-size acts" }),
+  ).toBeVisible();
+});

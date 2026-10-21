@@ -16,7 +16,8 @@ export function RuleKey() {
             <rect x="2" y="13" width="78" height="8" className="fill-ink" />
             <polygon points="78,3 118,17 78,31" className="fill-ink" />
           </svg>
-          It climbs {MIN_LIFT} places or more with a venue&apos;s fans
+          It climbs {MIN_LIFT} places or more in Qloo&apos;s ranking with a
+          venue&apos;s fans
         </li>
         <li>
           <svg viewBox="0 0 120 34" aria-hidden>

@@ -532,6 +532,12 @@ Four changes, from what sections 27 and 28's readers tripped on. Each is read by
 
 A change ships when its reader passes; one that fails is changed and read again by a new reader. The answers, which may quote the builds' places, stay in .design/review-fixes/.
 
+**Result, 2026-10-21: all four pass; the second needed a second wording.**
+1. The fee range: pass. "A popularity window" on Qloo, a "fee range" that "suggests the popularity band stands in for what such an act would charge". It noted that the phone doesn't say how popularity and fees connect (the "?" beside the range does).
+2. Why no act is at the top, first wording ("No act at the top? Those places go to acts the headliners' fans like anywhere."): fail. The reader put it down to the popularity band, which is wrong (every list is already inside the fee range), and gave the line only in passing. Second wording ("The top places go to acts the headliners' fans like anywhere; the lineup is the acts the venues push up."), a new reader: pass. "The top places in Qloo's ranking go to acts that the headliners' fans like in general, while this lineup is built from acts that only climbed into it because fans of their own venues pushed them up."
+3. Whose ranking: pass. "They climb in Qloo's ranking."
+4. NEW in Watch: pass. The act "was not in the top 50 of the ranking built from the headliners' fans alone" and came into it once the venue's fans were added; it "has no earlier spot to measure from".
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.

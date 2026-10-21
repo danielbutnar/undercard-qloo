@@ -70,11 +70,11 @@ describe("the mark under an act", () => {
           "Fort Street Ballroom",
         ),
       ),
-    ).toBe("Fort Street Ballroom's crowd: up 7 places");
+    ).toBe("Fort Street Ballroom's crowd: up 7 places in Qloo's ranking");
     expect(
       markLabel(act("The Lantern Room fans move it into the top 8."), 50),
     ).toBe(
-      "The Lantern Room's crowd: new, from outside the headliners-only top 50",
+      "The Lantern Room's crowd: new in Qloo's ranking, from outside the headliners-only top 50",
     );
   });
 });

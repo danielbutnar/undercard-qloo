@@ -79,7 +79,7 @@ describe("variant (a): the climb as the hero", () => {
       "The Lantern Room",
     );
     expect(riders.querySelector(".sr-only")!.textContent).toBe(
-      "The Lantern Room's crowd: up 26 places",
+      "The Lantern Room's crowd: up 26 places in Qloo's ranking",
     );
   });
 
@@ -101,7 +101,7 @@ describe("variant (a)'s one-line key (added after round 1, evidence section 27)"
     chart("mid", "climb");
     const key = document.querySelector(".numbers-key")!;
     expect(key.textContent).toBe(
-      "places it climbed with its venue's fans added",
+      "places it climbed in Qloo's ranking with its venue's fans added",
     );
     expect(key.querySelector("svg.tri")).not.toBeNull();
   });
@@ -140,7 +140,7 @@ describe("what ships (variant (a): both variants passed, evidence section 27)", 
       "7",
     ]);
     expect(
-      within(mid).getByText("places it climbed with its venue's fans added"),
+      within(mid).getByText("places it climbed in Qloo's ranking with its venue's fans added"),
     ).toBeTruthy();
   });
 

@@ -99,6 +99,7 @@ export function ActCard({
           </button>
         )}
       </div>
+      <p className="card-climb-title">Its place in Qloo&apos;s ranking</p>
       <div className="card-climb" aria-hidden>
         <span className="card-place">
           {place?.was

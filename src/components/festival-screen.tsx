@@ -281,11 +281,11 @@ function EditionBanner({
     : step.venue
       ? lifted === null
         ? climbs > 0
-          ? `The chart re-sorts with this venue's fans added: ${climbs} of the top ${step.acts.length} ${climbs === 1 ? "climbs" : "climb"} ${MIN_LIFT} places or more.`
-          : `The chart re-sorts with this venue's fans added: no act in view climbs ${MIN_LIFT} places.`
+          ? `Qloo's ranking re-sorts with this venue's fans added: ${climbs} of the top ${step.acts.length} ${climbs === 1 ? "climbs" : "climb"} ${MIN_LIFT} places or more.`
+          : `Qloo's ranking re-sorts with this venue's fans added: no act in view climbs ${MIN_LIFT} places.`
         : lifted > 0
-          ? `The chart re-sorts with this venue's fans added: ${lifted} ${lifted === 1 ? "act climbs" : "acts climb"} onto the lineup.`
-          : `The chart re-sorts with this venue's fans added: no act climbs ${MIN_LIFT} places onto the lineup.`
+          ? `Qloo's ranking re-sorts with this venue's fans added: ${lifted} ${lifted === 1 ? "act climbs" : "acts climb"} onto the lineup.`
+          : `Qloo's ranking re-sorts with this venue's fans added: no act climbs ${MIN_LIFT} places onto the lineup.`
       : "Qloo ranks the artists the headliners' fans like: the chart before any venue.";
   const shown = Math.max(total, calls);
   return (

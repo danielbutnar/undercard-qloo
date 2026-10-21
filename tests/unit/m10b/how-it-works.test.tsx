@@ -18,6 +18,8 @@ import { acts, FIRST_BILL } from "../m4b/first-bill-fixture";
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  // A step's link stays in the address between tests (/method?step=N).
+  window.history.replaceState(null, "", "/");
 });
 
 const PLACES = {
@@ -136,7 +138,7 @@ describe("following one act through the saved build", () => {
       }),
     ).getAllByRole("listitem");
     expect(checks.map((check) => check.textContent)).toEqual([
-      expect.stringMatching(/^Climbs 5 places or more: 11/),
+      expect.stringMatching(/^Climbs 5 places or more in Qloo's ranking: 11/),
       expect.stringMatching(
         /^Inside the fee range \(80th–92nd\): \d+(st|nd|rd|th)/,
       ),

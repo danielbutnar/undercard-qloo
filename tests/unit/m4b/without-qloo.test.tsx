@@ -175,7 +175,7 @@ describe("Without Qloo", () => {
     // as the row's big number (M10a).
     const row = within(draft).getByRole("article", { name: "Hollow Pines" });
     expect(
-      within(row).getByText("The Lantern Room's crowd: up 11 places"),
+      within(row).getByText("The Lantern Room's crowd: up 11 places in Qloo's ranking"),
     ).toBeTruthy();
     expect(row.querySelector(".row-place")!.textContent).toBe("11");
   });
