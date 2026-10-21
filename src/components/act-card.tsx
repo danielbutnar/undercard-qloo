@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ClimbArrow } from "@/components/chart/band-chart";
 import { Cover } from "@/components/chart/cover";
+import { whySentence } from "@/components/chart/why";
 import { ordinal } from "@/components/chart/words";
 import type { FeeBand } from "@/lib/fee-bands";
 import {
@@ -127,7 +128,7 @@ export function ActCard({
       </div>
       <p className="card-why">
         <strong>Why {city}: </strong>
-        {act.reason}
+        {whySentence(act, place)}
       </p>
       {act.anchorVenue.kind && (
         <p className="card-kind">

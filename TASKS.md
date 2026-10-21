@@ -556,7 +556,7 @@ Corrections kept throughout: a private reply is kept out of the public record; t
 4. Venue results server-rendered for saved builds (D2)
 - [x] First paint and a plain fetch show the results, not a loading line: the home page and each town's page work the venue switch out on the server from the Qloo cache with the first bill (src/server/venue-switch.ts withVenueSwitch, the route's own code), and the browser no longer asks for it; a live run still does (tests/unit/review-plan/venue-switch-ssr.test.tsx; tests/e2e/first-paint-venues.spec.ts, red then green on / and /towns/austin). How it works' Try it still loads its own copy after first paint
 5. One sentence of "why" per act when expanded (D3)
-- [ ] Prompt D's shape, from the saved build's numbers only
+- [x] Prompt D's shape, from the saved build's numbers only: the card's Why line now reads "Fans of <venue> rank <act> <place now>; fans of the headliners alone rank them <place before>. That climb of <n> is why <act> is here.", a new entry "... don't rank them in their top 50. That climb into the top 50 ...", the card's own three numbers (src/components/chart/why.ts); a build without its places keeps its own line (tests/unit/review-plan/why-sentence.test.tsx). Before, the card had a shorter why ("Venue 227 fans move it up N places.")
 6. A "Listen" link per act (D6)
 - [ ] Only if the cached /entities results carry a Spotify id (or another public streaming page) for at least 8 of Boise's 10 acts; outbound link only; else skipped with the count
 7. Positioning (I1, Q2)

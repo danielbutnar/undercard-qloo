@@ -109,11 +109,10 @@ describe("an act on the bill", () => {
     ).toBe(card);
     const article = within(card).getByRole("article", { name: "Marisol Vey" });
     expect(within(article).getByText("Why Boise:")).toBeTruthy();
-    expect(
-      within(article).getByText(
-        "Fort Street Ballroom fans move it up 7 places.",
-      ),
-    ).toBeTruthy();
+    // Plan.md item 5: the why in one sentence, from the saved build's places and climb.
+    expect(article.textContent).toMatch(
+      /Fans of Fort Street Ballroom rank Marisol Vey \d+(st|nd|rd|th); fans of the headliners alone rank them \d+(st|nd|rd|th)\. That climb of 7 is why Marisol Vey is here\./,
+    );
     expect(
       within(article).getByText("Qloo affinity").parentElement?.textContent,
     ).toBe("Qloo affinity0.91");
