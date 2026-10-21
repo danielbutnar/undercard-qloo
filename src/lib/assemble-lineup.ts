@@ -78,7 +78,7 @@ const isGenre = (tag: ArtistTag) =>
 const tidy = (name: string) => name.replace(/\s*-\s*/g, "-").trim();
 
 /** Weight per normalized tag name: one per headliner that carries it, plus the Compare score. */
-function headlinerTagWeights(input: AssemblyInput) {
+export function headlinerTagWeights(input: AssemblyInput) {
   const weights = new Map<string, number>();
   for (const headliner of input.headliners) {
     for (const key of new Set(
@@ -94,7 +94,11 @@ function headlinerTagWeights(input: AssemblyInput) {
   return weights;
 }
 
-function sharedTags(artist: RankedArtist, weights: Map<string, number>): Tag[] {
+/** An artist's genre tags the headliners carry, strongest first (two are needed to book it). */
+export function sharedTags(
+  artist: RankedArtist,
+  weights: Map<string, number>,
+): Tag[] {
   const seen = new Set<string>();
   return artist.tags
     .filter(isGenre)
