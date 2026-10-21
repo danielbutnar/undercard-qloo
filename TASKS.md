@@ -570,6 +570,6 @@ Corrections kept throughout: a private reply is kept out of the public record; t
 10. The evidence page copy (section 9c) with corrections 2, 3 and 6
 - [ ] Every number from docs/evidence.md; stop and ask on any conflict; visible placeholders where results are still coming
 11. Qloo calls in one named module (prompt E, first part only)
-- [ ] src/lib/qloo/, one file per endpoint, its own commit, tests unchanged and green
+- [x] src/lib/qloo/, one file per endpoint, its own commit, tests unchanged and green: core.ts (the cached, retried GET, types, errors), search.ts, entities.ts, tags.ts, insights.ts (places, artists, audience), compare.ts, client.ts and index.ts; src/server/qloo.ts re-exports it, so no import or test changed; 545 unit tests green, typecheck and lint clean
 Also
 - [x] The bar for the test with real people (section 9b.2) in docs/evidence.md before Friday: section 32 (the review's 3 of 4 or 4 of 5, extended to all 3 of 3 at the same strictness; quotes only with each person's permission)
