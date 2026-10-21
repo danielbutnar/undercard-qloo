@@ -443,7 +443,7 @@ Done means every item below is finished and deployed, with `pnpm gate`, the desi
 - [ ] Gate, design scan, e2e; deployed; the live e2e passes
 
 3. M10b How it works
-- [ ] The bar in docs/evidence.md before building
+- [x] The bar in docs/evidence.md section 28 before building (33fad96)
 - [ ] One picture: the headliners' fans and a venue's fans, the acts that climb, your undercard, as four small cards
 - [ ] One act through the real Boise build, step by step, with the first screen's rows and badges; the agent's choices (the venues it read, the one that moved nothing)
 - [ ] Try it: one venue switch
