@@ -582,6 +582,18 @@ A change ships when its reader passes; one that fails is changed and read again 
 3. Whose ranking: pass. "They climb in Qloo's ranking."
 4. NEW in Watch: pass. The act "was not in the top 50 of the ranking built from the headliners' fans alone" and came into it once the venue's fans were added; it "has no earlier spot to measure from".
 
+**Read again with the artist images on, written before the readers.** Daniel's brief of 21 October asks that these readers see the page with Qloo's artist images, which went on (section 30) after the four above had passed. The same four questions, shots and keys; four new readers on Claude Haiku 5.5; the shots from a local production build reading the saved builds, with the images on.
+
+## 30. Artist images, on, written before the reader
+
+Written on 2026-10-21, after Qloo's hackathon manager agreed that the app may show Qloo's artist images (RULES.md, Unclear 5) and before any reader sees the screens with them. The key doesn't change after the answer is in.
+
+**The change.** Each lineup act's own image on Qloo replaces its drawn cover on its row, its card and Watch's editions; the drawn cover stays where an act has no image or its image fails to load. On a phone the rows carry no cover, so there the picture is on the act's card.
+
+**The reader.** One fresh AI lay reader: a new subagent on Claude Haiku 5.5, told it has never worked in the music industry, shown only the first screen at 1440x810 and at 390x844 and one act's card (Act 84's, at 1440x810), from a local production build reading the saved Boise build. Two questions, in this order: "What is Act 84? Say what on the screen tells you." and "Does the picture next to the name help you say what Act 84 is? How?"
+
+**The bar.** It passes if the answer says Act 84 is a music act (a singer, a musician or a band who would play the festival) and that the picture helps say so, as a photo of the performer. It fails if the reader says the picture doesn't help, or reads it as something else (a venue, a fan, an advert). If it fails, the answer and the shots go to Daniel; the images stay on, since Daniel asked for them.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
