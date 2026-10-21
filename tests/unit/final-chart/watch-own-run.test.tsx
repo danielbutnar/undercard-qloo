@@ -194,3 +194,93 @@ describe("A judge's run that didn't finish", () => {
     expect(bodies[1].fresh).toBe(true);
   });
 });
+
+describe("A judge's run run again over a lineup on screen", () => {
+  const brief = {
+    city: "Duluth",
+    region: "Minnesota",
+    headliners: ["Khruangbin", "Japanese Breakfast"] as [string, string],
+  };
+  // The first run fills some slots and stops short (not-full); `again` answers the next one.
+  async function partlyFilled(again: () => Promise<Response>) {
+    const server = syntheticServer();
+    const events = await readEvents(server.build({ fresh: true }));
+    const upToLineup = events.slice(
+      0,
+      events.findIndex((event) => event.type === "lineup") + 1,
+    );
+    const bodies: { fresh?: boolean }[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url !== "/api/undercard")
+          return new Response("{}", { status: 404 });
+        bodies.push(JSON.parse(String(init?.body)));
+        return bodies.length === 1
+          ? ndjson([
+              ...upToLineup,
+              {
+                type: "error",
+                code: "not-full",
+                message: "Some slots stayed open.",
+              },
+              { type: "done", calls: 9, ms: 900 },
+            ])
+          : bodies.length === 2
+            ? again()
+            : new Promise<Response>(() => {});
+      }),
+    );
+    render(
+      <FestivalScreen
+        festival={yourFestival(brief, "yours-duluth")}
+        custom={{ brief, onEdit: () => {} }}
+      />,
+    );
+    const draft = screen.getByRole("region", { name: "Undercard draft" });
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Run the agent again" }, {
+        timeout: 5000,
+      }),
+    );
+    await waitFor(() => expect(bodies).toHaveLength(2));
+    return { bodies, draft };
+  }
+
+  it("keeps the draft when the day's live runs are used, and offers no run or replay", async () => {
+    const { bodies, draft } = await partlyFilled(async () =>
+      ndjson([
+        {
+          type: "error",
+          code: "limit",
+          message: "Today's live runs from this connection are used.",
+        },
+        { type: "done", calls: 0, ms: 0 },
+      ]),
+    );
+    await screen.findByText("Today's live runs from this connection are used.");
+    expect(within(draft).getAllByRole("article").length).toBeGreaterThan(0);
+    // A judge's run is never saved: nothing offers to replay one.
+    expect(
+      screen.queryByRole("button", { name: "Replay the saved build" }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Run the agent again" }),
+    ).toBeNull();
+    expect(bodies).toHaveLength(2);
+  }, 15000);
+
+  it("keeps the draft when the build service can't be reached, and offers to run it again", async () => {
+    const { draft } = await partlyFilled(async () => {
+      throw new TypeError("Failed to fetch");
+    });
+    await screen.findByText("Couldn't reach the build service. Try again.");
+    expect(within(draft).getAllByRole("article").length).toBeGreaterThan(0);
+    expect(
+      screen.queryByRole("button", { name: "Replay the saved build" }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Run the agent again" }),
+    ).toBeTruthy();
+  }, 15000);
+});

@@ -106,12 +106,15 @@ function CallRow({
 export function TracePanel({
   state,
   savedCalls,
+  replay = true,
   onBuild,
   button = true,
 }: {
   state: BuildState;
   /** Qloo calls in the saved build the first screen shows, for the replay's description. */
   savedCalls?: number;
+  /** False on a judge's own run, which is never saved: nothing offers to replay it. */
+  replay?: boolean;
   onBuild: (request?: BuildRequest) => void;
   /** False when the screen places the Watch button itself (FestivalScreen). */
   button?: boolean;
@@ -265,7 +268,7 @@ export function TracePanel({
             <p role="alert" className="alert">
               {state.refusal}
             </p>
-            {state.build && (
+            {state.build && replay && (
               <button type="button" onClick={() => onBuild()} className="link">
                 Replay the saved build
               </button>

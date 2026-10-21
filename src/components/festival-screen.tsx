@@ -491,7 +491,7 @@ export function FestivalScreen({
   const limited =
     custom !== undefined &&
     state.status !== "building" &&
-    state.errorCode === "limit";
+    (state.errorCode === "limit" || state.refusalCode === "limit");
   // Elsewhere Watch replays the saved build, whose count is the one on screen only while the
   // screen shows that build.
   const savedOnScreen = onFirst || state.build?.replayed === true;
@@ -923,6 +923,7 @@ export function FestivalScreen({
               <TracePanel
                 state={state}
                 savedCalls={firstBill?.calls}
+                replay={!custom}
                 onBuild={runBuild}
                 button={false}
               />
