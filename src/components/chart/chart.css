@@ -2565,3 +2565,24 @@
   width: 12px;
   height: 11px;
 }
+.chart-app .numbers-key {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+.chart-app .numbers-key .tri {
+  width: 14px;
+  height: 13px;
+}
+@media (max-width: 767px) {
+  .chart-app .numbers-key {
+    margin-top: 4px;
+    font-size: 14px;
+  }
+  .chart-app .numbers-climb .rows {
+    margin-top: 4px;
+  }
+}

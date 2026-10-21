@@ -409,6 +409,13 @@ export function BandChart({
         {!listing && <Slots filled={filled} slots={band.slots} />}
         <FeeRange band={band} />
       </div>
+      {/* Variant (a)'s one-line key, added after its first readers (evidence section 27). */}
+      {numbers === "climb" && rows.some((row) => row.kind === "act") && (
+        <p className="numbers-key">
+          <Tri />
+          places it climbed with its venue&apos;s fans added
+        </p>
+      )}
       {caption && (
         <p className="band-caption" aria-live="polite">
           {caption}

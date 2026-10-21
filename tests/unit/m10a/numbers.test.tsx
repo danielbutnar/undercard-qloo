@@ -95,6 +95,37 @@ describe("variant (a): the climb as the hero", () => {
   });
 });
 
+describe("variant (a)'s one-line key (added after round 1, evidence section 27)", () => {
+  it("says under each band what the climb is, with the same drawn mark", () => {
+    chart("mid", "climb");
+    const key = document.querySelector(".numbers-key")!;
+    expect(key.textContent).toBe(
+      "places it climbed with its venue's fans added",
+    );
+    expect(key.querySelector("svg.tri")).not.toBeNull();
+  });
+
+  it("isn't on the place or slot charts, nor on a band with no act yet", () => {
+    chart("mid", "slot");
+    expect(document.querySelector(".numbers-key")).toBeNull();
+    cleanup();
+    chart("mid", "place");
+    expect(document.querySelector(".numbers-key")).toBeNull();
+    cleanup();
+    const fee = SAGEBRUSH_SOUND.feeBands[0];
+    render(
+      <BandChart
+        band={fee}
+        rows={billRows(fee, [], {}, new Map(), 4, undefined, "climb")}
+        sortKey="bill"
+        motion={false}
+        numbers="climb"
+      />,
+    );
+    expect(document.querySelector(".numbers-key")).toBeNull();
+  });
+});
+
 describe("variant (b): the lineup slot as the row number", () => {
   it("numbers the rows 1 to 4 in the lineup's own order", () => {
     const rows = chart("mid", "slot");
