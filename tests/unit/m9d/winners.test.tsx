@@ -57,7 +57,7 @@ const edition = (
 });
 
 describe("the first screen's chart (M9d winner)", () => {
-  it("sets each act as a row: its name, the venue whose fans like it, its move and an arrow as long as the move", () => {
+  it("sets each act as a row: its name, the venue whose fans like it, its climb and a ladder as long as the climb", () => {
     const first = acts.find((act) => act.band === "mid")!;
     const lift = liftOf(first);
     expect(lift?.kind).toBe("up");
@@ -84,25 +84,26 @@ describe("the first screen's chart (M9d winner)", () => {
         `${first.anchorVenue.name}'s crowd: up ${move} places`,
       ),
     ).toBeTruthy();
-    // ...the move, beside the place it came from...
-    expect(seen(row)).toMatch(
-      new RegExp(`\\+${move}\\s*was ${move + 1}(st|nd|rd|th)`),
+    // ...the climb as the big number (M10a), and under the name the ladder from the place it
+    // came from up to the place now...
+    expect(row.querySelector(".row-place")!.textContent).toBe(String(move));
+    expect(row.querySelector(".ladder")!.textContent).toMatch(
+      new RegExp(`^${move + 1}(st|nd|rd|th)1st$`),
     );
-    // ...and an arrow as long as the move: 50 places fill the cell, a short move keeps a stub.
-    const share = (article: HTMLElement) =>
-      article
-        .querySelector<HTMLElement>(".climb-arrow")!
-        .style.getPropertyValue("--share");
-    expect(row.querySelector(".climb")!.getAttribute("aria-hidden")).toBe(
+    // ...with an arrow as long as the climb: 50 places fill it, a short climb keeps a stub.
+    expect(row.querySelector(".ladder")!.getAttribute("aria-hidden")).toBe(
       "true",
     );
-    expect(share(row)).toBe(String(Math.min(1, Math.max(0.18, move / 50))));
     for (const article of within(mid).getAllByRole("article")) {
-      const places = Number(/\+(\d+)/.exec(seen(article))![1]);
-      expect(share(article)).toBe(
-        String(Math.min(1, Math.max(0.18, places / 50))),
+      // A row whose places the build doesn't give reads "up N places", with no arrow.
+      const arrow = article.querySelector<HTMLElement>(".ladder-arrow");
+      if (!arrow) continue;
+      const climb = Number(article.querySelector(".row-place")!.textContent);
+      expect(arrow.style.getPropertyValue("--share")).toBe(
+        String(Math.min(1, Math.max(0.18, climb / 50))),
       );
     }
+    expect(row.querySelector(".ladder-arrow")).not.toBeNull();
     // The card says in full whose fans like it.
     fireEvent.click(within(row).getByRole("button", { name: first.name }));
     expect(
@@ -110,7 +111,7 @@ describe("the first screen's chart (M9d winner)", () => {
         `${first.anchorVenue.name} fans like it`,
       ),
     ).toBeTruthy();
-    // The words on each row do the key's job, so the chart carries no separate key.
+    // M9d's separate key note stays gone; since M10a each band has a one-line key instead.
     expect(
       screen.queryByRole("note", { name: "How to read the marks" }),
     ).toBeNull();

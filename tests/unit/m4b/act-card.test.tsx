@@ -22,7 +22,7 @@ afterEach(() => {
 const NDJSON = { headers: { "content-type": "application/x-ndjson" } };
 
 // The server's read of where each mid-size act stands now and for the headliners alone
-// (src/lib/places.ts); the chart sorts a band by it, lowest place first.
+// (src/lib/places.ts), for each act's ladder; the chart sorts a band by climb, biggest first.
 const idOf = (name: string) => acts.find((act) => act.name === name)!.entityId;
 const BILL = {
   ...FIRST_BILL,
@@ -151,7 +151,7 @@ describe("an act on the bill", () => {
     expect(screen.queryByRole("region", { name: "Act card" })).toBeNull();
   });
 
-  it("is marked unavailable from its card, and the replacement joins its band after the acts the build can place", async () => {
+  it("is marked unavailable from its card, and the replacement takes its turn in its band by its climb", async () => {
     const fetch = vi.fn(async (url: string, init?: RequestInit) =>
       url === "/api/refill"
         ? new Response(
@@ -163,12 +163,12 @@ describe("an act on the bill", () => {
     );
     vi.stubGlobal("fetch", fetch);
     open();
-    // The band sorts by place, lowest first.
+    // The band sorts by climb, biggest first (M10a).
     expect(midNames()).toEqual([
-      "Hollow Pines",
       "The Ditch Riders",
-      "Marisol Vey",
+      "Hollow Pines",
       "Kestrel & Bloom",
+      "Marisol Vey",
     ]);
     fireEvent.click(actButton("Hollow Pines"));
     fireEvent.click(
@@ -193,12 +193,12 @@ describe("an act on the bill", () => {
       reason: "radius",
     });
     await waitFor(() => expect(actButton("Sego Lily")).toBeTruthy());
-    // The replacement's place isn't in the build, so it follows the placed acts.
+    // The replacement's place isn't in the build, but its climb is (its reason says up 13).
     expect(midNames()).toEqual([
       "The Ditch Riders",
-      "Marisol Vey",
-      "Kestrel & Bloom",
       "Sego Lily",
+      "Kestrel & Bloom",
+      "Marisol Vey",
     ]);
     expect(screen.queryByRole("region", { name: "Act card" })).toBeNull();
   });

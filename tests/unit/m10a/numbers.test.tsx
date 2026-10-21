@@ -1,14 +1,15 @@
 // @vitest-environment jsdom
-// M10a, the numbers beside each act (docs/evidence.md section 27): the two variants the lay
-// readers judge, on the synthetic lineup with invented places that agree with its moves.
-import { cleanup, render, screen } from "@testing-library/react";
+// M10a, the numbers beside each act (docs/evidence.md section 27): the climb as the big number,
+// on the synthetic lineup with invented places that agree with its moves.
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { BandChart, type RowNumbers } from "@/components/chart/band-chart";
 import { billRows } from "@/components/chart/chart-rows";
+import { FestivalScreen } from "@/components/festival-screen";
 import type { FeeBandId } from "@/lib/fee-bands";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { venueHues } from "@/lib/venue-colours";
-import { acts } from "../m4b/first-bill-fixture";
+import { acts, FIRST_BILL } from "../m4b/first-bill-fixture";
 
 afterEach(cleanup);
 
@@ -105,10 +106,7 @@ describe("variant (a)'s one-line key (added after round 1, evidence section 27)"
     expect(key.querySelector("svg.tri")).not.toBeNull();
   });
 
-  it("isn't on the place or slot charts, nor on a band with no act yet", () => {
-    chart("mid", "slot");
-    expect(document.querySelector(".numbers-key")).toBeNull();
-    cleanup();
+  it("isn't on a chart of places, nor on a band with no act yet", () => {
     chart("mid", "place");
     expect(document.querySelector(".numbers-key")).toBeNull();
     cleanup();
@@ -126,42 +124,27 @@ describe("variant (a)'s one-line key (added after round 1, evidence section 27)"
   });
 });
 
-describe("variant (b): the lineup slot as the row number", () => {
-  it("numbers the rows 1 to 4 in the lineup's own order", () => {
-    const rows = chart("mid", "slot");
-    expect(names(rows)).toEqual([
-      "Hollow Pines",
-      "Marisol Vey",
-      "The Ditch Riders",
-      "Kestrel & Bloom",
+describe("what ships (variant (a): both variants passed, evidence section 27)", () => {
+  it("prints the climbs on the first screen's lineup, with the key", () => {
+    render(
+      <FestivalScreen
+        festival={SAGEBRUSH_SOUND}
+        firstBill={{ ...FIRST_BILL, places: PLACES }}
+      />,
+    );
+    const mid = screen.getByRole("region", { name: "Mid-size acts" });
+    expect(within(mid).getAllByRole("article").map(big)).toEqual([
+      "26",
+      "11",
+      "9",
+      "7",
     ]);
-    expect(rows.map(big)).toEqual(["1", "2", "3", "4"]);
-    expect(rows.some(marked)).toBe(false);
+    expect(
+      within(mid).getByText("places it climbed with its venue's fans added"),
+    ).toBeTruthy();
   });
 
-  it("gives the climb as the evidence line under the name", () => {
-    const [pines, vey] = chart("mid", "slot");
-    expect(pines.querySelector(".row-evidence")!.textContent).toBe(
-      "11 · 14th → 3rd with The Lantern Room's fans",
-    );
-    expect(pines.querySelector(".row-evidence svg.tri")).not.toBeNull();
-    expect(vey.querySelector(".row-evidence")!.textContent).toBe(
-      "7 · 13th → 6th with FSB's fans",
-    );
-  });
-
-  it("numbers the opening acts 1 to 6, a new entry's line saying where it came from", () => {
-    const rows = chart("opener", "slot");
-    expect(rows.map(big)).toEqual(["1", "2", "3", "4", "5", "6"]);
-    const choir = rows[names(rows).indexOf("Low Bench Choir")];
-    expect(choir.querySelector(".row-evidence")!.textContent).toBe(
-      "NEW · outside the top 50 → 8th with The Lantern Room's fans",
-    );
-  });
-});
-
-describe("the place, as the chart prints it today", () => {
-  it("stays the default", () => {
+  it("keeps the place as the chart's default, which Watch's editions print", () => {
     const fee = SAGEBRUSH_SOUND.feeBands[0];
     render(
       <BandChart

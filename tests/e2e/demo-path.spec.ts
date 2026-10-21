@@ -87,11 +87,15 @@ test.describe("demo path", () => {
       await expect(act.getByRole("button")).toHaveCount(1);
     }
 
-    // Each row draws its climb, never a bare +N: the old place sits with it. Qloo is explained
-    // once, beside Watch; then the venues behind the lineup.
+    // Each row's big number is its climb (M10a), with the ladder from the old place to the new
+    // one, and each band's key says what it counts. Qloo is explained once, beside Watch; then
+    // the venues behind the lineup.
     await expect(bill(page).getByRole("article").first()).toContainText(
-      /was \d+(st|nd|rd|th)|not in top 50/,
+      /\d+(st|nd|rd|th)\s*\d+(st|nd|rd|th)|outside the top 50/,
     );
+    await expect(
+      bill(page).getByText("places it climbed with its venue's fans added"),
+    ).toHaveCount(2);
     await expect(
       page.getByRole("region", { name: "What Undercard does" }),
     ).toContainText(

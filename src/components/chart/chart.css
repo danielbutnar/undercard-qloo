@@ -2455,10 +2455,9 @@
 }
 
 /*
- * M10a (docs/evidence.md section 27), the big number on an act's row. numbers-climb, variant
- * (a): the climb, with a small ladder from the old place up to the place now under the name.
- * numbers-slot, variant (b): the lineup slot, with the climb as the evidence line. Both keep the
- * venue tab. The triangle is drawn, since the display face has no ▲.
+ * M10a (docs/evidence.md section 27), the big number on a lineup row: the climb, with a small
+ * ladder from the old place up to the place now under the name, the venue tab as before, and a
+ * one-line key under each band. The triangle is drawn, since the display face has no ▲.
  */
 .chart-app .numbers-climb .row {
   grid-template-columns: 70px minmax(0, 1fr) 30px;
@@ -2469,16 +2468,12 @@
   }
 }
 @media (min-width: 1400px) {
-  .chart-app .numbers-climb .row,
-  .chart-app .numbers-slot .row {
+  .chart-app .numbers-climb .row {
     grid-template-columns: 80px 52px minmax(0, 1fr) 30px;
     grid-template-areas:
       "place sleeve who venue"
       "place sleeve climb venue";
     padding-left: 8px;
-  }
-  .chart-app .numbers-slot .row {
-    grid-template-columns: 50px 52px minmax(0, 1fr) 30px;
   }
 }
 .chart-app .row-hero {
@@ -2545,25 +2540,6 @@
 .chart-app .ladder-to {
   font-weight: 800;
   color: var(--color-ink);
-}
-.chart-app .row-evidence {
-  grid-area: climb;
-  min-width: 0;
-  font-size: var(--text-label);
-  font-weight: 600;
-  line-height: 1.25;
-  color: var(--color-muted);
-}
-.chart-app .evidence-climb {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  font-weight: 800;
-  color: var(--color-ink);
-}
-.chart-app .evidence-climb .tri {
-  width: 12px;
-  height: 11px;
 }
 .chart-app .numbers-key {
   display: flex;

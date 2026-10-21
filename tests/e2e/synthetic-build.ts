@@ -129,16 +129,23 @@ const calls = [
   artistsCall(12, "Mid", COTTONWOOD.name),
 ];
 
-// The headliners-only ranking per band: the band's acts that it already listed, padded to 50
-// with invented ids. An act whose Why Boise line says "into the top" isn't in it.
+// The headliners-only ranking per band, padded to 50 with invented ids. Each act it lists sits
+// where its climb comes from: the band's acts take places 1, 4, 7 and on with their venue's fans
+// (8, the new entry's, stays free), so each listed act's rank is that place plus its climb, and
+// the chart's ladders read real places. An act whose Why Boise line says "into the top" isn't in it.
 function baseline(band: "mid" | "opener"): string[] {
-  const listed = lineup.acts
+  const ranking: (string | null)[] = Array.from({ length: 50 }, () => null);
+  lineup.acts
     .filter((act) => act.band === band && !/into the top/.test(act.reason))
-    .map((act) => act.entityId);
-  const padding = Array.from({ length: 50 - listed.length }, (_, i) =>
-    id((band === "mid" ? 400 : 500) + i),
-  );
-  return [...padding.slice(0, 20), ...listed, ...padding.slice(20)];
+    .forEach((act, index) => {
+      const climb = Number(/move it up (\d+) places/.exec(act.reason)![1]);
+      const rank = 3 * index + 1 + climb;
+      if (rank > 50 || ranking[rank - 1] !== null)
+        throw new Error(`synthetic baseline: rank ${rank} for ${act.name}`);
+      ranking[rank - 1] = act.entityId;
+    });
+  let pad = band === "mid" ? 400 : 500;
+  return ranking.map((entry) => entry ?? id(pad++));
 }
 
 /** The saved build the synthetic server replays: the fixture's lineup and the calls above. */
@@ -317,7 +324,15 @@ export function syntheticLlmOnly() {
 export function syntheticRedraftStream(
   replace: { entityId: string; band: "mid" | "opener" }[],
 ): string {
-  const names = ["Juniper Static", "Owyhee Lights", "Table Rock Choir", "Basque Block", "Foothill Radio", "Payette Bloom", "Snake River Sun"];
+  const names = [
+    "Juniper Static",
+    "Owyhee Lights",
+    "Table Rock Choir",
+    "Basque Block",
+    "Foothill Radio",
+    "Payette Bloom",
+    "Snake River Sun",
+  ];
   const pairs = replace.map((slot, index) => ({
     replaces: slot.entityId,
     act: {
@@ -372,7 +387,9 @@ export function syntheticVenueSwitch(): VenueSwitchData {
   const lineups: VenueSwitchData["lineups"] = {};
   for (let bits = 0; bits < 2 ** venues.length; bits++) {
     const mask = venues.map((_, i) => (bits & (1 << i) ? "1" : "0")).join("");
-    const on = new Set(venues.filter((_, i) => mask[i] === "1").map((v) => v.entityId));
+    const on = new Set(
+      venues.filter((_, i) => mask[i] === "1").map((v) => v.entityId),
+    );
     const kept = acts.filter((act) => on.has(act.anchorVenue.entityId));
     lineups[mask] = {
       keys: kept.map((act) => `${act.entityId}@${act.anchorVenue.entityId}`),

@@ -171,12 +171,13 @@ describe("Without Qloo", () => {
     await modelBill();
     flip(WITH);
     const draft = screen.getByRole("region", { name: "Undercard draft" });
-    // The row's mark: the venue whose crowd lifted it, in words for a screen reader, and the climb.
+    // The row's mark: the venue whose crowd lifted it, in words for a screen reader, and the climb
+    // as the row's big number (M10a).
     const row = within(draft).getByRole("article", { name: "Hollow Pines" });
     expect(
       within(row).getByText("The Lantern Room's crowd: up 11 places"),
     ).toBeTruthy();
-    expect(within(row).getByText("+11")).toBeTruthy();
+    expect(row.querySelector(".row-place")!.textContent).toBe("11");
   });
 
   it("shows the model's error with a way to try again", async () => {

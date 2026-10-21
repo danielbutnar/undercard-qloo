@@ -6,16 +6,16 @@ import type { Placed } from "@/lib/venue-switch";
 import { TOP, type ChartRowData, type RowNumbers } from "./band-chart";
 import { ordinal, venueShort } from "./words";
 
-/** A row's climb, for the order variant (a) prints in: a new entry climbed at least from 51st. */
+/** A row's climb, for the lineup's order: a new entry climbed at least from 51st. */
 const climbOf = (row: ChartRowData) =>
   row.fresh ? TOP + 1 - (row.place ?? TOP) : (row.move ?? 0);
 const byPlace = (a: ChartRowData, b: ChartRowData) =>
   (a.place ?? 999) - (b.place ?? 999);
 
 /**
- * A band's rows as a chart prints them, then any open slots. By place: lowest place first, an
- * act whose place the build can't tell (a refill from a deeper call) after them. By climb: the
- * biggest climb first. By slot: the lineup's own order, numbered from 1.
+ * A band's rows as a chart prints them, then any open slots. By climb (the lineup, M10a): the
+ * biggest climb first; a refill whose place the build can't tell still has its climb, from its
+ * reason. By place: lowest place first, a refill after the acts the build can place.
  */
 export function billRows(
   band: FeeBand,
@@ -29,7 +29,7 @@ export function billRows(
 ): ChartRowData[] {
   const rows: ChartRowData[] = acts
     .filter((act) => act.band === band.id)
-    .map((act, index) => {
+    .map((act) => {
       const lift = liftOf(act);
       const place = places[act.entityId];
       return {
@@ -40,7 +40,6 @@ export function billRows(
         was: place?.was ?? null,
         move: lift?.kind === "up" ? lift.places : null,
         fresh: lift?.kind === "new",
-        slot: index + 1,
         genres: act.sharedTags.map((tag) => tag.name),
         hue: hues.get(act.anchorVenue.entityId) ?? null,
         venueShort: venueShort(act.anchorVenue.name),

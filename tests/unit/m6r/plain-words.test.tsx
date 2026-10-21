@@ -94,19 +94,30 @@ describe("plain words, round 2 (M6r)", () => {
     expect(text.slice(0, at)).not.toMatch(/\bbill\b/);
   });
 
-  it("puts what each +N counts next to it, in words", async () => {
+  it("puts what each climb counts next to it, in words", async () => {
     await firstScreen();
     const bill = screen.getByRole("region", { name: "Undercard draft" });
     const rows = within(bill).getAllByRole("article");
     expect(rows).toHaveLength(10);
     for (const row of rows) {
-      // Seen: the climb sits with the place it came from, "+49" beside "was 50th".
-      expect(withoutSrOnly(row)).toMatch(/\+\d+\s*was \d+(st|nd|rd|th)/);
+      // Seen: the climb as the big number, with the ladder it sums up under the name, "49" with
+      // "50th → 1st" (M10a).
+      const climb = Number(row.querySelector(".row-place")!.textContent);
+      const [, was, now] = /^(\d+)(?:st|nd|rd|th)(\d+)(?:st|nd|rd|th)$/.exec(
+        row.querySelector(".ladder")!.textContent!,
+      )!;
+      expect(Number(was) - Number(now)).toBe(climb);
       // Heard: the venue's crowd and how many places it moved the act up.
       expect(row.querySelector(".sr-only")!.textContent).toMatch(
         /'s crowd: up \d+ places$/,
       );
     }
+    // Each band's key says in words what the climb counts.
+    expect(
+      within(bill).getAllByText(
+        "places it climbed with its venue's fans added",
+      ),
+    ).toHaveLength(2);
     // The card says it as a sentence: the venue's fans move it up N places.
     const first = rows[0].querySelector("button")!;
     fireEvent.click(first);
@@ -123,8 +134,11 @@ describe("plain words, round 2 (M6r)", () => {
     const fresh = fixtureActs.find((act) => liftOf(act)?.kind === "new")!;
     const bill = screen.getByRole("region", { name: "Undercard draft" });
     const row = within(bill).getByRole("article", { name: fresh.name });
-    // Seen: "new" with where it was, outside the top 50. Heard: the same, with the venue's crowd.
-    expect(withoutSrOnly(row)).toMatch(/new\s*not in top 50/);
+    // Seen: NEW, its ladder from outside the top 50. Heard: the same, with the venue's crowd.
+    expect(row.querySelector(".row-place")!.textContent).toBe("NEW");
+    expect(row.querySelector(".ladder")!.textContent).toMatch(
+      /^outside the top 50\d+(st|nd|rd|th)$/,
+    );
     expect(row.querySelector(".sr-only")!.textContent).toBe(
       `${fresh.anchorVenue.name}'s crowd: new, from outside the headliners-only top 50`,
     );
