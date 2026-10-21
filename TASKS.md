@@ -451,7 +451,7 @@ Done means every item below is finished and deployed, with `pnpm gate`, the desi
 - [x] Shown, partly shown, not shown stays; the evidence tables and the five objections move to /method/evidence, linked, with no result or wording changed (moved word for word, with the limits the last objection points to)
 - [x] A slot at the top for the demo video
 - [x] Gate: a fresh AI lay reader at 390 and 1440 explains how one act ends up on the lineup and names the AI agent, Qloo and the rule correctly: reader 1 left out the genres, the page changed, reader 2 passed (evidence section 28)
-- [ ] Gate, design scan, e2e; deployed; the live e2e passes
+- [x] Gate, design scan, e2e; deployed; the live e2e passes: gate 489 tests and the scan, local e2e 66 passed, 5 skipped; pushed at f87d49f, live within two minutes; live e2e 64 passed, 7 skipped, then the live-Qloo steps 9 passed
 
 4. Artist images, built but off (only if items 1-3 are done by Friday 23 October)
 - [ ] The cheapest way to show Qloo's image URL on each act's row and card at runtime, behind one setting that is off, falling back to the drawn covers; no image and no Qloo response data in the repo
