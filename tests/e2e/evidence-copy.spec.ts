@@ -52,5 +52,18 @@ test("the evidence page reads in the plan's order, every label linked", async ({
   }
 
   await expect(page.getByText(/^\[Still to come: /).first()).toBeVisible();
-  // Corrections 2 and 3 (plan.md): neither reply is quoted or described.
+  // Corrections 2 and 3 (plan.md): the block holds the approved sentences and nothing else.
+  await expect(
+    page.getByRole("region", {
+      name: "What real people said, and what changed",
+    }),
+  ).toHaveText(
+    "What real people said, and what changed" +
+      "The first person to see an early design couldn't tell what it was for. " +
+      "The design was rebuilt; the current one is a chart of climbing acts, " +
+      "each leading with its climb and the venue behind it." +
+      "[Still to come: this week's test with real people, against the bar " +
+      "written first (evidence 32): how many, what they said within sixty " +
+      "seconds, and what changed.]",
+  );
 });
