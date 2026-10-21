@@ -117,6 +117,11 @@ and the call appears in the trace.
 and no tools, for comparison: each pick shows the model's own reason, with no Boise room behind
 it and no popularity to check it against a fee band.
 
+Measured over the 29 checked towns ([docs/evidence.md](docs/evidence.md), section 31): of the
+model's 290 picks, 268 are on Qloo, 59 sit in the fee range (204 are bigger than its top), 235
+share two genres with the headliners, 11 climb with the fans of one of the town's venues, and 10
+pass all three tests that every act on the Qloo lineup passes.
+
 Qloo responses are cached server-side in Upstash Redis until at least 2026-11-18, past the end
 of judging, and never committed. A complete build is saved the same way, so the next visitor
 opens on it and "Watch the agent build it" replays its calls in 2 to 3 seconds, marked as a

@@ -656,6 +656,19 @@ A pick is found on Qloo when one of the top five artists Qloo's search returns f
 
 **The bar.** The claim the app makes, that the model alone can't place acts by Qloo's measure of the town's taste and the buyer's fee range, holds if at most half of the model's picks across the 29 festivals (145 of 290 or fewer) pass all three tests. The Qloo lineup passes them by its rule, so its count is a check, not a finding. The tests are Qloo's own measures, which the model can't see; the count says how far the model's own sense of a mid-size act, the headliners' kind of music and a local crowd lands from Qloo's, not which lineup a buyer would prefer. Counts only in this file; names stay in .design/with-without-qloo/.
 
+**Results, 2026-10-21: the claim holds (10 of 290 picks pass all three; the bar was 145 or fewer).** 27 model calls, one per festival without a saved answer, and 110 Qloo searches with no retry: the other picks' searches were already in the cache, since the model names many of the same acts from town to town. All 29 builds' lists were read from the cache. Over the 29 festivals:
+
+| | Without Qloo (the model's picks) | With Qloo (the lineup) |
+|---|---|---|
+| Acts | 290 | 290 |
+| Found on Qloo | 268 | 290 |
+| In the fee range | 59 | 290 |
+| Two genres shared with the headliners | 235 | 290 |
+| A climb with one of the town's venues' fans | 11 | 290 |
+| All three | 10 | 290 |
+
+**What it says.** The model alone knows the headliners' kind of music: 235 of its 290 picks share two genres with them. It doesn't size an undercard by Qloo's measure: of the 268 picks Qloo finds, 204 sit above the fee range's top (the 92nd percentile), 5 below its bottom and 59 inside it. And it can't see the town: 11 of its picks climb with the fans of one of the town's venues. At 20 of the 29 festivals none of its ten picks passes all three tests, and at none do more than two. The tests are Qloo's own measures, so this says how far the model's own sense of the brief lands from Qloo's data, not which lineup a buyer would prefer.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.

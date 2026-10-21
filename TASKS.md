@@ -521,9 +521,9 @@ Done means items 1-4 are deployed with `pnpm gate`, the design scan and the e2e 
 - [x] 9c85f16 and 0c89c27 stay as they are (Daniel's decision, 2026-10-21): no rewrite of main, no force-push
 
 5. With and Without Qloo as a number (approved: up to 27 model calls and 290 Qloo searches)
-- [ ] Bar and method in docs/evidence.md before any call
-- [ ] The run
-- [ ] The counts in plain words on the evidence page and in the README
+- [x] Bar and method in docs/evidence.md before any call (section 31, 32439d6)
+- [x] The run, 18:40-18:46 Bucharest: 27 model calls and 110 Qloo searches (the rest were cached), no retry; all 29 builds' lists from the cache. 10 of the model's 290 picks pass all three tests (the bar was 145 or fewer); the Qloo lineup's 290 of 290 by its rule
+- [x] The counts in plain words on the evidence page (a row beside the premise tests) and in the README (Sponsor technology)
 
 6. M8f lineups checked
 - [ ] The 23 lineups not yet checked, against their source pages, with no Qloo calls; any wrong list re-scored by the bar written before, both counts reported

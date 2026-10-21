@@ -25,6 +25,7 @@ const S = {
   premise:
     "18. Premise test on real festivals (M8d), written before the measurement",
   premise2: "26. Premise test, round 2 (M8f), written before any run",
+  withQloo: "31. With and Without Qloo, as a number, written before any call",
   climb:
     "19. The lift, visible (M9a), written before the spike and the readers",
   compare:
@@ -165,6 +166,13 @@ const ROWS: Row[] = [
     result: "20 of 30, at the bar of 20",
     limit:
       "No margin; most lists don't open with their headliners; small differences",
+  },
+  {
+    to: "withQloo",
+    group: "idea",
+    what: "Without Qloo, do the model's own picks pass the tests every Qloo act passes?",
+    result: "10 of 290 model picks pass all three; every Qloo act does",
+    limit: "Qloo's own measures, which the model can't see",
   },
   {
     to: "local",
