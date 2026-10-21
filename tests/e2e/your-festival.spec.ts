@@ -82,7 +82,9 @@ test.describe("Your festival", () => {
     });
     // No Without Qloo and no town switcher on a judge's own draft.
     await expect(
-      page.getByRole("button", { name: "Without Qloo: an AI model's picks alone" }),
+      page.getByRole("button", {
+        name: "Without Qloo: an AI model's picks alone",
+      }),
     ).toHaveCount(0);
     await expect(
       page.getByRole("navigation", { name: "Same brief, other towns" }),
@@ -147,9 +149,21 @@ test.describe("Your festival", () => {
     ]);
     await page.goto("/your-festival");
     await fill(page, "Smalltown", "Khruangbin", "Japanese Breakfast");
+    const thin = page.getByRole("region", {
+      name: "This draft couldn't be finished",
+    });
+    await expect(thin).toContainText("too few live-music places in Smalltown");
+    // Running the same town again can't help: the checked towns stand where the run button
+    // was, in view, and nothing offers to run the agent again.
     await expect(
-      page.getByRole("region", { name: "This draft couldn't be finished" }),
-    ).toContainText("too few live-music places in Smalltown");
+      page.getByRole("heading", { name: "Too few venues in this town" }),
+    ).toBeInViewport();
+    await expect(
+      thin.getByRole("list", { name: /^Towns Undercard has already read/ }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Run the agent again" }),
+    ).toHaveCount(0);
 
     await page.unrouteAll();
     await answerBuilds(
@@ -174,6 +188,40 @@ test.describe("Your festival", () => {
     await expect(
       limit.getByRole("link", { name: /Back to Sagebrush Sound/ }),
     ).toHaveAttribute("href", "/");
+  });
+
+  test("on a phone, a town Qloo can't find offers the checked towns in view, not a run again", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await answerBuilds(page, [
+      {
+        type: "build",
+        id: "yours-e2e",
+        createdAt: "2026-10-21T12:00:00.000Z",
+        replayed: false,
+      },
+      {
+        type: "error",
+        code: "town-not-found",
+        message:
+          "Qloo found no live-music places in Nowhere, so there were no venues to read.",
+      },
+      { type: "done", calls: 2, ms: 600 },
+    ]);
+    await page.goto("/your-festival");
+    await fill(page, "Nowhere", "Khruangbin", "Japanese Breakfast");
+    await expect(
+      page.getByRole("heading", { name: "Qloo couldn't find this town" }),
+    ).toBeInViewport();
+    await expect(
+      page.getByRole("list", {
+        name: "Towns Undercard has already read in the United States",
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Run the agent again" }),
+    ).toHaveCount(0);
   });
 });
 

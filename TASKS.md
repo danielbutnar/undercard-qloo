@@ -428,7 +428,7 @@ Done means every item below is finished and deployed, with `pnpm gate`, the desi
 - [x] final-chart merged into main with a merge commit (8aef8af); work continues on main
 - [x] The unused old components and their two tests deleted: the old bill, rooms rail, lineup board, festival header and lift climb, with tests/unit/m4b/draft-bill.test.tsx and m4c/labels.test.tsx; the one check of the live screen in the first moved to m4b/first-screen.test.tsx
 - [x] Watch steps through its editions without animation when reduced motion is on: the same pace and Skip, no glide, no print-in (tests/unit/m9a/climb-screen.test.tsx)
-- [ ] After "Qloo couldn't find this town" or "too few venues", the checked towns instead of "Run the agent again"
+- [x] After "Qloo couldn't find this town" or "too few venues", the checked towns instead of "Run the agent again": the notice takes the run button's place in the lead and comes into view (tests/unit/final-chart/thin-town-lead.test.tsx, tests/e2e/your-festival.spec.ts)
 - [ ] On a 390x844 phone, the first act shows on the first screen
 - [ ] Gate, design scan and local e2e pass; main pushed (production deploys); the live e2e passes
 

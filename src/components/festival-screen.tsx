@@ -140,11 +140,12 @@ function RunNotice({
   const offerName = country
     ? `Towns Undercard has already read in ${country}`
     : "Towns Undercard has already read";
-  // On a phone the notice sits below the chart; bring it into view once.
+  // Bring the notice into view once: on a phone it can sit below the chart, and in the lead it
+  // can sit above where the page was scrolled to when the run started.
   const notice = useRef<HTMLElement>(null);
   useEffect(() => {
     const box = notice.current?.getBoundingClientRect();
-    if (box && box.top > window.innerHeight)
+    if (box && (box.top < 0 || box.top > window.innerHeight))
       notice.current?.scrollIntoView({ block: "start" });
   }, []);
   return (
@@ -492,6 +493,23 @@ export function FestivalScreen({
     custom !== undefined &&
     state.status !== "building" &&
     (state.errorCode === "limit" || state.refusalCode === "limit");
+  // Running a town Qloo can't find, or one with too few venues, again can't help: the notice
+  // and its checked towns take the run button's place in the lead.
+  const thinTown =
+    custom !== undefined &&
+    state.status !== "building" &&
+    (state.errorCode === "town-not-found" ||
+      state.errorCode === "too-few-rooms");
+  const notice =
+    (custom || checked) && state.status !== "building" && state.errorCode ? (
+      <RunNotice
+        message={state.error ?? ""}
+        code={state.errorCode}
+        onEdit={custom?.onEdit ?? checked!.onBack}
+        region={custom?.brief.region}
+        onPick={custom?.onPick}
+      />
+    ) : null;
   // Elsewhere Watch replays the saved build, whose count is the one on screen only while the
   // screen shows that build.
   const savedOnScreen = onFirst || state.build?.replayed === true;
@@ -675,56 +693,58 @@ export function FestivalScreen({
             venues like.
           </p>
           <div>
-            {!limited && (
-              <>
-                <button
-                  type="button"
-                  onClick={() =>
-                    ownRun
-                      ? startShow(true)
-                      : runBuild(runAgain ? { fresh: true } : {})
-                  }
-                  disabled={busy || watching}
-                  className="watch"
-                >
-                  <span className="watch-play" aria-hidden>
-                    <svg viewBox="0 0 20 20">
-                      <path d="M4 2v16l14-8z" />
-                    </svg>
-                  </span>
-                  {watching
-                    ? "Watching…"
-                    : state.status === "building"
-                      ? "Building…"
-                      : runAgain
-                        ? "Run the agent again"
-                        : state.build
-                          ? WATCH
-                          : "Build undercard"}
-                </button>
-                <p className="watch-sub">
-                  <span className="ticks" aria-hidden>
-                    {Array.from(
-                      { length: Math.min(calls ?? 12, 12) },
-                      (_, i) => (
-                        <i key={i} />
-                      ),
-                    )}
-                  </span>
-                  {custom
-                    ? ownRun
-                      ? `Replays its ${calls ?? state.calls.length} Qloo calls`
-                      : runAgain
-                        ? "Runs the AI agent again; its Qloo calls list below"
-                        : "Runs the AI agent; its Qloo calls list below"
-                    : !state.build
-                      ? "Runs the AI agent; its Qloo calls list below"
-                      : savedOnScreen
-                        ? `Replays its ${calls ?? 12} Qloo calls`
-                        : "Replays the saved build's Qloo calls"}
-                </p>
-              </>
-            )}
+            {thinTown
+              ? notice
+              : !limited && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        ownRun
+                          ? startShow(true)
+                          : runBuild(runAgain ? { fresh: true } : {})
+                      }
+                      disabled={busy || watching}
+                      className="watch"
+                    >
+                      <span className="watch-play" aria-hidden>
+                        <svg viewBox="0 0 20 20">
+                          <path d="M4 2v16l14-8z" />
+                        </svg>
+                      </span>
+                      {watching
+                        ? "Watching…"
+                        : state.status === "building"
+                          ? "Building…"
+                          : runAgain
+                            ? "Run the agent again"
+                            : state.build
+                              ? WATCH
+                              : "Build undercard"}
+                    </button>
+                    <p className="watch-sub">
+                      <span className="ticks" aria-hidden>
+                        {Array.from(
+                          { length: Math.min(calls ?? 12, 12) },
+                          (_, i) => (
+                            <i key={i} />
+                          ),
+                        )}
+                      </span>
+                      {custom
+                        ? ownRun
+                          ? `Replays its ${calls ?? state.calls.length} Qloo calls`
+                          : runAgain
+                            ? "Runs the AI agent again; its Qloo calls list below"
+                            : "Runs the AI agent; its Qloo calls list below"
+                        : !state.build
+                          ? "Runs the AI agent; its Qloo calls list below"
+                          : savedOnScreen
+                            ? `Replays its ${calls ?? 12} Qloo calls`
+                            : "Replays the saved build's Qloo calls"}
+                    </p>
+                  </>
+                )}
             <p className="qloo-line">{QLOO_LINE}</p>
           </div>
         </section>
@@ -886,17 +906,7 @@ export function FestivalScreen({
         </main>
 
         <div className="lead lead-side">
-          {(custom || checked) &&
-            state.status !== "building" &&
-            state.errorCode && (
-              <RunNotice
-                message={state.error ?? ""}
-                code={state.errorCode}
-                onEdit={custom?.onEdit ?? checked!.onBack}
-                region={custom?.brief.region}
-                onPick={custom?.onPick}
-              />
-            )}
+          {!thinTown && notice}
           {/* Without Qloo the model's picks stand alone: its note takes the venues' place. */}
           {mode === "llm" && <LlmOnlyNote city={festival.city} />}
           {/* While Watch plays the switch steps aside: the lineup it counts is being re-drawn. */}
