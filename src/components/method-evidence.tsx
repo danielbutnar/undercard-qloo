@@ -26,6 +26,8 @@ const S = {
     "18. Premise test on real festivals (M8d), written before the measurement",
   premise2: "26. Premise test, round 2 (M8f), written before any run",
   withQloo: "31. With and Without Qloo, as a number, written before any call",
+  people: "32. The test with real people, written before it runs",
+  cheap: "33. Two cheap tests, written before any run",
   climb:
     "19. The lift, visible (M9a), written before the spike and the readers",
   compare:
@@ -102,19 +104,21 @@ export function Verdicts() {
       <li>
         <VerdictMark verdict="shown" />
         <span>
-          <strong>Shown:</strong> the AI agent drafts a full lineup from a
-          town&apos;s own venues, through Qloo, in each of the 29 towns checked,
-          and lists every Qloo call it makes.
+          <strong>Shown:</strong> the agent drafted a full lineup from a
+          town&apos;s own venues in 29 of 29 towns, and lists every Qloo call it
+          made.
         </span>
       </li>
       <li>
         <VerdictMark verdict="partly" />
         <span>
-          <strong>Partly shown:</strong> that a town&apos;s venues point to the
-          acts its festivals book. Treefort 2026 used two of the three Boise
-          venues tested; at ten real festivals the booked acts out-lifted
-          matched random ones in 7, one short of the bar of 8, and at 30 more,
-          with complete lineups, in 20, the bar exactly.
+          <strong>Partly shown:</strong> a town&apos;s venues point to the acts
+          its festivals book. At 40 real festivals, the acts each festival
+          booked showed more lift from the town&apos;s venues than band-matched
+          random acts at 27: 7 of 10 in the first round, one short of its bar of
+          8, and 20 of 30 in the second, the bar set beforehand. About half
+          would be expected if the venues told us nothing. The differences are
+          small. Treefort 2026 used two of the three Boise venues tested.
         </span>
       </li>
       <li>
@@ -122,6 +126,8 @@ export function Verdicts() {
         <span>
           <strong>Not shown:</strong> that the town&apos;s crowd knows these
           acts, or that they would sell tickets, take the slot or fit a budget.
+          Undercard drafts a shortlist with its evidence attached; the buyer
+          makes every call.
         </span>
       </li>
     </ul>
@@ -130,6 +136,8 @@ export function Verdicts() {
 
 type Row = {
   to: keyof typeof S;
+  /** A second section the row's result comes from, when it has two. */
+  also?: keyof typeof S;
   /** The premise tests ("Does the idea hold?") or the engineering checks ("Does the product work?"). */
   group: "idea" | "product";
   what: string;
@@ -139,7 +147,35 @@ type Row = {
   limit: string;
 };
 
+// The rows, in the order and words of the review's section 9c with Daniel's corrections
+// (plan.md item 10); every number is docs/evidence.md's.
 const ROWS: Row[] = [
+  {
+    to: "premise2",
+    group: "idea",
+    what: "At 30 real festivals chosen before any run, did the acts they booked show more lift from the town's venues than band-matched random acts?",
+    result:
+      "20 of 30, the bar set beforehand; 20 of the 22 that could be scored",
+    bar: 20,
+    limit:
+      "No margin. The 8 festivals with fewer than two acts in the fee ranges couldn't be scored and count against the bar. The differences are small, 0.003 to 0.059 in affinity. Most lineups don't name their headliners first. Research subagents gathered the lineups; 28 of 30 were checked against their pages.",
+  },
+  {
+    to: "premise",
+    group: "idea",
+    what: "At 10 real festivals, did the acts they booked show more lift from the town's venues than band-matched random acts?",
+    result: "7 of 10, one short of the bar of 8",
+    limit:
+      "Partial lineups from Wikipedia; small differences. The second round above used complete lineups because of this result.",
+  },
+  {
+    to: "withQloo",
+    group: "idea",
+    what: "Without Qloo, do the model's own picks pass the tests every Qloo act passes?",
+    result: "10 of 290 model picks pass all three; every Qloo act does",
+    limit:
+      "Qloo's own measures, which the model can't see. The two lineups share no act in any of the 29 towns.",
+  },
   {
     to: "boise",
     group: "idea",
@@ -150,117 +186,93 @@ const ROWS: Row[] = [
   {
     to: "treefort",
     group: "idea",
-    what: "Do Boise's venues pull Qloo's ranking toward Treefort's acts?",
-    result: "No-go: 0 to 2 of 50 per list",
-    limit: "Counts too small to show the signal either way",
-  },
-  {
-    to: "premise",
-    group: "idea",
-    what: "On ten real festivals, do booked acts out-lift matched random ones?",
-    result: "7 of 10, one short of the bar of 8",
-    limit: "Partial lineups from Wikipedia; small differences",
-  },
-  {
-    to: "premise2",
-    group: "idea",
-    what: "On 30 more festivals, with complete lineups from their own sites, do booked acts out-lift matched random ones?",
-    result:
-      "20 of 30, the bar set beforehand; 20 of the 22 that could be scored",
-    bar: 20,
+    what: "Do Boise's venues pull Qloo's ranking toward Treefort's own acts?",
+    result: "No-go: 0 to 2 of 50 acts per list",
     limit:
-      "No margin; small differences; most lists don't open with their headliners; 28 of 30 lineups re-checked against their pages",
-  },
-  {
-    to: "withQloo",
-    group: "idea",
-    what: "Without Qloo, do the model's own picks pass the tests every Qloo act passes?",
-    result: "10 of 290 model picks pass all three; every Qloo act does",
-    limit: "Qloo's own measures, which the model can't see",
+      "Too few acts to show the signal either way. One festival can't test the idea; the 40-festival rows above are the broader version of this check.",
   },
   {
     to: "local",
     group: "idea",
-    what: "Does a town's crowd know the undercard acts?",
+    what: "Can Qloo say directly whether a town's crowd knows an act?",
     result: "No-go: a usable local signal for 7 of 10 acts, bar 8",
-    limit: "Not claimed",
-  },
-  {
-    to: "runs",
-    group: "product",
-    what: "Is a build stable when run again?",
-    result:
-      "Every run filled both bands; three of four towns gave the same ten acts",
-    limit: "Runs on one day, one pair of headliners",
-  },
-  {
-    to: "ten",
-    group: "product",
-    what: "Does a judge's own US town fill both bands?",
-    result: "Spike 8 of 10",
-    limit: "Plain town names; corrected in section 12",
-  },
-  {
-    to: "remeasure",
-    group: "product",
-    what: "Once towns resolve, do the ten US towns fill?",
-    result: "8 of 10",
-    limit: "A thin town is offered checked towns instead",
-  },
-  {
-    to: "resolve",
-    group: "product",
-    what: "Does a town resolve to the right place?",
-    result: "Go, with at most one extra call",
-    limit: "Relies on Qloo's geocode",
+    limit:
+      "Not claimed anywhere in the product. Artists have no location of their own in Qloo, and its location data for them, tried three ways, gave a usable local reading for at most 7 of 10 acts, which is why venues are the route to a town's taste.",
   },
   {
     to: "checked",
     group: "product",
-    what: "Do the 29 checked towns replay a full lineup?",
+    what: "Filling a lineup. Does the agent draft a full lineup in every checked town?",
     result: "29 of 29",
     limit: "One fresh build each, on one day",
   },
   {
+    to: "ten",
+    also: "remeasure",
+    group: "product",
+    what: "Does a US town a judge might type fill both groups of slots?",
+    result:
+      "8 of 10, measured twice: first with plain town names, then with towns resolved to their state",
+    limit:
+      "The first run was corrected by the second. A thin town is offered checked towns instead.",
+  },
+  {
+    to: "runs",
+    also: "cheap",
+    group: "product",
+    what: "Does the same brief give the same lineup when run again?",
+    result:
+      "Every run filled both groups; three of four towns gave the same ten acts",
+    limit:
+      "On a second day, 3 of 4 towns gave their saved ten acts again; a second pair of headliners changed 6 of Boise's 10.",
+  },
+  {
+    to: "resolve",
+    group: "product",
+    what: "Does a town name resolve to the right place?",
+    result: "Go, with at most one extra Qloo call",
+    limit: "Relies on Qloo's geocode",
+  },
+  {
     to: "rooms",
     group: "product",
-    what: "Can parks and arenas be filtered out?",
-    result: "No-go; labelled instead",
-    limit: "A festival site can still anchor a lineup",
+    what: "Reading venues. Can parks and arenas be kept out of the venue list?",
+    result: "No-go; they are labelled instead",
+    limit: "A festival site can still anchor a lineup, and the label says so",
   },
   {
     to: "festival",
     group: "product",
-    what: "Can a festival filed as a place be told apart?",
+    what: "Can a festival filed as a place be told apart from a venue?",
     result: "Go: labelled, booking unchanged",
     limit: "The rule fits the one case seen",
   },
   {
+    to: "spread",
+    group: "product",
+    what: "Can a lineup be spread across more of a town's venues?",
+    result: "No-go: 0 of 4 towns",
+    limit: "The venues that lift acts are already on the lineup",
+  },
+  {
     to: "order",
     group: "product",
-    what: "Can Qloo score each pair's shared taste?",
+    what: "Running order. Can Qloo score the shared taste of every pair of acts on the bill?",
     result: "180 of 180 pairs within 10 calls",
     limit: "A measure of taste, not of shared ticket buyers",
   },
   {
     to: "pairs",
     group: "product",
-    what: "Does that score match a booker-style judgement?",
-    result: "5 of 5 same-crowd pairs above every different-crowd pair",
+    what: "Does that score agree with a booker-style judgement of a shared crowd?",
+    result: "5 of 5 same-crowd pairs scored above every different-crowd pair",
     limit: "The pairs were Claude's judgement, not a working buyer's",
-  },
-  {
-    to: "spread",
-    group: "product",
-    what: "Can a lineup spread across more venues?",
-    result: "No-go: 0 of 4 towns",
-    limit: "The venues that lift acts are already on the lineup",
   },
   {
     to: "retry",
     group: "product",
-    what: "Does a build survive Qloo's rate limit?",
-    result: "Retries with backoff inside a 45 s budget",
+    what: "Live runs. Does a live build survive Qloo's rate limit?",
+    result: "Retries with backoff inside a 45-second budget",
     limit: "A busy Qloo still ends a live run, with the replay offered",
   },
 ];
@@ -336,6 +348,12 @@ function ResultPicture({
   );
 }
 
+/** "evidence N" for a numbered section of docs/evidence.md, "evidence" otherwise. */
+const label = (to: keyof typeof S) =>
+  S[to].split(".")[0].match(/^\d+$/)
+    ? `evidence ${S[to].split(".")[0]}`
+    : "evidence";
+
 /** One group of the evidence table: each row's question, result, limit and source. */
 function EvidenceTable({ title, rows }: { title: string; rows: Row[] }) {
   return (
@@ -361,11 +379,12 @@ function EvidenceTable({ title, rows }: { title: string; rows: Row[] }) {
                 </td>
                 <td className="evidence-limit">{row.limit}</td>
                 <td>
-                  <Ev to={row.to}>
-                    {S[row.to].split(".")[0].match(/^\d+$/)
-                      ? `evidence ${S[row.to].split(".")[0]}`
-                      : "evidence"}
-                  </Ev>
+                  <Ev to={row.to}>{label(row.to)}</Ev>
+                  {row.also && (
+                    <>
+                      , <Ev to={row.also}>{label(row.also)}</Ev>
+                    </>
+                  )}
                 </td>
               </tr>
             ))}
@@ -377,9 +396,10 @@ function EvidenceTable({ title, rows }: { title: string; rows: Row[] }) {
 }
 
 /**
- * The evidence (M10b moved it here from How it works, unchanged): what was tested, each result
- * drawn, with its limit and its source in docs/evidence.md; the five objections answered; and
- * what the numbers don't establish.
+ * The evidence (M10b moved it here from How it works; plan.md item 10 put it in the order and
+ * words of the review's section 9c, with Daniel's corrections): the three summary lines, the
+ * terms, each test with its result drawn, its limit and its source, what the no-gos taught, what
+ * real people said, five objections answered, the limits, and what is still to come.
  */
 export function MethodEvidencePage() {
   return (
@@ -391,15 +411,27 @@ export function MethodEvidencePage() {
         <div className="method-lead">
           <h1 className="compare-title">The evidence</h1>
           <p className="compare-what">
-            Every test of the method, with its result, its limit and its source,
-            and five objections answered.
+            Every test below had its bar written before it ran. The full record
+            of each is in docs/evidence.md.
           </p>
         </div>
 
         <div className="method-columns">
           <section aria-label="Evidence" className="panel">
-            <h2 className="panel-title">What was tested</h2>
+            <h2 className="panel-title">In fifteen seconds</h2>
             <Verdicts />
+            <p className="mt-3 text-label">
+              Five terms used below. A climb is how many places an act rises in
+              Qloo&apos;s ranking when a venue&apos;s fans are added to the
+              headliners&apos; fans. A lift, in the real-festival tests, is the
+              most Qloo affinity an act gains from any one of the town&apos;s
+              venues. Mid-size and opening are the two groups of slots, each
+              with its own fee range. A fee range is a range of Qloo popularity
+              the buyer sets; it stands in for a fee because no fee data exists.
+              Matched random acts are drawn at random from Qloo&apos;s ranking
+              for the same headliners and matched on fee range, as
+              docs/evidence.md describes.
+            </p>
             <EvidenceTable
               title="Does the idea hold?"
               rows={ROWS.filter((row) => row.group === "idea")}
@@ -411,6 +443,58 @@ export function MethodEvidencePage() {
           </section>
 
           <div className="method-side">
+            <section aria-label="What the no-gos taught" className="panel">
+              <h2 className="panel-title">What the no-gos taught</h2>
+              <ul className="limits">
+                <li>
+                  Qloo&apos;s location data for artists was too thin to build
+                  on, at most 7 of 10 (<Ev to="local">evidence 6</Ev>), so a
+                  town&apos;s taste enters the ranking through its venues&apos;
+                  fans.
+                </li>
+                <li>
+                  One festival can&apos;t test the idea (
+                  <Ev to="treefort">evidence 2</Ev>), so the test became 40
+                  festivals with bars written first (
+                  <Ev to="premise">evidence 18</Ev>,{" "}
+                  <Ev to="premise2">evidence 26</Ev>).
+                </li>
+                <li>
+                  Parks and arenas can&apos;t be filtered out (
+                  <Ev to="rooms">evidence 10</Ev>), so they are labelled and the
+                  buyer sees them.
+                </li>
+                <li>
+                  Lineups can&apos;t be spread further (
+                  <Ev to="spread">evidence 16</Ev>): the venues that lift acts
+                  are already on the lineup.
+                </li>
+              </ul>
+            </section>
+
+            <section
+              aria-label="What real people said, and what changed"
+              className="panel"
+            >
+              <h2 className="panel-title">
+                What real people said, and what changed
+              </h2>
+              <ul className="limits">
+                <li>
+                  The first person to see an early design couldn&apos;t tell
+                  what it was for. The design was rebuilt; the current one is a
+                  chart of climbing acts, each leading with its climb and the
+                  venue behind it.
+                </li>
+                <li className="text-muted">
+                  [Still to come: this week&apos;s test with real people,
+                  against the bar written first (
+                  <Ev to="people">evidence 32</Ev>): how many, what they said
+                  within sixty seconds, and what changed.]
+                </li>
+              </ul>
+            </section>
+
             <section aria-label="Five objections" className="panel">
               <h2 className="panel-title">Five objections, answered</h2>
               <Objection
@@ -418,57 +502,61 @@ export function MethodEvidencePage() {
                 verdict="not"
               >
                 <p>
-                  Not shown. Undercard measures that fans of the town&apos;s
-                  venues like an act more than fans of the headliners alone: its
-                  lift in Qloo&apos;s ranking. A direct measure of local
-                  strength was a no-go (<Ev to="local">evidence 6</Ev>). A test
-                  on ten real festivals fell one short of its bar (
-                  <Ev to="premise">evidence 18</Ev>), and one on 30 more met its
-                  bar exactly (<Ev to="premise2">evidence 26</Ev>); both measure
-                  the venues&apos; fans, not the town&apos;s.
+                  Undercard measures that fans of the town&apos;s venues rank an
+                  act higher than fans of the headliners alone: its climb. A
+                  direct local measure was a no-go (
+                  <Ev to="local">evidence 6</Ev>); the ten-festival test fell
+                  one short of its bar (<Ev to="premise">evidence 18</Ev>) and
+                  the thirty-festival test met it exactly (
+                  <Ev to="premise2">evidence 26</Ev>). Both measure the
+                  venues&apos; fans, not the town&apos;s crowd.
                 </p>
               </Objection>
-              <Objection question="What does the AI model decide, and what does Qloo decide?">
+              <Objection
+                question="What does the AI model decide, and what does Qloo decide?"
+                verdict="shown"
+              >
                 <p>
-                  The AI agent (Claude) plans the Qloo calls: which venues to
-                  read and in what order, within 12 calls. Qloo supplies every
-                  ranking, affinity and popularity. The app&apos;s own rule
-                  books the acts: a lift of 5 places or more, inside the fee
-                  range, two genres shared with the headliners. The model
-                  doesn&apos;t choose the acts (
+                  In every replay: the agent (Claude) plans the Qloo calls:
+                  which venues to read, in what order, within 12 calls. Qloo
+                  supplies every ranking, affinity and popularity. The
+                  app&apos;s own rule books the acts: a climb of 5 places or
+                  more, inside the fee range, two genres shared with the
+                  headliners. The model doesn&apos;t choose the acts (
                   <Ev to="decides">evidence 22</Ev>).
                 </p>
               </Objection>
               <Objection question="Why venues?" verdict="partly">
                 <p>
                   Artists have no location of their own in Qloo, and its
-                  location data for them gave a usable local reading for at most
-                  7 of 10 acts (<Ev to="local">evidence 6</Ev>), so a
-                  venue&apos;s fans are how a town&apos;s taste gets into the
-                  ranking. And a town&apos;s festival books its venues: Treefort
-                  2026 used two of the three Boise venues tested (
-                  <Ev to="boise">evidence 1</Ev>).
+                  location data for them, tried three ways, gave a usable local
+                  reading for at most 7 of 10 acts (
+                  <Ev to="local">evidence 6</Ev>), so a venue&apos;s fans are
+                  how a town&apos;s taste gets into the ranking. A town&apos;s
+                  festival books its venues: Treefort 2026 used two of the three
+                  Boise venues tested (<Ev to="boise">evidence 1</Ev>).
                 </p>
               </Objection>
-              <Objection question="What happens when a town is thin?">
+              <Objection
+                question="What happens when a town is thin?"
+                verdict="shown"
+              >
                 <p>
                   The town is resolved to its state or country first (
                   <Ev to="resolve">evidence 11</Ev>). With too few venues, the
                   page says so in one sentence and offers checked towns in the
-                  same country; a band that can&apos;t fill keeps open slots,
-                  never padded (<Ev to="decides">evidence 22</Ev>).
+                  same country; a group of slots that can&apos;t fill keeps open
+                  slots, never padded (<Ev to="remeasure">evidence 12</Ev>,{" "}
+                  <Ev to="decides">evidence 22</Ev>).
                 </p>
               </Objection>
               <Objection question="Why trust a pick?" verdict="shown">
                 <p>
                   Each act shows the venue whose fans lifted it, by how many
-                  places, and its Qloo affinity and popularity. Every Qloo call
+                  places, with its Qloo affinity and popularity. Every Qloo call
                   is in the trace, and a saved build replays call by call (
                   <Ev to="checked">evidence 13</Ev>,{" "}
-                  <Ev to="climb">evidence 19</Ev>
-                  ). The limits are stated below (
-                  <Ev to="limits">what these numbers don&apos;t establish</Ev>
-                  ).
+                  <Ev to="climb">evidence 19</Ev>). The limits are below.
                 </p>
               </Objection>
             </section>
@@ -486,24 +574,34 @@ export function MethodEvidencePage() {
                   budget: the fee ranges are popularity ranges the buyer sets,
                   not fees.
                 </li>
-                <li>That a town&apos;s crowd knows the undercard acts.</li>
+                <li>
+                  That a town&apos;s crowd knows the undercard acts, or that a
+                  town&apos;s venues predict what its festivals book: the first
+                  real-festival test fell one short, the second met its bar
+                  exactly, with small differences, and both measure the
+                  venues&apos; fans, not the town&apos;s crowd.
+                </li>
                 <li>
                   That every venue behind a lineup is a club: a park or an arena
                   can still anchor one, and is labelled.
                 </li>
                 <li>
-                  That a town&apos;s venues pick out what its festivals book:
-                  the first real-festival test fell one short and the second met
-                  its bar exactly, and both show the venues&apos; fans liking
-                  the booked acts, not the buyers using those venues.
-                </li>
-                <li>
-                  Stability beyond the runs shown: a few runs per town, on one
-                  day, with one pair of headliners.
+                  Stability beyond the runs shown: a few runs per town over two
+                  days, and one second pair of headliners in one town (
+                  <Ev to="runs">evidence 5</Ev>, <Ev to="cheap">evidence 33</Ev>
+                  ).
                 </li>
               </ul>
               <p className="mt-2 text-label">
                 <Ev to="limits">The full list in docs/evidence.md</Ev>
+              </p>
+            </section>
+
+            <section aria-label="Still to come" className="panel">
+              <h2 className="panel-title">Still to come</h2>
+              <p className="mt-2 text-label text-muted">
+                [Still to come: what this week&apos;s testers said, against the
+                bar in <Ev to="people">evidence 32</Ev>.]
               </p>
             </section>
           </div>

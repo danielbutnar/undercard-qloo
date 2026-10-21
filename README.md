@@ -204,6 +204,14 @@ returned, as counts only.
   screen's rows rose in again on every load).
 - 21 October, evening: Claude (Opus 5.5) prepared stills and docs for an outside review, then
   gave How it works the same Qloo artist photos as the first screen, from the same cached call.
+- 21 October, night: Claude (Opus 5.5) followed Daniel's plan after an outside review written
+  by Claude Fable 5.1: it put small photos on a phone's rows and the image credit in, fixed a
+  flaky phone test, measured With and Without Qloo across 29 towns (the app's own model-only
+  baseline answered 27 of them), had three Claude research subagents check the M8f lineups
+  against their pages, made the live-build caps settings with a daily smoke test, served the
+  venue results with the page, wrote each act's why as one sentence, rewrote the evidence page
+  from the review's draft and the record, moved the Qloo calls into src/lib/qloo/, and ran the
+  two cheap tests in evidence section 33.
 - Kept current as each milestone lands.
 
 ## Built on

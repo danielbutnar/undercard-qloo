@@ -33,12 +33,14 @@ describe("the method page's evidence, grouped", () => {
     });
     const rows = (table: HTMLElement) =>
       within(table).getAllByRole("row").slice(1);
-    // 15 rows, M8f's second premise test beside the first, and section 31's With and Without Qloo.
-    expect(rows(idea).length + rows(product).length).toBe(17);
+    // Plan.md item 10: 16 rows, the two US-town rows (sections 7 and 12) now one.
+    expect(rows(idea).length + rows(product).length).toBe(16);
     expect(
       within(idea).getByText("7 of 10, one short of the bar of 8"),
     ).toBeTruthy();
-    expect(within(idea).getByText("No-go: 0 to 2 of 50 per list")).toBeTruthy();
+    expect(
+      within(idea).getByText("No-go: 0 to 2 of 50 acts per list"),
+    ).toBeTruthy();
     expect(within(product).getByText("29 of 29")).toBeTruthy();
     for (const row of [...rows(idea), ...rows(product)]) {
       const cells = within(row).getAllByRole("cell");

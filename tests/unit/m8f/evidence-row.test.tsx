@@ -23,8 +23,11 @@ describe("the second premise test on the evidence page (M8f)", () => {
       row.textContent?.includes("7 of 10, one short of the bar of 8"),
     );
     expect(first).toBeGreaterThanOrEqual(0);
-    const second = rows[first + 1];
-    expect(second.textContent).toMatch(/30 more festivals/);
+    // Plan.md item 10: the 30-festival round leads, with the 7 of 10 straight after it.
+    const second = rows[first - 1];
+    expect(second.textContent).toMatch(
+      /^At 30 real festivals chosen before any run/,
+    );
     expect(
       within(second).getByRole("link").getAttribute("href")!.split("#")[1],
     ).toBe(evidenceAnchor(SECTION_26));

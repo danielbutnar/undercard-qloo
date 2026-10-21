@@ -37,7 +37,7 @@ describe("the method page's results, drawn", () => {
     // Number words count as well as digits.
     const words = dots(
       resultCell(
-        "Every run filled both bands; three of four towns gave the same ten acts",
+        "Every run filled both groups; three of four towns gave the same ten acts",
       ),
     );
     expect(words).toHaveLength(4);
@@ -56,12 +56,12 @@ describe("the method page's results, drawn", () => {
   it("marks go or no-go only where the result says so and counts nothing", () => {
     render(<MethodEvidencePage />);
     for (const go of [
-      "Go, with at most one extra call",
+      "Go, with at most one extra Qloo call",
       "Go: labelled, booking unchanged",
     ])
       expect(resultCell(go).querySelector(".result-chip.is-go")).not.toBeNull();
     expect(
-      resultCell("No-go; labelled instead").querySelector(
+      resultCell("No-go; they are labelled instead").querySelector(
         ".result-chip.is-nogo",
       ),
     ).not.toBeNull();
@@ -70,9 +70,9 @@ describe("the method page's results, drawn", () => {
     expect(none).toHaveLength(4);
     expect(on(none)).toBe(0);
     expect(
-      resultCell("Retries with backoff inside a 45 s budget").querySelector(
-        ".result-dots, .result-bar, .result-chip",
-      ),
+      resultCell(
+        "Retries with backoff inside a 45-second budget",
+      ).querySelector(".result-dots, .result-bar, .result-chip"),
     ).toBeNull();
   });
 });
