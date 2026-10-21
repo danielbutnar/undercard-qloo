@@ -703,6 +703,8 @@ Written on 2026-10-21 (plan.md item 9, the review's section 9b.3), before any of
 
 **The pair, chosen by that rule on 2026-10-21 before the run:** Alvvays and Big Thief. Fleet Foxes and Bon Iver fell outside the window; 4 searches in all.
 
+**Test 1's result, 2026-10-21 (21:40 Bucharest): the bar is met.** All four towns filled both groups of slots. Boise, Austin and Nashville gave the same ten acts as their saved builds of 17 October; Denver gave 7 of its 10, with 3 others. So 3 of 4, the bar. 47 Qloo calls, no call refused, one run each. On 17 October, section 5 found Austin the town whose runs varied; here Austin matched and Denver didn't, so which town varies isn't fixed. Afterwards the four saved builds hold the same ten acts as before.
+
 **How.** The runs go through the agent offline with a memory cache (scripts/cheap-tests.ts): nothing is written to Redis and no saved build changes; afterwards Boise and the four towns are checked to replay the same ten acts. About 56 to 68 Qloo calls in all, one build at a time, plus the planner's model turns. Counts only in this file; names stay in .design/cheap-tests/.
 
 ## 22. Who decides what, and what a thin town gets
