@@ -122,6 +122,9 @@ function LlmOnlyNote({ city }: { city: string }) {
 
 /** A typed town that can't be found or is too thin (M6n): the checked towns are the next step. */
 const THIN = new Set(["town-not-found", "too-few-rooms", "not-full"]);
+// A run that hit the day's cap or a busy Qloo can't be run again for now: its notice offers the
+// checked towns in the same country to replay, or Sagebrush Sound's (plan.md item 2).
+const REPLAY_INSTEAD = new Set(["limit", "qloo-busy"]);
 
 /** Why a judge's own draft couldn't be finished, and the next step (M6f). */
 function RunNotice({
@@ -138,7 +141,12 @@ function RunNotice({
   region?: string;
   onPick?: (town: CheckedTown) => void;
 }) {
-  const near = onPick && THIN.has(code) ? townsNear(region ?? "") : null;
+  const found = onPick ? townsNear(region ?? "") : null;
+  const near =
+    found &&
+    (THIN.has(code) || (REPLAY_INSTEAD.has(code) && found.country !== null))
+      ? found
+      : null;
   const country = near?.country
     ? `${/^United /.test(near.country) ? "the " : ""}${near.country}`
     : null;
@@ -225,11 +233,12 @@ function RunNotice({
           </ul>
         </>
       )}
-      {code === "limit" ? (
+      {REPLAY_INSTEAD.has(code) && (code === "limit" || !near) && (
         <Link href="/" className="link mt-3 inline-block text-label">
           Back to Sagebrush Sound, which replays without a limit
         </Link>
-      ) : (
+      )}
+      {code !== "limit" && (
         <button type="button" onClick={onEdit} className="tool mt-3">
           Change the brief
         </button>
