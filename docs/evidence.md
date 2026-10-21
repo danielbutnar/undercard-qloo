@@ -683,6 +683,16 @@ A pick is found on Qloo when one of the top five artists Qloo's search returns f
 
 So the record says that Qloo and the model alone pick entirely different acts in every town, not that Qloo's lineups answer more to the town than the model's do: the review's guess that a model with no town data names the same acts everywhere doesn't hold here, and the same two headliners give Qloo's lineups much of their overlap (an inference, not measured). Per-town counts stay in .design/with-without-qloo/measures.json.
 
+## 32. The test with real people, written before it runs
+
+Written on 2026-10-21 (plan.md, from the review's section 9b.2), before Daniel runs it on Friday 23 and Saturday 24 October. The bar doesn't change after the answers are in.
+
+**The people.** Three to five people who haven't seen Undercard, ideally one who books or promotes shows. Each gets the live home page for sixty seconds with no help, then two questions, in this order: "Why is Act 84 on this lineup?" and "What would a buyer do with this?" Daniel writes the answers down word for word.
+
+**The bar.** It passes if (1) the first answer names the venue or the climb, in the person's own words, for at least 3 of 4 people (4 of 5; all 3 of 3, an extension of the review's bar to three people at the same strictness), and (2) the second answer says a buyer would use it to shortlist or research, not to book, for the same share. Otherwise it fails, and the result is reported either way.
+
+**What goes public.** The counts, and the wording changes that followed. A tester's words are quoted only with that person's permission; until then, none.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.

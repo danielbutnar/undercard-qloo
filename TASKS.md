@@ -572,4 +572,4 @@ Corrections kept throughout: a private reply is kept out of the public record; t
 11. Qloo calls in one named module (prompt E, first part only)
 - [ ] src/lib/qloo/, one file per endpoint, its own commit, tests unchanged and green
 Also
-- [ ] The bar for the test with real people (section 9b.2) in docs/evidence.md before Friday
+- [x] The bar for the test with real people (section 9b.2) in docs/evidence.md before Friday: section 32 (the review's 3 of 4 or 4 of 5, extended to all 3 of 3 at the same strictness; quotes only with each person's permission)
