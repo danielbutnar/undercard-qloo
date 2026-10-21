@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ClimbArrow } from "@/components/chart/band-chart";
-import { Sleeve } from "@/components/chart/sleeve";
+import { Cover } from "@/components/chart/cover";
 import { ordinal } from "@/components/chart/words";
 import type { FeeBand } from "@/lib/fee-bands";
 import {
@@ -37,6 +37,7 @@ export function ActCard({
   hue = null,
   note,
   band,
+  image,
 }: {
   act: Act;
   /** Struck through while its slot is refilled, or when no refill was found. */
@@ -59,6 +60,8 @@ export function ActCard({
   note?: string;
   /** The act's fee range, lit on the popularity scale. */
   band?: FeeBand;
+  /** Its image on Qloo, only while ARTIST_IMAGES is on. */
+  image?: string;
 }) {
   const [asking, setAsking] = useState(false);
   const lift = liftOf(act);
@@ -69,9 +72,12 @@ export function ActCard({
       className={`card ${hue !== null ? `venue-${hue}` : ""} ${unavailable ? "card-gone" : ""}`}
     >
       <div className="card-head">
-        <Sleeve
+        <Cover
+          image={image}
           genres={act.sharedTags.map((tag) => tag.name)}
           id={act.entityId}
+          name={act.name}
+          label
           className="card-sleeve"
         />
         <div className="min-w-0">

@@ -2926,3 +2926,8 @@
     align-self: start;
   }
 }
+
+/* An act's photo from Qloo, only while ARTIST_IMAGES is on (src/lib/artist-images.ts). */
+.chart-app .cover-photo {
+  object-fit: cover;
+}

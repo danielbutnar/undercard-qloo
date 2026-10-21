@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ActCardPanel } from "@/components/act-card-panel";
-import { BandChart, type Printing } from "@/components/chart/band-chart";
+import {
+  BandChart,
+  type ChartRowData,
+  type Printing,
+} from "@/components/chart/band-chart";
 import { billRows, editionRows } from "@/components/chart/chart-rows";
 import { RuleKey } from "@/components/chart/rule-key";
 import { Quilt } from "@/components/chart/sleeve";
@@ -513,6 +517,16 @@ export function FestivalScreen({
   // Elsewhere Watch replays the saved build, whose count is the one on screen only while the
   // screen shows that build.
   const savedOnScreen = onFirst || state.build?.replayed === true;
+  // Qloo's image of each act, only while ARTIST_IMAGES is on (item 4); the drawn covers otherwise.
+  const images = firstBill?.images;
+  const pictured = (rows: ChartRowData[]) =>
+    images
+      ? rows.map((row) =>
+          row.act && images[row.act.entityId]
+            ? { ...row, image: images[row.act.entityId] }
+            : row,
+        )
+      : rows;
 
   // A judge's own brief runs once, as soon as its screen opens; a checked town replays.
   const started = useRef(false);
@@ -612,22 +626,24 @@ export function FestivalScreen({
             <BandChart
               key={band.id}
               band={band}
-              rows={billRows(
-                band,
-                shownActs,
-                placeOf,
-                hues,
-                open,
-                whatIf
-                  ? "No act from the venues left on clears the bar."
-                  : state.acts.length === 0
-                    ? state.status === "building"
-                      ? "The AI agent is drafting this slot."
-                      : state.status === "error"
-                        ? "The AI agent couldn't draft this slot; the note says why."
-                        : "Empty until the AI agent drafts the lineup."
-                    : "No act the venues lifted clears the bar.",
-                "climb",
+              rows={pictured(
+                billRows(
+                  band,
+                  shownActs,
+                  placeOf,
+                  hues,
+                  open,
+                  whatIf
+                    ? "No act from the venues left on clears the bar."
+                    : state.acts.length === 0
+                      ? state.status === "building"
+                        ? "The AI agent is drafting this slot."
+                        : state.status === "error"
+                          ? "The AI agent couldn't draft this slot; the note says why."
+                          : "Empty until the AI agent drafts the lineup."
+                      : "No act the venues lifted clears the bar.",
+                  "climb",
+                ),
               )}
               numbers="climb"
               column={festival.feeBands.indexOf(band)}
@@ -659,6 +675,7 @@ export function FestivalScreen({
                   onClose={() => setOpenId(null)}
                   city={festival.city}
                   place={placeOf[act.entityId]}
+                  image={images?.[act.entityId]}
                   hue={hues.get(act.anchorVenue.entityId) ?? null}
                   band={festival.feeBands.find(
                     (entry) => entry.id === act.band,

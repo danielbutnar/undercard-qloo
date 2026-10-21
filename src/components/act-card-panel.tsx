@@ -25,6 +25,7 @@ export function ActCardPanel({
   hue,
   note,
   band,
+  image,
 }: {
   act: Act;
   unavailable: boolean;
@@ -39,6 +40,7 @@ export function ActCardPanel({
   hue?: number | null;
   note?: string;
   band?: FeeBand;
+  image?: string;
 }) {
   const ref = useRef<HTMLElement>(null);
 
@@ -68,6 +70,7 @@ export function ActCardPanel({
         hue={hue}
         note={note}
         band={band}
+        image={image}
       />
     </section>
   );

@@ -1,3 +1,4 @@
+import type { ArtistImages } from "./artist-images";
 import type { FeeBandId } from "./fee-bands";
 import type { Act, Venue } from "./lineup";
 import type { Placed } from "./venue-switch";
@@ -16,4 +17,6 @@ export interface FirstBill {
   baselineTop: Partial<Record<FeeBandId, number>>;
   /** Each act's place on the chart now and for the headliners alone (src/lib/places.ts). */
   places?: Record<string, Placed>;
+  /** Each act's image on Qloo, only while ARTIST_IMAGES is on (src/lib/artist-images.ts). */
+  images?: ArtistImages;
 }

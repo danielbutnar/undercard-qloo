@@ -10,7 +10,11 @@ const REQUEST_TIMEOUT_MS = 20_000;
 
 /** The only Qloo endpoints this app calls, all with GET and parameters in the query string. */
 type QlooPath =
-  "/search" | "/v2/tags" | "/v2/insights" | "/v2/analysis/compare";
+  | "/search"
+  | "/v2/tags"
+  | "/v2/insights"
+  | "/v2/analysis/compare"
+  | "/entities";
 
 export interface QlooTag {
   id: string;
@@ -97,6 +101,21 @@ const RawEntity = z.object({
     .nullish(),
 });
 const SearchBody = z.object({ results: z.array(RawEntity) });
+// GET /entities: only each entity's image URL is read (item 4, artist images, off by default).
+const EntitiesBody = z.object({
+  results: z.array(
+    z.object({
+      entity_id: z.string(),
+      properties: z
+        .object({
+          image: z.object({ url: z.string().optional() }).partial().nullish(),
+        })
+        .partial()
+        .passthrough()
+        .nullish(),
+    }),
+  ),
+});
 const InsightsBody = z.object({
   results: z.object({ entities: z.array(RawEntity) }),
 });
@@ -337,6 +356,19 @@ export function createQlooClient({
     }) {
       return get("/search", { query, types, take }, (body) =>
         SearchBody.parse(body).results.map(toEntity),
+      );
+    },
+
+    /**
+     * GET /entities: Qloo's image URL for each of a lineup's acts, in one call (item 4 of
+     * the 2026-10-21 brief, used only while ARTIST_IMAGES is on).
+     */
+    images(entityIds: string[]) {
+      return get("/entities", { entity_ids: entityIds.join(",") }, (body) =>
+        EntitiesBody.parse(body).results.map((raw) => ({
+          entityId: raw.entity_id,
+          url: raw.properties?.image?.url ?? null,
+        })),
       );
     },
 

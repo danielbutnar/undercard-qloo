@@ -1,6 +1,7 @@
 import { cacheLife } from "next/cache";
 import { FestivalScreen } from "@/components/festival-screen";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
+import { withArtistImages } from "@/server/artist-images";
 import { serverBuildStore } from "@/server/deps";
 import { readFirstBill } from "@/server/first-bill";
 import { townsOnShow } from "@/server/towns";
@@ -10,7 +11,10 @@ import { townsOnShow } from "@/server/towns";
 async function firstBill() {
   "use cache";
   cacheLife("minutes");
-  return readFirstBill(serverBuildStore(), SAGEBRUSH_SOUND.id);
+  // Qloo's artist images join only while ARTIST_IMAGES is on (src/lib/artist-images.ts).
+  return withArtistImages(
+    await readFirstBill(serverBuildStore(), SAGEBRUSH_SOUND.id),
+  );
 }
 
 // The towns with a saved build of the same brief, for the switcher; cached the same way.

@@ -5,7 +5,7 @@ import type { FeeBand } from "@/lib/fee-bands";
 import { formatBandRange } from "@/lib/format";
 import type { Act } from "@/lib/lineup";
 import { markLabel } from "@/lib/marks";
-import { Sleeve } from "./sleeve";
+import { Cover } from "./cover";
 import { useFlip } from "./use-flip";
 import { feeRangeWords, ordinal, PLAIN_BAND } from "./words";
 
@@ -50,6 +50,8 @@ export interface ChartRowData {
   booked?: boolean;
   /** Read out instead of the act's mark (edition rows and refills). */
   words?: string;
+  /** Its image on Qloo, only while ARTIST_IMAGES is on; the drawn sleeve otherwise. */
+  image?: string;
 }
 
 /**
@@ -209,16 +211,14 @@ function Row({
       ) : (
         <ClimbArrow move={row.move} fresh={row.fresh} was={row.was} />
       )}
-      {row.genres ? (
-        <Sleeve
-          genres={row.genres}
-          id={row.key}
-          label={false}
-          className="row-sleeve"
-        />
-      ) : (
-        <span className="sleeve row-sleeve sleeve-blank" aria-hidden />
-      )}
+      <Cover
+        image={row.image}
+        genres={row.genres}
+        id={row.key}
+        name={row.name}
+        label={false}
+        className="row-sleeve"
+      />
       <div className="row-who">
         <h3 className="row-name">
           {row.act && onOpen ? (

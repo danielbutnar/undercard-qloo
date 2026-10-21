@@ -454,4 +454,5 @@ Done means every item below is finished and deployed, with `pnpm gate`, the desi
 - [x] Gate, design scan, e2e; deployed; the live e2e passes: gate 489 tests and the scan, local e2e 66 passed, 5 skipped; pushed at f87d49f, live within two minutes; live e2e 64 passed, 7 skipped, then the live-Qloo steps 9 passed
 
 4. Artist images, built but off (only if items 1-3 are done by Friday 23 October)
-- [ ] The cheapest way to show Qloo's image URL on each act's row and card at runtime, behind one setting that is off, falling back to the drawn covers; no image and no Qloo response data in the repo
+- [x] The cheapest way to show Qloo's image URL on each act's row and card at runtime, behind one setting that is off, falling back to the drawn covers; no image and no Qloo response data in the repo: ARTIST_IMAGES in src/lib/artist-images.ts (false); while on, one Qloo GET /entities call per saved build, cached server-side, https images on images.qloo.com only; rows and the card fall back to the drawn sleeve with no image or when one fails to load (tests/unit/artist-images). One live call (2026-10-21) confirmed the hackathon key answers /entities with an image URL for all 10 Boise acts; not seen in a browser with the setting on (the switch stays off)
+- [ ] Turn it on only when Daniel says Qloo agreed (then SPEC.md section 7's text-only line changes too)
