@@ -142,7 +142,7 @@ describe("(b) a festival with no saved build", () => {
     expect((await server.store.latest(SAGEBRUSH_SOUND.id))?.id).toBe(first.id);
   });
 
-  it("counts a saved build it can no longer read as none, so the next complete build takes its place", async () => {
+  it("counts a pointer to a build no longer stored as none, so the next complete build takes its place", async () => {
     const server = syntheticServer();
     await server.cache.set(
       "undercard:build:v1:latest:sagebrush-sound",

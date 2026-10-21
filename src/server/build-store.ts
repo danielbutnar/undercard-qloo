@@ -66,6 +66,10 @@ const PREFIX = "undercard:build:v1:";
 export function createBuildStore(
   cache: QlooCache,
   now: () => number = Date.now,
+  {
+    /** How long save() waits to learn whether the festival already has a saved build. */
+    latestReadTimeoutMs = 2000,
+  }: { latestReadTimeoutMs?: number } = {},
 ) {
   async function byId(id: string): Promise<SavedBuild | null> {
     const parsed = SavedBuildSchema.safeParse(
@@ -79,14 +83,39 @@ export function createBuildStore(
     return typeof id === "string" ? byId(id) : null;
   }
 
+  // Fails closed: true only when a read that finished cleanly, in time, found no saved build for
+  // the festival (no pointer, or one to a build no longer stored). A read that fails or times
+  // out, or a stored build that doesn't parse, counts as one there.
+  async function noneSaved(festivalId: string): Promise<boolean> {
+    const read = <T>(key: string) =>
+      cache.getOrThrow ? cache.getOrThrow<T>(key) : cache.get<T>(key);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const late = new Promise<false>((resolve) => {
+      timer = setTimeout(() => resolve(false), latestReadTimeoutMs);
+    });
+    const check = async () => {
+      const id = await read<unknown>(`${PREFIX}latest:${festivalId}`);
+      if (id === null) return true;
+      return (
+        typeof id === "string" && (await read(`${PREFIX}id:${id}`)) === null
+      );
+    };
+    try {
+      return await Promise.race([check(), late]);
+    } catch {
+      return false;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   return {
     byId,
     latest,
     async save(build: SavedBuild): Promise<void> {
       const ttl = cacheTtlSeconds(now());
       await cache.set(`${PREFIX}id:${build.id}`, build, ttl);
-      // A saved build it can no longer read counts as none, so the next complete build heals it.
-      if (!(await latest(build.festivalId)))
+      if (await noneSaved(build.festivalId))
         await cache.set(`${PREFIX}latest:${build.festivalId}`, build.id, ttl);
     },
   };

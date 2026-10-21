@@ -7,6 +7,11 @@ import { Redis } from "@upstash/redis";
 export interface QlooCache {
   kind: "memory" | "upstash";
   get<T>(key: string): Promise<T | null>;
+  /**
+   * Like get, but an outage throws instead of reading as a miss, for a read that must tell "none"
+   * from "couldn't read" (the build store's latest pointer). A cache without it is read with get.
+   */
+  getOrThrow?<T>(key: string): Promise<T | null>;
   set(key: string, value: unknown, ttlSeconds: number): Promise<void>;
 }
 
@@ -56,6 +61,9 @@ export function createUpstashCache(redis: RedisLike): QlooCache {
       } catch {
         return null;
       }
+    },
+    async getOrThrow<T>(key: string) {
+      return ((await redis.get(key)) as T | null) ?? null;
     },
     async set(key, value, ttlSeconds) {
       try {
