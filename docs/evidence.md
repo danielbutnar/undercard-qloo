@@ -639,6 +639,23 @@ Written on 2026-10-21, after Qloo's hackathon manager agreed that the app may sh
 
 **Result, 2026-10-21: fail, by the bar as written.** The reader said Act 84 is "a music act", from the page's wording, her genres and the heading her row sits under, and read the picture as a close-up photo of her. Asked whether it helps say what she is: "Only a little." It helps "match a row to its card and recognise her", but "nothing in the crop shows an instrument, microphone or stage", and the genre words say what she plays. It also found that a phone's rows show no pictures, and that the photo has no caption saying whose picture it is. As written above, the answer and the shots go to Daniel, and the images stay on. The answer is in .design/images-on/.
 
+## 31. With and Without Qloo, as a number, written before any call
+
+Written on 2026-10-21, before the model or Qloo is asked anything for it (Daniel approved up to 27 model calls and 290 Qloo searches). The bar doesn't change after the counts are in.
+
+**The question.** The app's Without Qloo view asks the model alone (Claude Sonnet 5.5 at high effort, no tools) the same brief the AI agent gets: ten artists for the undercard. How many of its picks pass the three tests every act on the Qloo lineup has to pass?
+
+**The two lineups.** For each of the 29 checked towns: the saved Sagebrush Sound build's lineup, With Qloo; and the model's ten picks, Without Qloo, read from the app's own saved answer where there is one and otherwise asked once through the app's own code, which saves the answer as a judge's click on Without Qloo would. Two of the 29 have a saved answer, so at most 27 model calls.
+
+**The tests**, each read the way the app's rule reads Qloo's data:
+1. **In the fee range:** the act's Qloo popularity inside the undercard's bands, the 55th to 92nd percentile (Opening acts 0.55-0.80, Mid-size acts 0.80-0.92). The model's picks aren't sorted into bands, so either band counts.
+2. **Two genres:** at least two of the act's Qloo genre tags shared with the headliners, weighed as the rule weighs them (the headliners' tags and the Compare call's), from the build's saved Qloo answers.
+3. **A climb:** a higher place in one of the build's venue rankings than in the headliners-only ranking of the same band, or a place in a venue's top 50 when the headliners-only top 50 didn't have it, from the build's saved venue lists, read from the cache with no call. The rule books an act only at 5 places or more; here any climb counts.
+
+A pick is found on Qloo when one of the top five artists Qloo's search returns for its name matches it after section 18's normalising (accents, case, a bracketed note, a leading "The"). A pick Qloo doesn't find fails all three tests. One search per pick, 290 at most; nothing else is fetched, and a build whose saved lists the cache no longer holds is reported, not re-fetched.
+
+**The bar.** The claim the app makes, that the model alone can't place acts by Qloo's measure of the town's taste and the buyer's fee range, holds if at most half of the model's picks across the 29 festivals (145 of 290 or fewer) pass all three tests. The Qloo lineup passes them by its rule, so its count is a check, not a finding. The tests are Qloo's own measures, which the model can't see; the count says how far the model's own sense of a mid-size act, the headliners' kind of music and a local crowd lands from Qloo's, not which lineup a buyer would prefer. Counts only in this file; names stay in .design/with-without-qloo/.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
