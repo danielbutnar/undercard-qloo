@@ -1,7 +1,8 @@
-// M8d premise test (docs/evidence.md section 18): do the acts real buyers booked show more lift
-// from their own town's venues than band-matched random acts? Reads the lineups and the towns'
-// venues from .design/ (gitignored), calls Qloo one request at a time, and writes the per-act
-// results back to .design/m8d/. The console gets counts and lifts only. From the root:
+// The premise tests, M8d (docs/evidence.md section 18) and M8f (section 26): do the acts real
+// buyers booked show more lift from their own town's venues than band-matched random acts? Reads
+// the lineups and the towns' venues from .design/ (gitignored), calls Qloo one request at a time,
+// and writes the per-act results back to the test's folder. The console gets counts and lifts
+// only. M8d by default; M8f with PREMISE_DIR=.design/m8f PREMISE_BAR=20. From the root:
 //   node --experimental-transform-types --disable-warning=ExperimentalWarning
 //     --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-ts.mjs
 //     scripts/premise-test.ts
@@ -77,8 +78,12 @@ const bandOf = (popularity: number) =>
       popularity >= band.minPopularity && popularity <= band.maxPopularity,
   )?.id ?? null;
 
+// Which test: its folder (lineups in, results out) and its bar, both fixed before its run.
+const DIR = process.env.PREMISE_DIR ?? ".design/m8d";
+const BAR = Number(process.env.PREMISE_BAR ?? 8);
+
 const lineups = JSON.parse(
-  readFileSync(".design/m8d/lineups.json", "utf8"),
+  readFileSync(`${DIR}/lineups.json`, "utf8"),
 ) as Record<string, { label: string; town: string; names: string[] }>;
 
 function venuesOf(town: string): string[] {
@@ -111,7 +116,8 @@ async function affinities(signal: string[], among: string[]) {
   );
 }
 
-const ORDER = [
+// M8d's order as it ran; any other test runs its festivals in its lineups file's order.
+const M8D_ORDER = [
   "treefort",
   "levitation",
   "liveonthegreen",
@@ -123,6 +129,7 @@ const ORDER = [
   "pitchforkparis",
   "electriccastle",
 ];
+const ORDER = DIR.endsWith("m8d") ? M8D_ORDER : Object.keys(lineups);
 const report = [];
 const raw: Record<string, unknown> = {};
 for (const key of ORDER) {
@@ -240,10 +247,11 @@ console.log(
     calls,
     supporting,
     of: report.length,
-    supported: supporting >= 8,
+    bar: BAR,
+    supported: supporting >= BAR,
   }),
 );
 writeFileSync(
-  ".design/m8d/result.json",
+  `${DIR}/result.json`,
   `${JSON.stringify({ ranAt: new Date().toISOString(), calls, report, raw }, null, 1)}\n`,
 );
