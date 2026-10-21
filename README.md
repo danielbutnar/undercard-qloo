@@ -185,6 +185,13 @@ returned, as counts only.
   shipped the climb as each act's number; for M10b it rebuilt How it works around one act
   followed through the saved build, with the evidence and the objections moved, unchanged, to
   /method/evidence.
+- 21 October, later: Claude (Opus 5.5) fixed what the lay readers had tripped on and made How
+  it works' steps linkable, each change checked by a fresh Claude lay reader; for M8f, five
+  Claude research subagents collected 30 festivals' complete lineups from the festivals' own
+  pages, Claude read seven again against their pages and ran the premise test; it turned on
+  Qloo's artist images once Qloo's hackathon manager agreed, and fixed two bugs found while
+  checking them (a photo that failed before the page came alive stayed broken, and the first
+  screen's rows rose in again on every load).
 - Kept current as each milestone lands.
 
 ## Built on
