@@ -476,7 +476,7 @@ Done means items 1-3 are deployed with `pnpm gate`, the design scan and the e2e 
 3. The walkthrough's steps, linkable
 - [x] /method?step=N opens on that step, in view; each step tab is its link and the address follows the reader
 - [x] Stills of all four steps at 1440 and 390 in .design/stills/method/ (git-ignored)
-- [ ] Gate, design scan, e2e; deployed; the live e2e passes
+- [x] Gate, design scan, e2e; deployed; the live e2e passes: gate 507 tests and the scan, local e2e 68 passed, 5 skipped; pushed at 873e487, live at 15:13 Bucharest; live e2e 66 passed, 7 skipped (the phone row checked on the deployment), the live-Qloo steps 9 passed
 
 4. With and Without Qloo as a number
 - [x] Stopped before spending, as the brief says: the saved builds hold only the Qloo lineup. The model's picks are cached separately for 2 of the 29 festivals (20 picks), each a name and a note with no Qloo data. The comparison would cost 27 model calls (one per festival without a cached answer) and up to 290 Qloo searches (one per pick, none cached), then no more calls for the climb (read from the builds' cached venue lists). Waiting on Daniel
