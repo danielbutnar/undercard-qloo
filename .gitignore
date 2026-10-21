@@ -29,11 +29,11 @@ blob-report/
 # deploys
 .vercel/
 
-# judge reports and the calibration sets (other entrants' Devpost texts stay local)
+# local review files
 .ai-review/
 calibration*.json
 
-# private tooling: the judge and security-audit script stays on disk only
+# local tooling
 
 # M1 scaffold staging folder
 .scaffold/
