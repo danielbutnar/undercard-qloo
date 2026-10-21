@@ -333,7 +333,16 @@ function EditionBanner({
             {call.resultCount !== null ? ` · ${call.resultCount} results` : ""}
           </p>
         )}
-        {note && <p className="edition-note">The AI agent: {note}</p>}
+        {note ? (
+          <p className="edition-note">The AI agent: {note}</p>
+        ) : !first && step?.venue ? (
+          // Where the saved trace holds no line of the agent's for this step, say what it
+          // decides rather than invent a reason (plan.md item 3).
+          <p className="edition-note">
+            The AI agent chose which venues to read, and in what order;
+            Qloo&apos;s numbers and the rule pick the acts.
+          </p>
+        ) : null}
       </div>
       <div className="edition-side">
         <span

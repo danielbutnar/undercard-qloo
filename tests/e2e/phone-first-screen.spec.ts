@@ -48,5 +48,25 @@ test.describe("the first screen on a phone", () => {
       const box = (await rows.first().boundingBox())!;
       expect(box.y + box.height).toBeLessThan(664);
     });
+
+    // Plan.md item 3: Watch keeps the AI agent's line on a phone, the agent's own words from the
+    // saved trace, or one fixed line on what it decides where the trace has none.
+    test("Watch shows the AI agent's line for each venue", async ({ page }) => {
+      test.skip(
+        SYNTHETIC !== null,
+        "the synthetic build has no venue editions to watch",
+      );
+      await page.goto("/");
+      await page
+        .getByRole("button", { name: "Watch how it picked these acts" })
+        .click();
+      const bill = page.getByRole("region", { name: "Undercard draft" });
+      await expect(bill.getByText(/^\+ .+'s fans$/).first()).toBeVisible({
+        timeout: 30_000,
+      });
+      await expect(
+        bill.getByText(/^The AI agent(: | chose which venues to read)/).first(),
+      ).toBeVisible();
+    });
   });
 });

@@ -2340,9 +2340,12 @@
   .chart-app .edition-title {
     font-size: 28px;
   }
-  .chart-app .edition-call,
-  .chart-app .edition-note {
+  .chart-app .edition-call {
     display: none;
+  }
+  /* The agent's line stays on a phone (plan.md item 3): what it decided at this step. */
+  .chart-app .edition-note {
+    font-size: 14px;
   }
   .chart-app .edition-side {
     flex-direction: row;
