@@ -512,6 +512,13 @@ Written on 2026-10-21, before the page is built or shown to a reader. The key do
 
 **The bar.** It passes if the answer does both: (1) says how one act ends up on the lineup: Qloo ranks acts for the headliners' fans, a town venue's fans are added and the act climbs, it sits in the fee range and shares genres with the headliners, and so it goes on the lineup; and (2) names the three parties correctly: the AI agent plans the Qloo calls (which venues to read) and doesn't pick the acts, Qloo supplies the taste (the rankings), and the app's rule picks the acts. An answer that has the AI agent or Qloo picking the acts fails. If it fails, the page is changed, not the question, and a new reader is asked.
 
+**Result, 2026-10-21: pass, on the second reader.** The shots came from the local app reading the saved Boise build: the page as it loads, with the walkthrough on its first step.
+- Reader 1 (Haiku 5.5): named the three parties right (the agent plans the Qloo calls and doesn't pick acts, Qloo supplies the rankings and doesn't pick acts, the rule picks the acts) and told how an act climbs and must sit in the fee range, but left out the two shared genres, which the page as it loads named only behind the walkthrough's third step. A fail, so the page changed: the picture's third card now names all three conditions, and the agent's choices say their counts cover the whole lineup (the reader had set them against the one band that Try it shows).
+- Reader 2 (a new Haiku 5.5, the same question): a pass. It took one act through the four steps in its own words (the headliners' fans' ranking; a venue's fans added and the climb; the rule's three tests, the climb, the fee range and two shared genres; the slots filled strongest first) and named the three parties: Qloo knows the taste and "doesn't pick acts", the AI agent plans the 12 Qloo calls and "doesn't pick acts", and the app's rule fills the slots.
+- Still unclear to reader 2: how "strongest" is measured (the walkthrough's last step says it) and what the genre test compares against.
+
+The answers, which quote the build's places, stay in .design/m10b/.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.

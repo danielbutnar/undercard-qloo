@@ -41,7 +41,7 @@ Khruangbin and Japanese Breakfast booked and two fee bands, Mid (4 slots) and Op
 
 Beyond the demo path, one click from the bill:
 
-- **Same brief, other towns.** The rooms rail links Austin, Denver and Nashville: the same
+- **Same brief, other towns.** The town switcher links Austin, Denver and Nashville: the same
   headliners, capacity, crowd and fee bands, each drafted from that town's own rooms, saved and
   replayed like Boise's.
 - **Your festival** (`/your-festival`). Name a town and two headliners, and the agent runs live
@@ -168,6 +168,23 @@ returned, as counts only.
   with ElevenLabs, and its end card says so. Claude also shot the gallery stills and ran the
   contradiction check across the README, SPEC.md, the story, the narration and the live
   screens.
+- M6a to M9d: Claude (Opus 5.5) wrote the pilot runner, the town switcher and the other towns'
+  builds, Your festival with its checked towns, replays and pre-filled link, town resolution,
+  the Qloo rate-limit handling, the venue labels, the running order, Keep and Redraft the rest,
+  the lift climb, town against town, the method page and the accessibility and input
+  hardening, with their tests; it ran each spike and the premise test on ten real festivals,
+  recorded every result in [docs/evidence.md](docs/evidence.md), and had fresh Claude
+  subagents act as cold readers and as the blind tournament's judges.
+- The October design round: Claude (Opus 5.5) built six design directions on a dev-only lab
+  page from the saved Boise build; I picked the weekly chart, and Claude built it as the whole
+  product, checked by fresh Claude lay readers and reviewers.
+- 21 October: Claude (Opus 5.5) merged the weekly chart into main, removed the components it
+  no longer used, made Watch step through under reduced motion, offered the checked towns
+  after a town Qloo can't find, and gave the phone's first act room; for M10a it built two
+  ways to number each act and tested both on fresh Claude lay readers on three models, then
+  shipped the climb as each act's number; for M10b it rebuilt How it works around one act
+  followed through the saved build, with the evidence and the objections moved, unchanged, to
+  /method/evidence.
 - Kept current as each milestone lands.
 
 ## Built on

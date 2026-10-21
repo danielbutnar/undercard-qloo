@@ -450,7 +450,7 @@ Done means every item below is finished and deployed, with `pnpm gate`, the desi
 - [x] Who does what: three cards, one line each
 - [x] Shown, partly shown, not shown stays; the evidence tables and the five objections move to /method/evidence, linked, with no result or wording changed (moved word for word, with the limits the last objection points to)
 - [x] A slot at the top for the demo video
-- [ ] Gate: a fresh AI lay reader at 390 and 1440 explains how one act ends up on the lineup and names the AI agent, Qloo and the rule correctly
+- [x] Gate: a fresh AI lay reader at 390 and 1440 explains how one act ends up on the lineup and names the AI agent, Qloo and the rule correctly: reader 1 left out the genres, the page changed, reader 2 passed (evidence section 28)
 - [ ] Gate, design scan, e2e; deployed; the live e2e passes
 
 4. Artist images, built but off (only if items 1-3 are done by Friday 23 October)

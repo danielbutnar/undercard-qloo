@@ -71,7 +71,9 @@ function AgentChoices({
       <p className="panel-sub">
         {story.placesListed !== null &&
           `Qloo listed ${story.placesListed} live-music places in ${city}. `}
-        The AI agent chose whose fans to read, in {story.calls} Qloo calls:
+        The AI agent chose whose fans to read, in {story.calls} Qloo calls.
+        Here is how many acts each venue&apos;s fans lifted onto the whole lineup,
+        mid-size and opening:
       </p>
       <ul className="how-venues">
         {story.venues.map((venue) => (
