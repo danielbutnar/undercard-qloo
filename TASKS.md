@@ -575,3 +575,16 @@ Also
 - [x] The bar for the test with real people (section 9b.2) in docs/evidence.md before Friday: section 32 (the review's 3 of 4 or 4 of 5, extended to all 3 of 3 at the same strictness; quotes only with each person's permission)
 
 Deployed: 0b7ec59 at 22:07 Bucharest on 2026-10-21 (UI items 1-8 first live at 218e397, 21:36). Gate 545 tests and the design scan, local e2e 80 passed, 14 skipped; live e2e 87 passed, 7 skipped (LCP 368 ms), the live-Qloo steps 9 passed.
+
+# TASKS: Daniel's brief of 2026-10-21 (night): live runs stop replacing the saved builds
+
+Done means: tests (a) to (d) pass, `pnpm gate` and the e2e suite pass, the smoke workflow checks the saved line, no text promises the old behaviour, and production still serves the 17 October Boise build. One commit per numbered step; no Qloo response data in the repo; no change to the saved builds or the Qloo cache; no layout change; no new dependency. The production deploy waits on Daniel's yes. Before any change, production served Boise's build saved Oct 17, 12:13 UTC, 10 acts (names kept outside the repo for the check after the deploy).
+
+- [x] 1. Failing tests first, in tests/unit/pin-builds/: (a) a complete live run for a festival with a saved build is saved under its own id and latest() still returns the old build; (b) a festival with no saved build still gets its first build as latest; (c) the live run's own id still serves its saved record and its venue switch; (d) a judge's own brief still saves nothing. Before the change 4 of 8 fail: (a)'s three (the run moves latest, the first screen and How it works follow it, and so on for all 29 festivals) and (c)'s last check (a visitor with no build id gets the run's venue switch); (b), (d) and (c)'s by-id checks pass, as guards
+- [ ] 2. The smallest change in src/server/build-store.ts: save() sets latest only when the festival has no saved build it can read; no environment variable
+- [ ] 3. The client: after a live run the screen shows that run's lineup, and a reload shows the saved build again; whatever assumed the run became latest fixed, with a test
+- [ ] 4. The daily smoke workflow asserts that the first screen still shows "saved Oct 17, 12:13 UTC"
+- [ ] 5. Every sentence that promises the old behaviour changed (README.md, UI and method-page text); where a live run finishes, it says it isn't saved for other visitors
+- [ ] 6. docs/evidence.md section 13: a short dated paragraph
+- [ ] `pnpm gate` (with the design scan) and the local e2e pass; then stop for Daniel's yes to deploy
+- [ ] After the yes: push main (production deploys), check the first screen still shows the same ten acts without a live build, and run the e2e suite against production with --workers=1
