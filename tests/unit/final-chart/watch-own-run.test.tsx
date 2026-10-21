@@ -158,6 +158,32 @@ describe("A judge's run that didn't finish", () => {
     expect(bodies[1].fresh).toBe(true);
   }, 15000);
 
+  it("offers no run once the day's live runs are used: the notice points to the replay instead", async () => {
+    serve(async () =>
+      ndjson([
+        {
+          type: "error",
+          code: "limit",
+          message: "Today's live runs from this connection are used.",
+        },
+        { type: "done", calls: 0, ms: 0 },
+      ]),
+    );
+    expect(
+      await screen.findByRole("region", {
+        name: "This draft couldn't be finished",
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("link", {
+        name: "Back to Sagebrush Sound, which replays without a limit",
+      }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("button", AGAIN)).toBeNull();
+    expect(screen.queryByRole("button", { name: "Build undercard" })).toBeNull();
+    expect(under()).toBe("");
+  });
+
   it("offers to run the agent again when the build service can't be reached", async () => {
     const bodies = serve(async () => {
       throw new TypeError("Failed to fetch");
