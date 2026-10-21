@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ActCardPanel } from "@/components/act-card-panel";
-import { BandChart, type Printing } from "@/components/chart/band-chart";
+import {
+  BandChart,
+  type Printing,
+  type RowNumbers,
+} from "@/components/chart/band-chart";
 import { billRows, editionRows } from "@/components/chart/chart-rows";
 import { RuleKey } from "@/components/chart/rule-key";
 import { Quilt } from "@/components/chart/sleeve";
@@ -323,6 +327,7 @@ export function FestivalScreen({
   towns = ["boise"],
   custom,
   checked,
+  numbers = "place",
 }: {
   festival: Festival;
   /** The latest saved build, read on the server; null falls back to the empty board. */
@@ -344,6 +349,8 @@ export function FestivalScreen({
    * opens, with the live run next to it; there's no town switcher, and a way back to the towns.
    */
   checked?: { onBack: () => void };
+  /** What each act's big number says (M10a): its place, its climb or its lineup slot. */
+  numbers?: RowNumbers;
 }) {
   const {
     state,
@@ -627,7 +634,9 @@ export function FestivalScreen({
                         ? "The AI agent couldn't draft this slot; the note says why."
                         : "Empty until the AI agent drafts the lineup."
                     : "No act the venues lifted clears the bar.",
+                numbers,
               )}
+              numbers={numbers}
               column={festival.feeBands.indexOf(band)}
               sortKey={whatIf ? [...switcher.off].sort().join() : "bill"}
               motion={!watch.reduced}

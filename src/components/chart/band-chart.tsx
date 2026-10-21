@@ -19,7 +19,13 @@ export type Printing = "replay" | "refill" | null;
 export const PRINT_STEP_S = 0.12;
 
 /** Places on a band's chart the arrows are drawn against: Qloo's top 50. */
-const TOP = 50;
+export const TOP = 50;
+
+/**
+ * What the big number on an act's row says (M10a, docs/evidence.md section 27): its place in its
+ * venue's list, the places it climbed when that venue's fans were added, or its lineup slot.
+ */
+export type RowNumbers = "place" | "climb" | "slot";
 
 /** One line of a band's chart: an act on the lineup, an act an edition lists, or an open slot. */
 export interface ChartRowData {
@@ -34,6 +40,8 @@ export interface ChartRowData {
   move: number | null;
   /** New to the top 50 with a venue's fans. */
   fresh: boolean;
+  /** Its slot on the lineup, from 1, in the lineup's own order. */
+  slot?: number;
   genres: readonly string[] | null;
   /** The venue colour it carries, or null for a plain row. */
   hue: number | null;
@@ -82,8 +90,112 @@ export function ClimbArrow({
   );
 }
 
+/** The climb's mark, drawn rather than typed: the display face has no ▲. */
+function Tri({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 10 9" className={`tri ${className}`} aria-hidden>
+      <path d="M5 .8 9.3 8.3H.7z" />
+    </svg>
+  );
+}
+
+/** A climb's two places: for the headliners' fans alone, then with the venue's fans added. */
+function climbEnds(row: ChartRowData) {
+  const from = row.fresh
+    ? "outside the top 50"
+    : row.was !== null
+      ? ordinal(row.was)
+      : null;
+  const to = row.place !== null ? ordinal(row.place) : null;
+  return from !== null && to !== null ? { from, to } : null;
+}
+
+/** Variant (a): the small ladder under the name, from the old place up to the place now. */
+function Ladder({ row }: { row: ChartRowData }) {
+  if (!row.fresh && row.move === null) return <span className="ladder" />;
+  const ends = climbEnds(row);
+  if (!ends)
+    return (
+      <span className="ladder" aria-hidden>
+        up {row.move} places
+      </span>
+    );
+  const share = row.fresh
+    ? 1
+    : Math.min(1, Math.max(0.18, (row.move ?? 0) / TOP));
+  return (
+    <span className={`ladder ${row.fresh ? "ladder-new" : ""}`} aria-hidden>
+      <span>{ends.from}</span>
+      <span className="ladder-arrow" style={{ ["--share" as string]: share }}>
+        <span className="ladder-shaft" />
+        <svg viewBox="0 0 6 10" className="ladder-head">
+          <path d="M0 0 6 5 0 10z" />
+        </svg>
+      </span>
+      <span className="ladder-to">{ends.to}</span>
+    </span>
+  );
+}
+
+/** Variant (b): the climb as the evidence line under the name. */
+function Evidence({ row }: { row: ChartRowData }) {
+  if (!row.fresh && row.move === null) return <p className="row-evidence" />;
+  const ends = climbEnds(row);
+  const fans = row.venueShort ? ` with ${row.venueShort}'s fans` : "";
+  return (
+    <p className="row-evidence" aria-hidden>
+      <span className="evidence-climb">
+        {row.fresh ? (
+          "NEW"
+        ) : (
+          <>
+            <Tri />
+            {row.move}
+          </>
+        )}
+      </span>
+      {ends
+        ? ` · ${ends.from} → ${ends.to}${fans}`
+        : ` · up ${row.move} places${fans}`}
+    </p>
+  );
+}
+
+/** The row's big number in each variant. */
+function BigNumber({
+  row,
+  numbers,
+}: {
+  row: ChartRowData;
+  numbers: RowNumbers;
+}) {
+  if (numbers === "climb")
+    return (
+      <span className="row-place row-hero" aria-hidden>
+        {row.fresh ? (
+          <span className="hero-new">NEW</span>
+        ) : row.move !== null ? (
+          <>
+            <Tri className="hero-tri" />
+            {row.move}
+          </>
+        ) : (
+          "·"
+        )}
+      </span>
+    );
+  return (
+    <span className="row-place" aria-hidden>
+      <span className="row-place-n">
+        {(numbers === "slot" ? row.slot : row.place) ?? "·"}
+      </span>
+    </span>
+  );
+}
+
 function Row({
   row,
+  numbers,
   top,
   open,
   kept,
@@ -92,6 +204,7 @@ function Row({
   printDelay,
 }: {
   row: ChartRowData;
+  numbers: RowNumbers;
   top?: number;
   open: boolean;
   kept: boolean;
@@ -117,10 +230,14 @@ function Row({
   const hue = row.hue === null ? "" : `venue-${row.hue}`;
   const body = (
     <>
-      <span className="row-place" aria-hidden>
-        <span className="row-place-n">{row.place ?? "·"}</span>
-      </span>
-      <ClimbArrow move={row.move} fresh={row.fresh} was={row.was} />
+      <BigNumber row={row} numbers={numbers} />
+      {numbers === "climb" ? (
+        <Ladder row={row} />
+      ) : numbers === "slot" ? (
+        <Evidence row={row} />
+      ) : (
+        <ClimbArrow move={row.move} fresh={row.fresh} was={row.was} />
+      )}
       {row.genres ? (
         <Sleeve
           genres={row.genres}
@@ -238,6 +355,7 @@ export function BandChart({
   rows,
   sortKey,
   motion,
+  numbers = "place",
   top,
   openId = null,
   keeping = [],
@@ -254,6 +372,8 @@ export function BandChart({
   /** Changes once per re-sort, so the rows' glide plays once. */
   sortKey: unknown;
   motion: boolean;
+  /** What an act's big number says; Watch's editions always print their places. */
+  numbers?: RowNumbers;
   top?: number;
   openId?: string | null;
   keeping?: readonly string[];
@@ -280,7 +400,7 @@ export function BandChart({
   return (
     <section
       aria-labelledby={headingId}
-      className={`band ${current ? "" : "band-resting"}`}
+      className={`band numbers-${numbers} ${current ? "" : "band-resting"}`}
     >
       <div className="band-head">
         <h2 id={headingId} className="band-name">
@@ -301,6 +421,7 @@ export function BandChart({
             <Row
               key={row.kind}
               row={row}
+              numbers={row.kind === "act" ? numbers : "place"}
               top={top}
               open={openId !== null && row.act?.entityId === openId}
               kept={keeping.includes(row.act?.entityId ?? "")}
