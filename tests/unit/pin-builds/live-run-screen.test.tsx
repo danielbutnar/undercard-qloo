@@ -14,6 +14,7 @@ import {
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FestivalScreen } from "@/components/festival-screen";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
+import { yourFestival, type YourBrief } from "@/lib/your-festival";
 import { readFirstBill } from "@/server/first-bill";
 import { createQlooClient } from "@/server/qloo";
 import { createMemoryLimiter } from "@/server/rate-limit";
@@ -33,19 +34,22 @@ const drafted = () => document.querySelector(".drafted")?.textContent ?? "";
 const under = () => document.querySelector(".watch-sub")?.textContent ?? "";
 
 /**
- * A server holding Boise's saved build, dated like production's (12:13 UTC on 17 October), and a
- * browser whose requests reach it: builds through the build handler, each with a planner of its
- * own, and the venue switch through its reader.
+ * A server holding Boise's saved build, dated like production's (12:13 UTC on 17 October), or
+ * none, and a browser whose requests reach it: builds through the build handler, each with a
+ * planner of its own (a judge's brief runs live and unsaved, as the route runs it), and the venue
+ * switch through its reader.
  */
-async function boiseWithSavedBuild() {
+async function boiseWithSaved({ saved = true }: { saved?: boolean } = {}) {
   const server = syntheticServer();
-  await readEvents(server.build({ fresh: true }));
-  const first = (await server.store.latest(SAGEBRUSH_SOUND.id))!;
-  await server.cache.set(
-    `undercard:build:v1:id:${first.id}`,
-    { ...first, createdAt: "2026-10-17T12:13:00.000Z" },
-    600,
-  );
+  if (saved) {
+    await readEvents(server.build({ fresh: true }));
+    const first = (await server.store.latest(SAGEBRUSH_SOUND.id))!;
+    await server.cache.set(
+      `undercard:build:v1:id:${first.id}`,
+      { ...first, createdAt: "2026-10-17T12:13:00.000Z" },
+      600,
+    );
+  }
   const cacheOnly = createQlooClient({
     apiKey: "k",
     cache: server.cache,
@@ -60,17 +64,23 @@ async function boiseWithSavedBuild() {
     "fetch",
     vi.fn(async (url: string, init?: RequestInit) => {
       if (url === "/api/undercard") {
-        const body = JSON.parse(String(init?.body)) as { fresh?: boolean };
+        const body = JSON.parse(String(init?.body)) as {
+          fresh?: boolean;
+          brief?: YourBrief;
+        };
         const planner = scriptedPlanner();
         const text = await (
           await handleUndercardBuild({
-            festival: SAGEBRUSH_SOUND,
+            festival: body.brief
+              ? yourFestival(body.brief, "yours-test")
+              : SAGEBRUSH_SOUND,
             limiter: createMemoryLimiter(),
             ip: "203.0.113.7",
             qloo: () => server.qloo,
             model: () => planner.model,
             store: server.store,
-            fresh: body.fresh === true,
+            fresh: body.fresh === true || body.brief !== undefined,
+            save: body.brief === undefined,
             replayDelayMs: 0,
             cachedQloo: () => cacheOnly,
           })
@@ -111,7 +121,7 @@ async function boiseWithSavedBuild() {
 
 describe("a live run on the first screen", () => {
   it("shows the run's lineup with its own venue switch and Watch, and a reload shows the saved build again", async () => {
-    const boise = await boiseWithSavedBuild();
+    const boise = await boiseWithSaved();
     render(await boise.firstScreen());
     expect(drafted()).toContain("saved Oct 17, 12:13 UTC");
 
@@ -128,6 +138,10 @@ describe("a live run on the first screen", () => {
     expect(within(draft).getAllByRole("article")).toHaveLength(10);
     expect(drafted()).not.toContain("Oct 17, 12:13");
     await waitFor(() => expect(boise.switches).toContain(run.id));
+    // Where the run finishes, it says it isn't the build other visitors open on.
+    expect(drafted()).toMatch(
+      /^Drafted by the AI agent from \d+ Qloo calls · run live .+ UTC, not saved for other visitors$/,
+    );
 
     // Watch replays the run on screen: no request, so the saved build can't take its place.
     expect(under()).toBe(`Replays its ${kept.trace.length} Qloo calls`);
@@ -142,5 +156,47 @@ describe("a live run on the first screen", () => {
     cleanup();
     render(await boise.firstScreen());
     expect(drafted()).toContain("saved Oct 17, 12:13 UTC");
+  }, 20000);
+});
+
+describe("where a live run finishes", () => {
+  it("calls an empty board's first build saved, since every later visitor opens on it", async () => {
+    const boise = await boiseWithSaved({ saved: false });
+    render(await boise.firstScreen());
+    fireEvent.click(screen.getByRole("button", { name: "Build undercard" }));
+    const draft = screen.getByRole("region", { name: "Undercard draft" });
+    fireEvent.click(
+      await within(draft).findByRole("button", SKIP, { timeout: 8000 }),
+    );
+    await waitFor(() => expect(screen.getByRole("button", WATCH)).toBeTruthy());
+    expect((await boise.server.store.latest(SAGEBRUSH_SOUND.id))?.id).toBe(
+      boise.builds[0].id,
+    );
+    expect(drafted()).toMatch(
+      /^Drafted by the AI agent from \d+ Qloo calls · saved .+ UTC$/,
+    );
+  }, 20000);
+
+  it("says a judge's own run isn't saved for other visitors", async () => {
+    await boiseWithSaved();
+    const brief: YourBrief = {
+      city: SAGEBRUSH_SOUND.city,
+      region: SAGEBRUSH_SOUND.region,
+      headliners: [...SAGEBRUSH_SOUND.headliners] as [string, string],
+    };
+    render(
+      <FestivalScreen
+        festival={yourFestival(brief, "yours-test")}
+        custom={{ brief, onEdit: () => {} }}
+      />,
+    );
+    const draft = screen.getByRole("region", { name: "Undercard draft" });
+    fireEvent.click(
+      await within(draft).findByRole("button", SKIP, { timeout: 8000 }),
+    );
+    await waitFor(() =>
+      expect(drafted()).toContain("not saved for other visitors"),
+    );
+    expect(drafted()).not.toContain("· saved");
   }, 20000);
 });

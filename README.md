@@ -71,9 +71,11 @@ Beyond the demo path, one click from the bill:
   headliners; each band takes its strongest-affinity acts. Every number on a card is Qloo's.
 - **A refill** ([src/server/refill.ts](src/server/refill.ts)) reruns the venue query for that
   band with every act on the board excluded, in at most 3 calls, and applies the same bar.
-- **Saved builds.** A complete build is saved ([src/server/build-store.ts](src/server/build-store.ts))
-  and replayed to later visitors; the trace says when a board is a replay.
-- **The first screen** ([src/app/page.tsx](src/app/page.tsx)) reads the latest saved build on
+- **Saved builds.** A festival's first complete build is saved ([src/server/build-store.ts](src/server/build-store.ts))
+  and replayed to every later visitor; the trace says when a board is a replay. A later live run
+  is kept under its own id for whoever ran it (its lineup, refill and venue switch) and never
+  replaces the saved build other visitors see.
+- **The first screen** ([src/app/page.tsx](src/app/page.tsx)) reads the festival's saved build on
   the server and caches it for a minute, so the page is static HTML with the whole bill on
   first paint. With no saved build, or no answer from the store within 2 seconds, it falls
   back to the empty board and Build undercard. Each act's mark is read from its Why Boise line
@@ -128,9 +130,10 @@ share two genres with the headliners, 11 climb with the fans of one of the town'
 pass all three tests that every act on the Qloo lineup passes.
 
 Qloo responses are cached server-side in Upstash Redis until at least 2026-11-18, past the end
-of judging, and never committed. A complete build is saved the same way, so the next visitor
-opens on it and "Watch the agent build it" replays its calls in 2 to 3 seconds, marked as a
-replay; "Run the agent live instead" starts a fresh build. [docs/qloo-spike.md](docs/qloo-spike.md) records what the first live calls
+of judging, and never committed. A festival's first complete build is saved the same way, so
+every visitor opens on it and "Watch the agent build it" replays its calls in 2 to 3 seconds,
+marked as a replay; "Run the agent live instead" starts a fresh build, which isn't saved for
+other visitors. [docs/qloo-spike.md](docs/qloo-spike.md) records what the first live calls
 returned, as counts only.
 
 ## AI usage
@@ -212,6 +215,10 @@ returned, as counts only.
   venue results with the page, wrote each act's why as one sentence, rewrote the evidence page
   from the review's draft and the record, moved the Qloo calls into src/lib/qloo/, and ran the
   two cheap tests in evidence section 33.
+- 21 October, late night: Claude (Opus 5.5) stopped live runs from replacing the saved builds:
+  a festival's first complete build stays the one every visitor opens on, a live run is kept for
+  whoever ran it (Watch replays it from the screen, and the lineup says it isn't saved for other
+  visitors), and the daily smoke test checks the first screen's saved line.
 - Kept current as each milestone lands.
 
 ## Built on
@@ -244,7 +251,7 @@ pnpm dev
 
 Open http://localhost:3000 to see Sagebrush Sound. With no saved build yet, the page shows the
 empty board: press Build undercard. Once a build is saved, the page opens on it as the draft
-bill.
+bill; later live runs don't replace it.
 
 A build needs a Qloo hackathon key and an Anthropic key; Upstash is optional (without it,
 Qloo responses, saved builds and rate limits live in process memory). Copy `.env.example` to

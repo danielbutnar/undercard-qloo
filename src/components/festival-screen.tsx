@@ -425,6 +425,10 @@ export function FestivalScreen({
   );
   // What the server read at first paint belongs to that build only.
   const onFirst = firstBill !== null && switchBuild === firstBill.build.id;
+  // Whether a saved build has been on this screen (the first paint's or a replay): a live run
+  // after one is kept for whoever ran it, never as the build other visitors open on.
+  const [savedSeen, setSavedSeen] = useState(state.build?.replayed === true);
+  if (!savedSeen && state.build?.replayed === true) setSavedSeen(true);
   const [mode, setMode] = useState<Mode>("qloo");
   // Watch on a saved build replays it; a fresh run is the agent planning live. The build event
   // settles it; until then, what was asked for.
@@ -567,6 +571,10 @@ export function FestivalScreen({
   // Elsewhere Watch replays the saved build, whose count is the one on screen only while the
   // screen shows that build.
   const savedOnScreen = onFirst || state.build?.replayed === true;
+  // Where a live run finishes, it says it isn't the build other visitors open on. An empty
+  // board's first build is: the store keeps a festival's first complete build as its latest.
+  const liveOnly =
+    state.build?.replayed === false && (custom !== undefined || savedSeen);
   // Qloo's image of each act on the saved lineup, while ARTIST_IMAGES is on, on the lineup and in
   // Watch's editions (whose rows carry the act's id as their key); the drawn covers otherwise.
   const images = firstBill?.images;
@@ -973,7 +981,9 @@ export function FestivalScreen({
             {mode === "qloo" && (
               <p className="drafted">
                 {calls && state.build?.createdAt
-                  ? `Drafted by the AI agent from ${calls} Qloo calls · saved ${savedAt.format(new Date(state.build.createdAt))} UTC`
+                  ? liveOnly
+                    ? `Drafted by the AI agent from ${calls} Qloo calls · run live ${savedAt.format(new Date(state.build.createdAt))} UTC, not saved for other visitors`
+                    : `Drafted by the AI agent from ${calls} Qloo calls · saved ${savedAt.format(new Date(state.build.createdAt))} UTC`
                   : state.status === "building"
                     ? "The AI agent is drafting the undercard."
                     : "No undercard drafted yet."}
