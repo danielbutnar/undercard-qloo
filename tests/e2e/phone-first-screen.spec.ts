@@ -27,7 +27,7 @@ test.describe("the first screen on a phone", () => {
   test.describe("at 390x844", () => {
     test.use({ viewport: { width: 390, height: 844 } });
 
-    test("says the fee range in plain words, and ends the first act's row above 664 px", async ({
+    test("says the fee range in plain words, shows each row's cover, and ends the first act's row above 664 px", async ({
       page,
     }) => {
       await page.goto("/");
@@ -37,8 +37,15 @@ test.describe("the first screen on a phone", () => {
       await expect(mid.locator(".fee-plain")).toHaveText(
         /^fee range: \d+(st|nd|rd|th)–\d+(st|nd|rd|th) percentile of Qloo popularity$/,
       );
+      // Each row carries a small cover on a phone too: Qloo's photo, or the drawn one without it.
+      const rows = mid.getByRole("article");
+      await expect(mid.locator("article .row-sleeve")).toHaveCount(
+        await rows.count(),
+      );
+      for (const cover of await mid.locator("article .row-sleeve").all())
+        await expect(cover).toBeVisible();
       if (SYNTHETIC) return;
-      const box = (await mid.getByRole("article").first().boundingBox())!;
+      const box = (await rows.first().boundingBox())!;
       expect(box.y + box.height).toBeLessThan(664);
     });
   });

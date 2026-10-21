@@ -505,10 +505,10 @@ B. The manager's answers in RULES.md
 Done means items 1-4 are deployed with `pnpm gate`, the design scan and the e2e passing, and items 5-7 are reported, by Friday 23 October 22:00 Bucharest.
 
 1. Images stay on
-- [ ] Section 30: its bar asked the wrong question (a photo says who the act is and catches the eye; the genre words say what it is); the miss stays on record, not re-scored
-- [ ] On a phone, a small photo on each chart row, if the first act's row still ends above 664 px at 390x844 (else card only, and say so)
-- [ ] Alt text on every photo: "Photo of <act name>"
-- [ ] A small "Artist images via Qloo" credit where the photos appear, and on /method
+- [x] Section 30: its bar asked the wrong question (a photo says who the act is and catches the eye; the genre words say what it is); the miss stays on record, not re-scored
+- [x] On a phone, a small photo on each chart row, if the first act's row still ends above 664 px at 390x844 (else card only, and say so): a 36 px cover on every row below 560 px (the lineup, Watch's editions, How it works), the drawn cover where there's no photo; the first act's row still ends at 658.6 px, its name on one line. A row with a long genre pair now wraps to a second genre line (the third on the Boise build)
+- [x] Alt text on every photo: "Photo of <act name>" (rows keep it hidden from screen readers, since the row's own label names the act; the card's photo is read)
+- [x] A small "Artist images via Qloo" credit where the photos appear, and on /method: under the lineup (and during Watch) when its acts have photos, none on Without Qloo; on How it works under Try it; 16 px at 1440, 13 px on a phone (tests/unit/artist-images/credit.test.tsx, tests/e2e/artist-images.spec.ts)
 
 2. Starter kit
 - [x] CLAUDE.md's two lines: already say there is no starter kit, matching the README, since 6fadeaf (2026-10-17); the first version (f13b911) said "built on my public starter kit". No edit needed

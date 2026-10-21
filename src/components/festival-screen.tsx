@@ -8,6 +8,7 @@ import {
   type ChartRowData,
   type Printing,
 } from "@/components/chart/band-chart";
+import { ImageCredit } from "@/components/chart/image-credit";
 import { billRows, editionRows } from "@/components/chart/chart-rows";
 import { RuleKey } from "@/components/chart/rule-key";
 import { Quilt } from "@/components/chart/sleeve";
@@ -694,6 +695,12 @@ export function FestivalScreen({
         })}
       </div>
     );
+  const bandsWithCredit = (
+    <>
+      {bandsView}
+      {mode !== "llm" && <ImageCredit images={images} />}
+    </>
+  );
 
   return (
     <div className="chart-app stage-bg">
@@ -836,7 +843,7 @@ export function FestivalScreen({
                 </button>
               </p>
             )}
-            {bandsView}
+            {bandsWithCredit}
             {/* The running order is planned for the saved lineup: it steps aside while a venue is off. */}
             {mode === "qloo" &&
               !watching &&

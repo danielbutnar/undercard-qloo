@@ -9,6 +9,7 @@ import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { venueHues } from "@/lib/venue-colours";
 import { FollowOneAct } from "./method/follow-one-act";
 import { TryIt } from "./method/try-it";
+import { ImageCredit } from "./chart/image-credit";
 import { Verdicts } from "./method-evidence";
 import { VideoSlot } from "./video-slot";
 import "./chart/chart.css";
@@ -180,6 +181,7 @@ export function MethodPage({
           <>
             <FollowOneAct story={story} city={city} headliners={headliners} />
             <TryIt story={story} festivalId={SAGEBRUSH_SOUND.id} />
+            <ImageCredit images={story.images} />
           </>
         ) : (
           <section aria-label="Follow one act" className="how-section">

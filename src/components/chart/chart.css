@@ -3048,3 +3048,43 @@
 .chart-app .numbers-why {
   color: var(--color-ink);
 }
+
+/* Daniel's third brief (2026-10-21): whose the photos are, in one small line where they show,
+   and a small photo on a phone's chart rows too, the first act's row still ending above 664 px
+   at 390x844 (tests/e2e/phone-first-screen.spec.ts). */
+.chart-app .image-credit {
+  margin-top: 8px;
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+@media (max-width: 767px) {
+  .chart-app .image-credit {
+    font-size: 13px;
+  }
+}
+@media (max-width: 559px) {
+  .chart-app .row {
+    grid-template-columns: 46px 36px minmax(0, 1fr) 30px;
+    grid-template-areas:
+      "place sleeve who venue"
+      "place sleeve climb venue";
+  }
+  .chart-app .numbers-climb .row,
+  .chart-app .how-row .row {
+    grid-template-columns: 70px 36px minmax(0, 1fr) 30px;
+  }
+  .chart-app .row-listed {
+    grid-template-columns: 40px 28px minmax(0, 1fr) 24px;
+  }
+  .chart-app .row .row-sleeve {
+    display: block;
+    grid-area: sleeve;
+    width: 36px;
+    height: 36px;
+  }
+  .chart-app .row-listed .row-sleeve {
+    width: 28px;
+    height: 28px;
+  }
+}

@@ -37,7 +37,7 @@ export function Cover({
       <img
         ref={photo}
         src={image}
-        alt={name}
+        alt={`Photo of ${name}`}
         aria-hidden={label ? undefined : true}
         className={`sleeve cover-photo ${className}`}
         loading="lazy"

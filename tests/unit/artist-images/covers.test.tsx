@@ -31,13 +31,16 @@ describe("an act's cover", () => {
     );
     const photo = row().querySelector("img.cover-photo")!;
     expect(photo.getAttribute("src")).toBe(image(0));
+    expect(photo.getAttribute("alt")).toBe(`Photo of ${first.name}`);
     // Decorative on the row, whose own label names the act.
     expect(photo.getAttribute("aria-hidden")).toBe("true");
     expect(row().querySelector("svg.sleeve")).toBeNull();
     fireEvent.click(within(row()).getByRole("button", { name: first.name }));
     const card = within(screen.getByRole("region", { name: "Act card" }));
     expect(
-      card.getByRole("img", { name: first.name }).getAttribute("src"),
+      card
+        .getByRole("img", { name: `Photo of ${first.name}` })
+        .getAttribute("src"),
     ).toBe(image(0));
   });
 

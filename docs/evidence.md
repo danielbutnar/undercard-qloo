@@ -639,6 +639,8 @@ Written on 2026-10-21, after Qloo's hackathon manager agreed that the app may sh
 
 **Result, 2026-10-21: fail, by the bar as written.** The reader said Act 84 is "a music act", from the page's wording, her genres and the heading her row sits under, and read the picture as a close-up photo of her. Asked whether it helps say what she is: "Only a little." It helps "match a row to its card and recognise her", but "nothing in the crop shows an instrument, microphone or stage", and the genre words say what she plays. It also found that a phone's rows show no pictures, and that the photo has no caption saying whose picture it is. As written above, the answer and the shots go to Daniel, and the images stay on. The answer is in .design/images-on/.
 
+**Daniel's reading, 2026-10-21: the bar asked the wrong question.** A photo says who the act is and catches the eye; the genre words say what it is. The miss stays on record as above, not re-scored. The images stay on, each photo's alt text is "Photo of" the act's name, a phone's chart rows now carry a small photo too (the first act's row still ends above 664 px at 390x844), and a small "Artist images via Qloo" line sits under the lineup and on How it works wherever the photos show.
+
 ## 31. With and Without Qloo, as a number, written before any call
 
 Written on 2026-10-21, before the model or Qloo is asked anything for it (Daniel approved up to 27 model calls and 290 Qloo searches). The bar doesn't change after the counts are in.
