@@ -262,14 +262,14 @@ Written on 2026-10-17, before any spike call. The rule doesn't change after the 
 
 **How.** One town at a time, the same places call the agent makes, with M6j's resolution. Counts only here; names and raw answers stay in .design/.
 
-**Results, 2026-10-17: go.** The places call for all 29 checked towns, one town at a time: 33 Qloo calls, N places kept. The saved builds of the 29 towns anchor on 50 rooms, Venue 156 among them, and every one was among the places fetched. Qloo marks Venue 156 as a festival in its own data: two tags no other fetched place carries (a main-stages amenity and a festival-chic decor tag) and "festival" as its most frequent review keyword. Each candidate rule, with the other 49 anchor rooms it touches:
+**Results, 2026-10-17: go.** The places call for all 29 checked towns, one town at a time: 33 Qloo calls, N places kept. The saved builds of the 29 towns anchor on 50 rooms, Venue 156 among them, and every one was among the places fetched. Qloo marks Venue 156 as a festival in its own data: two tags no other fetched place carries, and its review keywords. Each candidate rule, with the other 49 anchor rooms it touches:
 
 | Rule on Qloo's data | Venue 156 | Other anchor rooms touched | Places touched, of 431 |
 |---|---|---|---|
 | "festival" among the place's 3 most frequent keywords | labelled | 0 | 1 |
-| "festival" as its most frequent keyword | labelled | 0 | 1 |
-| the main-stages amenity tag | labelled | 0 | 1 |
-| the festival-chic decor tag | labelled | 0 | 1 |
+| a stricter keyword rule | labelled | 0 | 1 |
+| a tag only it carries | labelled | 0 | 1 |
+| a second tag only it carries | labelled | 0 | 1 |
 | "festival" anywhere in its keywords | labelled | 1 | 4 |
 | "festival" in its descriptions | labelled | 4 | 16 |
 
@@ -289,7 +289,7 @@ Written on 2026-10-17, before any spike call. The rule doesn't change after the 
 
 **What the number is (added 2026-10-18).** "Shares an audience" above means Qloo affinity: how much fans of one act also like the other. It is a measure of taste, not a count of shared ticket buyers. The app now says how close two acts' fans' tastes are, ranked within the lineup, and keeps the raw score in the trace (section 17).
 
-**Results, 2026-10-17: go.** Qloo's insights call takes filter.results.entities: seeded by one act and limited to the bill's other nine, every call answered with those nine and nothing else. 40 calls, 10 per bill, no retries. All 180 pairs were scored (100%). Pairs sharing two or more genre tags (94) scored 0.NN on average; pairs sharing one (49), 0.NN; pairs sharing none (37), 0.873. Within a bill the scores run from about 0.NN to 0.NN (Boise 0.NN to 0.NN, Austin 0.NN to 0.NN, Denver 0.NN to 0.NN, Nashville 0.NN to 0.NN), so the order has real choices to make. The gap between genre-sharing and unrelated pairs is small: the scores rank clashes, they don't measure ticket overlap.
+**Results, 2026-10-17: go.** Qloo's insights call takes filter.results.entities: seeded by one act and limited to the bill's other nine, every call answered with those nine and nothing else. 40 calls, 10 per bill, no retries. All 180 pairs were scored (100%). Pairs sharing two or more genre tags (94) scored highest on average, pairs sharing one (49) next, and pairs sharing none (37) lowest. Within every bill the scores spread well beyond the gap between those groups, so the order has real choices to make. The gap between genre-sharing and unrelated pairs is small: the scores rank clashes, they don't measure ticket overlap.
 
 ## 16. A bill that covers the town (M8b), written before the spike
 
@@ -319,7 +319,7 @@ Written on 2026-10-18, before any of these pairs was scored. The rule doesn't ch
 
 **The bar.** Go if at least 4 of the 5 same-crowd pairs score above every different-crowd pair. Random scores pass that 6 times in 252, about 2.4% (every way of ranking the ten pairs counted). On a no-go, the running order stays in the app but leaves the demo path and the video.
 
-**Results, 2026-10-18: go.** Ten calls, one at a time, no retries; the pairs file's hash was unchanged. All 5 same-crowd pairs scored above every different-crowd pair (bar: 4 of 5). Same-crowd pairs scored 0.NN to 0.NN; different-crowd pairs 0.NN to 0.883. On these ten pairs the score agrees with a booker-style judgement of a shared crowd; that judgement was Claude's, so a working buyer's pairs would be the stronger test. It still isn't a count of shared ticket buyers, so the running order says how close two acts' fans' tastes are, ranked within the lineup, and keeps the raw score in the trace.
+**Results, 2026-10-18: go.** Ten calls, one at a time, no retries; the pairs file's hash was unchanged. All 5 same-crowd pairs scored above every different-crowd pair (bar: 4 of 5). Same-crowd pairs scored close together; different-crowd pairs scored lower and further apart. On these ten pairs the score agrees with a booker-style judgement of a shared crowd; that judgement was Claude's, so a working buyer's pairs would be the stronger test. It still isn't a count of shared ticket buyers, so the running order says how close two acts' fans' tastes are, ranked within the lineup, and keeps the raw score in the trace.
 
 ## 18. Premise test on real festivals (M8d), written before the measurement
 
