@@ -36,7 +36,10 @@ describe("the second premise test on the evidence page (M8f)", () => {
       ...document.querySelectorAll<HTMLElement>("td.evidence-result"),
     ].find((td) => / of 30\b/.test(td.lastElementChild?.textContent ?? ""))!;
     const result = cell.lastElementChild!.textContent!;
-    expect(result).toMatch(/bar of 20/);
+    // Daniel's wording (third brief, 2026-10-21).
+    expect(result).toBe(
+      "20 of 30, the bar set beforehand; 20 of the 22 that could be scored",
+    );
     const squares = [...cell.querySelectorAll(".result-dots i")];
     expect(squares).toHaveLength(30);
     expect(

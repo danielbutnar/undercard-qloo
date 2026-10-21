@@ -134,6 +134,8 @@ type Row = {
   group: "idea" | "product";
   what: string;
   result: string;
+  /** The bar, when the result's words don't say "bar of N" (the picture marks it). */
+  bar?: number;
   limit: string;
 };
 
@@ -163,9 +165,11 @@ const ROWS: Row[] = [
     to: "premise2",
     group: "idea",
     what: "On 30 more festivals, with complete lineups from their own sites, do booked acts out-lift matched random ones?",
-    result: "20 of 30, at the bar of 20",
+    result:
+      "20 of 30, the bar set beforehand; 20 of the 22 that could be scored",
+    bar: 20,
     limit:
-      "No margin; most lists don't open with their headliners; small differences",
+      "No margin; small differences; most lists don't open with their headliners; 28 of 30 lineups re-checked against their pages",
   },
   {
     to: "withQloo",
@@ -282,7 +286,14 @@ const asNumber = (word: string) =>
  * of the bar of 8"); a count over 30 as a bar. A go or no-go chip only when the result says so;
  * a sourced fact or a description gets no picture, so nothing reads stronger than its row.
  */
-function ResultPicture({ result }: { result: string }) {
+function ResultPicture({
+  result,
+  bar: given,
+}: {
+  result: string;
+  /** The bar, where the result's own words don't name it as "bar of N". */
+  bar?: number;
+}) {
   const count =
     /(\d+|one|two|three|four|five|six|seven|eight|nine|ten) of (?:the )?(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b/i.exec(
       result,
@@ -312,7 +323,7 @@ function ResultPicture({ result }: { result: string }) {
         <span style={{ width: `${Math.max(2, (hit / of) * 100)}%` }} />
       </span>
     );
-  const mark = bar ? Number(bar[1]) : null;
+  const mark = given ?? (bar ? Number(bar[1]) : null);
   return (
     <span className="result-dots" aria-hidden>
       {Array.from({ length: of }, (_, i) => (
@@ -345,7 +356,7 @@ function EvidenceTable({ title, rows }: { title: string; rows: Row[] }) {
               <tr key={row.to}>
                 <td>{row.what}</td>
                 <td className="evidence-result">
-                  <ResultPicture result={row.result} />
+                  <ResultPicture result={row.result} bar={row.bar} />
                   <span>{row.result}</span>
                 </td>
                 <td className="evidence-limit">{row.limit}</td>

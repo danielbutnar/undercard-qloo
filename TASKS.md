@@ -526,8 +526,8 @@ Done means items 1-4 are deployed with `pnpm gate`, the design scan and the e2e 
 - [x] The counts in plain words on the evidence page (a row beside the premise tests) and in the README (Sponsor technology)
 
 6. M8f lineups checked
-- [ ] The 23 lineups not yet checked, against their source pages, with no Qloo calls; any wrong list re-scored by the bar written before, both counts reported
-- [ ] The evidence page says "20 of 30, the bar set beforehand; 20 of the 22 that could be scored"; the "Partly shown" summary stays
+- [x] The 23 lineups not yet checked, against their source pages, with no Qloo calls; any wrong list re-scored by the bar written before, both counts reported: three research subagents re-read them; 21 match (only spellings the normalising treats as one, and a "W/" billing written "with"), 2 couldn't be read (popfest Wien down, HTTP 522; Soenda HTTP 403). With the 7 read before the run, 28 of 30 confirmed, none wrong, nothing re-scored: 20 of 30 stands (evidence section 26). Two fingerprints recomputed from the files matched the subagents'
+- [x] The evidence page says "20 of 30, the bar set beforehand; 20 of the 22 that could be scored"; the "Partly shown" summary stays (the row keeps its bar mark through an explicit bar of 20, and its limit says 28 of 30 lineups re-checked)
 
 7. The pull-request check from the first brief
 - [x] Reported, checked again on 2026-10-21: the repository has never had a pull request (gh pr list --state all: none); GitHub lists no pull request for 4988e25 or a450aff; none of the 8 branches on GitHub contains either (compare: each is behind or diverged), and final-chart is gone (404); GitHub still serves both commits by their full hashes until it collects them
