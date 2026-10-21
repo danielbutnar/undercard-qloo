@@ -1,0 +1,42 @@
+# The daily smoke test (plan.md item 2): tests/e2e/smoke.spec.ts against production, once a day
+# and on demand, through the judging window. It makes no live Qloo build and needs no secret.
+# A failed scheduled run emails whoever last changed this schedule (GitHub's default for
+# scheduled workflows) and opens an issue, so a failure is seen.
+name: smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      # Installs the pnpm version named in package.json's packageManager field.
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm e2e tests/e2e/smoke.spec.ts --workers=1
+        env:
+          E2E_BASE_URL: https://undercard-daniel-51ed.vercel.app
+      - name: Open an issue when the smoke test fails
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Smoke test failed on ${new Date().toISOString().slice(0, 10)}`,
+              body: `The daily smoke test against production failed: ${run}`,
+            });
