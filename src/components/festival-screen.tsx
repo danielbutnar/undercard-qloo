@@ -147,11 +147,33 @@ function RunNotice({
     : "Towns Undercard has already read";
   // Bring the notice into view once: on a phone it can sit below the chart, and in the lead it
   // can sit above where the page was scrolled to when the run started.
+  // On a phone a run starts by gliding down to the chart (startShow), and the notice can mount
+  // before that glide has moved anything: there it is brought into view at once, which stops the
+  // glide; anywhere, once the page has stopped moving, it is brought back if it ended off screen.
   const notice = useRef<HTMLElement>(null);
   useEffect(() => {
-    const box = notice.current?.getBoundingClientRect();
-    if (box && (box.top < 0 || box.top > window.innerHeight))
-      notice.current?.scrollIntoView({ block: "start" });
+    const offScreen = () => {
+      const box = notice.current?.getBoundingClientRect();
+      return !!box && (box.top < 0 || box.top > window.innerHeight);
+    };
+    const bring = () => notice.current?.scrollIntoView?.({ block: "start" });
+    if (window.innerWidth < 1100 || offScreen()) bring();
+    if (typeof requestAnimationFrame !== "function") return;
+    let frame = 0;
+    let last = Number.NaN;
+    let still = 0;
+    let frames = 0;
+    const settle = () => {
+      still = window.scrollY === last ? still + 1 : 0;
+      last = window.scrollY;
+      if (still < 10 && ++frames < 240) {
+        frame = requestAnimationFrame(settle);
+        return;
+      }
+      if (offScreen()) bring();
+    };
+    frame = requestAnimationFrame(settle);
+    return () => cancelAnimationFrame(frame);
   }, []);
   return (
     <section

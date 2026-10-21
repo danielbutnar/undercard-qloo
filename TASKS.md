@@ -515,7 +515,7 @@ Done means items 1-4 are deployed with `pnpm gate`, the design scan and the e2e 
 - [x] RULES.md's Unclear section: 1 moot (no starter kit), 4 not pursued, 6 answered by the site asking for a live web app (Daniel approved)
 
 3. The flaky e2e
-- [ ] "on a phone, a town Qloo can't find offers the checked towns" passes 20 of 20 runs
+- [x] "on a phone, a town Qloo can't find offers the checked towns" passes 20 of 20 runs: the cause was a race on a busy phone. A run starts by gliding down to the chart; the notice in the lead mounted before the glide had moved, stayed put, and the glide carried it off the top. Reproduced at 4-6x CPU slowdown with the answer 0-150 ms into the run (4 of 6 failed at 6x). Now the notice brings itself into view at once on a phone, which stops the glide, and checks again once the page stops moving. The test passed 20 of 20; three new timed tests at 4x slowdown passed 12 of 12 (and 12 of 12 at 6x)
 
 4. Main's old commits
 - [x] 9c85f16 and 0c89c27 stay as they are (Daniel's decision, 2026-10-21): no rewrite of main, no force-push

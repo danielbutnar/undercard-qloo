@@ -8,10 +8,16 @@ const NDJSON = "application/x-ndjson; charset=utf-8";
 const ndjson = (events: unknown[]) =>
   events.map((event) => JSON.stringify(event)).join("\n") + "\n";
 
-async function answerBuilds(page: Page, events: unknown[], status = 200) {
+async function answerBuilds(
+  page: Page,
+  events: unknown[],
+  status = 200,
+  delayMs = 0,
+) {
   const bodies: unknown[] = [];
   await page.route("**/api/undercard", async (route) => {
     bodies.push(route.request().postDataJSON());
+    if (delayMs) await new Promise((resolve) => setTimeout(resolve, delayMs));
     await route.fulfill({ status, contentType: NDJSON, body: ndjson(events) });
   });
   return bodies;
@@ -223,6 +229,49 @@ test.describe("Your festival", () => {
       page.getByRole("button", { name: "Run the agent again" }),
     ).toHaveCount(0);
   });
+
+  // The run starts by gliding a phone down to the chart; the notice sits in the lead above it.
+  // Whenever the answer lands, the notice ends in view. It was flaky under load: the notice
+  // mounted before the glide had moved, so it stayed put, and the glide then carried it off the
+  // top (reproduced at 4 to 6 times CPU slowdown with the answer 0 to 150 ms into the run).
+  for (const delayMs of [0, 60, 150])
+    test(`on a phone, the notice ends in view when the answer lands ${delayMs} ms into the run`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await answerBuilds(
+        page,
+        [
+          {
+            type: "build",
+            id: "yours-e2e",
+            createdAt: "2026-10-21T12:00:00.000Z",
+            replayed: false,
+          },
+          {
+            type: "error",
+            code: "town-not-found",
+            message:
+              "Qloo found no live-music places in Nowhere, so there were no venues to read.",
+          },
+          { type: "done", calls: 2, ms: 600 },
+        ],
+        200,
+        delayMs,
+      );
+      await page.goto("/your-festival");
+      // A busy phone: the race showed only when the page was slow to start its glide.
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
+      await fill(page, "Nowhere", "Khruangbin", "Japanese Breakfast");
+      const heading = page.getByRole("heading", {
+        name: "Qloo couldn't find this town",
+      });
+      await expect(heading).toBeVisible();
+      // Past any glide (0.7 s at most), the notice is still in view.
+      await page.waitForTimeout(1500);
+      await expect(heading).toBeInViewport();
+    });
 });
 
 test.describe("Your festival's checked towns (M6k, M6m)", () => {
