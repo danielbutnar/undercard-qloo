@@ -152,7 +152,7 @@ describe("the lift, visible, on the screen (M9a)", () => {
     for (const delay of delays) expect((delay / 0.12) % 1).toBeCloseTo(0, 5);
   }, 15000);
 
-  it("shows the end state at once under reduced motion", async () => {
+  it("steps through each edition without animation under reduced motion", async () => {
     const { events, saved } = await liveEvents();
     vi.stubGlobal("matchMedia", (query: string) => ({
       matches: query.includes("reduce"),
@@ -161,31 +161,60 @@ describe("the lift, visible, on the screen (M9a)", () => {
       removeEventListener() {},
     }));
     vi.stubGlobal("fetch", stream(events));
-    render(
-      <FestivalScreen
-        festival={SAGEBRUSH_SOUND}
-        firstBill={{
-          build: { id: saved.id, createdAt: saved.createdAt },
-          acts: saved.lineup.acts,
-          calls: saved.trace.length,
-          placesListed: null,
-          anchors: {},
-          baselineTop: {},
-        }}
-      />,
-    );
-    fireEvent.click(screen.getByRole("button", WATCH));
-    const bill = screen.getByRole("region", { name: "Undercard draft" });
-    // Nothing is paced: the lineup is back as soon as the build is in, long before the editions
-    // would have played (about 8 s), with no edition rows and no print-in.
-    await waitFor(
-      () => expect(within(bill).getAllByRole("article")).toHaveLength(10),
-      { timeout: 4000 },
-    );
-    expect(within(bill).queryByRole("button", SKIP)).toBeNull();
-    expect(bill.querySelector(".row-listed")).toBeNull();
-    expect(bill.querySelector("[class*='animate-print-in']")).toBeNull();
-  });
+    // jsdom has no Web Animations; any row that glided or rose in would call this.
+    const animate = vi.fn();
+    Object.defineProperty(Element.prototype, "animate", {
+      value: animate,
+      configurable: true,
+      writable: true,
+    });
+    try {
+      render(
+        <FestivalScreen
+          festival={SAGEBRUSH_SOUND}
+          firstBill={{
+            build: { id: saved.id, createdAt: saved.createdAt },
+            acts: saved.lineup.acts,
+            calls: saved.trace.length,
+            placesListed: null,
+            anchors: {},
+            baselineTop: {},
+          }}
+        />,
+      );
+      fireEvent.click(screen.getByRole("button", WATCH));
+      const bill = screen.getByRole("region", { name: "Undercard draft" });
+      // The editions still come one at a time, at Watch's pace, with Skip there throughout...
+      await waitFor(
+        () =>
+          expect(
+            within(bill).getByText(
+              "Khruangbin + Japanese Breakfast fans alone",
+            ),
+          ).toBeTruthy(),
+        { timeout: 8000 },
+      );
+      expect(within(bill).getByRole("button", SKIP)).toBeTruthy();
+      const mid = within(bill).getByRole("region", { name: "Mid-size acts" });
+      await waitFor(
+        () =>
+          expect(
+            within(mid).getByText("With The Lantern Room's fans added"),
+          ).toBeTruthy(),
+        { timeout: 8000 },
+      );
+      expect(bill.querySelector(".row-listed")).toBeTruthy();
+      // ...but nothing moves between them.
+      expect(animate).not.toHaveBeenCalled();
+      // The lineup comes back without printing in.
+      fireEvent.click(within(bill).getByRole("button", SKIP));
+      expect(within(bill).getAllByRole("article")).toHaveLength(10);
+      expect(bill.querySelector("[class*='animate-print-in']")).toBeNull();
+      expect(animate).not.toHaveBeenCalled();
+    } finally {
+      delete (Element.prototype as { animate?: unknown }).animate;
+    }
+  }, 20000);
 });
 
 describe("the venue switch during Watch", () => {

@@ -62,7 +62,7 @@ The first run had #E2261A for the shade, at 4.24:1 under ink; it was lightened t
 - Radius 3 px everywhere (a button's radius stays far under half its height; no pills).
 - Borders: 2–3 px ink. One elevation: a hard 6 px offset ink shadow on Watch, the edition banner, the card and the storyboard panels. No blur, no glass, no glow.
 - Spacing: 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 28, 32.
-- Motion: rows glide to new places (FLIP, Web Animations), the lineup prints in 0.12 s apart; nothing scales on hover; everything respects prefers-reduced-motion.
+- Motion: rows glide to new places (FLIP, Web Animations), the lineup prints in 0.12 s apart; nothing scales on hover; under prefers-reduced-motion nothing moves: Watch still steps through its editions at the same pace, with no glide and no print-in.
 
 ## 5. Screens (1440x810, the video viewport)
 

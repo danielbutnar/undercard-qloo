@@ -118,7 +118,7 @@ describe("the motion moment", () => {
     expect(lantern().textContent).toMatch(/^The Lantern Room7 acts lifted/);
   });
 
-  it("shows the end state at once under reduced motion", async () => {
+  it("brings the lineup back without printing in under reduced motion", async () => {
     open({ reducedMotion: true });
     await watch();
     expect(lantern().textContent).toMatch(/^The Lantern Room7 acts lifted/);

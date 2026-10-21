@@ -43,7 +43,8 @@ export type WatchPhase = "idle" | "calls" | "climbing" | "done";
 
 /**
  * Paces the climb steps a build streams (src/lib/lift-climb.ts) so each edition can be read,
- * with a skip; under reduced motion nothing is paced and the end state shows once the build is in.
+ * with a skip. Under reduced motion the editions step through at the same pace; the screen only
+ * stops them moving (no glide between places, no print-in).
  */
 export function useWatch(state: BuildState) {
   const reduced = useReducedMotion();
@@ -65,7 +66,7 @@ export function useWatch(state: BuildState) {
   }, []);
 
   useEffect(() => {
-    if (!watching || finished || reduced) return;
+    if (!watching || finished) return;
     if (shown < steps.length) {
       const hold = shown === 0 ? 0 : holdFor(steps[shown - 1]);
       const next = setTimeout(() => setShown((n) => n + 1), hold);
@@ -78,15 +79,12 @@ export function useWatch(state: BuildState) {
       );
       return () => clearTimeout(end);
     }
-  }, [watching, finished, reduced, streaming, shown, steps]);
+  }, [watching, finished, streaming, shown, steps]);
 
   // A build that ends in an error stops the show; the error shows where the lineup was.
   const failed = watching && !streaming && state.status === "error";
-  const ended = finished || failed || (reduced && watching && !streaming);
-  const count = Math.min(
-    steps.length,
-    reduced ? (ended ? steps.length : 0) : shown,
-  );
+  const ended = finished || failed;
+  const count = Math.min(steps.length, shown);
   const phase: WatchPhase = !watching
     ? "idle"
     : ended
