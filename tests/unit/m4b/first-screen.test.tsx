@@ -26,6 +26,9 @@ describe("the first screen", () => {
     );
     expect(screen.getAllByRole("article")).toHaveLength(10);
     expect(screen.queryByText("Open slot")).toBeNull();
+    // The draft, not the board of cards: Qloo's figures wait on an act's card.
+    expect(draft()).toBeTruthy();
+    expect(screen.queryByText("Qloo affinity")).toBeNull();
   });
 
   // Watch and Build undercard sit in the lead beside the chart, not inside the draft.

@@ -426,7 +426,7 @@ Done means every item below is finished and deployed, with `pnpm gate`, the desi
 - [x] 4988e25 and a450aff shown to Daniel: docs/design-brief.md's mockups held five real acts' Qloo places and climbs, and TASKS.md a lay reader's quote of one; 770e87c had already replaced both at the tip; no other commit on any branch matched. Daniel's OK: final-chart rewritten from 4988e25 on to carry 770e87c's placeholders (27 commits, messages, authors and dates kept byte for byte, the tip's tree identical; 4988e25 is now de49058 and a450aff e5aecef)
 - [ ] The rewritten final-chart force-pushed to origin: the permission check here refused it, so it waits on Daniel
 - [x] final-chart merged into main with a merge commit (8aef8af); work continues on main
-- [ ] The unused old components and their two tests deleted
+- [x] The unused old components and their two tests deleted: the old bill, rooms rail, lineup board, festival header and lift climb, with tests/unit/m4b/draft-bill.test.tsx and m4c/labels.test.tsx; the one check of the live screen in the first moved to m4b/first-screen.test.tsx
 - [ ] Watch steps through its editions without animation when reduced motion is on
 - [ ] After "Qloo couldn't find this town" or "too few venues", the checked towns instead of "Run the agent again"
 - [ ] On a 390x844 phone, the first act shows on the first screen
