@@ -4,7 +4,7 @@
 // no-go; a description gets no picture.
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { MethodPage } from "@/components/method-page";
+import { MethodEvidencePage } from "@/components/method-evidence";
 
 afterEach(cleanup);
 
@@ -24,7 +24,7 @@ const on = (squares: Element[]) =>
 
 describe("the method page's results, drawn", () => {
   it("draws a count as one square per case, filled for each that passed, with the bar marked", () => {
-    render(<MethodPage />);
+    render(<MethodEvidencePage />);
     const short = dots(resultCell("7 of 10, one short of the bar of 8"));
     expect(short).toHaveLength(10);
     expect(on(short)).toBe(7);
@@ -45,7 +45,7 @@ describe("the method page's results, drawn", () => {
   });
 
   it("draws a count over 30 as a bar", () => {
-    render(<MethodPage />);
+    render(<MethodEvidencePage />);
     expect(
       resultCell("180 of 180 pairs within 10 calls").querySelector(
         ".result-bar",
@@ -54,7 +54,7 @@ describe("the method page's results, drawn", () => {
   });
 
   it("marks go or no-go only where the result says so and counts nothing", () => {
-    render(<MethodPage />);
+    render(<MethodEvidencePage />);
     for (const go of [
       "Go, with at most one extra call",
       "Go: labelled, booking unchanged",

@@ -4,7 +4,14 @@
 import { expect, test, type Page } from "@playwright/test";
 import { SYNTHETIC } from "./env";
 
-const PAGES = ["/", "/towns/austin", "/your-festival", "/compare", "/method"];
+const PAGES = [
+  "/",
+  "/towns/austin",
+  "/your-festival",
+  "/compare",
+  "/method",
+  "/method/evidence",
+];
 
 async function audit(page: Page) {
   return page.evaluate(() => {

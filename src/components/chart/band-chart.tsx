@@ -90,7 +90,7 @@ export function ClimbArrow({
 }
 
 /** The climb's mark, drawn rather than typed: the display face has no ▲. */
-function Tri({ className = "" }: { className?: string }) {
+export function Tri({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 10 9" className={`tri ${className}`} aria-hidden>
       <path d="M5 .8 9.3 8.3H.7z" />
@@ -267,6 +267,26 @@ function Row({
     >
       {body}
     </article>
+  );
+}
+
+/** One act's row on its own, as a chart prints it (How it works follows one act, M10b). */
+export function ChartRow({
+  row,
+  numbers,
+}: {
+  row: ChartRowData;
+  numbers: RowNumbers;
+}) {
+  return (
+    <Row
+      row={row}
+      numbers={numbers}
+      open={false}
+      kept={false}
+      gone={false}
+      printDelay={null}
+    />
   );
 }
 

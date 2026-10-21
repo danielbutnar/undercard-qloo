@@ -4,13 +4,13 @@
 // every row and its limit kept.
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { MethodPage } from "@/components/method-page";
+import { MethodEvidencePage } from "@/components/method-evidence";
 
 afterEach(cleanup);
 
 describe("the method page's evidence, grouped", () => {
   it("opens with what is shown, partly shown and not shown, above the tables", () => {
-    render(<MethodPage />);
+    render(<MethodEvidencePage />);
     const evidence = screen.getByRole("region", { name: "Evidence" });
     const lines = within(evidence).getAllByRole("listitem").slice(0, 3);
     expect(lines.map((line) => line.textContent?.split(":")[0])).toEqual([
@@ -26,7 +26,7 @@ describe("the method page's evidence, grouped", () => {
   });
 
   it("splits the table into the premise tests and the engineering checks, every row with its limit", () => {
-    render(<MethodPage />);
+    render(<MethodEvidencePage />);
     const idea = screen.getByRole("table", { name: "Does the idea hold?" });
     const product = screen.getByRole("table", {
       name: "Does the product work?",

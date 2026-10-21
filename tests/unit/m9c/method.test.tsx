@@ -8,6 +8,7 @@ import {
   within,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import { MethodEvidencePage } from "@/components/method-evidence";
 import { MethodPage } from "@/components/method-page";
 import { evidenceAnchor, EVIDENCE_URL } from "@/lib/method";
 
@@ -35,8 +36,9 @@ describe("the method page (M9c)", () => {
     );
   });
 
+  // Since M10b the objections and the evidence are on /method/evidence, unchanged.
   it("answers the five objections, each claim linked to its row in docs/evidence.md", () => {
-    render(<MethodPage />);
+    render(<MethodEvidencePage />);
     for (const question of [
       "Does the town know these acts?",
       "What does the AI model decide, and what does Qloo decide?",
@@ -55,11 +57,23 @@ describe("the method page (M9c)", () => {
     }
   });
 
-  it("holds one diagram, the evidence table with its stated limits, and no hero", () => {
+  it("holds one picture of the method, and the evidence its own page links to", () => {
     render(<MethodPage />);
     expect(
       screen.getAllByRole("img", { name: /How Undercard drafts a lineup/ }),
     ).toHaveLength(1);
+    expect(
+      screen
+        .getByRole("link", { name: "Back to the lineup" })
+        .getAttribute("href"),
+    ).toBe("/");
+    expect(
+      screen.getByRole("link", { name: /^The evidence/ }).getAttribute("href"),
+    ).toBe("/method/evidence");
+  });
+
+  it("holds the evidence table with its stated limits on the evidence page", () => {
+    render(<MethodEvidencePage />);
     const tables = ["Does the idea hold?", "Does the product work?"].map(
       (name) => screen.getByRole("table", { name }),
     );
@@ -75,9 +89,9 @@ describe("the method page (M9c)", () => {
     ).toBeTruthy();
     expect(
       screen
-        .getByRole("link", { name: "Back to the lineup" })
+        .getByRole("link", { name: "Back to How it works" })
         .getAttribute("href"),
-    ).toBe("/");
+    ).toBe("/method");
   });
 
   it("loads the video only when it's played", () => {

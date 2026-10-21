@@ -14,7 +14,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { BandChart } from "@/components/chart/band-chart";
 import { editionRows } from "@/components/chart/chart-rows";
 import { FestivalScreen } from "@/components/festival-screen";
-import { MethodPage } from "@/components/method-page";
+import { MethodEvidencePage } from "@/components/method-evidence";
 import { wasPlace, type ClimbEvent } from "@/lib/lift-climb";
 import { liftOf, roomShortName } from "@/lib/marks";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
@@ -162,19 +162,14 @@ describe("the climb says where a lifted act came from (M9d winner)", () => {
   });
 });
 
-describe("the method page's layout (M9d winner)", () => {
-  it("sets the method full width, then the evidence and the objections side by side", () => {
-    render(<MethodPage />);
-    const method = screen.getByRole("region", { name: "The method" });
+describe("the evidence's layout (M9d winner; on /method/evidence since M10b)", () => {
+  it("sets the evidence and the objections side by side", () => {
+    render(<MethodEvidencePage />);
     const evidence = screen.getByRole("region", { name: "Evidence" });
     const objections = screen.getByRole("region", { name: "Five objections" });
     const columns = evidence.closest(".method-columns");
     expect(columns).not.toBeNull();
     expect(columns!.contains(objections)).toBe(true);
-    expect(columns!.contains(method)).toBe(false);
-    expect(
-      method.compareDocumentPosition(columns!) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
   });
 });
+

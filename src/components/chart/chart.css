@@ -2562,3 +2562,367 @@
     margin-top: 4px;
   }
 }
+
+/* ---------- How it works (M10b): the picture, one act followed, try it, who does what ---------- */
+
+.chart-app .how-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.chart-app .how-sub {
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+
+/* The method in one picture: four cards, a plus, then two arrows. */
+.chart-app .how-picture {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin: 0;
+}
+@media (min-width: 1000px) {
+  .chart-app .how-picture {
+    grid-template-columns:
+      minmax(0, 1fr) 28px minmax(0, 1fr) 28px minmax(0, 1fr)
+      28px minmax(0, 1fr);
+    align-items: stretch;
+  }
+}
+.chart-app .how-card {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-areas:
+    "art title"
+    "art line";
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 2px;
+  padding: 10px 12px;
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  box-shadow: 5px 5px 0 var(--color-ink);
+}
+@media (min-width: 1000px) {
+  .chart-app .how-card {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "art" "title" "line";
+    align-items: start;
+    row-gap: 6px;
+    padding: 14px;
+  }
+}
+.chart-app .how-art {
+  grid-area: art;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 48px;
+}
+.chart-app .how-card-title {
+  grid-area: title;
+  align-self: end;
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1;
+}
+.chart-app .how-card-line {
+  grid-area: line;
+  align-self: start;
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+.chart-app .how-art-quilts .quilt {
+  width: 44px;
+  height: 44px;
+}
+.chart-app .how-swatch {
+  display: inline-block;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--color-ink);
+  background: var(--venue);
+}
+.chart-app .how-art-venues .how-swatch {
+  width: 22px;
+  height: 46px;
+}
+.chart-app .how-climb {
+  font-family: var(--font-display);
+  font-size: 44px;
+  line-height: 1;
+}
+.chart-app .how-climb .tri {
+  width: 24px;
+  height: 22px;
+}
+.chart-app .how-art-slots {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.chart-app .how-join {
+  align-self: center;
+  justify-self: center;
+}
+.chart-app .how-plus {
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 1;
+}
+.chart-app .how-arrow {
+  width: 24px;
+  height: 24px;
+  background: var(--color-ink);
+  clip-path: polygon(0 20%, 55% 20%, 55% 0, 100% 50%, 55% 100%, 55% 80%, 0 80%);
+}
+@media (max-width: 999px) {
+  .chart-app .how-arrow {
+    rotate: 90deg;
+  }
+}
+
+/* One act followed: the step tabs, the stage (a scale of places and the act's row), the agent's
+   choices beside it on a wide screen. */
+.chart-app .how-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chart-app .how-step-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px 5px 5px;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+.chart-app .how-step-tab[aria-current="step"] {
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+.chart-app .how-step-n {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  background: var(--color-ink);
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+.chart-app .how-step-tab[aria-current="step"] .how-step-n {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+.chart-app .how-follow-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (min-width: 1100px) {
+  .chart-app .how-follow-body {
+    grid-template-columns: minmax(0, 760px) minmax(0, 1fr);
+    gap: 28px;
+  }
+}
+.chart-app .how-follow-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.chart-app .how-stage-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.chart-app .how-step-text {
+  font-size: var(--text-body);
+  font-weight: 600;
+  line-height: 1.4;
+}
+/* The climb chart: a rung per place, the act's row riding on its own place. */
+.chart-app .how-climbchart {
+  --rung: 13px;
+  position: relative;
+  height: calc(var(--rungs) * var(--rung) + 92px);
+}
+.chart-app .how-rungs {
+  position: absolute;
+  inset: 0 0 auto;
+  display: grid;
+  grid-template-rows: repeat(var(--rungs), var(--rung));
+}
+.chart-app .how-rungs i {
+  border-top: 1px solid color-mix(in srgb, var(--color-ink) 35%, transparent);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+}
+.chart-app .how-climbchart .how-row {
+  position: absolute;
+  left: 40px;
+  right: 0;
+  top: calc(var(--at) * var(--rung));
+  transition: top 0.9s cubic-bezier(0.2, 0.75, 0.15, 1);
+}
+/* A followed row is laid out the same with or without its climb, at every width. */
+.chart-app .how-row .row {
+  grid-template-columns: 70px minmax(0, 1fr) 30px;
+  grid-template-areas:
+    "place who venue"
+    "place climb venue";
+  padding-left: 6px;
+}
+@media (min-width: 560px) {
+  .chart-app .how-row .row {
+    grid-template-columns: 80px 52px minmax(0, 1fr) 30px;
+    grid-template-areas:
+      "place sleeve who venue"
+      "place sleeve climb venue";
+  }
+}
+.chart-app .how-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.chart-app .how-check {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 2px solid var(--color-ink);
+  background: var(--color-surface);
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+.chart-app .how-check::before {
+  content: "";
+  flex: none;
+  width: 14px;
+  height: 8px;
+  border-left: 4px solid var(--color-ink);
+  border-bottom: 4px solid var(--color-ink);
+  rotate: -45deg;
+  translate: 0 -3px;
+}
+.chart-app .how-nav {
+  display: flex;
+  gap: 10px;
+}
+.chart-app .how-next:not(:disabled) {
+  background: var(--color-accent);
+}
+.chart-app .how-venues {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+.chart-app .how-venue {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+.chart-app .how-venue-lifted {
+  font-weight: 600;
+  color: var(--color-muted);
+}
+.chart-app .how-choices .panel-sub + .how-venues + .panel-sub {
+  margin-top: 10px;
+}
+
+/* Try it: one venue's fans, on or off, over the band's lineup. */
+.chart-app .how-try .band {
+  max-width: 760px;
+}
+.chart-app .how-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-start;
+  padding: 8px 10px;
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: var(--text-label);
+  font-weight: 800;
+}
+.chart-app .how-switch-state {
+  padding: 2px 8px;
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+.chart-app .how-switch.is-off .how-swatch {
+  background: transparent;
+}
+.chart-app .how-switch.is-off .how-switch-state {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: inset 0 0 0 2px var(--color-ink);
+}
+.chart-app .how-try-says {
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+
+/* Who does what: the three cards on the page itself. */
+.chart-app .how-who {
+  margin-top: 0;
+}
+.chart-app .how-who .who-card {
+  border-width: 3px;
+  background: var(--color-surface);
+}
+@media (prefers-reduced-motion: reduce) {
+  .chart-app .how-climbchart .how-row {
+    transition: none;
+  }
+}
+/* On a phone: the step tabs two by two, and who does what as flat cards. */
+@media (max-width: 559px) {
+  .chart-app .how-steps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .chart-app .how-step-tab {
+    width: 100%;
+  }
+}
+@media (max-width: 899px) {
+  .chart-app .how-who .who-card {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-areas:
+      "icon name"
+      "icon what";
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 2px;
+  }
+  .chart-app .how-who .who-icon {
+    grid-area: icon;
+  }
+  .chart-app .how-who .who-name {
+    grid-area: name;
+    align-self: end;
+  }
+  .chart-app .how-who .who-what {
+    grid-area: what;
+    align-self: start;
+  }
+}

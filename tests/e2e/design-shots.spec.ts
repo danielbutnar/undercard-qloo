@@ -235,8 +235,14 @@ const SCENES: {
         .waitFor();
     },
   },
-  // M9c: the method page.
+  // M9c and M10b: How it works.
   { name: "method", path: "/method", viewports: [VIDEO, MOBILE] },
+  // M10b: the evidence and the five objections, moved off How it works.
+  {
+    name: "method-evidence",
+    path: "/method/evidence",
+    viewports: [VIDEO, MOBILE],
+  },
   // M9b: town against town, Boise and Austin side by side.
   { name: "compare", path: "/compare", viewports: [JUDGE, VIDEO, MOBILE] },
   {
