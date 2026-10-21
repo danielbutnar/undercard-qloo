@@ -1336,7 +1336,7 @@
   }
 }
 
-/* The climb points into the place now: "was Nth, up N, now N". */
+/* The climb points into the place now: "was 20th, up 12, now 8" (illustrative numbers). */
 @media (min-width: 1400px) {
   .chart-app .row {
     grid-template-columns: 108px 50px 52px minmax(0, 1fr) 30px;
