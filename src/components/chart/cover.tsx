@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sleeve } from "./sleeve";
 
 /**
@@ -25,10 +25,17 @@ export function Cover({
   className?: string;
 }) {
   const [failed, setFailed] = useState(false);
+  const photo = useRef<HTMLImageElement>(null);
+  // The photo comes in the server's HTML, so it can fail before onError is attached.
+  useEffect(() => {
+    const img = photo.current;
+    if (img?.complete && img.naturalWidth === 0) setFailed(true);
+  }, [image]);
   if (image && !failed)
     return (
       // eslint-disable-next-line @next/next/no-img-element -- Qloo's own image URL, shown as it is
       <img
+        ref={photo}
         src={image}
         alt={name}
         aria-hidden={label ? undefined : true}
