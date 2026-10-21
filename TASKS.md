@@ -573,3 +573,5 @@ Corrections kept throughout: a private reply is kept out of the public record; t
 - [x] src/lib/qloo/, one file per endpoint, its own commit, tests unchanged and green: core.ts (the cached, retried GET, types, errors), search.ts, entities.ts, tags.ts, insights.ts (places, artists, audience), compare.ts, client.ts and index.ts; src/server/qloo.ts re-exports it, so no import or test changed; 545 unit tests green, typecheck and lint clean
 Also
 - [x] The bar for the test with real people (section 9b.2) in docs/evidence.md before Friday: section 32 (the review's 3 of 4 or 4 of 5, extended to all 3 of 3 at the same strictness; quotes only with each person's permission)
+
+Deployed: 0b7ec59 at 22:07 Bucharest on 2026-10-21 (UI items 1-8 first live at 218e397, 21:36). Gate 545 tests and the design scan, local e2e 80 passed, 14 skipped; live e2e 87 passed, 7 skipped (LCP 368 ms), the live-Qloo steps 9 passed.
