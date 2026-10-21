@@ -58,8 +58,10 @@ export type SavedBuild = z.infer<typeof SavedBuildSchema>;
 const PREFIX = "undercard:build:v1:";
 
 /**
- * Complete builds, kept server-side as long as Qloo responses (through 2026-11-18), so the
- * next visitor gets the board in seconds and refills can reuse the build's context.
+ * Complete builds, kept server-side as long as Qloo responses (through 2026-11-18), so a visitor
+ * gets the board in seconds and refills can reuse the build's context. A festival's first
+ * complete build stays its latest, the one every visitor opens on; a later live run is kept under
+ * its own id only, for whoever ran it.
  */
 export function createBuildStore(
   cache: QlooCache,
@@ -72,16 +74,20 @@ export function createBuildStore(
     return parsed.success ? parsed.data : null;
   }
 
+  async function latest(festivalId: string): Promise<SavedBuild | null> {
+    const id = await cache.get<string>(`${PREFIX}latest:${festivalId}`);
+    return typeof id === "string" ? byId(id) : null;
+  }
+
   return {
     byId,
-    async latest(festivalId: string): Promise<SavedBuild | null> {
-      const id = await cache.get<string>(`${PREFIX}latest:${festivalId}`);
-      return typeof id === "string" ? byId(id) : null;
-    },
+    latest,
     async save(build: SavedBuild): Promise<void> {
       const ttl = cacheTtlSeconds(now());
       await cache.set(`${PREFIX}id:${build.id}`, build, ttl);
-      await cache.set(`${PREFIX}latest:${build.festivalId}`, build.id, ttl);
+      // A saved build it can no longer read counts as none, so the next complete build heals it.
+      if (!(await latest(build.festivalId)))
+        await cache.set(`${PREFIX}latest:${build.festivalId}`, build.id, ttl);
     },
   };
 }
