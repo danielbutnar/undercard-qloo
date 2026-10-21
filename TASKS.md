@@ -440,7 +440,7 @@ Done means every item below is finished and deployed, with `pnpm gate`, the desi
 - [x] Three fresh AI lay readers per variant, shown only the shots at 390 and 1440: (b) 3 of 3; (a) 2 of 3 (evidence section 27; answers in .design/m10a)
 - [x] A one-line key per section only if a variant fails without it: added to (a) after its first round ("places it climbed with its venue's fans added"); three new readers, 3 of 3
 - [x] Ship the variant that passes (a if both pass): both passed, (a) shipped with its key (4b8827c); (b) and the lab pages removed; the synthetic baseline now gives real places
-- [ ] Gate, design scan, e2e; deployed; the live e2e passes
+- [x] Gate, design scan, e2e; deployed; the live e2e passes: gate 475 tests and the scan, local e2e 63 passed, 5 skipped; pushed at 65fc0cc, live within a minute; live e2e 61 passed, 7 skipped
 
 3. M10b How it works
 - [x] The bar in docs/evidence.md section 28 before building (33fad96)
