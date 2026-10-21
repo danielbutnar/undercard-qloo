@@ -6,6 +6,7 @@ import { createQlooCache, syntheticMode } from "./qloo-cache";
 import {
   createMemoryLimiter,
   createUpstashLimiter,
+  limitsFrom,
   type RateLimiter,
 } from "./rate-limit";
 
@@ -60,8 +61,8 @@ export function serverLimiter(
   const url = env.UPSTASH_REDIS_REST_URL;
   const token = env.UPSTASH_REDIS_REST_TOKEN;
   if (url && token && !syntheticMode(env))
-    return createUpstashLimiter(new Redis({ url, token }));
-  processLimiter ??= createMemoryLimiter();
+    return createUpstashLimiter(new Redis({ url, token }), limitsFrom(env));
+  processLimiter ??= createMemoryLimiter({ limits: limitsFrom(env) });
   return processLimiter;
 }
 

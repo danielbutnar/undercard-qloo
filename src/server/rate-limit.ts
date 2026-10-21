@@ -29,6 +29,32 @@ export const LIMITS: Record<LimitedAction, ActionLimit> = {
   order: { perIp: 10, perDay: 100, noun: "running orders", hint: "" },
 };
 
+/** A positive whole number from the environment; null for a missing or malformed value. */
+function wholeCount(value: string | undefined): number | null {
+  const text = value?.trim() ?? "";
+  if (!/^\d+$/.test(text)) return null;
+  const count = Number(text);
+  return count > 0 ? count : null;
+}
+
+/**
+ * The limits, with the live-build caps from the environment (plan.md item 2):
+ * LIVE_BUILDS_PER_IP_PER_DAY and LIVE_BUILDS_GLOBAL_PER_DAY, read where the limiter is built on
+ * each request. A missing or malformed value keeps today's default. Replays are never limited.
+ */
+export function limitsFrom(
+  env: Partial<Record<string, string | undefined>>,
+): Record<LimitedAction, ActionLimit> {
+  return {
+    ...LIMITS,
+    build: {
+      ...LIMITS.build,
+      perIp: wholeCount(env.LIVE_BUILDS_PER_IP_PER_DAY) ?? LIMITS.build.perIp,
+      perDay: wholeCount(env.LIVE_BUILDS_GLOBAL_PER_DAY) ?? LIMITS.build.perDay,
+    },
+  };
+}
+
 export type LimitResult =
   | { allowed: true }
   | { allowed: false; message: string; retryAfterSeconds: number };
