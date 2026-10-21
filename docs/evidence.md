@@ -519,6 +519,19 @@ Written on 2026-10-21, before the page is built or shown to a reader. The key do
 
 The answers, which quote the build's places, stay in .design/m10b/.
 
+## 29. What the readers tripped on, fixed, written before the readers
+
+Written on 2026-10-21, before any reader sees the changed screens. The questions and keys don't change after the answers are in.
+
+Four changes, from what sections 27 and 28's readers tripped on. Each is read by one fresh AI lay reader: a new subagent on Claude Haiku 5.5, told it has never worked in the music industry, and shown only the screen the change touches, from the local app reading saved builds.
+
+1. **The fee range on a phone, in plain words.** Shot: the first screen at 390x844. Question: "What does '80th–92nd' beside Mid-size acts mean?" Passes if the answer says it is the fee range, given as a band of Qloo popularity (a percentile) that stands in for what an act charges, and not a place in a ranking or a score.
+2. **Why no act is at the top.** Shots: the first screen at 390x844 and 1440x810. Question: "Why is no act on this lineup in the top places of the ranking?" Passes if the answer says the top places go to acts the headliners' fans like anyway, while the lineup is the acts the town's own venues push up.
+3. **Whose ranking.** Shots: the first screen at 390x844 and 1440x810, and an act's card. Question: "Whose ranking do these acts climb in?" Passes if the answer says Qloo's, and fails if it says the AI agent's.
+4. **NEW in Watch.** Shots: one of Watch's editions with an act new to the top 50 in view, at 1440x810 and 390x844. Question: "What does NEW next to <the act> mean?" Passes if the answer says the act wasn't in the top 50 for the headliners' fans alone and came into it with the venue's fans, not that it climbed from 51st.
+
+A change ships when its reader passes; one that fails is changed and read again by a new reader. The answers, which may quote the builds' places, stay in .design/review-fixes/.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
