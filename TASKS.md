@@ -426,7 +426,7 @@ Done means every item below is finished and deployed, with `pnpm gate`, the desi
 - [x] 4988e25 and a450aff shown to Daniel: docs/design-brief.md's mockups held five real acts' Qloo places and climbs, and TASKS.md a lay reader's quote of one; 770e87c had already replaced both at the tip; no other commit on any branch matched. Daniel's OK: final-chart rewritten from 4988e25 on to carry 770e87c's placeholders (27 commits, messages, authors and dates kept byte for byte, the tip's tree identical; 4988e25 is now de49058 and a450aff e5aecef)
 - [ ] The rewritten final-chart force-pushed to origin: the permission check here refused it, so it waits on Daniel
 - [x] final-chart merged into main with a merge commit (8aef8af); work continues on main
-- [ ] Daniel's call, found after the merge: two earlier final-chart commits, now on main and origin/main, hold the saved build's places without act names: 9c85f16 (the old storyboard's "An artist" row with one act's climb and place, and its lineup panel's places with their genres, at the tip until 9cc253b) and 0c89c27 (a chart.css comment with one act's places, at the tip until 406261f). My first report missed them: I took the unnamed rows for placeholders. The tip is clean (406261f); scrubbing the history means rewriting main and force-pushing it
+- [x] Daniel's call, found after the merge (decided 2026-10-21: they stay as they are): two earlier final-chart commits, now on main and origin/main, hold the saved build's places without act names: 9c85f16 (the old storyboard's "An artist" row with one act's climb and place, and its lineup panel's places with their genres, at the tip until 9cc253b) and 0c89c27 (a chart.css comment with one act's places, at the tip until 406261f). My first report missed them: I took the unnamed rows for placeholders. The tip is clean (406261f); scrubbing the history means rewriting main and force-pushing it
 - [x] The unused old components and their two tests deleted: the old bill, rooms rail, lineup board, festival header and lift climb, with tests/unit/m4b/draft-bill.test.tsx and m4c/labels.test.tsx; the one check of the live screen in the first moved to m4b/first-screen.test.tsx
 - [x] Watch steps through its editions without animation when reduced motion is on: the same pace and Skip, no glide, no print-in (tests/unit/m9a/climb-screen.test.tsx)
 - [x] After "Qloo couldn't find this town" or "too few venues", the checked towns instead of "Run the agent again": the notice takes the run button's place in the lead and comes into view (tests/unit/final-chart/thin-town-lead.test.tsx, tests/e2e/your-festival.spec.ts)
@@ -499,3 +499,41 @@ A. Artist images on (Daniel's message of 2026-10-21: Qloo's hackathon manager ag
 
 B. The manager's answers in RULES.md
 - [x] Recorded with the date in RULES.md's Unclear section (Daniel approved the edit): 2, 3, 5 and 7 answered, and the question on buyers' drafts; 1, 4 and 6 not covered
+
+# TASKS: Daniel's decisions of 2026-10-21 (third brief)
+
+Done means items 1-4 are deployed with `pnpm gate`, the design scan and the e2e passing, and items 5-7 are reported, by Friday 23 October 22:00 Bucharest.
+
+1. Images stay on
+- [ ] Section 30: its bar asked the wrong question (a photo says who the act is and catches the eye; the genre words say what it is); the miss stays on record, not re-scored
+- [ ] On a phone, a small photo on each chart row, if the first act's row still ends above 664 px at 390x844 (else card only, and say so)
+- [ ] Alt text on every photo: "Photo of <act name>"
+- [ ] A small "Artist images via Qloo" credit where the photos appear, and on /method
+
+2. Starter kit
+- [x] CLAUDE.md's two lines: already say there is no starter kit, matching the README, since 6fadeaf (2026-10-17); the first version (f13b911) said "built on my public starter kit". No edit needed
+- [x] RULES.md's Unclear section: 1 moot (no starter kit), 4 not pursued, 6 answered by the site asking for a live web app (Daniel approved)
+
+3. The flaky e2e
+- [ ] "on a phone, a town Qloo can't find offers the checked towns" passes 20 of 20 runs
+
+4. Main's old commits
+- [x] 9c85f16 and 0c89c27 stay as they are (Daniel's decision, 2026-10-21): no rewrite of main, no force-push
+
+5. With and Without Qloo as a number (approved: up to 27 model calls and 290 Qloo searches)
+- [ ] Bar and method in docs/evidence.md before any call
+- [ ] The run
+- [ ] The counts in plain words on the evidence page and in the README
+
+6. M8f lineups checked
+- [ ] The 23 lineups not yet checked, against their source pages, with no Qloo calls; any wrong list re-scored by the bar written before, both counts reported
+- [ ] The evidence page says "20 of 30, the bar set beforehand; 20 of the 22 that could be scored"; the "Partly shown" summary stays
+
+7. The pull-request check from the first brief
+- [x] Reported, checked again on 2026-10-21: the repository has never had a pull request (gh pr list --state all: none); GitHub lists no pull request for 4988e25 or a450aff; none of the 8 branches on GitHub contains either (compare: each is behind or diverged), and final-chart is gone (404); GitHub still serves both commits by their full hashes until it collects them
+
+# TASKS: Daniel's message of 2026-10-21 (evening): the same photo wherever an act appears
+
+- [ ] /method: "Follow one act" (every step, the lineup included) and Try it show the act's Qloo photo, as the first screen does, from the same cached call (tests/unit/artist-images/method-covers.test.tsx)
+- [ ] Gate, design scan, build; committed; deploy waits on Daniel
+- [ ] Your festival (checked-town replays and live runs) and Watch's non-lineup acts: Daniel's call, since photos there need Qloo calls the saved Boise lineup doesn't

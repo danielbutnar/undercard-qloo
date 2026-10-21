@@ -107,4 +107,8 @@ Answers from Qloo's hackathon manager, 21 October 2026, as Daniel relayed them: 
 - 5: the app may show Qloo's artist images.
 - 7: calling the REST API directly is fine.
 - Asked with these, not listed above: buyers may receive drafts made with the hackathon key.
-- Not covered by these answers: 1, 4 and 6.
+
+The rest, closed by Daniel on 21 October 2026:
+- 1: moot. There is no starter kit: the app began from create-next-app, tagged `starter-kit` (README.md, Built on).
+- 4: not pursued.
+- 6: answered by the Hackathon Website, which asks for a live web app.
