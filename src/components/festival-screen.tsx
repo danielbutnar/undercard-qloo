@@ -529,11 +529,14 @@ export function FestivalScreen({
     void build(request);
   }
 
-  // A judge's own run is never saved, so once it has finished Watch replays the run the screen
-  // holds: no request, no live run spent, the draft kept. A run that stopped short offers to run
-  // the agent again instead.
+  // A judge's own run is never saved, and a live run on a saved town never becomes the build other
+  // visitors open on, so once either has finished Watch replays the run the screen holds: no
+  // request, no live run spent, the draft kept. A judge's run that stopped short offers to run the
+  // agent again instead.
   const ownRun =
-    custom !== undefined && state.status === "done" && state.climbs.length > 0;
+    state.status === "done" &&
+    state.climbs.length > 0 &&
+    (custom !== undefined || state.build?.replayed === false);
   const runAgain =
     custom !== undefined &&
     !ownRun &&
@@ -812,7 +815,7 @@ export function FestivalScreen({
                             : "Runs the AI agent; its Qloo calls list below"
                         : !state.build
                           ? "Runs the AI agent; its Qloo calls list below"
-                          : savedOnScreen
+                          : savedOnScreen || ownRun
                             ? `Replays its ${calls ?? 12} Qloo calls`
                             : "Replays the saved build's Qloo calls"}
                     </p>

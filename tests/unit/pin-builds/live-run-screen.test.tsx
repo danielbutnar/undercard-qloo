@@ -1,0 +1,146 @@
+// @vitest-environment jsdom
+// A live run on a saved town is no longer the build other visitors open on (Daniel's brief of
+// 2026-10-21, night). Whoever ran it keeps their own lineup on screen, with its venue switch and
+// its Watch, and a reload opens on the saved build again. The screen talks to the real build
+// handler and store over a synthetic Qloo; everything here is invented data.
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { FestivalScreen } from "@/components/festival-screen";
+import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
+import { readFirstBill } from "@/server/first-bill";
+import { createQlooClient } from "@/server/qloo";
+import { createMemoryLimiter } from "@/server/rate-limit";
+import { handleUndercardBuild } from "@/server/undercard-build";
+import { readVenueSwitch } from "@/server/venue-switch";
+import { readEvents, scriptedPlanner, syntheticServer } from "../m3/scripted";
+
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
+
+const SKIP = { name: "Skip to the lineup" };
+const WATCH = { name: "Watch how it picked these acts" };
+const RUN_LIVE = { name: "Run the agent live instead" };
+const drafted = () => document.querySelector(".drafted")?.textContent ?? "";
+const under = () => document.querySelector(".watch-sub")?.textContent ?? "";
+
+/**
+ * A server holding Boise's saved build, dated like production's (12:13 UTC on 17 October), and a
+ * browser whose requests reach it: builds through the build handler, each with a planner of its
+ * own, and the venue switch through its reader.
+ */
+async function boiseWithSavedBuild() {
+  const server = syntheticServer();
+  await readEvents(server.build({ fresh: true }));
+  const first = (await server.store.latest(SAGEBRUSH_SOUND.id))!;
+  await server.cache.set(
+    `undercard:build:v1:id:${first.id}`,
+    { ...first, createdAt: "2026-10-17T12:13:00.000Z" },
+    600,
+  );
+  const cacheOnly = createQlooClient({
+    apiKey: "k",
+    cache: server.cache,
+    fetch: () => {
+      throw new Error("no Qloo call from a replay or the venue switch");
+    },
+    cacheOnly: true,
+  });
+  const builds: { fresh?: boolean; id: string }[] = [];
+  const switches: string[] = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === "/api/undercard") {
+        const body = JSON.parse(String(init?.body)) as { fresh?: boolean };
+        const planner = scriptedPlanner();
+        const text = await (
+          await handleUndercardBuild({
+            festival: SAGEBRUSH_SOUND,
+            limiter: createMemoryLimiter(),
+            ip: "203.0.113.7",
+            qloo: () => server.qloo,
+            model: () => planner.model,
+            store: server.store,
+            fresh: body.fresh === true,
+            replayDelayMs: 0,
+            cachedQloo: () => cacheOnly,
+          })
+        ).text();
+        builds.push({
+          fresh: body.fresh,
+          id: JSON.parse(text.split("\n")[0]).id,
+        });
+        return new Response(text, {
+          headers: { "content-type": "application/x-ndjson" },
+        });
+      }
+      if (url.startsWith("/api/venue-switch")) {
+        const buildId =
+          new URL(url, "http://localhost").searchParams.get("build") ??
+          undefined;
+        switches.push(buildId ?? "");
+        const data = await readVenueSwitch({
+          store: server.store,
+          festival: SAGEBRUSH_SOUND,
+          qloo: cacheOnly,
+          buildId,
+        });
+        return data ? Response.json(data) : new Response("{}", { status: 404 });
+      }
+      return new Response("{}", { status: 404 });
+    }),
+  );
+  /** The first screen as the server serves it: the festival's latest saved build. */
+  const firstScreen = async () => (
+    <FestivalScreen
+      festival={SAGEBRUSH_SOUND}
+      firstBill={await readFirstBill(server.store, SAGEBRUSH_SOUND.id)}
+    />
+  );
+  return { server, builds, switches, firstScreen };
+}
+
+describe("a live run on the first screen", () => {
+  it("shows the run's lineup with its own venue switch and Watch, and a reload shows the saved build again", async () => {
+    const boise = await boiseWithSavedBuild();
+    render(await boise.firstScreen());
+    expect(drafted()).toContain("saved Oct 17, 12:13 UTC");
+
+    fireEvent.click(screen.getAllByRole("button", RUN_LIVE)[0]);
+    const draft = screen.getByRole("region", { name: "Undercard draft" });
+    fireEvent.click(
+      await within(draft).findByRole("button", SKIP, { timeout: 8000 }),
+    );
+    await waitFor(() => expect(screen.getByRole("button", WATCH)).toBeTruthy());
+    const run = boise.builds[0];
+    expect(run.fresh).toBe(true);
+    const kept = (await boise.server.store.byId(run.id))!;
+    // The run's lineup, not the saved one, and the venue switch works from the run's own id.
+    expect(within(draft).getAllByRole("article")).toHaveLength(10);
+    expect(drafted()).not.toContain("Oct 17, 12:13");
+    await waitFor(() => expect(boise.switches).toContain(run.id));
+
+    // Watch replays the run on screen: no request, so the saved build can't take its place.
+    expect(under()).toBe(`Replays its ${kept.trace.length} Qloo calls`);
+    fireEvent.click(screen.getByRole("button", WATCH));
+    fireEvent.click(await within(draft).findByRole("button", SKIP));
+    await waitFor(() => expect(screen.getByRole("button", WATCH)).toBeTruthy());
+    expect(boise.builds).toHaveLength(1);
+    expect(within(draft).getAllByRole("article")).toHaveLength(10);
+    expect(drafted()).not.toContain("Oct 17, 12:13");
+
+    // A reload: the server still serves the saved build.
+    cleanup();
+    render(await boise.firstScreen());
+    expect(drafted()).toContain("saved Oct 17, 12:13 UTC");
+  }, 20000);
+});
