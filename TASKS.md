@@ -562,7 +562,7 @@ Corrections kept throughout: a private reply is kept out of the public record; t
 7. Positioning (I1, Q2)
 - [x] "Undercard drafts a shortlist with its evidence attached; the buyer makes every call" and "Qloo decides, the model plans, the rule books" on the home page (replacing words, not adding), How it works and the README. Home: the lead now reads "Undercard is an AI agent: it drafts a shortlist with its evidence attached; the buyer makes every call." (it was "...it drafts the acts that play before the headliners from what fans of the town's own venues like.", 5 words fewer; the opening "Undercard is an AI agent" stays, from M6r's readers), and "How an act gets on" ends "Qloo decides, the model plans, the rule books." in place of "Qloo supplies the numbers; the AI agent picks which venues to read." How it works: the sentence in the lead, the principle under Who does what. README: both under the opening paragraph (tests/unit/review-plan/positioning.test.tsx)
 8. The With and Without number, the review's measures (section 9b.1)
-- [ ] The bar in docs/evidence.md before counting (results already seen marked exploratory)
+- [x] The bar in docs/evidence.md before counting (results already seen marked exploratory): section 31, the review's bar (Qloo changes at least 7 of 10 acts in at least 24 of 29 towns, and twice as many distinct acts with Qloo); measure (ii) marked partly exploratory, since the section 31 run's 110 distinct searches for 290 picks were already seen
 - [ ] The count; one line under the toggle and on How it works, saying only what the bar allows
 9. Two cheap tests (prompt C, bars from section 9b.3 first)
 - [ ] Stability across days for evidence 5's four towns
