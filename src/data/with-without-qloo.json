@@ -1,0 +1,10 @@
+{
+  "computedAt": "2026-10-21",
+  "towns": 29,
+  "averageChanged": 10,
+  "townsChangedSeven": 29,
+  "distinctWith": 85,
+  "distinctWithout": 110,
+  "inHalfOrMoreWithout": 3,
+  "barMet": false
+}
