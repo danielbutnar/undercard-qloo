@@ -125,10 +125,16 @@ describe("a busy Qloo on Your festival", () => {
     const notice = await screen.findByRole("region", {
       name: "This draft couldn't be finished",
     });
-    expect(within(notice).getByRole("heading").textContent).toMatch(
-      /Qloo is busy/i,
-    );
+    expect(
+      within(notice).getByRole("heading", { level: 2 }).textContent,
+    ).toMatch(/Qloo is busy/i);
     expect(notice.textContent).toContain("Try again in a minute");
+    // Plan.md item 2: a busy run offers the country's checked towns to replay meanwhile.
+    expect(
+      within(notice).getByRole("list", {
+        name: "Towns Undercard has already read in the United States",
+      }),
+    ).toBeTruthy();
     fireEvent.click(
       within(notice).getByRole("button", { name: "Change the brief" }),
     );
