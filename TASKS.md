@@ -430,7 +430,7 @@ Done means every item below is finished and deployed, with `pnpm gate`, the desi
 - [x] Watch steps through its editions without animation when reduced motion is on: the same pace and Skip, no glide, no print-in (tests/unit/m9a/climb-screen.test.tsx)
 - [x] After "Qloo couldn't find this town" or "too few venues", the checked towns instead of "Run the agent again": the notice takes the run button's place in the lead and comes into view (tests/unit/final-chart/thin-town-lead.test.tsx, tests/e2e/your-festival.spec.ts)
 - [x] On a 390x844 phone, the first act shows on the first screen: on the saved Boise build its whole row ends at 648 px at 390 wide (it was 840), inside the about 664 px Safari shows on a 390x844 iPhone with its bars in view (an estimate, not checked on a device); sizes and gaps only, below 768 px (tests/e2e/phone-first-screen.spec.ts)
-- [ ] Gate, design scan and local e2e pass; main pushed (production deploys); the live e2e passes
+- [x] Gate (468 unit tests), design scan, build and local e2e (63 passed, 5 skipped) pass; main pushed at c8ae7b2 (2026-10-21), production served it within a minute; the live e2e passes (61 passed, 7 skipped), then the three live-Qloo steps (9 passed)
 
 2. M10a The numbers beside each act
 - [x] M10a and M10b in SPEC.md section 6
