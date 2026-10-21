@@ -480,6 +480,50 @@ Written on 2026-10-18, before any festival is chosen and before any Qloo call. T
 
 **The bar.** Supported if at least 20 of the 30 festivals support it: the same standard as section 18's 8 of 10 (a one-sided sign test; 20 or more of 30 happens by chance about 4.9% of the time, 8 of 10 about 5.5%). Otherwise it isn't, and the result is reported either way. It goes on the method page next to the 7 of 10, which stays. Counts and lifts only in this file; names stay in .design/.
 
+**The 30, fixed on 2026-10-21 before the first Qloo call.** Five research subagents, one per region, read the festivals' own pages on 2026-10-21, live or as Wayback captures where a page has moved on to the next edition, and wrote each lineup to .design/m8f/raw/ with its page, capture date, order and every edit. Seven lists were read again against their pages before this note (the first names, the last names and the count): Hopscotch, Calgary Folk, Tomato Art Fest, Osheaga, Solidays, Bumbershoot and Outside Days; all seven matched. 32 lists met the rule above, in 27 towns. Three were left out before the call:
+- UNTOLD 2024, Cluj-Napoca: its own press release names 222 acts where it says "over 250", and its lineup page has moved on to 2027, so the lineup isn't shown complete.
+- George Enescu Festival 2025, Bucharest: the researcher's spare behind its pick, Summer Well 2026, kept only for a shortfall, and there is none.
+- Venue 57 2022, Seattle: drawn out with the fixed seed "m8f", by the test script's own seeded draw, from the eight festivals in the four towns that had two, so every town keeps one.
+
+No festival with a complete lineup was found for Burlington or Cluj-Napoca. The fixed list is .design/m8f/lineups.json (SHA-256 450b158230e5e2aff8da2c7d636aac2e78d9940c6023428bb293887fc5f16735), with each festival's page in .design/m8f/sources.md:
+
+| Festival | Town | Captured | Acts listed | The page's order |
+|---|---|---|---|---|
+| Alpenglow Festival 2024 | Bozeman | Wayback, 2024-08-10 | 11 | billing tiers |
+| Boise Music Festival 2024 | Boise (Garden City) | Wayback, 2024-07-22 | 51 | billing, then the local stages |
+| Bumbershoot 2026 | Seattle | live | 45 | billing |
+| Calgary Folk Music Festival 2026 | Calgary | live | 67 | alphabetical |
+| KKFI Crossroads Music Fest 2026 | Kansas City | live | 30 | billing, then the day party and afterparty |
+| MS Dockville 2024 | Hamburg | Wayback, 2024-08-19 | 135 | billing |
+| FOCUS Wales 2026 | Wrexham | live | 242 | alphabetical |
+| Duluth Homegrown Music Festival 2026 | Duluth | live | 181 | by day and time |
+| Hopscotch Music Festival 2025 | Raleigh | live | 116 | alphabetical |
+| Hyde Park Jazz Festival 2026 | Chicago | live | 31 | roughly alphabetical |
+| Iceland Airwaves 2025 | Reykjavík | live | 108 | alphabetical |
+| ÎleSoniq 2026 | Montreal | live | 46 | by stage and tier, headliners first |
+| Mountain Dance and Folk Festival 2026 | Asheville | live | 33 | by night, in each night's order |
+| NN North Sea Jazz Festival 2026 | Rotterdam | live | 172 | by day and time |
+| NorthSide 2024 | Aarhus | Wayback, 2024-06-08 | 56 | by day and time |
+| Old Settler's Music Festival 2026 | Austin (Driftwood, about 31 km) | Wayback, 2026-03-15 | 16 | billing |
+| Osheaga 2026 | Montreal | live | 90 | by stage and tier, headliners first |
+| Outside Days 2026 | Denver | live | 26 | billing, then the Discovery Acts |
+| Øyafestivalen 2026 | Oslo | live | 81 | alphabetical |
+| Pop-Kultur Festival 2026 | Berlin | live | 76 | by day and time |
+| popfest Wien 2026 | Vienna | live | 43 | alphabetical |
+| Prepare The Ground 2024 | Toronto | live | 61 | alphabetical |
+| Reeperbahn Festival 2026 | Hamburg | live | 439 | alphabetical |
+| Soenda Festival 2026 | Utrecht | live (its own full-lineup post) | 35 | alphabetical |
+| Solidays 2025 | Paris | live | 75 | the page's own, no billing |
+| Summer Well 2026 | Bucharest (Buftea, about 20 km) | live | 30 | by day and stage, headliners first |
+| Twin Cities Jazz Festival 2026 | Minneapolis (Saint Paul) | live | 79 | main stage first, then alphabetical |
+| Tallinn Music Week 2026 | Tallinn | live | 203 | alphabetical |
+| Tomato Art Fest 2026 | Nashville | live | 27 | by stage |
+| Toronto Jazz Festival 2026 | Toronto | live | 85 | billing, then the free and local acts |
+
+Two things the rule meets on these lists, settled before the call, with no rule changed:
+- **The headliners.** The rule takes the first two names Qloo resolves as the headliners, and section 18's scored lists all began with the top of the bill. Here 12 of the 30 pages put their headliners first; the other 18 list their acts alphabetically, by day and time, or by stage, so their first two names aren't the festival's top acts. The rule runs as written: on those 18, the random acts are matched to the taste of two acts from the bill rather than its top, and the booked acts are still compared with random acts drawn for the same two. Reordering a list by hand would be a choice made after reading it, and searching every name for the two most popular would multiply the Qloo calls on the key production shares.
+- **The names.** As the pages write them, less country codes, set notes and entries that aren't acts (talks, workshops, screenings, a karaoke); each raw file lists its edits. A name Qloo writes another way (a joint billing, a "presents" or a "b2b") doesn't resolve and is passed over, as in section 18, and at most 40 names are searched per festival.
+
 ## 27. The numbers beside each act (M10a), written before either variant is built
 
 Written on 2026-10-21, before either variant is built or shown to a reader. The bar doesn't change after the answers are in.
