@@ -524,6 +524,43 @@ Two things the rule meets on these lists, settled before the call, with no rule 
 - **The headliners.** The rule takes the first two names Qloo resolves as the headliners, and section 18's scored lists all began with the top of the bill. Here 12 of the 30 pages put their headliners first; the other 18 list their acts alphabetically, by day and time, or by stage, so their first two names aren't the festival's top acts. The rule runs as written: on those 18, the random acts are matched to the taste of two acts from the bill rather than its top, and the booked acts are still compared with random acts drawn for the same two. Reordering a list by hand would be a choice made after reading it, and searching every name for the two most popular would multiply the Qloo calls on the key production shares.
 - **The names.** As the pages write them, less country codes, set notes and entries that aren't acts (talks, workshops, screenings, a karaoke); each raw file lists its edits. A name Qloo writes another way (a joint billing, a "presents" or a "b2b") doesn't resolve and is passed over, as in section 18, and at most 40 names are searched per festival.
 
+**Results, 2026-10-21: supported at the bar, with no margin (20 of 30; the bar was 20).** 1,164 Qloo calls, one at a time, from 16:39 to 17:07 Bucharest, on the list fixed above (its SHA-256 unchanged after the run). Each festival's count of attempts equals the requests it needed, so no call was refused for load (429) or failed (5xx) and retried; a 4xx answer isn't retried and wasn't logged, so it can't be ruled out from the record. Lift is the largest gain in Qloo affinity from one of the town's venues, booked acts against random band- and taste-matched acts:
+
+| Festival | Venues | Booked acts in the bands (Mid / Opener) | Booked mean lift | Random mean lift | Supports |
+|---|---|---|---|---|---|
+| Alpenglow Festival 2024, Bozeman | 1 | 0 (0 / 0) | not scored | not scored | no (fewer than 2) |
+| Boise Music Festival 2024, Boise | 2 | 3 (2 / 1) | +0.008 | +0.001 | yes |
+| Bumbershoot 2026, Seattle | 2 | 7 (6 / 1) | +0.040 | +0.004 | yes |
+| Calgary Folk Music Festival 2026, Calgary | 2 | 8 (4 / 4) | −0.007 | −0.020 | yes |
+| KKFI Crossroads Music Fest 2026, Kansas City | 2 | 0 (0 / 0) | not scored | not scored | no (fewer than 2) |
+| MS Dockville 2024, Hamburg | 2 | 12 (6 / 6) | +0.025 | −0.006 | yes |
+| FOCUS Wales 2026, Wrexham | 1 | 2 (0 / 2) | +0.011 | −0.031 | yes |
+| Duluth Homegrown Music Festival 2026, Duluth | 1 | 0 (0 / 0) | not scored | not scored | no (fewer than 2) |
+| Hopscotch Music Festival 2025, Raleigh | 2 | 8 (4 / 4) | +0.021 | −0.008 | yes |
+| Hyde Park Jazz Festival 2026, Chicago | 2 | 0 (0 / 0) | not scored | not scored | no (fewer than 2) |
+| Iceland Airwaves 2025, Reykjavík | 2 | 7 (4 / 3) | −0.002 | −0.009 | yes |
+| ÎleSoniq 2026, Montreal | 2 | 7 (3 / 4) | −0.020 | −0.014 | no |
+| Mountain Dance and Folk Festival 2026, Asheville | 2 | 0 (0 / 0) | not scored | not scored | no (fewer than 2) |
+| NN North Sea Jazz Festival 2026, Rotterdam | 2 | 3 (2 / 1) | +0.018 | −0.031 | yes |
+| NorthSide 2024, Aarhus | 2 | 6 (1 / 5) | +0.011 | +0.024 | no |
+| Old Settler's Music Festival 2026, Austin | 1 | 3 (0 / 3) | +0.002 | −0.017 | yes |
+| Osheaga 2026, Montreal | 2 | 6 (2 / 4) | +0.006 | −0.004 | yes |
+| Outside Days 2026, Denver | 2 | 0 (0 / 0) | not scored | not scored | no (fewer than 2) |
+| Øyafestivalen 2026, Oslo | 2 | 7 (4 / 3) | +0.032 | −0.023 | yes |
+| Pop-Kultur Festival 2026, Berlin | 2 | 3 (1 / 2) | +0.001 | −0.027 | yes |
+| popfest Wien 2026, Vienna | 2 | 1 (1 / 0) | not scored | not scored | no (fewer than 2) |
+| Prepare The Ground 2024, Toronto | 1 | 12 (5 / 7) | −0.019 | −0.029 | yes |
+| Reeperbahn Festival 2026, Hamburg | 2 | 7 (4 / 3) | +0.021 | −0.028 | yes |
+| Soenda Festival 2026, Utrecht | 2 | 3 (0 / 3) | +0.011 | −0.023 | yes |
+| Solidays 2025, Paris | 2 | 8 (5 / 3) | +0.015 | −0.005 | yes |
+| Summer Well 2026, Bucharest | 2 | 7 (4 / 3) | −0.003 | −0.007 | yes |
+| Twin Cities Jazz Festival 2026, Minneapolis | 2 | 0 (0 / 0) | not scored | not scored | no (fewer than 2) |
+| Tallinn Music Week 2026, Tallinn | 2 | 2 (1 / 1) | +0.045 | −0.014 | yes |
+| Tomato Art Fest 2026, Nashville | 1 | 4 (1 / 3) | −0.008 | −0.012 | yes |
+| Toronto Jazz Festival 2026, Toronto | 1 | 5 (1 / 4) | +0.002 | −0.025 | yes |
+
+**What it says.** At the bar written first, the premise is supported, exactly: 20 of 30, and 20 were needed, so one festival fewer would have missed it. Eight festivals had fewer than two acts inside the demo's bands among the names searched, so they couldn't be scored and count against it: Alpenglow, KKFI Crossroads, Duluth Homegrown, Hyde Park Jazz, Mountain Dance and Folk, Outside Days, popfest Wien and Twin Cities Jazz. Of the 22 that could be scored, 20 favour the booked acts. The differences are small, as in section 18: the booked acts' mean lift beats the random acts' by 0.003 to 0.059 in affinity, and at the two festivals that went the other way the random acts led by 0.006 and 0.013. The headliners settled before the call don't decide it: of the 12 lists that put their headliners first, 7 support the premise (7 of the 8 scored); of the 18 that don't, 13 do (13 of the 14 scored). What it shows is that the fans of a town's venues like the acts its festivals booked more than band- and taste-matched random acts, at 20 of 30 festivals; not that the buyers looked at those venues, or that the acts sold tickets. The per-act results, with names, stay in .design/m8f/result.json.
+
 ## 27. The numbers beside each act (M10a), written before either variant is built
 
 Written on 2026-10-21, before either variant is built or shown to a reader. The bar doesn't change after the answers are in.
@@ -618,7 +655,7 @@ A description of the code, not a measurement, so the method page can point to it
 - That a town's crowd knows the undercard acts: section 6 found no usable measure of it.
 - That every room behind a bill is a club: a festival park or an arena can still draft one (section 10).
 - That a room's crowd predicts a festival's bookings. Section 2's check against Treefort was a no-go; its counts (0 to 2 of 50) are too small to show the signal either way.
-- That a town's venues pick out what its festivals book. Section 18's test on ten real festivals fell one short of its bar (7 of 10 against 8), with small differences.
+- That a town's venues pick out what its festivals book. Section 18's test on ten real festivals fell one short of its bar (7 of 10 against 8); section 26's, on 30 more with complete lineups, met its bar with no margin (20 of 30 against 20). In both the differences are small, and they show that the venues' fans like the booked acts more than matched random ones, not that the buyers used those venues.
 - Stability beyond the runs in section 5: five in Boise and three in each other town, all on one day, with one pair of headliners.
 
 ## Sources

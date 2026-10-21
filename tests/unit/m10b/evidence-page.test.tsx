@@ -15,7 +15,8 @@ describe("the evidence page (M10b)", () => {
     const rows = tables.flatMap((table) =>
       within(table).getAllByRole("row").slice(1),
     );
-    expect(rows).toHaveLength(15);
+    // M8f's second premise test makes 16.
+    expect(rows).toHaveLength(16);
     for (const question of [
       "Does the town know these acts?",
       "What does the AI model decide, and what does Qloo decide?",

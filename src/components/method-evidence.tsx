@@ -24,6 +24,7 @@ const S = {
     "17. Does the running order's score match a booker's sense of a shared crowd? (M6r), written before scoring",
   premise:
     "18. Premise test on real festivals (M8d), written before the measurement",
+  premise2: "26. Premise test, round 2 (M8f), written before any run",
   climb:
     "19. The lift, visible (M9a), written before the spike and the readers",
   compare:
@@ -110,8 +111,9 @@ export function Verdicts() {
         <span>
           <strong>Partly shown:</strong> that a town&apos;s venues point to the
           acts its festivals book. Treefort 2026 used two of the three Boise
-          venues tested, and at ten real festivals the booked acts out-lifted
-          matched random ones in 7, one short of the bar of 8.
+          venues tested; at ten real festivals the booked acts out-lifted
+          matched random ones in 7, one short of the bar of 8, and at 30 more,
+          with complete lineups, in 20, the bar exactly.
         </span>
       </li>
       <li>
@@ -155,6 +157,14 @@ const ROWS: Row[] = [
     what: "On ten real festivals, do booked acts out-lift matched random ones?",
     result: "7 of 10, one short of the bar of 8",
     limit: "Partial lineups from Wikipedia; small differences",
+  },
+  {
+    to: "premise2",
+    group: "idea",
+    what: "On 30 more festivals, with complete lineups from their own sites, do booked acts out-lift matched random ones?",
+    result: "20 of 30, at the bar of 20",
+    limit:
+      "No margin; most lists don't open with their headliners; small differences",
   },
   {
     to: "local",
@@ -392,9 +402,11 @@ export function MethodEvidencePage() {
                   Not shown. Undercard measures that fans of the town&apos;s
                   venues like an act more than fans of the headliners alone: its
                   lift in Qloo&apos;s ranking. A direct measure of local
-                  strength was a no-go (<Ev to="local">evidence 6</Ev>), and a
-                  test on ten real festivals fell one short of its bar (
-                  <Ev to="premise">evidence 18</Ev>).
+                  strength was a no-go (<Ev to="local">evidence 6</Ev>). A test
+                  on ten real festivals fell one short of its bar (
+                  <Ev to="premise">evidence 18</Ev>), and one on 30 more met its
+                  bar exactly (<Ev to="premise2">evidence 26</Ev>); both measure
+                  the venues&apos; fans, not the town&apos;s.
                 </p>
               </Objection>
               <Objection question="What does the AI model decide, and what does Qloo decide?">
@@ -460,7 +472,9 @@ export function MethodEvidencePage() {
                 </li>
                 <li>
                   That a town&apos;s venues pick out what its festivals book:
-                  the real-festival test fell one short.
+                  the first real-festival test fell one short and the second met
+                  its bar exactly, and both show the venues&apos; fans liking
+                  the booked acts, not the buyers using those venues.
                 </li>
                 <li>
                   Stability beyond the runs shown: a few runs per town, on one

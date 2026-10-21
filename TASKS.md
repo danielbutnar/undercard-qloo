@@ -315,8 +315,8 @@ Copied from SPEC.md section 6, M9d. Freeze: 2026-10-25. Done means: three candid
 # TASKS: M8f Premise test, round 2 (from Wednesday 21 October)
 
 - [x] List 30 festivals in towns with a saved build, none of M8d's ten, each with its own site's complete lineup, in .design/m8f/ before any Qloo call (2026-10-21: 30 in 27 towns, found by five research subagents, seven re-read against their pages; three left out before the call; the list's SHA-256 and the order of each page in evidence section 26)
-- [ ] Run outside the protected windows, one call at a time; report either way in evidence section 26
-- [ ] Put the result on the method page next to the 7 of 10
+- [x] Run outside the protected windows, one call at a time; report either way in evidence section 26: 2026-10-21, 16:39-17:07 Bucharest, 1,164 Qloo calls with no retry; 20 of 30 support, the bar exactly
+- [x] Put the result on the method page next to the 7 of 10: /method/evidence's premise table, with the verdict line and the limits updated (tests/unit/m8f)
 
 # TASKS: for the 26-27 October redo (not now)
 
@@ -484,8 +484,8 @@ Done means items 1-3 are deployed with `pnpm gate`, the design scan and the e2e 
 5. M8f, the second premise test
 - [x] In SPEC.md since 2026-10-18, with its bar (at least 20 of 30) in docs/evidence.md section 26, written before any run
 - [x] 30 festivals in the 29 towns, none of M8d's ten, each with its own site's complete lineup, listed in .design/m8f/ before any Qloo call (2026-10-21: 30 in 27 towns, found by five research subagents, seven re-read against their pages; three left out before the call; the list's SHA-256 and the order of each page in evidence section 26)
-- [ ] The run, one call at a time; the result either way in evidence section 26
-- [ ] On the evidence page next to the 7 of 10, which stays
+- [x] The run, one call at a time; the result either way in evidence section 26: supported at the bar with no margin, 20 of 30 (20 of the 22 that could be scored); 1,164 calls, none retried
+- [x] On the evidence page next to the 7 of 10, which stays
 
 A. Artist images on (Daniel's message of 2026-10-21: Qloo's hackathon manager agreed), deployed with the others by Friday 23 October 22:00
 - [x] ARTIST_IMAGES on and SPEC.md section 7's text-only line replaced (Daniel approved both); Watch's editions show the lineup acts' pictures too, the drawn cover for the rest (tests/unit/artist-images)
