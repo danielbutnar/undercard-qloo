@@ -693,6 +693,16 @@ Written on 2026-10-21 (plan.md, from the review's section 9b.2), before Daniel r
 
 **What goes public.** The counts, and the wording changes that followed. A tester's words are quoted only with that person's permission; until then, none.
 
+## 33. Two cheap tests, written before any run
+
+Written on 2026-10-21 (plan.md item 9, the review's section 9b.3), before any of their calls. The bars don't change after the results are in.
+
+**Test 1, the same brief on another day.** Section 5's four towns (Boise, Austin, Denver and Nashville), the same brief, one fresh run each with an empty Qloo cache (12 Qloo calls each, 48 in all), compared with each town's saved build of 17 October. **Bar:** all four fill both groups of slots, and at least 3 of the 4 give the same ten acts as their saved build.
+
+**Test 2, Boise with a second pair of headliners.** The same town, fee ranges and crowd, with a second pair of headliners of similar popularity, one fresh run with an empty cache (12 Qloo calls), compared with the saved Khruangbin and Japanese Breakfast draft. **Bar:** both groups fill, and at least 6 of the 10 acts differ from that draft. **The pair**, fixed by this rule before any search: the first of these, in this order, whose two acts both resolve on Qloo's search with a popularity within 0.NN of the mean of Khruangbin's and Japanese Breakfast's (read from the cache; the values are Qloo's and stay in .design/cheap-tests/): Fleet Foxes and Bon Iver; Alvvays and Big Thief; Turnstile and IDLES; Mitski and Beach House. Each pair checked costs two searches.
+
+**How.** The runs go through the agent offline with a memory cache (scripts/cheap-tests.ts): nothing is written to Redis and no saved build changes; afterwards Boise and the four towns are checked to replay the same ten acts. About 56 to 68 Qloo calls in all, one build at a time, plus the planner's model turns. Counts only in this file; names stay in .design/cheap-tests/.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
