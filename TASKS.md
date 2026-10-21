@@ -486,3 +486,15 @@ Done means items 1-3 are deployed with `pnpm gate`, the design scan and the e2e 
 - [ ] 30 festivals in the 29 towns, none of M8d's ten, each with its own site's complete lineup, listed in .design/m8f/ before any Qloo call
 - [ ] The run, one call at a time; the result either way in evidence section 26
 - [ ] On the evidence page next to the 7 of 10, which stays
+
+A. Artist images on (Daniel's message of 2026-10-21: Qloo's hackathon manager agreed), deployed with the others by Friday 23 October 22:00
+- [x] ARTIST_IMAGES on and SPEC.md section 7's text-only line replaced (Daniel approved both); Watch's editions show the lineup acts' pictures too, the drawn cover for the rest (tests/unit/artist-images)
+- [ ] On screen at 1440 and 390, Watch included: images load from Qloo's URL, nothing stored in the repo, the drawn cover when an image is missing or fails to load
+- [ ] Load time no worse in the e2e or LCP, images on against off
+- [ ] The first act's row at 390x844 still ends above 664 px with the images on
+- [ ] A fresh lay reader on the first screen and one act card: does the picture help them say what the act is? (bar in evidence first)
+- [ ] Section 29's four readers again, on the page with images (A before the final reader checks)
+- [ ] Gate, design scan, e2e; deployed; the live e2e passes
+
+B. The manager's answers in RULES.md
+- [x] Recorded with the date in RULES.md's Unclear section (Daniel approved the edit): 2, 3, 5 and 7 answered, and the question on buyers' drafts; 1, 4 and 6 not covered

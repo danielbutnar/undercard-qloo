@@ -100,3 +100,11 @@ How to ask: §11 "If at any time prior to the deadline, an Entrant or prospectiv
 5. May the demo show Qloo entity images (properties.image.url) of artists, given §4 Third Party Integrations and the §7 warranty?
 6. §4 Platforms points to a platform "specified in the Submission Requirements", but those name none. Does a responsive web app hosted on Vercel qualify?
 7. The Qloo Hackathon Kit lists only the `qloo` harness commands as supported surfaces, while the Dev guide documents direct REST calls. Is calling https://hackathon.api.qloo.com directly from Vercel serverless functions acceptable?
+
+Answers from Qloo's hackathon manager, 21 October 2026, as Daniel relayed them: yes to all five questions Daniel asked.
+- 2: a disclosed AI voiceover is fine; the manager suggests a video of a couple of minutes at most.
+- 3: per-IP limits are fine.
+- 5: the app may show Qloo's artist images.
+- 7: calling the REST API directly is fine.
+- Asked with these, not listed above: buyers may receive drafts made with the hackathon key.
+- Not covered by these answers: 1, 4 and 6.
