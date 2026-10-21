@@ -584,6 +584,12 @@ A change ships when its reader passes; one that fails is changed and read again 
 
 **Read again with the artist images on, written before the readers.** Daniel's brief of 21 October asks that these readers see the page with Qloo's artist images, which went on (section 30) after the four above had passed. The same four questions, shots and keys; four new readers on Claude Haiku 5.5; the shots from a local production build reading the saved builds, with the images on.
 
+**Re-read result, 2026-10-21: all four pass again.**
+1. The fee range: pass. "A popularity band, and the screen calls it the fee range", a percentile of Qloo popularity that the word "fee" makes the app's "guide to what these acts would charge". As before, the phone doesn't say how popularity turns into a fee.
+2. Why no act is at the top: pass. "The top places go to acts the headliners' fans like no matter where, while this lineup is built from acts the town's venues push up." It guessed that the fee bands also keep the most popular acts out, which the screens don't say (every ranking is already inside its band), and noted that with a venue's fans added a climb can end inside the top ten.
+3. Whose ranking: pass. "Qloo's."
+4. NEW in Watch: pass. The act "was not in the top 50 of Qloo's ranking before" the venue's fans were added, "so it had no earlier place to measure a climb from". It credited the lineup's picks to the AI agent, as the first screen's line "the AI agent drafted the rest of the lineup" does; the key doesn't ask who books.
+
 ## 30. Artist images, on, written before the reader
 
 Written on 2026-10-21, after Qloo's hackathon manager agreed that the app may show Qloo's artist images (RULES.md, Unclear 5) and before any reader sees the screens with them. The key doesn't change after the answer is in.
@@ -593,6 +599,8 @@ Written on 2026-10-21, after Qloo's hackathon manager agreed that the app may sh
 **The reader.** One fresh AI lay reader: a new subagent on Claude Haiku 5.5, told it has never worked in the music industry, shown only the first screen at 1440x810 and at 390x844 and one act's card (Act 84's, at 1440x810), from a local production build reading the saved Boise build. Two questions, in this order: "What is Act 84? Say what on the screen tells you." and "Does the picture next to the name help you say what Act 84 is? How?"
 
 **The bar.** It passes if the answer says Act 84 is a music act (a singer, a musician or a band who would play the festival) and that the picture helps say so, as a photo of the performer. It fails if the reader says the picture doesn't help, or reads it as something else (a venue, a fan, an advert). If it fails, the answer and the shots go to Daniel; the images stay on, since Daniel asked for them.
+
+**Result, 2026-10-21: fail, by the bar as written.** The reader said Act 84 is "a music act", from the page's wording, her genres and the heading her row sits under, and read the picture as a close-up photo of her. Asked whether it helps say what she is: "Only a little." It helps "match a row to its card and recognise her", but "nothing in the crop shows an instrument, microphone or stage", and the genre words say what she plays. It also found that a phone's rows show no pictures, and that the photo has no caption saying whose picture it is. As written above, the answer and the shots go to Daniel, and the images stay on. The answer is in .design/images-on/.
 
 ## 22. Who decides what, and what a thin town gets
 
