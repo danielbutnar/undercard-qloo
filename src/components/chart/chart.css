@@ -3091,3 +3091,17 @@
     height: 28px;
   }
 }
+
+/* Plan.md item 8: what Qloo adds over the model alone, one line under the toggle. */
+.chart-app .mode-number {
+  flex-basis: 100%;
+  margin-top: 6px;
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+@media (max-width: 767px) {
+  .chart-app .mode-number {
+    font-size: 13px;
+  }
+}

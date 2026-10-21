@@ -6,7 +6,7 @@
 //   node --experimental-transform-types --disable-warning=ExperimentalWarning
 //     --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-ts.mjs
 //     scripts/with-without-measures.ts
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { CHECKED_TOWNS } from "@/lib/checked-towns";
 import { LlmOnlyLineupSchema } from "@/lib/llm-only";
 import { checkedFestival } from "@/lib/towns";
@@ -73,6 +73,12 @@ for (const town of CHECKED_TOWNS) {
   });
 }
 const m = lineupMeasures(towns);
+// Section 31's own counts, from its run's output: the model's picks and how many pass the tests.
+const run = JSON.parse(
+  readFileSync(".design/with-without-qloo/result.json", "utf8"),
+) as { rows: { picks?: number; allThree?: number }[] };
+const total = (key: "picks" | "allThree") =>
+  run.rows.reduce((sum, row) => sum + (row[key] ?? 0), 0);
 const aggregate = {
   computedAt: new Date().toISOString().slice(0, 10),
   towns: towns.length,
@@ -82,6 +88,8 @@ const aggregate = {
   distinctWithout: m.distinctWithout,
   inHalfOrMoreWithout: m.inHalfOrMoreWithout,
   barMet: m.barMet,
+  picks: total("picks"),
+  picksPassing: total("allThree"),
 };
 console.log(
   JSON.stringify({ ...aggregate, resolved, unresolved, qlooCalls: calls }),

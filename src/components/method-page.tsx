@@ -10,6 +10,7 @@ import { venueHues } from "@/lib/venue-colours";
 import { FollowOneAct } from "./method/follow-one-act";
 import { TryIt } from "./method/try-it";
 import { ImageCredit } from "./chart/image-credit";
+import { WithWithoutLine } from "./chart/with-without-line";
 import { Verdicts } from "./method-evidence";
 import { VideoSlot } from "./video-slot";
 import "./chart/chart.css";
@@ -200,6 +201,7 @@ export function MethodPage({
         <section aria-label="What was tested" className="panel">
           <h2 className="panel-title">What was tested</h2>
           <Verdicts />
+          <WithWithoutLine />
           <p className="mt-3 text-label">
             <Link href="/method/evidence" className="link">
               The evidence: every test with its result, limit and source, and

@@ -6,5 +6,7 @@
   "distinctWith": 85,
   "distinctWithout": 110,
   "inHalfOrMoreWithout": 3,
-  "barMet": false
+  "barMet": false,
+  "picks": 290,
+  "picksPassing": 10
 }
