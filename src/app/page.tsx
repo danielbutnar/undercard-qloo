@@ -8,7 +8,8 @@ import { townsOnShow } from "@/server/towns";
 import { withVenueSwitch } from "@/server/venue-switch";
 
 // The latest saved build, read on the server and cached for a minute, so the page is served
-// as static HTML with the bill on first paint. A fresh build shows up within that minute.
+// as static HTML with the bill on first paint. A festival's first saved build shows up within
+// that minute; a later live run never replaces it.
 async function firstBill() {
   "use cache";
   cacheLife("minutes");
