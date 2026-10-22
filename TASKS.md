@@ -608,7 +608,7 @@ Done means: the seven items are committed and green; the rendered first screen, 
 - [x] `pnpm gate` and the synthetic e2e suite pass; then stop for Daniel's yes to deploy. On 351185f, with the other session's a27757f and e0f769d: gate (561 unit tests and the design scan), synthetic e2e 85 passed, 16 skipped, and the build; on a local build reading the saved builds, 7 of 7 (the retired words but Without Qloo, and the image specs, Watch's editions among them)
 - [x] Deploy; `pnpm e2e --workers=1` against production. Pushed e098874..351185f at 08:16:31 UTC on 2026-10-22 (16 commits; the 7 not from this brief change no app code); production served the new first-screen line at 08:17:21 UTC. Production e2e, without E2E_LIVE_QLOO: 94 passed, 7 skipped (the 3 live-Qloo steps and the 4 empty-server scenes), the retired words absent on all five screens, Watch's real editions included; LCP 580 ms
 
-# TASKS: Daniel's second batch of 2026-10-22, after the deploy (not pushed: it goes out with the next deploy)
+# TASKS: Daniel's second batch of 2026-10-22, after the deploy (deployed with 4eea27c, see the last lines)
 
 Test-first, one commit each. docs/design-brief.md stays as it is: design history, not shown in the app.
 
@@ -619,3 +619,7 @@ Test-first, one commit each. docs/design-brief.md stays as it is: design history
 - [x] 5. The card's badge on a 375 px phone uses the row tab's label ("Climbs with V418's fans added"), below 560 px; the full name stays at 560 px and up and in the climb and Why lines. e4d36aa. At 375 px on the saved Boise build, V418's 8 acts take two lines and Venue 227's 2 take three, since its tab label is its name; so do Venue 213 Austin, Venue 333, Venue 184, Venue 331 and Venue 106. Left to Daniel
 - [x] 6. Once the other session was done: this file ticked, and SPEC.md section 3 step 3 says "Why it's here" (Daniel's OK for that one line)
 - [x] Gate (562 unit tests and the design scan) and synthetic e2e (86 passed, 16 skipped) on e4d36aa, and the build; on a local build reading the saved builds, 12 of 12 (the phone checks, the evidence page, the retired words, demo steps 1-3)
+- [x] Daniel's yes (Venue 227's badge stays as it is): pushed 351185f..4eea27c at 08:44:43 UTC; production served it at 08:45:24 UTC
+- [x] The production e2e once with E2E_LIVE_QLOO=1 and --workers=1: 98 passed, 4 skipped (the 4 empty-server scenes), 08:46-08:51 UTC; refill, redraft and running order passed after the card changes. Qloo calls, read from the run's Playwright traces: 28 through the live routes (refill 1, redraft 3, running order 8 in its test and 8 in each of its two design shots), every one answered from the server's Qloo cache, so none went to Qloo, with no retry and no error. The redraft's response body wasn't kept in its trace, so its 3 calls were read from the page's own trace panel ("3 more calls", each marked cached). Pages and replays read the cache by design; a miss on the server wouldn't show in the browser, so that part isn't counted
+- [x] The 29 latest pointers against .design/pinned-builds/latest-pointers-2026-10-21.json, replay-only: 29 of 29 before the push (08:44 UTC) and after the run (08:51 UTC)
+- [x] No deploys from here until Daniel says his test with real people is over (recorded in Claude's project memory too); this tick is committed, not pushed
