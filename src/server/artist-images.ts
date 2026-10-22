@@ -4,14 +4,15 @@ import {
   type ArtistImages,
 } from "@/lib/artist-images";
 import type { FirstBill } from "@/lib/first-bill";
-import { serverQloo } from "./deps";
+import { serverCachedQloo } from "./deps";
 import type { QlooClient } from "./qloo";
 
 type QlooImages = Pick<QlooClient, "images">;
 
 /**
  * A whole lineup's image URLs in one Qloo call (GET /entities), cached server-side like every
- * Qloo answer; null when there's no client or Qloo fails, so the acts keep their drawn covers.
+ * Qloo answer; null when there's no client or Qloo fails (a cache-only client's miss is a
+ * failure too), so the acts keep their drawn covers.
  */
 export async function readArtistImages(
   qloo: QlooImages | null,
@@ -32,16 +33,47 @@ export async function readArtistImages(
   }
 }
 
-/** The saved build with its acts' images, only while ARTIST_IMAGES is on; as it is otherwise. */
+/**
+ * A saved build's photos (WS9): its lineup's, in the lineup's order, then its headliners', in
+ * the build's order, one /entities call each. The page reads them with a cache-only client;
+ * scripts/warm-page-images.ts calls this same function with a live one, so the cache keys match.
+ */
+export async function billImages(
+  bill: Pick<FirstBill, "acts" | "headliners">,
+  qloo: QlooImages | null,
+): Promise<Pick<FirstBill, "images" | "headlinerImages">> {
+  const [images, headlinerImages] = await Promise.all([
+    readArtistImages(
+      qloo,
+      bill.acts.map((act) => act.entityId),
+    ),
+    readArtistImages(
+      qloo,
+      (bill.headliners ?? []).map((headliner) => headliner.entityId),
+    ),
+  ]);
+  return {
+    ...(images ? { images } : {}),
+    ...(headlinerImages && Object.keys(headlinerImages).length > 0
+      ? { headlinerImages }
+      : {}),
+  };
+}
+
+/**
+ * The saved build with its photos, only while ARTIST_IMAGES is on; as it is otherwise. A page
+ * reads them from the Qloo cache only (serverCachedQloo), so a render never calls Qloo: a photo
+ * the cache doesn't hold leaves its act with the drawn cover.
+ */
 export async function withArtistImages(
   bill: FirstBill | null,
   qloo?: QlooImages | null,
   on: boolean = ARTIST_IMAGES,
 ): Promise<FirstBill | null> {
   if (!on || !bill) return bill;
-  const images = await readArtistImages(
-    qloo === undefined ? serverQloo() : qloo,
-    bill.acts.map((act) => act.entityId),
+  const read = await billImages(
+    bill,
+    qloo === undefined ? serverCachedQloo() : qloo,
   );
-  return images ? { ...bill, images } : bill;
+  return Object.keys(read).length > 0 ? { ...bill, ...read } : bill;
 }

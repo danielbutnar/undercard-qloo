@@ -20,6 +20,10 @@ export interface FirstBill {
   places?: Record<string, Placed>;
   /** Each act's image on Qloo, only while ARTIST_IMAGES is on (src/lib/artist-images.ts). */
   images?: ArtistImages;
+  /** The booked headliners as the build found them on Qloo, from its context (WS9). */
+  headliners?: { entityId: string; name: string }[];
+  /** Each headliner's image on Qloo, by entity id, read with the lineup's (WS9). */
+  headlinerImages?: ArtistImages;
   /** The venue switch worked out on the server from the Qloo cache, so it's on first paint. */
   venueSwitch?: VenueSwitchData;
   /** Where the saved trace shows the planner switch venue (src/lib/agent-switch.ts); left out
