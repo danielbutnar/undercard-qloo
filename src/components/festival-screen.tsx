@@ -1545,6 +1545,17 @@ export function FestivalScreen({
               dim={watching}
               pulses={pulses}
               overlay={sceneOverlay}
+              reserve={
+                wide
+                  ? {
+                      corner: { w: 420, h: 104 },
+                      ...(watching ? { top: 150 } : {}),
+                      ...((cardInTown && openAct) || (venueCard && !openAct)
+                        ? { right: 404 }
+                        : {}),
+                    }
+                  : {}
+              }
             />
           </section>
         </div>

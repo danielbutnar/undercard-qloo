@@ -135,6 +135,35 @@ describe("the camera", () => {
     expect(focus(boxes, "nowhere", LAPTOP, wide.spin)).toBeNull();
   });
 
+  it("sets the venue where it's asked to stand: Watch's place, clear of its button and caption", () => {
+    const wide = overview(boxes, LAPTOP);
+    const close = focus(boxes, "venue-b", LAPTOP, wide.spin, {
+      x: 0.56,
+      y: 0.64,
+    })!;
+    expect(close.ox).toBeCloseTo(LAPTOP.w * 0.06, 6);
+    expect(close.oy).toBeCloseTo(LAPTOP.h * 0.14, 6);
+    const venue = boxes.find((box) => box.venue === "venue-b")!;
+    // Its ground centre lands on the spot asked for.
+    const ground = project(
+      venue.x + venue.w / 2,
+      venue.y + venue.d / 2,
+      0,
+      close,
+      LAPTOP,
+    );
+    expect(ground.x).toBeCloseTo(LAPTOP.w * 0.56, 6);
+    expect(ground.y).toBeCloseTo(LAPTOP.h * 0.64, 6);
+    // A wider view for Watch, so the whole building shows under the caption.
+    expect(
+      focus(boxes, "venue-b", LAPTOP, wide.spin, {
+        x: 0.56,
+        y: 0.64,
+        zoom: 1.2,
+      })!.zoom,
+    ).toBeCloseTo((close.zoom / 1.45) * 1.2, 9);
+  });
+
   it("glides the short way round, and ends where it was sent", () => {
     expect(nearSpin(170, -170)).toBe(190);
     expect(nearSpin(-10, 10)).toBe(10);

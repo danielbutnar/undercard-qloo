@@ -171,6 +171,7 @@ export function TownScene({
   pulses = {},
   interactive = true,
   overlay,
+  reserve = {},
   narrowHint = "Swipe to turn the town",
   wideHint = "Drag to turn the town",
 }: {
@@ -191,6 +192,12 @@ export function TownScene({
   interactive?: boolean;
   /** What sits over the town: Watch's caption, a card, Without Qloo's note. */
   overlay?: ReactNode;
+  /**
+   * Where things the screen sets over the town stand, in CSS pixels, so no sign hides under them:
+   * a band along the top (Watch's caption), one down the right (a card) and a corner at the
+   * bottom left (Watch's own button, from the screen's grid).
+   */
+  reserve?: { top?: number; right?: number; corner?: { w: number; h: number } };
   narrowHint?: string;
   wideHint?: string;
 }) {
@@ -262,8 +269,12 @@ export function TownScene({
   const first = useRef(true);
   useEffect(() => {
     if (!vp) return;
+    // While Watch plays on a laptop, the venue it reads stands right of its button and under its
+    // caption, a little further off so the whole building shows.
+    const at =
+      dim && !narrowView(vp) ? { x: 0.58, y: 0.66, zoom: 1.2 } : undefined;
     const target = focusOn
-      ? (focus(boxes, focusOn, vp, camRef.current?.spin ?? startSpin(vp)) ??
+      ? (focus(boxes, focusOn, vp, camRef.current?.spin ?? startSpin(vp), at) ??
         overview(boxes, vp, camRef.current?.spin))
       : overview(
           boxes,
@@ -384,6 +395,32 @@ export function TownScene({
   }
 
   const boxOf = (id: string) => boxes.find((box) => box.venue === id);
+  // Where the controls stand at the bottom right, and what the screen sets over the town.
+  const zones =
+    vp === null
+      ? []
+      : [
+          {
+            x0: vp.w - 12 - (narrow ? 144 : 244) - 8,
+            y0: vp.h - 12 - 44 - 6 - 24 - 6,
+            x1: vp.w,
+            y1: vp.h,
+          },
+          ...(reserve.top ? [{ x0: 0, y0: 0, x1: vp.w, y1: reserve.top }] : []),
+          ...(reserve.right
+            ? [{ x0: vp.w - reserve.right, y0: 0, x1: vp.w, y1: vp.h }]
+            : []),
+          ...(reserve.corner
+            ? [
+                {
+                  x0: 0,
+                  y0: vp.h - reserve.corner.h,
+                  x1: reserve.corner.w,
+                  y1: vp.h,
+                },
+              ]
+            : []),
+        ];
   const signs =
     cam && vp && !without
       ? venues.flatMap((venue) => {
@@ -391,7 +428,27 @@ export function TownScene({
           if (!box) return [];
           const p = project(...signPoint(box), cam, vp);
           const outside = p.x < 0 || p.x > vp.w || p.y < 24 || p.y > vp.h + 4;
-          return outside ? [] : [{ venue, x: p.x, y: p.y - 4, k: p.k }];
+          if (outside) return [];
+          // The sign's box, as it stands over its pole: name and chip, then the pole.
+          const size = narrow ? 12 : 17;
+          const chip = signChip({
+            lifted: venue.lifted,
+            off: venue.off,
+            unread: venue.unread,
+          });
+          const w =
+            signName(venue.name).length * size * 0.5 + 24 + chip.length * 7.2 + 22;
+          const h = size + 11 + 6 + 14;
+          const covered =
+            selected !== venue.entityId &&
+            zones.some(
+              (zone) =>
+                p.x + w / 2 > zone.x0 &&
+                p.x - w / 2 < zone.x1 &&
+                p.y > zone.y0 &&
+                p.y - h < zone.y1,
+            );
+          return covered ? [] : [{ venue, x: p.x, y: p.y - 4, k: p.k }];
         })
       : [];
 
@@ -504,7 +561,8 @@ export function TownScene({
         })}
       </div>
       {overlay}
-      {interactive && !without && (
+      {/* A card open over the town takes the controls' corner, as the layout brief has it. */}
+      {interactive && !without && !reserve.right && (
         <div className={`town-controls ${dim ? "is-waiting" : ""}`}>
           <p className="town-hint" aria-hidden>
             {narrow ? narrowHint : wideHint}

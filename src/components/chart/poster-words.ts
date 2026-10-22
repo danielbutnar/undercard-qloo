@@ -382,8 +382,9 @@ export function withoutNote(
 }
 
 /**
- * The checks summed up under the picks: what fits a range, what Qloo doesn't know, and which
- * picks climb with a venue's fans. It never says that none climbs: a pick may.
+ * The checks summed up under the picks: what fits a range, what sits below them, what Qloo
+ * doesn't know, and which picks climb with a venue's fans (the headline and the ruler say what
+ * sits above). It never says that none climbs: a pick may.
  */
 export function withoutSummary(
   festival: Pick<Festival, "city" | "feeBands">,
@@ -398,10 +399,6 @@ export function withoutSummary(
         `${n} ${n === 1 ? "fits" : "fit"} the ${RANGE_NAME[band.id]} range`,
       );
   }
-  if (counts.above > 0)
-    parts.push(
-      `${counts.above} ${counts.above === 1 ? "sits" : "sit"} above both ranges`,
-    );
   if (counts.below > 0)
     parts.push(
       `${counts.below} ${counts.below === 1 ? "sits" : "sit"} below both ranges`,

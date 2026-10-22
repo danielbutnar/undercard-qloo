@@ -261,19 +261,26 @@ export function focus(
   venueId: string,
   vp: Viewport,
   spin: number,
+  /**
+   * Where the venue's ground centre stands, as fractions of the viewport, and how near (times
+   * the fitted zoom). By default left of centre on a laptop, where a card opens on the right.
+   */
+  at?: { x: number; y: number; zoom?: number },
 ): Camera | null {
   const box = boxes.find((entry) => entry.venue === venueId);
   if (!box) return null;
   const narrow = narrowView(vp);
-  const zoom = fitZoom(boxes, { spin, tilt: 50 }, vp) * (narrow ? 1.25 : 1.45);
+  const place = at ?? (narrow ? { x: 0.5, y: 0.74 } : { x: 0.3, y: 0.6 });
+  const near = place.zoom ?? (narrow ? 1.25 : 1.45);
+  const zoom = fitZoom(boxes, { spin, tilt: 50 }, vp) * near;
   return {
     spin,
     tilt: 50,
     zoom,
     fx: box.x + box.w / 2,
     fy: box.y + box.d / 2,
-    ox: narrow ? 0 : -vp.w * 0.2,
-    oy: vp.h * (narrow ? 0.24 : 0.1),
+    ox: vp.w * (place.x - 0.5),
+    oy: vp.h * (place.y - 0.5),
   };
 }
 

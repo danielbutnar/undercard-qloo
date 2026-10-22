@@ -312,6 +312,44 @@ describe("the town scene on its own", () => {
     expect(document.querySelector(".town-view.is-without")).not.toBeNull();
   });
 
+  it("keeps signs out from under what the screen sets over it, and gives a card the controls' corner", () => {
+    const { rerender } = render(
+      <TownScene
+        seedKey="test-town"
+        venues={venues}
+        selected={null}
+        focusOn={null}
+      />,
+    );
+    expect(document.querySelectorAll(".town-sign")).toHaveLength(3);
+    // A band over the whole town: no sign can show under it.
+    rerender(
+      <TownScene
+        seedKey="test-town"
+        venues={venues}
+        selected={null}
+        focusOn={null}
+        reserve={{ top: 560 }}
+      />,
+    );
+    expect(document.querySelectorAll(".town-sign")).toHaveLength(0);
+    expect(
+      screen.getByRole("group", { name: "Move around the town" }),
+    ).toBeTruthy();
+    rerender(
+      <TownScene
+        seedKey="test-town"
+        venues={venues}
+        selected={null}
+        focusOn={null}
+        reserve={{ right: 404 }}
+      />,
+    );
+    expect(
+      screen.queryByRole("group", { name: "Move around the town" }),
+    ).toBeNull();
+  });
+
   it("picks a venue from its sign, and the whole town again from the controls", () => {
     const pick = vi.fn();
     render(

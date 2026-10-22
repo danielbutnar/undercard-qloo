@@ -373,7 +373,7 @@ describe("Without Qloo: the model's picks, checked on Qloo afterwards", () => {
 
   it("sums the checks up, naming any pick that climbs and never saying none does", () => {
     expect(withoutSummary(SAGEBRUSH_SOUND, counted())).toBe(
-      "Checked on Qloo afterwards: 1 fits the mid-size range, 1 fits the opening range, 2 sit above both ranges, 1 sits below both ranges and 1 name had no Qloo match; 1 of the 7 climbs with a Boise venue's fans: Marigold Static.",
+      "Checked on Qloo afterwards: 1 fits the mid-size range, 1 fits the opening range, 1 sits below both ranges and 1 name had no Qloo match; 1 of the 7 climbs with a Boise venue's fans: Marigold Static.",
     );
     const none = { ...counted(), climbers: [] };
     expect(withoutSummary(SAGEBRUSH_SOUND, none)).not.toMatch(/climb/);
