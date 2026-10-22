@@ -1,3 +1,4 @@
+import type { AgentSwitch } from "./agent-switch";
 import type { ArtistImages } from "./artist-images";
 import type { FeeBandId } from "./fee-bands";
 import type { Act, Venue } from "./lineup";
@@ -21,4 +22,10 @@ export interface FirstBill {
   images?: ArtistImages;
   /** The venue switch worked out on the server from the Qloo cache, so it's on first paint. */
   venueSwitch?: VenueSwitchData;
+  /** Where the saved trace shows the planner switch venue (src/lib/agent-switch.ts); left out
+   * when it shows none. */
+  agentSwitches?: AgentSwitch[];
+  /** The venues Qloo had no fan data for (src/lib/fan-data.ts), by entity id, from the server's
+   * Qloo cache; left out when there are none. */
+  noFanData?: string[];
 }

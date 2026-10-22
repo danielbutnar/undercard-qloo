@@ -3,7 +3,6 @@ import { Tri } from "@/components/chart/band-chart";
 import { Quilt } from "@/components/chart/sleeve";
 import { TopBar } from "@/components/chart/top-bar";
 import { MIN_LIFT } from "@/lib/assemble-lineup";
-import { DEMO_VIDEO_URL } from "@/lib/method";
 import type { MethodStory } from "@/lib/method-story";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { venueHues } from "@/lib/venue-colours";
@@ -148,14 +147,18 @@ function WhoDoesWhat({ calls }: { calls: number }) {
 
 /**
  * How it works (M10b, docs/evidence.md section 28), in the chart's look, top to bottom: the demo
- * video's slot; the method in one picture; one act followed through the saved build, with the AI
+ * video, once it's published; the method in one picture; one act followed through the saved build, with the AI
  * agent's choices; a venue switch to try; who does what; what was and wasn't shown, with the
  * evidence and the five objections a click away on /method/evidence.
  */
 export function MethodPage({
   story = null,
-  videoUrl = DEMO_VIDEO_URL,
-}: { story?: MethodStory | null; videoUrl?: string | null } = {}) {
+  videoUrl,
+}: {
+  story?: MethodStory | null;
+  /** The demo video's link; the slot reads DEMO_VIDEO_URL when it's left out. */
+  videoUrl?: string | null;
+} = {}) {
   return (
     <div className="chart-app stage-bg">
       <TopBar method={false}>
@@ -171,12 +174,7 @@ export function MethodPage({
           </p>
         </div>
 
-        <section aria-label="The demo video" className="panel how-video">
-          <h2 className="panel-title">The demo video</h2>
-          <div className="mt-2">
-            <VideoSlot url={videoUrl} />
-          </div>
-        </section>
+        <VideoSlot url={videoUrl} />
 
         <Picture story={story} />
 

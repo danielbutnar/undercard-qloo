@@ -107,8 +107,11 @@ test.describe("the first screen on a phone", () => {
       await expect(bill.getByText(/^\+ .+'s fans$/).first()).toBeVisible({
         timeout: 30_000,
       });
+      // WS2: the agent's line is labelled "The AI agent's plan:".
       await expect(
-        bill.getByText(/^The AI agent(: | chose which venues to read)/).first(),
+        bill
+          .getByText(/^The AI agent('s plan: | chose which venues to read)/)
+          .first(),
       ).toBeVisible();
     });
   });

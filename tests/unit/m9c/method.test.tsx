@@ -105,9 +105,11 @@ describe("the method page (M9c)", () => {
     );
   });
 
-  it("says when the video isn't published yet", () => {
+  // WS2: until the video is published the slot is gone, heading included, rather than dated.
+  it("shows no video slot while the video isn't published", () => {
     render(<MethodPage videoUrl={null} />);
     expect(document.querySelector("video, iframe")).toBeNull();
-    expect(screen.getByText(/The demo video will play here/)).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "The demo video" })).toBeNull();
+    expect(screen.queryByText(/The demo video will play here/)).toBeNull();
   });
 });

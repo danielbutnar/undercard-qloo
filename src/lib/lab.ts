@@ -14,6 +14,12 @@ export function labEnabled(
   return env.NODE_ENV === "development" && !env.VERCEL;
 }
 
+/**
+ * A YouTube link with an invented video id for /lab/video-slot (WS2): How it works shows no video
+ * slot while DEMO_VIDEO_URL is unset, so this page is where the YouTube facade can be checked.
+ */
+export const LAB_VIDEO_URL = "https://www.youtube.com/watch?v=undercard01";
+
 export interface LabDirection {
   slug: string;
   name: string;

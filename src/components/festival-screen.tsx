@@ -16,14 +16,23 @@ import { Quilt } from "@/components/chart/sleeve";
 import { TopBar } from "@/components/chart/top-bar";
 import { VenueSwitch, type VenueLine } from "@/components/chart/venue-switch";
 import {
+  AGENT_DECIDES,
+  agentLine,
+  ANCHORS_KEY,
   headlinersBooked,
   headlinersNote,
   factsLine,
   headline,
   QLOO_LINE,
+  saysAnchors,
   SKIP,
   STAMP,
+  switchLine,
   WATCH,
+  watchCallLine,
+  watchLine,
+  watchTicksLabel,
+  watchTitle,
 } from "@/components/chart/words";
 import { ModelBill } from "@/components/model-bill";
 import { RunningOrderPanel } from "@/components/running-order-panel";
@@ -33,7 +42,6 @@ import { useLlmOnly } from "@/components/use-llm-only";
 import { useUndercardBuild } from "@/components/use-undercard-build";
 import { useVenueSwitch } from "@/components/use-venue-switch";
 import { useWatch, type WatchPhase } from "@/components/use-watch";
-import { MIN_LIFT } from "@/lib/assemble-lineup";
 import type { TraceCall } from "@/lib/build-events";
 import { firstBoard } from "@/lib/build-state";
 import {
@@ -283,6 +291,9 @@ function EditionBanner({
   calls,
   total,
   note,
+  anchorsKey,
+  switched,
+  noFanData,
   lifted,
   headliners,
   replayed,
@@ -295,6 +306,12 @@ function EditionBanner({
   calls: number;
   total: number;
   note: string | null;
+  /** The agent's line is its first that says "Anchors": the key goes under it. */
+  anchorsKey: boolean;
+  /** The planner's venue switch, in one sentence, where the saved trace shows it here. */
+  switched: string | null;
+  /** Qloo had no fan data for this edition's venue (the saved build's, from the cache). */
+  noFanData: boolean;
   /** Acts on the lineup this edition's venue lifted; null until the lineup is in. */
   lifted: number | null;
   headliners: readonly string[];
@@ -302,27 +319,8 @@ function EditionBanner({
   onSkip: () => void;
 }) {
   const first = phase === "calls" || !step;
-  // A live run sends its lineup after its last call: until then, the edition's own climbs.
-  const climbs =
-    step?.acts.filter((listed) => listed.move !== null).length ?? 0;
-  const title = first
-    ? replayed
-      ? "Replaying the AI agent's build"
-      : "The AI agent is planning its Qloo calls"
-    : step.venue
-      ? `+ ${step.venue.name}'s fans`
-      : `${headliners.join(" + ")} fans alone`;
-  const line = first
-    ? "First it finds the headliners and the town's music venues in Qloo."
-    : step.venue
-      ? lifted === null
-        ? climbs > 0
-          ? `Qloo's ranking re-sorts with this venue's fans added: ${climbs} of the top ${step.acts.length} ${climbs === 1 ? "climbs" : "climb"} ${MIN_LIFT} places or more.`
-          : `Qloo's ranking re-sorts with this venue's fans added: no act in view climbs ${MIN_LIFT} places.`
-        : lifted > 0
-          ? `Qloo's ranking re-sorts with this venue's fans added: ${lifted} ${lifted === 1 ? "act climbs" : "acts climb"} onto the lineup.`
-          : `Qloo's ranking re-sorts with this venue's fans added: no act climbs ${MIN_LIFT} places onto the lineup.`
-      : "Qloo ranks the artists the headliners' fans like: the chart before any venue.";
+  const title = watchTitle({ first, step, replayed, headliners });
+  const line = watchLine({ first, step, lifted, noFanData });
   const shown = Math.max(total, calls);
   return (
     <div
@@ -331,28 +329,22 @@ function EditionBanner({
       <div className="edition-main" aria-live="polite">
         <p className="edition-title">{title}</p>
         <p className="edition-line">{line}</p>
-        {call && (
-          <p className="edition-call">
-            Qloo call {call.n} of {shown}: {call.summary}
-            {call.resultCount !== null ? ` · ${call.resultCount} results` : ""}
-          </p>
-        )}
+        {call && <p className="edition-call">{watchCallLine(call, shown)}</p>}
         {note ? (
-          <p className="edition-note">The AI agent: {note}</p>
+          <p className="edition-note">{agentLine(note)}</p>
         ) : !first && step?.venue ? (
           // Where the saved trace holds no line of the agent's for this step, say what it
           // decides rather than invent a reason (plan.md item 3).
-          <p className="edition-note">
-            The AI agent chose which venues to read, and in what order;
-            Qloo&apos;s numbers and the rule pick the acts.
-          </p>
+          <p className="edition-note">{AGENT_DECIDES}</p>
         ) : null}
+        {note && anchorsKey && <p className="edition-note">{ANCHORS_KEY}</p>}
+        {switched && <p className="edition-note">{switched}</p>}
       </div>
       <div className="edition-side">
         <span
           className="ticks"
           role="img"
-          aria-label={`${calls} of ${shown} Qloo calls in`}
+          aria-label={watchTicksLabel(calls, shown)}
         >
           {Array.from({ length: shown }, (_, i) => (
             <i key={i} className={i < calls ? "lit" : ""} />
@@ -639,9 +631,34 @@ export function FestivalScreen({
         ).length
       : null;
   // Only the planner's own lines are the agent's; a replay's status line isn't.
-  const note = call
-    ? (state.notes.filter((entry) => entry.at < call.n).at(-1)?.text ?? null)
-    : (state.notes.at(-1)?.text ?? null);
+  const noteAt = call
+    ? state.notes.findLastIndex((entry) => entry.at < call.n)
+    : state.notes.length - 1;
+  const note = state.notes[noteAt]?.text ?? null;
+  // The first of the agent's lines that says "Anchors" gets a one-line key under it.
+  const anchorsKey =
+    noteAt >= 0 &&
+    noteAt === state.notes.findIndex((entry) => saysAnchors(entry.text));
+  // From the saved build only (WS2): while Watch replays the saved build this page came with,
+  // the planner's venue switch, on the editions of the venue it switched to (before the first
+  // edition, under the line that made the switch), and the venues Qloo had no fan data for.
+  const savedBuildOnScreen =
+    firstBill !== null &&
+    state.build?.replayed === true &&
+    state.build.id === firstBill.build.id;
+  const savedSwitches = savedBuildOnScreen
+    ? (firstBill.agentSwitches ?? [])
+    : [];
+  const savedNoFanData = savedBuildOnScreen ? (firstBill.noFanData ?? []) : [];
+  const noFanDataHere = Boolean(
+    step?.venue && savedNoFanData.includes(step.venue.entityId),
+  );
+  const switched =
+    savedSwitches.find((entry) =>
+      step?.venue
+        ? step.venue.entityId === entry.to.entityId
+        : !step && entry.note === noteAt,
+    ) ?? null;
 
   const bandsView =
     mode === "llm" ? (
@@ -880,6 +897,11 @@ export function FestivalScreen({
                 calls={state.calls.length}
                 total={calls ?? 12}
                 note={note}
+                anchorsKey={anchorsKey}
+                switched={
+                  switched ? switchLine(switched, savedNoFanData) : null
+                }
+                noFanData={noFanDataHere}
                 lifted={liftedHere}
                 headliners={festival.headliners}
                 replayed={replaying || state.build?.replayed === true}
