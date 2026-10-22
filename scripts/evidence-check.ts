@@ -13,11 +13,23 @@ import { feeBandFor, type FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import type { ClimbEvent } from "@/lib/lift-climb";
 import type { Act, Lineup } from "@/lib/lineup";
+import { LlmOnlyLineupSchema } from "@/lib/llm-only";
 import { liftOf } from "@/lib/marks";
+import { foundOnQloo, normalise, pickTests } from "@/lib/pick-tests";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { checkedFestival, TOWNS } from "@/lib/towns";
+import { lineupMeasures } from "@/lib/with-without";
 import { QLOO_CALL_CAP } from "@/server/agent-tools";
+import { createBuildStore } from "@/server/build-store";
+import { handleLlmOnly } from "@/server/llm-only";
+import { createQlooClient, QlooCacheMiss } from "@/server/qloo";
+import type { QlooCache } from "@/server/qloo-cache";
+import type { RateLimiter } from "@/server/rate-limit";
 import { REFILL_CALL_CAP } from "@/server/refill";
+import { assemblyFromSaved } from "@/server/venue-switch";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { z } from "zod";
 
 /** A computation's number, or why there isn't one. */
 export type Missing = { missing: string };
@@ -444,12 +456,36 @@ export type Computation =
   | { kind: "with-qloo"; count: WithQlooCount }
   | { kind: "rule"; of: "min-lift" | "call-cap" | "refill-cap" }
   | { kind: "fee-range"; end: "bottom" | "top" }
-  | { kind: "checked-towns" };
+  | { kind: "checked-towns" }
+  | { kind: "without"; count: WithoutCount | "towns" | "rebuilt" }
+  | { kind: "without-towns"; count: WithoutCount; equal: number }
+  | { kind: "without-most"; count: WithoutCount }
+  | {
+      kind: "measure";
+      of:
+        | "towns-sharing-no-act"
+        | "towns-changed-seven"
+        | "distinct-with"
+        | "distinct-without"
+        | "named-in-half"
+        | "average-changed";
+    }
+  | {
+      kind: "run";
+      of:
+        | "model-calls"
+        | "searches"
+        | "search-retries"
+        | "answers-saved"
+        | "answers-asked";
+    };
 
 export interface EvidenceData {
   towns: TownBuild[];
-  without: null;
-  run: null;
+  /** The Without Qloo counts as they stand: from the store, else from the raw files. */
+  without: WithoutData | null;
+  /** Section 31's run as its raw files recorded it. */
+  run: RunRecord | null;
 }
 
 const BOISE = CHECKED_TOWNS[0].city;
@@ -633,8 +669,66 @@ export function describe(computation: Computation): string {
       return `the brief's fee ranges: the ${c.end} percentile`;
     case "checked-towns":
       return "src/lib/checked-towns.ts: checked towns";
+    case "without":
+      return `Without Qloo, the measured towns: ${WITHOUT_WORDS[c.count]}`;
+    case "without-towns":
+      return `Without Qloo: towns with ${c.equal} ${WITHOUT_WORDS[c.count]}`;
+    case "without-most":
+      return `Without Qloo: the most ${WITHOUT_WORDS[c.count]} in one town`;
+    case "measure":
+      return `the review's measures: ${MEASURE_WORDS[c.of]}`;
+    case "run":
+      return `section 31's run record (.design): ${RUN_WORDS[c.of]}`;
   }
 }
+
+const WITHOUT_WORDS: Record<WithoutCount | "towns" | "rebuilt", string> = {
+  towns: "towns with a saved build and a saved model answer",
+  rebuilt: "towns whose build's lists the cache holds",
+  picks: "the model's picks",
+  found: "picks found on Qloo",
+  inRange: "picks in the fee range",
+  above: "picks above the fee range",
+  below: "picks below the fee range",
+  twoGenres: "picks sharing two genres with the headliners",
+  climbs: "picks that climb with a venue's fans",
+  allThree: "picks passing all three tests",
+};
+const MEASURE_WORDS: Record<
+  Extract<Computation, { kind: "measure" }>["of"],
+  string
+> = {
+  "towns-sharing-no-act": "towns whose two lineups share no act",
+  "towns-changed-seven": "towns where Qloo changes at least 7 of the 10",
+  "distinct-with": "distinct acts on the With Qloo lineups",
+  "distinct-without": "distinct acts on the Without Qloo lineups",
+  "named-in-half": "acts on half the Without Qloo lineups or more",
+  "average-changed": "acts Qloo changes per town, on average (one decimal)",
+};
+const RUN_WORDS: Record<Extract<Computation, { kind: "run" }>["of"], string> = {
+  "model-calls": "model calls",
+  searches: "distinct Qloo searches",
+  "search-retries": "search attempts beyond one per search",
+  "answers-saved": "towns whose model answer was already saved",
+  "answers-asked": "towns whose model answer the run asked for",
+};
+
+/** The rebuilt towns' counts of one kind, or why the source can't give them. */
+function withoutCounts(
+  data: EvidenceData,
+  count: WithoutCount,
+): number[] | Missing {
+  if (!data.without) return NO_WITHOUT;
+  const towns = data.without.towns.filter((town) => town.rebuilt);
+  const counts = towns.map((town) => town.counts[count]);
+  if (counts.some((value) => value === undefined))
+    return missing(`the raw files don't hold ${count}; read the store`);
+  return counts as number[];
+}
+
+const NO_WITHOUT = missing(
+  "no Without Qloo data: no store and no .design/with-without-qloo/",
+);
 
 /** A computation's number from the replays and the code. */
 export function evaluate(
@@ -786,5 +880,345 @@ export function evaluate(
     }
     case "checked-towns":
       return CHECKED_TOWNS.length;
+    case "without": {
+      if (!data.without) return NO_WITHOUT;
+      if (c.count === "towns") return data.without.towns.length;
+      if (c.count === "rebuilt")
+        return data.without.towns.filter((town) => town.rebuilt).length;
+      const counts = withoutCounts(data, c.count);
+      return isMissing(counts)
+        ? counts
+        : counts.reduce((sum, value) => sum + value, 0);
+    }
+    case "without-towns": {
+      const counts = withoutCounts(data, c.count);
+      return isMissing(counts)
+        ? counts
+        : counts.filter((value) => value === c.equal).length;
+    }
+    case "without-most": {
+      const counts = withoutCounts(data, c.count);
+      if (isMissing(counts)) return counts;
+      return counts.length ? Math.max(...counts) : missing("no town measured");
+    }
+    case "measure": {
+      if (!data.without) return NO_WITHOUT;
+      const towns = data.without.towns.flatMap((town) =>
+        town.keys ? [town.keys] : [],
+      );
+      if (towns.length === 0) return missing("no town's two lineups were read");
+      const m = lineupMeasures(towns);
+      switch (c.of) {
+        case "towns-sharing-no-act":
+          return m.changed.filter(
+            (changed, index) => changed === towns[index].with.length,
+          ).length;
+        case "towns-changed-seven":
+          return m.townsChangedSeven;
+        case "distinct-with":
+          return m.distinctWith;
+        case "distinct-without":
+          return m.distinctWithout;
+        case "named-in-half":
+          return m.inHalfOrMoreWithout;
+        case "average-changed":
+          // As scripts/with-without-measures.ts writes it, to one decimal.
+          return Number(m.averageChanged.toFixed(1));
+      }
+    }
+    case "run": {
+      const run = data.run;
+      if (!run)
+        return missing(
+          "no run record: .design/with-without-qloo/result.json wasn't read",
+        );
+      switch (c.of) {
+        case "model-calls":
+          return run.modelCalls;
+        case "searches":
+          return run.searches;
+        case "search-retries":
+          return run.searchAttempts - run.searches;
+        case "answers-saved":
+          return run.answersSaved;
+        case "answers-asked":
+          return run.answersAsked;
+      }
+    }
   }
+}
+
+// ---------------------------------------------------------------------------------------------
+// The Without Qloo counts: from the store, read-only, or from section 31's raw files.
+
+export type WithoutCount =
+  | "picks"
+  | "found"
+  | "inRange"
+  | "above"
+  | "below"
+  | "twoGenres"
+  | "climbs"
+  | "allThree";
+
+/** One town's model picks against the three tests, and its two lineups for the measures. */
+export interface WithoutTown {
+  festivalId: string;
+  /** The build's venue lists came from the cache; without them no pick is tested. */
+  rebuilt: boolean;
+  /** A count the source doesn't hold is absent (the raw files predate above and below). */
+  counts: Partial<Record<WithoutCount, number>>;
+  /** Each lineup's acts as keys: Qloo's entity id, or "name:" and a pick's normalised name. */
+  keys: { with: string[]; without: string[] } | null;
+}
+
+export interface WithoutData {
+  source: string;
+  /** The towns with a saved build and a saved model answer. */
+  towns: WithoutTown[];
+}
+
+export interface RunRecord {
+  source: string;
+  ranAt: string;
+  modelCalls: number;
+  searches: number;
+  searchAttempts: number;
+  answersSaved: number;
+  answersAsked: number;
+}
+
+/** Reads pass through; a write throws, so nothing here can change the store. */
+export function readOnlyCache(cache: QlooCache): QlooCache {
+  return {
+    kind: cache.kind,
+    get: <T>(key: string) => cache.get<T>(key),
+    ...(cache.getOrThrow
+      ? { getOrThrow: <T>(key: string) => cache.getOrThrow!<T>(key) }
+      : {}),
+    set: async () => {
+      throw new Error("evidence:check reads the store and never writes to it");
+    },
+  };
+}
+
+const noQloo: typeof fetch = async () => {
+  throw new Error("evidence:check never calls Qloo");
+};
+// Asked only when a festival has no saved answer, and the model is never there to ask.
+const noLimit: RateLimiter = {
+  kind: "memory",
+  check: async () => {
+    throw new Error("evidence:check never asks the model");
+  },
+};
+
+/**
+ * Section 31's counts as they stand, read the way its dry run reads them
+ * (scripts/with-without-qloo.ts with DRY=1, and the measures of scripts/with-without-measures.ts):
+ * each town's latest saved build, the app's saved model answer through its own route handler with
+ * no model to ask, each pick's cached search and the build's cached lists through a Qloo client
+ * whose fetch throws. Nothing is written.
+ */
+export async function withoutFromStore(
+  store: QlooCache,
+  towns: readonly CheckedTown[] = CHECKED_TOWNS,
+): Promise<WithoutData> {
+  const cache = readOnlyCache(store);
+  const builds = createBuildStore(cache);
+  const qloo = createQlooClient({
+    apiKey: "",
+    cache,
+    cacheOnly: true,
+    fetch: noQloo,
+  });
+  const out: WithoutTown[] = [];
+  for (const town of towns) {
+    const festival = checkedFestival(town);
+    const build = await builds.latest(festival.id);
+    const answered = await handleLlmOnly({
+      festival,
+      model: () => null,
+      cache,
+      limiter: noLimit,
+      ip: "evidence-check",
+    });
+    const answer = LlmOnlyLineupSchema.safeParse(
+      ((await answered.json()) as { lineup?: unknown }).lineup,
+    );
+    if (!build || !answer.success) continue;
+    const input = await assemblyFromSaved(build, festival, qloo);
+    const counts: Record<WithoutCount, number> = {
+      picks: 0,
+      found: 0,
+      inRange: 0,
+      above: 0,
+      below: 0,
+      twoGenres: 0,
+      climbs: 0,
+      allThree: 0,
+    };
+    const without: string[] = [];
+    for (const pick of answer.data.picks) {
+      let found = null;
+      try {
+        found = foundOnQloo(
+          pick.name,
+          (await qloo.search({ query: pick.name })).data,
+        );
+      } catch (error) {
+        if (!(error instanceof QlooCacheMiss)) throw error;
+      }
+      without.push(
+        found ? found.entityId.toUpperCase() : `name:${normalise(pick.name)}`,
+      );
+      if (!input) continue;
+      counts.picks++;
+      if (!found) continue;
+      counts.found++;
+      const tests = pickTests(input, found);
+      if (tests.inFeeRange) counts.inRange++;
+      if (tests.range === "above") counts.above++;
+      if (tests.range === "below") counts.below++;
+      if (tests.genres >= 2) counts.twoGenres++;
+      if (tests.climb !== null && tests.climb > 0) counts.climbs++;
+      if (tests.passes) counts.allThree++;
+    }
+    out.push({
+      festivalId: festival.id,
+      rebuilt: input !== null,
+      counts: input ? counts : {},
+      keys: {
+        with: build.lineup.acts.map((act) => act.entityId.toUpperCase()),
+        without,
+      },
+    });
+  }
+  return { source: "the store, read-only", towns: out };
+}
+
+const RawRow = z
+  .object({
+    festival: z.string(),
+    rebuilt: z.boolean(),
+    answerSaved: z.boolean().optional(),
+    picks: z.number().optional(),
+    found: z.number().optional(),
+    inFeeRange: z.number().optional(),
+    above: z.number().optional(),
+    below: z.number().optional(),
+    twoGenres: z.number().optional(),
+    climbs: z.number().optional(),
+    allThree: z.number().optional(),
+  })
+  .passthrough();
+const RawResult = z
+  .object({
+    ranAt: z.string(),
+    modelCalls: z.number(),
+    searches: z.number(),
+    searchAttempts: z.number(),
+    rows: z.array(RawRow),
+  })
+  .passthrough();
+const RawMeasures = z
+  .object({
+    towns: z.array(
+      z.object({
+        festival: z.string(),
+        with: z.array(z.string()),
+        without: z.array(z.string()),
+      }),
+    ),
+  })
+  .passthrough();
+
+function readJson<T extends z.ZodType>(path: string, schema: T) {
+  if (!existsSync(path)) return null;
+  const parsed = schema.safeParse(JSON.parse(readFileSync(path, "utf8")));
+  return parsed.success ? (parsed.data as z.infer<T>) : null;
+}
+
+/**
+ * Section 31's run as it left its files under <design>/with-without-qloo/ (git-ignored): each
+ * town's counts (result.json), each town's two lineups as keys (measures.json), and the run's
+ * own record. Either is null when its file isn't there or doesn't read.
+ */
+export function withoutFromRaw(design: string): {
+  without: WithoutData | null;
+  run: RunRecord | null;
+} {
+  const dir = join(design, "with-without-qloo");
+  const result = readJson(join(dir, "result.json"), RawResult);
+  const measures = readJson(join(dir, "measures.json"), RawMeasures);
+  if (!result) return { without: null, run: null };
+  const keys = new Map(
+    (measures?.towns ?? []).map((town) => [
+      town.festival,
+      { with: town.with, without: town.without },
+    ]),
+  );
+  const source = `section 31's raw files, ${dir}, of ${result.ranAt}`;
+  return {
+    without: {
+      source,
+      towns: result.rows.map((row) => {
+        const counts: Partial<Record<WithoutCount, number>> = {};
+        const read: [WithoutCount, number | undefined][] = [
+          ["picks", row.picks],
+          ["found", row.found],
+          ["inRange", row.inFeeRange],
+          ["above", row.above],
+          ["below", row.below],
+          ["twoGenres", row.twoGenres],
+          ["climbs", row.climbs],
+          ["allThree", row.allThree],
+        ];
+        if (row.rebuilt)
+          for (const [count, value] of read)
+            if (value !== undefined) counts[count] = value;
+        return {
+          festivalId: row.festival,
+          rebuilt: row.rebuilt,
+          counts,
+          keys: keys.get(row.festival) ?? null,
+        };
+      }),
+    },
+    run: {
+      source,
+      ranAt: result.ranAt,
+      modelCalls: result.modelCalls,
+      searches: result.searches,
+      searchAttempts: result.searchAttempts,
+      answersSaved: result.rows.filter((row) => row.answerSaved === true)
+        .length,
+      answersAsked: result.rows.filter((row) => row.answerSaved === false)
+        .length,
+    },
+  };
+}
+
+/**
+ * Everything the claims are checked against: the replays from `base`; the Without Qloo counts
+ * from the store when there is one, else from the raw files under `design`; and section 31's run
+ * record from those files.
+ */
+export async function loadEvidence({
+  base,
+  fetch: fetchImpl = fetch,
+  store,
+  design,
+}: {
+  base: string;
+  fetch?: typeof fetch;
+  store: QlooCache | null;
+  design: string | null;
+}): Promise<EvidenceData> {
+  const raw = design ? withoutFromRaw(design) : { without: null, run: null };
+  const [towns, without] = await Promise.all([
+    loadReplays(base, { fetch: fetchImpl }),
+    store ? withoutFromStore(store) : Promise.resolve(raw.without),
+  ]);
+  return { towns, without, run: raw.run };
 }

@@ -8,7 +8,7 @@ import {
 import { feeBandFor } from "./fee-bands";
 
 /** Section 18's normalising: accents, case, a bracketed note and a leading "The" dropped. */
-const normalise = (name: string) =>
+export const normalise = (name: string) =>
   name
     .normalize("NFKD")
     .replace(/\p{M}/gu, "")
