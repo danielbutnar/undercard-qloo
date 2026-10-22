@@ -25,4 +25,7 @@ export interface FirstBill {
   /** Where the saved trace shows the planner switch venue (src/lib/agent-switch.ts); left out
    * when it shows none. */
   agentSwitches?: AgentSwitch[];
+  /** The venues Qloo had no fan data for (src/lib/fan-data.ts), by entity id, from the server's
+   * Qloo cache; left out when there are none. */
+  noFanData?: string[];
 }

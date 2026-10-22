@@ -5,6 +5,7 @@ import { methodStory } from "@/lib/method-story";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { withArtistImages } from "@/server/artist-images";
 import { serverBuildStore } from "@/server/deps";
+import { withFanData } from "@/server/fan-data";
 import { readFirstBill } from "@/server/first-bill";
 
 export const metadata: Metadata = { title: "How Undercard works" };
@@ -16,9 +17,13 @@ async function story() {
   cacheLife("minutes");
   return methodStory(
     SAGEBRUSH_SOUND,
-    // The same images as the first screen, from the same cached Qloo call.
-    await withArtistImages(
-      await readFirstBill(serverBuildStore(), SAGEBRUSH_SOUND.id),
+    // The same images as the first screen, from the same cached Qloo call, and the venues Qloo
+    // had no fan data for, from the cache (WS2).
+    await withFanData(
+      await withArtistImages(
+        await readFirstBill(serverBuildStore(), SAGEBRUSH_SOUND.id),
+      ),
+      SAGEBRUSH_SOUND,
     ),
   );
 }

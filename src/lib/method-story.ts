@@ -39,6 +39,8 @@ export interface MethodStory {
   images?: ArtistImages;
   /** Where the saved trace shows the planner switch venue (WS2); left out when it shows none. */
   switches?: AgentSwitch[];
+  /** The venues Qloo had no fan data for, by entity id (WS2); left out when there are none. */
+  noFanData?: string[];
 }
 
 export function methodStory(
@@ -75,5 +77,6 @@ export function methodStory(
     places: bill.places ?? {},
     ...(bill.images ? { images: bill.images } : {}),
     ...(bill.agentSwitches ? { switches: bill.agentSwitches } : {}),
+    ...(bill.noFanData ? { noFanData: bill.noFanData } : {}),
   };
 }
