@@ -656,6 +656,7 @@ Done means: WS1, WS2, WS9, WS10 and WS11 merged into branch integration (WS4 if 
   - [x] Window 1 (Daniel, 2026-10-22: from 19:24 to 23:30 Bucharest; section 34 with MAX_CALLS=440)
   - [x] Section 35's two calls at 16:24 UTC, no retry: go, 10 of 10 (706bf8b); the 29 pointers matched afterwards (16:26 UTC)
   - [x] Section 34's run, 16:26-16:34 UTC: 298 calls, no retry, every act found again; bar A not met (15 of 22, bar 16), bar B neither (the signal 11, the venues 4, 15 scored), step 0 22 of 22; names in .design/m8f/controls/
+  - [x] Section 34's copy changes, drafted in .design/m8f/controls/copy-draft.md; Daniel's yes to 1-3, the SPEC.md line left as it is: the evidence page's partly shown line and the second premise row (dd4eb70, tests/unit/evidence-34), and the limits list in docs/evidence.md
 - [ ] Phase 3: integration from main, merged in order (health, method, evidence-check, redesign, share-image, shortlist, evidence), gate and synthetic e2e after each; the reports' text applied
 - [ ] The local production build of integration for the 30-second test, by Saturday 16:00
 - [ ] Phase 4, after Daniel's yes: main fast-forwarded and pushed; production e2e, then with E2E_LIVE_QLOO=1; first-screen checks at 1440x780 and 390x664; share images; pointers; smoke workflow

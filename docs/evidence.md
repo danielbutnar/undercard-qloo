@@ -826,7 +826,7 @@ A description of the code, not a measurement, so the method page can point to it
 - That a town's crowd knows the undercard acts: section 6 found no usable measure of it.
 - That every room behind a bill is a club: a festival park or an arena can still draft one (section 10).
 - That a room's crowd predicts a festival's bookings. Section 2's check against Treefort was a no-go; its counts (0 to 2 of 50) are too small to show the signal either way.
-- That a town's venues pick out what its festivals book. Section 18's test on ten real festivals fell one short of its bar (7 of 10 against 8); section 26's, on 30 more with complete lineups, met its bar with no margin (20 of 30 against 20). In both the differences are small, and they show that the venues' fans like the booked acts more than matched random ones, not that the buyers used those venues.
+- That a town's venues pick out what its festivals book. Section 18's test on ten real festivals fell one short of its bar (7 of 10 against 8); section 26's, on 30 more with complete lineups, met its bar with no margin (20 of 30 against 20). In both the differences are small, and they show that the venues' fans like the booked acts more than matched random ones, not that the buyers used those venues. Section 34's controls add that it isn't shown to be the town's own: another country's venues gave the booked acts the edge at 18 of the 30, and at all 22 scored festivals the booked acts start lower in the headliners' ranking than the random acts, so part of their lift may be room to climb.
 - Stability beyond the runs in section 5: five in Boise and three in each other town, all on one day, with one pair of headliners.
 
 ## Sources
