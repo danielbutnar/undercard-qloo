@@ -60,7 +60,13 @@ describe("the three tests, for any artist (evidence section 31)", () => {
   it("passes an act inside a band, with two of the headliners' genres, that a venue's fans lift", () => {
     expect(
       pickTests(INPUT, artist("climber", 0.85, ["Indie Rock", "Dream Pop"])),
-    ).toEqual({ inFeeRange: true, genres: 2, climb: 17, passes: true });
+    ).toEqual({
+      inFeeRange: true,
+      range: "in",
+      genres: 2,
+      climb: 17,
+      passes: true,
+    });
   });
 
   it("counts a place in a venue's list as a climb when the headliners-only list didn't have it", () => {
@@ -73,7 +79,13 @@ describe("the three tests, for any artist (evidence section 31)", () => {
   it("fails an act above or below the bands, and one no venue's list holds", () => {
     expect(
       pickTests(INPUT, artist("big", 0.95, ["Indie Rock", "Dream Pop"])),
-    ).toEqual({ inFeeRange: false, genres: 2, climb: null, passes: false });
+    ).toEqual({
+      inFeeRange: false,
+      range: "above",
+      genres: 2,
+      climb: null,
+      passes: false,
+    });
     expect(pickTests(INPUT, artist("small", 0.4, [])).inFeeRange).toBe(false);
   });
 });

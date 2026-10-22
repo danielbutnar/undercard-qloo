@@ -11,7 +11,7 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import type { RankedArtist } from "@/lib/assemble-lineup";
 import { CHECKED_TOWNS } from "@/lib/checked-towns";
-import { pickTests } from "@/lib/pick-tests";
+import { foundOnQloo, pickTests } from "@/lib/pick-tests";
 import { checkedFestival } from "@/lib/towns";
 import { createLlmOnlyModel, type LlmOnlyModel } from "@/server/ai";
 import { createBuildStore } from "@/server/build-store";
@@ -74,16 +74,6 @@ const limiter: RateLimiter = {
   check: async () => ({ allowed: true }),
 };
 
-/** Section 18's normalising: accents, case, a bracketed note and a leading "The" dropped. */
-const normalise = (name: string) =>
-  name
-    .normalize("NFKD")
-    .replace(/\p{M}/gu, "")
-    .replace(/\([^)]*\)/g, "")
-    .toLowerCase()
-    .replace(/^\s*the\s+/, "")
-    .replace(/[^\p{L}\p{N}]/gu, "");
-
 /** One festival's counts; `rebuilt` is false when its saved lists can't be read. */
 const rows: ({ festival: string; rebuilt: boolean } & Record<
   string,
@@ -126,11 +116,10 @@ for (const town of CHECKED_TOWNS) {
     let found: RankedArtist | null = null;
     let searched = true;
     try {
-      const results = (await live.search({ query: pick.name })).data;
-      found =
-        results.find(
-          (entity) => normalise(entity.name) === normalise(pick.name),
-        ) ?? null;
+      found = foundOnQloo(
+        pick.name,
+        (await live.search({ query: pick.name })).data,
+      );
     } catch (error) {
       if (!(error instanceof QlooCacheMiss)) throw error;
       searched = false;
@@ -156,6 +145,8 @@ for (const town of CHECKED_TOWNS) {
     searched: picks.filter((pick) => pick.searched).length,
     found: picks.filter((pick) => pick.found !== null).length,
     inFeeRange: count(picks, (t) => t.inFeeRange),
+    above: count(picks, (t) => t.range === "above"),
+    below: count(picks, (t) => t.range === "below"),
     twoGenres: count(picks, (t) => t.genres >= 2),
     climbs: count(picks, (t) => t.climb !== null && t.climb > 0),
     allThree: count(picks, (t) => t.passes),
@@ -178,6 +169,8 @@ console.log(
     picks: sum("picks"),
     found: sum("found"),
     inFeeRange: sum("inFeeRange"),
+    above: sum("above"),
+    below: sum("below"),
     twoGenres: sum("twoGenres"),
     climbs: sum("climbs"),
     allThree: sum("allThree"),
