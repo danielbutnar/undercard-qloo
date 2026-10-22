@@ -125,15 +125,20 @@ describe("each act's split, from the Qloo cache alone (WS7 step 2)", () => {
     expect(Object.keys(splits).sort()).toEqual(
       [...MID_ACTS, ...OPENER_ACTS].sort(),
     );
-    // Invented Act 1003: Lantern 0.4, Hollow Pines 0.3, The Quiet Ones 0.2, Fort 0.1.
-    expect(splits[syntheticId(1003)]).toEqual([
-      venue(LANTERN, "The Lantern Room", 0.4),
-      headliner(HOLLOW_PINES, "Hollow Pines", 0.3),
-      headliner(QUIET_ONES, "The Quiet Ones", 0.2),
-      venue(FORT, "Fort Street Ballroom", 0.1),
-    ]);
+    // Invented Act 1003: Lantern 0.4, Hollow Pines 0.3, The Quiet Ones 0.2, Fort 0.1. The
+    // mid-size call sent three venues, the opening call two.
+    expect(splits[syntheticId(1003)]).toEqual({
+      venues: 3,
+      parts: [
+        venue(LANTERN, "The Lantern Room", 0.4),
+        headliner(HOLLOW_PINES, "Hollow Pines", 0.3),
+        headliner(QUIET_ONES, "The Quiet Ones", 0.2),
+        venue(FORT, "Fort Street Ballroom", 0.1),
+      ],
+    });
+    expect(splits[syntheticId(2001)].venues).toBe(2);
     // The Diner was in the mid-size call, but no act got a share from it.
-    for (const parts of Object.values(splits))
+    for (const { parts } of Object.values(splits))
       expect(parts.map((part) => part.entityId)).not.toContain(DINER);
     expect(requests.length).toBe(before);
     expect(sets).not.toHaveBeenCalled();

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { SplitPart } from "@/lib/attribution-line";
+import type { ActSplit, SplitPart } from "@/lib/attribution-line";
 import { FEE_BAND_IDS, type FeeBandId } from "@/lib/fee-bands";
 import type { SavedBuild } from "./build-store";
 import { createQlooClient, QlooCacheMiss } from "./qloo";
@@ -43,7 +43,7 @@ export function explainCalls(build: SavedBuild): ExplainCall[] {
 }
 
 /** Each lineup act's split, by the act's entity id; an act without one is left out. */
-export type ActSplits = Record<string, SplitPart[]>;
+export type ActSplits = Record<string, ActSplit>;
 
 // What the explain call caches (src/lib/qloo/explain.ts), checked again on the way out: a value
 // of another shape under the key reads as no split, not as a page error.
@@ -95,13 +95,16 @@ export async function attributionFor(
           [entityId, { input: "venue", entityId, name }] as const,
       ),
     ]);
+    const venues =
+      call.signalEntityIds.length - build.context.headliners.length;
     for (const act of answer.data) {
       if (!call.actIds.includes(act.entityId) || !act.shares.length) continue;
       const parts = act.shares.map(({ entityId, share }) => {
         const input = inputs.get(entityId);
         return input ? { ...input, share } : null;
       });
-      if (parts.every((part) => part !== null)) splits[act.entityId] = parts;
+      if (parts.every((part) => part !== null))
+        splits[act.entityId] = { venues, parts };
     }
   }
   return splits;

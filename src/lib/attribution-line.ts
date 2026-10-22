@@ -12,7 +12,13 @@ export interface SplitPart {
   share: number;
 }
 
-const LEAD = "With all of this fee range's venues together, Qloo traces";
+/** An act's split: Qloo's parts, and how many venues the call sent for the act's fee range. */
+export interface ActSplit {
+  venues: number;
+  parts: SplitPart[];
+}
+
+const TOGETHER = "With all of this fee range's venues together, ";
 
 /**
  * Each part to the nearest whole percent, halves up (the 1e-9 keeps a half that floating point
@@ -31,10 +37,11 @@ function percent(share: number): string {
  * venue the card credits, so it can't say Qloo leans on that one, or that Qloo confirms it. The
  * headliners read together when both have a share, by name when only one does; a venue reads by
  * its name, or with `short` by its mark (src/lib/marks.ts), as the card's phone line does. An
- * input with no share is left out without comment; with no share at all there is no line.
+ * input with no share is left out without comment; with no share at all there is no line. The
+ * venues are said to be together only when the call sent two or more.
  */
 export function attributionLine(
-  parts: readonly SplitPart[],
+  { venues, parts }: ActSplit,
   { short = false }: { short?: boolean } = {},
 ): string | null {
   const shared = parts.filter((part) => part.share > 0);
@@ -73,5 +80,5 @@ export function attributionLine(
     phrases.length === 1
       ? phrases[0]
       : `${phrases.slice(0, -1).join(", ")} and ${phrases[phrases.length - 1]}`;
-  return `${LEAD} ${list}.`;
+  return `${venues > 1 ? TOGETHER : ""}Qloo traces ${list}.`;
 }
