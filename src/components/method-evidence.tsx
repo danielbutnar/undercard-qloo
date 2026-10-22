@@ -612,10 +612,11 @@ export function MethodEvidencePage() {
                   ).
                 </li>
                 <li>
-                  That the lineup includes local acts:{" "}
-                  <Ev to="treefort">evidence 2</Ev> infers most sit below the
-                  opening range&apos;s popularity floor, so Undercard drafts the
-                  touring slots and leaves local ones to the buyer.
+                  That the lineup includes local acts: Treefort books many, and{" "}
+                  <Ev to="treefort">evidence 2</Ev> infers that most of its acts
+                  sit below the opening range&apos;s popularity floor, so
+                  Undercard drafts the touring slots and leaves local ones to
+                  the buyer.
                 </li>
               </ul>
               <p className="mt-2 text-label">

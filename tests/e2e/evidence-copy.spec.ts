@@ -84,9 +84,10 @@ test("the evidence page reads in the plan's order, every label linked", async ({
       .getByRole("listitem")
       .filter({ hasText: "local acts" }),
   ).toHaveText(
-    "That the lineup includes local acts: evidence 2 infers most sit below " +
-      "the opening range's popularity floor, so Undercard drafts the touring " +
-      "slots and leaves local ones to the buyer.",
+    "That the lineup includes local acts: Treefort books many, and evidence " +
+      "2 infers that most of its acts sit below the opening range's popularity " +
+      "floor, so Undercard drafts the touring slots and leaves local ones to " +
+      "the buyer.",
   );
   await expect(page.locator("td.evidence-result .result-chip")).toHaveCount(3);
   for (const title of ["Does the idea hold?", "Does the product work?"])
