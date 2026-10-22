@@ -113,10 +113,9 @@ describe("Without Qloo", () => {
     );
     for (const [index, pick] of picks.entries()) {
       expect(within(pick).getByText(lineup.picks[index].note)).toBeTruthy();
+      // Prompt-4: the line says how Qloo places the pick; this answer came with no checks.
       expect(
-        within(pick).getByText(
-          "Picked without Qloo: no venue data, no fee check",
-        ),
+        within(pick).getByText("Picked without Qloo; not checked on Qloo"),
       ).toBeTruthy();
       // Item 5: a drawn cover in the cover's place, not an empty grey box.
       expect(pick.querySelector("svg.sleeve.pick-sleeve")).not.toBeNull();

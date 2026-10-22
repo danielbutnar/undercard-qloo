@@ -1,0 +1,13 @@
+{
+  "computedAt": "2026-10-22",
+  "source": "docs/evidence.md section 31; a cache-only run (DRY=1) of scripts/with-without-qloo.ts prints the same totals",
+  "towns": 29,
+  "picks": 290,
+  "found": 268,
+  "inRange": 59,
+  "aboveRange": 204,
+  "belowRange": 5,
+  "twoGenres": 235,
+  "climbs": 11,
+  "allThree": 10
+}

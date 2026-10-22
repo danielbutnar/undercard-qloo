@@ -310,8 +310,9 @@ test.describe("demo path", () => {
     const picks = model.getByRole("article");
     await expect(picks.first()).toBeVisible({ timeout: 60_000 });
     for (const pick of await picks.all()) {
+      // Prompt-4: how Qloo's cached data places the pick, or why it can't.
       await expect(pick).toContainText(
-        "Picked without Qloo: no venue data, no fee check",
+        /Picked without Qloo; (on Qloo: popularity \d+|not found on Qloo|not checked on Qloo)/,
       );
       await expect(pick).not.toContainText(/affinity/);
       // Daniel's brief of 2026-10-22, item 5: a drawn cover, not an empty grey box.

@@ -9,7 +9,7 @@ import {
   type Printing,
 } from "@/components/chart/band-chart";
 import { ImageCredit } from "@/components/chart/image-credit";
-import { WithWithoutLine } from "@/components/chart/with-without-line";
+import { WithoutQlooChecksLine } from "@/components/chart/with-without-line";
 import { billRows, editionRows } from "@/components/chart/chart-rows";
 import { RuleKey } from "@/components/chart/rule-key";
 import { Quilt } from "@/components/chart/sleeve";
@@ -642,7 +642,11 @@ export function FestivalScreen({
 
   const bandsView =
     mode === "llm" ? (
-      <ModelBill state={llm.state} onRetry={() => void llm.load()} />
+      <ModelBill
+        festival={festival}
+        state={llm.state}
+        onRetry={() => void llm.load()}
+      />
     ) : (
       <div className="bands">
         {festival.feeBands.map((band) => {
@@ -911,7 +915,7 @@ export function FestivalScreen({
             {!watching && (
               <div className="tools">
                 {!custom && <ModeSwitch mode={mode} onChange={changeMode} />}
-                {!custom && <WithWithoutLine />}
+                {!custom && <WithoutQlooChecksLine />}
                 {mode === "qloo" && !custom && state.build && (
                   <button
                     type="button"

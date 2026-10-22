@@ -1,10 +1,14 @@
 import { Sleeve } from "@/components/chart/sleeve";
-import type { LlmOnlyLineup, LlmOnlyPick } from "@/lib/llm-only";
+import { pickCheckLine } from "@/components/chart/words";
+import type { Festival } from "@/lib/festival";
+import type { LlmOnlyLineup, LlmOnlyPick, PickCheck } from "@/lib/llm-only";
 
 export interface LlmOnlyState {
   status: "idle" | "loading" | "ready" | "error";
   lineup: LlmOnlyLineup | null;
   error: string | null;
+  /** Each pick on Qloo, from the cache only (prompt-4); absent when none came with the answer. */
+  checks?: readonly PickCheck[];
 }
 
 const savedAt = new Intl.DateTimeFormat("en-US", {
@@ -19,9 +23,10 @@ const savedAt = new Intl.DateTimeFormat("en-US", {
 /** When a build or an answer was saved, as "Oct 15, 14:02". */
 export const formatSavedAt = (iso: string) => savedAt.format(new Date(iso));
 
-// No place, no climb, no venue colour: there is no Qloo data behind a pick. Its cover is the
-// drawn sleeve an act without a photo gets, with no genres to draw from.
-function Pick({ pick }: { pick: LlmOnlyPick }) {
+// No place, no climb, no venue colour: no Qloo data went into a pick. Its cover is the drawn
+// sleeve an act without a photo gets, with no genres to draw from; its small line says how
+// Qloo's data, read afterwards from the cache, places it.
+function Pick({ pick, line }: { pick: LlmOnlyPick; line: string }) {
   return (
     <article aria-label={pick.name} className="pick">
       <Sleeve
@@ -33,9 +38,7 @@ function Pick({ pick }: { pick: LlmOnlyPick }) {
       <div className="min-w-0">
         <h3 className="pick-name">{pick.name}</h3>
         <p className="pick-note">{pick.note}</p>
-        <p className="pick-none">
-          Picked without Qloo: no venue data, no fee check
-        </p>
+        <p className="pick-none">{line}</p>
       </div>
     </article>
   );
@@ -47,12 +50,15 @@ function Pick({ pick }: { pick: LlmOnlyPick }) {
  * to check against a fee range.
  */
 export function ModelBill({
+  festival,
   state,
   onRetry,
 }: {
+  festival: Festival;
   state: LlmOnlyState;
   onRetry: () => void;
 }) {
+  const checks = new Map(state.checks?.map((check) => [check.name, check]));
   return (
     <section
       aria-label="Without Qloo: an AI model's picks alone"
@@ -87,7 +93,10 @@ export function ModelBill({
         <ol className="picks">
           {state.lineup.picks.map((pick) => (
             <li key={pick.name}>
-              <Pick pick={pick} />
+              <Pick
+                pick={pick}
+                line={pickCheckLine(checks.get(pick.name), festival)}
+              />
             </li>
           ))}
         </ol>

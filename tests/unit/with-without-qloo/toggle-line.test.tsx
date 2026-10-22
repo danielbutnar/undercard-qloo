@@ -24,13 +24,14 @@ const quiet = () =>
   );
 
 describe("the With and Without Qloo line (plan.md item 8)", () => {
-  it("sits under the toggle", () => {
+  it("gives way under the toggle to the per-check line (prompt-4)", () => {
     quiet();
     render(
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
     );
     const toggle = screen.getByRole("group", { name: "Which bill" });
-    const line = screen.getByText(LINE);
+    expect(screen.queryByText(LINE)).toBeNull();
+    const line = screen.getByText(/share two genres with the headliners/);
     expect(
       toggle.compareDocumentPosition(line) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();

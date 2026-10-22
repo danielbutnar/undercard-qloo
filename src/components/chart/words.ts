@@ -1,5 +1,6 @@
-import type { FeeBand, FeeBandId } from "@/lib/fee-bands";
+import { feeBandFor, type FeeBand, type FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
+import type { PickCheck } from "@/lib/llm-only";
 import { formatBandRange, formatCount } from "@/lib/format";
 import { roomShortName } from "@/lib/marks";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
@@ -87,3 +88,46 @@ export const venuesTitle = (city: string) =>
 
 export const VENUES_STAND_FOR =
   "These venues stand for the town's taste: the acts won't necessarily play there.";
+
+const RANGE_NAME: Record<FeeBandId, string> = {
+  mid: "mid-size",
+  opener: "opening",
+};
+
+/**
+ * A Without Qloo card's line (prompt-4): where Qloo puts the model's pick, size first, from the
+ * cache-only checks (src/server/pick-checks.ts). The percentile rounds down, as an act card's
+ * does; a pick just over the top edge reads one past it, never as the edge itself.
+ */
+export function pickCheckLine(
+  check: PickCheck | undefined,
+  festival: Festival,
+): string {
+  const picked = "Picked without Qloo";
+  if (!check || check.status === "not-checked")
+    return `${picked}; not checked on Qloo`;
+  if (check.status === "not-found") return `${picked}; not found on Qloo`;
+  const bands = [...festival.feeBands].sort(
+    (a, b) => a.minPopularity - b.minPopularity,
+  );
+  const band =
+    check.range === "above"
+      ? bands[bands.length - 1]
+      : check.range === "below"
+        ? bands[0]
+        : (feeBandFor(check.popularity, bands) ?? bands[0]);
+  const down = (popularity: number) => Math.floor(popularity * 100 + 1e-9);
+  const percent =
+    check.range === "above"
+      ? Math.max(down(check.popularity), down(band.maxPopularity) + 1)
+      : down(check.popularity);
+  const genres =
+    check.genres === 0
+      ? "no genres shared"
+      : `${check.genres} ${check.genres === 1 ? "genre" : "genres"} shared`;
+  const climb =
+    check.climb !== null && check.climb > 0
+      ? `a climb with one of ${festival.city}'s venues`
+      : `no climb with ${festival.city}'s venues`;
+  return `${picked}; on Qloo: popularity ${ordinal(percent)}, ${check.range} the ${RANGE_NAME[band.id]} range · ${genres} · ${climb}`;
+}

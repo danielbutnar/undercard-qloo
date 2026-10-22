@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { LlmOnlyLineupSchema } from "@/lib/llm-only";
+import { z } from "zod";
+import { LlmOnlyLineupSchema, PickCheckSchema } from "@/lib/llm-only";
 import type { LlmOnlyState } from "./model-bill";
 
 /** Loads the LLM-only lineup once, the first time the board flips to it. */
@@ -34,7 +35,14 @@ export function useLlmOnly(festivalId?: string) {
         });
         return;
       }
-      setState({ status: "ready", lineup: lineup.data, error: null });
+      // Each pick's checks on Qloo; unreadable ones count as none, and every card says so.
+      const checks = z.array(PickCheckSchema).safeParse(body?.checks);
+      setState({
+        status: "ready",
+        lineup: lineup.data,
+        error: null,
+        ...(checks.success ? { checks: checks.data } : {}),
+      });
     } catch {
       setState({
         status: "error",
