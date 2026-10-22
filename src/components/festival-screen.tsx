@@ -290,6 +290,7 @@ function EditionBanner({
   note,
   anchorsKey,
   switched,
+  noFanData,
   lifted,
   headliners,
   replayed,
@@ -306,6 +307,8 @@ function EditionBanner({
   anchorsKey: boolean;
   /** The planner's venue switch, in one sentence, where the saved trace shows it here. */
   switched: string | null;
+  /** Qloo had no fan data for this edition's venue (the saved build's, from the cache). */
+  noFanData: boolean;
   /** Acts on the lineup this edition's venue lifted; null until the lineup is in. */
   lifted: number | null;
   headliners: readonly string[];
@@ -314,7 +317,7 @@ function EditionBanner({
 }) {
   const first = phase === "calls" || !step;
   const title = watchTitle({ first, step, replayed, headliners });
-  const line = watchLine({ first, step, lifted });
+  const line = watchLine({ first, step, lifted, noFanData });
   const shown = Math.max(total, calls);
   return (
     <div
@@ -633,15 +636,20 @@ export function FestivalScreen({
   const anchorsKey =
     noteAt >= 0 &&
     noteAt === state.notes.findIndex((entry) => saysAnchors(entry.text));
-  // The planner's venue switch, from the saved trace only (WS2): while Watch replays the saved
-  // build this page came with, on the editions of the venue it switched to (before the first
-  // edition, under the line that made the switch).
-  const savedSwitches =
-    firstBill?.agentSwitches &&
+  // From the saved build only (WS2): while Watch replays the saved build this page came with,
+  // the planner's venue switch, on the editions of the venue it switched to (before the first
+  // edition, under the line that made the switch), and the venues Qloo had no fan data for.
+  const savedBuildOnScreen =
+    firstBill !== null &&
     state.build?.replayed === true &&
-    state.build.id === firstBill.build.id
-      ? firstBill.agentSwitches
-      : [];
+    state.build.id === firstBill.build.id;
+  const savedSwitches = savedBuildOnScreen
+    ? (firstBill.agentSwitches ?? [])
+    : [];
+  const savedNoFanData = savedBuildOnScreen ? (firstBill.noFanData ?? []) : [];
+  const noFanDataHere = Boolean(
+    step?.venue && savedNoFanData.includes(step.venue.entityId),
+  );
   const switched =
     savedSwitches.find((entry) =>
       step?.venue
@@ -887,7 +895,10 @@ export function FestivalScreen({
                 total={calls ?? 12}
                 note={note}
                 anchorsKey={anchorsKey}
-                switched={switched ? switchLine(switched) : null}
+                switched={
+                  switched ? switchLine(switched, savedNoFanData) : null
+                }
+                noFanData={noFanDataHere}
                 lifted={liftedHere}
                 headliners={festival.headliners}
                 replayed={replaying || state.build?.replayed === true}

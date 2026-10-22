@@ -15,6 +15,7 @@ import {
 import { billRows } from "@/components/chart/chart-rows";
 import {
   liftedWords,
+  noFanDataLine,
   ordinal,
   PLAIN_BAND,
   switchLine,
@@ -89,7 +90,15 @@ function AgentChoices({
   city: string;
   hues: ReadonlyMap<string, number>;
 }) {
-  const none = story.venues.filter((venue) => venue.lifted === 0);
+  const switches = story.switches ?? [];
+  const noFanData = story.noFanData ?? [];
+  // A venue the switch sentence names isn't said twice (WS2).
+  const named = new Set(switches.map((entry) => entry.from.entityId));
+  const quiet = story.venues.filter(
+    (venue) => venue.lifted === 0 && !named.has(venue.entityId),
+  );
+  const none = quiet.filter((venue) => !noFanData.includes(venue.entityId));
+  const unscored = quiet.filter((venue) => noFanData.includes(venue.entityId));
   return (
     <section aria-label="The AI agent's choices" className="panel how-choices">
       <h3 className="panel-title">The AI agent&apos;s choices</h3>
@@ -121,10 +130,16 @@ function AgentChoices({
           onto the lineup.
         </p>
       )}
+      {/* Venues Qloo had no fan data for say so, from the server's Qloo cache (WS2). */}
+      {unscored.length > 0 && (
+        <p className="panel-sub">
+          {noFanDataLine(unscored.map((venue) => venue.name))}
+        </p>
+      )}
       {/* The planner's venue switch, only where the saved trace shows one (WS2). */}
-      {(story.switches ?? []).map((entry) => (
+      {switches.map((entry) => (
         <p key={entry.to.entityId} className="panel-sub">
-          {switchLine(entry)}
+          {switchLine(entry, noFanData)}
         </p>
       ))}
     </section>

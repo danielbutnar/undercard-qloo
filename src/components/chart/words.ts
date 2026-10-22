@@ -98,17 +98,28 @@ export function watchTitle({
     : `${headliners.join(" + ")} fans alone`;
 }
 
+/** A venue Qloo had no fan data for (src/lib/fan-data.ts): its edition says so (WS2). */
+export const NO_FAN_DATA_WATCH =
+  "Qloo had no fan data for this venue, so its ranking stays the headliners' own.";
+
 export function watchLine({
   first,
   step,
   lifted,
-}: WatchEdition & { lifted: number | null }): string {
+  noFanData = false,
+}: WatchEdition & {
+  lifted: number | null;
+  /** Qloo had no fan data for this edition's venue. */
+  noFanData?: boolean;
+}): string {
   if (first || !step)
     return "First it finds the headliners and the town's music venues in Qloo.";
   if (!step.venue)
     return "Qloo ranks the artists the headliners' fans like: the chart before any venue.";
   // A live run sends its lineup after its last call: until then, the edition's own climbs.
   const climbs = step.acts.filter((listed) => listed.move !== null).length;
+  if (noFanData && (lifted === null ? climbs === 0 : lifted === 0))
+    return NO_FAN_DATA_WATCH;
   if (lifted === null)
     return climbs > 0
       ? `Qloo's ranking re-sorts with this venue's fans added: ${climbs} of the top ${step.acts.length} ${climbs === 1 ? "climbs" : "climb"} ${MIN_LIFT} places or more.`
@@ -136,21 +147,29 @@ export const ANCHORS_KEY = "Anchors are the venues whose fans it reads.";
 
 /**
  * The agent's switch, from the saved trace only (src/lib/agent-switch.ts): the venue read before
- * the planner's line moved no act onto the lineup, and the line named the next venue read.
+ * the planner's line moved no act onto the lineup, and the line named the next venue read. Where
+ * Qloo had no fan data for that venue (`noFanData`, entity ids), the sentence says so instead.
  */
-export function switchLine({
-  from,
-  to,
-  acts,
-}: Pick<AgentSwitch, "from" | "to" | "acts">): string {
+export function switchLine(
+  { from, to, acts }: Pick<AgentSwitch, "from" | "to" | "acts">,
+  noFanData: readonly string[] = [],
+): string {
   const come =
     acts === 0
       ? "no act comes"
       : acts === 1
         ? "1 act comes"
         : `${acts} acts come`;
-  return `${from.name}'s fans moved no act onto the lineup, so the agent read ${to.name}; ${come} from that read.`;
+  return noFanData.includes(from.entityId)
+    ? `Qloo had no fan data for ${from.name}, so the agent read ${to.name}; ${come} from that read.`
+    : `${from.name}'s fans moved no act onto the lineup, so the agent read ${to.name}; ${come} from that read.`;
 }
+
+/** How it works' line for the venues the agent read that Qloo had no fan data for (WS2). */
+export const noFanDataLine = (names: readonly string[]) =>
+  names.length === 1
+    ? `${names[0]}: the agent read it too, but Qloo had no fan data for it.`
+    : `${names.join(" and ")}: the agent read them too, but Qloo had no fan data for them.`;
 
 /** Where the saved trace holds no line of the agent's for a step: what it decides, never a reason. */
 export const AGENT_DECIDES =
