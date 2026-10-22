@@ -757,6 +757,23 @@ Written on 2026-10-22, before the call. The bar doesn't change after the answers
 
 **What each outcome means for the site.** A no-go changes nothing. A go ships nothing by itself: a line on each act card built on it waits for Daniel's yes, and then needs the other 28 builds' answers, in a second window of at most 56 calls, with the line read from the cache only.
 
+## 36. The 30-second test, round 2, written before it runs
+
+Written on 2026-10-22, before the new first screen is built and before anyone sees it. The protocol and the bar don't change after the answers are in.
+
+**The people.** Five who haven't seen Undercard in either version.
+
+**The protocol.** The first screen of a local production build, on a laptop at 1440×900 or the nearest size, top of the page, 30 seconds, no scrolling, no clicking, no help. Then the screen is hidden and Daniel asks, in this order, "What does this do?", "Why is Act 84 on it?" and "What would a festival booker do with it?", writing the answers down word for word.
+
+**The bar, per question.**
+1. Passes for a person who says it picks or drafts acts for a festival lineup and mentions local venues, their fans or the town's taste.
+2. Passes for one who names Venue 227, a venue or the climb.
+3. Passes for one who says shortlist, research or fill slots, not book automatically.
+
+The round passes if each question passes for at least 4 of 5 people (3 of 4; all 3 of 3, as in section 32). With fewer than three people it doesn't count. The counts per question are reported either way.
+
+**What goes public.** The counts and the wording changes that followed; no tester is quoted without permission.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
