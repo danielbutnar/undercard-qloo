@@ -44,6 +44,14 @@ function watched(cache: QlooCache) {
   return { cache: wrapped, seen };
 }
 
+/** Where the Without Qloo counts came from, or why there are none. */
+const sourceOf = ({ without }: EvidenceData) =>
+  without === null
+    ? null
+    : "missing" in without
+      ? without.missing
+      : without.source;
+
 const on = (data: Partial<EvidenceData>): EvidenceData => ({
   towns: [],
   without: null,
@@ -272,7 +280,7 @@ describe("the Without Qloo counts from section 31's raw files", () => {
       store: synthetic(),
       design: dir,
     });
-    expect(fromStore.without?.source).toBe("the store, read-only");
+    expect(sourceOf(fromStore)).toBe("the store, read-only");
     expect(fromStore.run?.modelCalls).toBe(2);
     const fromRaw = await loadEvidence({
       base: "http://synthetic.test",
@@ -280,7 +288,7 @@ describe("the Without Qloo counts from section 31's raw files", () => {
       store: null,
       design: dir,
     });
-    expect(fromRaw.without?.source).toContain("with-without-qloo");
+    expect(sourceOf(fromRaw)).toContain("with-without-qloo");
     expect(
       fromRaw.towns.every((town) => town.replay.error === "HTTP 503"),
     ).toBe(true);
