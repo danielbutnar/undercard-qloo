@@ -126,9 +126,9 @@ describe("each act's split, from the Qloo cache alone (WS7 step 2)", () => {
       [...MID_ACTS, ...OPENER_ACTS].sort(),
     );
     // Invented Act 1003: Lantern 0.4, Hollow Pines 0.3, The Quiet Ones 0.2, Fort 0.1. The
-    // mid-size call sent three venues, the opening call two.
+    // mid-size call sent three venues and Qloo scored two of them (the Diner for no act).
     expect(splits[syntheticId(1003)]).toEqual({
-      venues: 3,
+      venues: 2,
       parts: [
         venue(LANTERN, "The Lantern Room", 0.4),
         headliner(HOLLOW_PINES, "Hollow Pines", 0.3),
@@ -142,6 +142,35 @@ describe("each act's split, from the Qloo cache alone (WS7 step 2)", () => {
       expect(parts.map((part) => part.entityId)).not.toContain(DINER);
     expect(requests.length).toBe(before);
     expect(sets).not.toHaveBeenCalled();
+  });
+
+  it("counts only the range's venues Qloo scored for some act as in the split", async () => {
+    // Qloo scores no act on The Lantern Room in the opening range, as it found no Diner in
+    // section 35's: one venue left in that range's split.
+    const { readOnly } = await cached(["mid", "opener"], (url) => {
+      const body = inventedExplainQloo(url) as {
+        results: {
+          entities: {
+            query: {
+              explainability: {
+                "signal.interests.entities": { entity_id: string }[];
+              };
+            };
+          }[];
+        };
+      };
+      if (url.searchParams.get("take") === "6")
+        for (const act of body.results.entities) {
+          const list = act.query.explainability;
+          list["signal.interests.entities"] = list[
+            "signal.interests.entities"
+          ].filter((share) => share.entity_id !== LANTERN);
+        }
+      return body;
+    });
+    const splits = await attributionFor(inventedBuild(), readOnly);
+    expect(splits[syntheticId(1001)].venues).toBe(2);
+    expect(splits[syntheticId(2001)].venues).toBe(1);
   });
 
   it("gives a range the cache doesn't hold no split, never an error", async () => {

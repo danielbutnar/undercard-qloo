@@ -12,13 +12,17 @@ export interface SplitPart {
   share: number;
 }
 
-/** An act's split: Qloo's parts, and how many venues the call sent for the act's fee range. */
+/** An act's split: Qloo's parts, and how many venues are in its fee range's split. */
 export interface ActSplit {
+  /**
+   * The fee range's venues Qloo gave a share for any of the range's acts. A venue the call sent
+   * that Qloo scored for none (section 35's answer lists one as not found) isn't counted.
+   */
   venues: number;
   parts: SplitPart[];
 }
 
-const TOGETHER = "With all of this fee range's venues together, ";
+const TOGETHER = "With this fee range's venues together, ";
 
 /**
  * Each part to the nearest whole percent, halves up (the 1e-9 keeps a half that floating point
@@ -32,13 +36,12 @@ function percent(share: number): string {
 
 /**
  * The act card's line on Qloo's split (WS7): how much of the act's match Qloo traces to each
- * input when the headliners and all of the fee range's venues are asked together, largest share
- * first. It reports the split as Qloo gives it and singles out no input: it doesn't know which
+ * input when the headliners and the fee range's venues are asked together, largest share first. It reports the split as Qloo gives it and singles out no input: it doesn't know which
  * venue the card credits, so it can't say Qloo leans on that one, or that Qloo confirms it. The
  * headliners read together when both have a share, by name when only one does; a venue reads by
  * its name, or with `short` by its mark (src/lib/marks.ts), as the card's phone line does. An
  * input with no share is left out without comment; with no share at all there is no line. The
- * venues are said to be together only when the call sent two or more.
+ * venues are said to be together only when two or more are in the range's split.
  */
 export function attributionLine(
   { venues, parts }: ActSplit,

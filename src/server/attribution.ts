@@ -95,10 +95,19 @@ export async function attributionFor(
           [entityId, { input: "venue", entityId, name }] as const,
       ),
     ]);
-    const venues =
-      call.signalEntityIds.length - build.context.headliners.length;
-    for (const act of answer.data) {
-      if (!call.actIds.includes(act.entityId) || !act.shares.length) continue;
+    // The range's venues in Qloo's split: those it scored for any of the range's acts. A venue
+    // the call sent but Qloo scored for none (section 35 found one, listed as not found) isn't.
+    const acts = answer.data.filter((act) =>
+      call.actIds.includes(act.entityId),
+    );
+    const scored = new Set(
+      acts.flatMap((act) => act.shares.map((share) => share.entityId)),
+    );
+    const venues = (build.context.anchors[call.band] ?? []).filter((venue) =>
+      scored.has(venue.entityId),
+    ).length;
+    for (const act of acts) {
+      if (!act.shares.length) continue;
       const parts = act.shares.map(({ entityId, share }) => {
         const input = inputs.get(entityId);
         return input ? { ...input, share } : null;

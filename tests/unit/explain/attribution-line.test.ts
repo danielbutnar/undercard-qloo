@@ -19,10 +19,10 @@ const venue = (name: string, share: number): SplitPart => ({
   name,
   share,
 });
-/** An act's split from a call that sent `venues` venues for its fee range (two by default). */
+/** An act's split, with `venues` of its fee range's venues in Qloo's split (two by default). */
 const split = (parts: SplitPart[], venues = 2): ActSplit => ({ venues, parts });
 
-const LEAD = "With all of this fee range's venues together, Qloo traces";
+const LEAD = "With this fee range's venues together, Qloo traces";
 
 describe("the line on Qloo's split (WS7 step 3)", () => {
   it("puts the headliners together and lists the split in descending order, in whole percents", () => {
@@ -108,8 +108,9 @@ describe("the line on Qloo's split (WS7 step 3)", () => {
     );
   });
 
-  it("says the venues were together only when the fee range sent two or more", () => {
-    // One venue for the range (as Bozeman's build has): there is no "together" to tell.
+  it("says the venues were together only when two or more are in Qloo's split", () => {
+    // One venue in the split (Bozeman's build sends one a range; Boise's opening range sends two,
+    // and Qloo scores one): there is no "together" to tell.
     expect(
       attributionLine(
         split(
@@ -120,12 +121,12 @@ describe("the line on Qloo's split (WS7 step 3)", () => {
     ).toBe(
       "Qloo traces 70% of this act's match to fans of Hollow Pines and 30% to fans of The Lantern Room.",
     );
-    // Three sent, one scored: the line still says they were asked together.
+    // Two in the range's split, though this act has a share from one only.
     expect(
       attributionLine(
         split(
           [headliner("Hollow Pines", 0.7), venue("The Lantern Room", 0.3)],
-          3,
+          2,
         ),
       ),
     ).toMatch(new RegExp(`^${LEAD} 70%`));
