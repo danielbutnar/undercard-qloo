@@ -278,6 +278,118 @@ export function syntheticRefillStream(
   ]);
 }
 
+/** The one model pick whose search the synthetic Qloo cache doesn't hold: "not checked". */
+export const SYNTHETIC_UNCHECKED_PICK = "Night Orchard";
+
+// What Qloo's search answers for the model's picks (prompt-4): invented entities with genre tags
+// the synthetic headliners and their compared tag carry, or don't. "The Long Drives" is found as
+// "Long Drives"; nothing of "Fern & Fable" matches.
+const PICK_RESULTS: Record<
+  string,
+  { n: number; name: string; popularity: number; genres: string[] }[]
+> = {
+  "Velvet Coyote": [
+    {
+      n: 301,
+      name: "Velvet Coyote",
+      popularity: 0.963,
+      genres: ["Psychedelic Rock", "Indie Pop"],
+    },
+  ],
+  "The Long Drives": [
+    { n: 302, name: "Long Drives", popularity: 0.941, genres: ["Dream Pop"] },
+  ],
+  "Marigold Static": [
+    {
+      n: 303,
+      name: "Marigold Static",
+      popularity: 0.862,
+      genres: ["Dream Pop", "Indie Pop"],
+    },
+  ],
+  "Paper Canyon": [
+    { n: 304, name: "Paper Canyon", popularity: 0.975, genres: ["Funk"] },
+  ],
+  "Dusk Arcade": [
+    {
+      n: 305,
+      name: "Dusk Arcade",
+      popularity: 0.912,
+      genres: ["Indie Pop", "Dream Pop"],
+    },
+  ],
+  "Honey Basin": [
+    {
+      n: 306,
+      name: "Honey Basin",
+      popularity: 0.958,
+      genres: ["Psychedelic Rock", "Dream Pop"],
+    },
+  ],
+  "Lowland Choir": [
+    { n: 307, name: "Lowland Choir", popularity: 0.64, genres: ["Indie Pop"] },
+  ],
+  "Silver Mesa": [
+    {
+      n: 308,
+      name: "Silver Mesa",
+      popularity: 0.47,
+      genres: ["Psychedelic Rock"],
+    },
+  ],
+  "Fern & Fable": [
+    { n: 309, name: "Fern and Fable Choir", popularity: 0.7, genres: [] },
+    { n: 310, name: "Fable Fern", popularity: 0.6, genres: [] },
+  ],
+};
+
+const rawArtist = ({
+  n,
+  name,
+  popularity,
+  genres,
+}: (typeof PICK_RESULTS)[string][number]) => ({
+  entity_id: id(n),
+  name,
+  popularity,
+  tags: genres.map((genre) => ({
+    tag_id: `urn:tag:genre:music:${genre.toLowerCase().replace(/ /g, "_")}`,
+    name: genre,
+    type: "urn:tag:genre:music",
+  })),
+});
+
+/**
+ * Qloo's answers for the Without Qloo checks (prompt-4), which the synthetic server seeds into
+ * its cache (src/server/synthetic-seed.ts): each searched pick's results, and the build's venue
+ * lists, where only The Lantern Room's fans bring a pick (Marigold Static) into Mid's top 50.
+ * Only the checks read these lists.
+ */
+export function syntheticPickQloo(url: URL): unknown {
+  if (url.pathname === "/search")
+    return {
+      results: (PICK_RESULTS[url.searchParams.get("query") ?? ""] ?? []).map(
+        rawArtist,
+      ),
+    };
+  const lifts =
+    (url.searchParams.get("signal.interests.entities") ?? "").includes(
+      LANTERN.entityId,
+    ) && url.searchParams.get("filter.popularity.min") === "0.8";
+  return {
+    results: {
+      entities: lifts
+        ? [
+            {
+              ...rawArtist(PICK_RESULTS["Marigold Static"][0]),
+              query: { affinity: 0.7 },
+            },
+          ]
+        : [],
+    },
+  };
+}
+
 /** A synthetic LLM-only answer: invented acts, as the model alone might list them. */
 export function syntheticLlmOnly() {
   const picks: [string, string][] = [
