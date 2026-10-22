@@ -1725,30 +1725,12 @@
 }
 
 /* Venue colours last, so every element that carries one (rows, cards, banners) takes it. */
-.chart-app .venue-0 {
-  --venue: var(--color-venue-0);
-  --on-venue: var(--color-on-venue-0);
-}
-.chart-app .venue-1 {
-  --venue: var(--color-venue-1);
-  --on-venue: var(--color-on-venue-1);
-}
-.chart-app .venue-2 {
-  --venue: var(--color-venue-2);
-  --on-venue: var(--color-on-venue-2);
-}
-.chart-app .venue-3 {
-  --venue: var(--color-venue-3);
-  --on-venue: var(--color-on-venue-3);
-}
-.chart-app .venue-4 {
-  --venue: var(--color-venue-4);
-  --on-venue: var(--color-on-venue-4);
-}
-.chart-app .venue-5 {
-  --venue: var(--color-venue-5);
-  --on-venue: var(--color-on-venue-5);
-}
+.chart-app .venue-0 { --venue: var(--color-venue-0); --on-venue: var(--color-on-venue-0); }
+.chart-app .venue-1 { --venue: var(--color-venue-1); --on-venue: var(--color-on-venue-1); }
+.chart-app .venue-2 { --venue: var(--color-venue-2); --on-venue: var(--color-on-venue-2); }
+.chart-app .venue-3 { --venue: var(--color-venue-3); --on-venue: var(--color-on-venue-3); }
+.chart-app .venue-4 { --venue: var(--color-venue-4); --on-venue: var(--color-on-venue-4); }
+.chart-app .venue-5 { --venue: var(--color-venue-5); --on-venue: var(--color-on-venue-5); }
 .chart-app .card .card-climb {
   grid-template-columns: minmax(0, 1fr) minmax(72px, 1fr) minmax(0, 1fr);
 }
@@ -2025,9 +2007,10 @@
 }
 @media (min-width: 1000px) {
   .chart-app .story {
-    grid-template-columns:
-      minmax(0, 1fr) 28px minmax(0, 1fr) 28px minmax(0, 1fr)
-      28px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr) 28px minmax(
+        0,
+        1fr
+      ) 28px minmax(0, 1fr);
     align-items: stretch;
   }
 }
