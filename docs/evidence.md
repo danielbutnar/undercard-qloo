@@ -799,6 +799,8 @@ Written on 2026-10-22, before the call. The bar doesn't change after the answers
 
 **The second window (WS7).** scripts/attribution-warm.ts makes the other 28 builds' two calls each, 56, through the app's cached client, after Boise's two entries are written from this section's saved answers (SEED_BOISE=1, no Qloo call). Its dry run of 2026-10-22: 29 builds, each the pinned one; 58 calls, none cached; Boise's two saved answers carry exactly the parameters the app sends, so 56 after seeding.
 
+**The second window's result, 2026-10-22 (19:47 to 19:51 UTC, 22:47 to 22:51 Bucharest, in the window Daniel named).** The dry run said 58; Boise's two entries were written from this section's saved answers with no Qloo call; then 56 calls for the other 28 builds, one at a time, with no retry, all 56 stored and read back. Every one of the 280 acts asked came back with a per-input split. In 22 of the 56 calls Qloo left at least one venue unscored, 27 venue inputs in 11 of the 28 towns; with Boise's 2, 29 in 12 towns. Compared by town, venue and fee range, from the cache with no call, these 29 are exactly the 29 venue runs above whose ranking equals the headliners-only one. So the unchanged rankings and the unscored inputs are the same venues; the not_found warning itself was seen for Venue 166 Boise only, since the cache keeps the parsed split, not Qloo's warnings. The 29 latest pointers matched afterwards (19:52 UTC).
+
 ## 36. The 30-second test, round 2, written before it runs
 
 Written on 2026-10-22, before the new first screen is built and before anyone sees it. The protocol and the bar don't change after the answers are in.
