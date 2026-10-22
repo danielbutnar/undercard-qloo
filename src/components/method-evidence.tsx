@@ -144,6 +144,8 @@ type Row = {
   result: string;
   /** The bar, when the result's words don't say "bar of N" (the picture marks it). */
   bar?: number;
+  /** Go or no-go, drawn as a chip where the result counts nothing; its words don't repeat it. */
+  chip?: "go" | "no-go";
   limit: string;
 };
 
@@ -230,21 +232,24 @@ const ROWS: Row[] = [
     to: "resolve",
     group: "product",
     what: "Does a town name resolve to the right place?",
-    result: "Go, with at most one extra Qloo call",
+    result: "With at most one extra Qloo call",
+    chip: "go",
     limit: "Relies on Qloo's geocode",
   },
   {
     to: "rooms",
     group: "product",
     what: "Reading venues. Can parks and arenas be kept out of the venue list?",
-    result: "No-go; they are labelled instead",
+    result: "They are labelled instead",
+    chip: "no-go",
     limit: "A festival site can still anchor a lineup, and the label says so",
   },
   {
     to: "festival",
     group: "product",
     what: "Can a festival filed as a place be told apart from a venue?",
-    result: "Go: labelled, booking unchanged",
+    result: "Labelled, booking unchanged",
+    chip: "go",
     limit: "The rule fits the one case seen",
   },
   {
@@ -295,16 +300,18 @@ const asNumber = (word: string) =>
 /**
  * A result as a picture only where its own words count something: one square per case,
  * filled for each that passed, with the bar marked when the test had one ("7 of 10, one short
- * of the bar of 8"); a count over 30 as a bar. A go or no-go chip only when the result says so;
+ * of the bar of 8"); a count over 30 as a bar. A go or no-go chip only where the row has one;
  * a sourced fact or a description gets no picture, so nothing reads stronger than its row.
  */
 function ResultPicture({
   result,
   bar: given,
+  chip,
 }: {
   result: string;
   /** The bar, where the result's own words don't name it as "bar of N". */
   bar?: number;
+  chip?: Row["chip"];
 }) {
   const count =
     /(\d+|one|two|three|four|five|six|seven|eight|nine|ten) of (?:the )?(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b/i.exec(
@@ -312,13 +319,13 @@ function ResultPicture({
     );
   const bar = /bar(?: of)? (\d+)/.exec(result);
   if (!count) {
-    if (/^No-go/.test(result))
+    if (chip === "no-go")
       return (
         <span className="result-chip is-nogo" aria-hidden>
           no-go
         </span>
       );
-    if (/^Go\b/.test(result))
+    if (chip === "go")
       return (
         <span className="result-chip is-go" aria-hidden>
           go
@@ -374,7 +381,17 @@ function EvidenceTable({ title, rows }: { title: string; rows: Row[] }) {
               <tr key={row.to}>
                 <td>{row.what}</td>
                 <td className="evidence-result">
-                  <ResultPicture result={row.result} bar={row.bar} />
+                  <ResultPicture
+                    result={row.result}
+                    bar={row.bar}
+                    chip={row.chip}
+                  />
+                  {/* The chip is hidden from a screen reader, so its word is said here once. */}
+                  {row.chip && (
+                    <span className="sr-only">
+                      {row.chip === "go" ? "Go: " : "No-go: "}
+                    </span>
+                  )}
                   <span>{row.result}</span>
                 </td>
                 <td className="evidence-limit">{row.limit}</td>
@@ -399,7 +416,8 @@ function EvidenceTable({ title, rows }: { title: string; rows: Row[] }) {
  * The evidence (M10b moved it here from How it works; plan.md item 10 put it in the order and
  * words of the review's section 9c, with Daniel's corrections): the three summary lines, the
  * terms, each test with its result drawn, its limit and its source, what the no-gos taught, what
- * real people said, five objections answered, the limits, and what is still to come.
+ * real people said (the testers' placeholder until they have), five objections answered, and
+ * the limits.
  */
 export function MethodEvidencePage() {
   return (
@@ -411,8 +429,9 @@ export function MethodEvidencePage() {
         <div className="method-lead">
           <h1 className="compare-title">The evidence</h1>
           <p className="compare-what">
-            Every test below had its bar written before it ran. The full record
-            of each is in docs/evidence.md.
+            Every test below that has a bar had it written before it ran, except{" "}
+            <Ev to="treefort">evidence 2</Ev>, whose bar the record doesn&apos;t
+            date. The full record of each is in docs/evidence.md.
           </p>
         </div>
 
@@ -447,10 +466,11 @@ export function MethodEvidencePage() {
               <h2 className="panel-title">What the no-gos taught</h2>
               <ul className="limits">
                 <li>
-                  Qloo&apos;s location data for artists was too thin to build
-                  on, at most 7 of 10 (<Ev to="local">evidence 6</Ev>), so a
-                  town&apos;s taste enters the ranking through its venues&apos;
-                  fans.
+                  Qloo&apos;s location data gave a usable local reading for at
+                  most 7 of the 10 acts the venues picked (
+                  <Ev to="local">evidence 6</Ev>), so a town&apos;s taste enters
+                  the ranking through its venues&apos; fans; drafting from
+                  Qloo&apos;s location signal itself wasn&apos;t tested.
                 </li>
                 <li>
                   One festival can&apos;t test the idea (
@@ -594,14 +614,6 @@ export function MethodEvidencePage() {
               </ul>
               <p className="mt-2 text-label">
                 <Ev to="limits">The full list in docs/evidence.md</Ev>
-              </p>
-            </section>
-
-            <section aria-label="Still to come" className="panel">
-              <h2 className="panel-title">Still to come</h2>
-              <p className="mt-2 text-label text-muted">
-                [Still to come: what this week&apos;s testers said, against the
-                bar in <Ev to="people">evidence 32</Ev>.]
               </p>
             </section>
           </div>

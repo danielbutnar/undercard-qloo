@@ -53,18 +53,28 @@ describe("the method page's results, drawn", () => {
     ).not.toBeNull();
   });
 
-  it("marks go or no-go only where the result says so and counts nothing", () => {
+  it("marks go or no-go with a chip where the result counts nothing, and its words don't say it again", () => {
     render(<MethodEvidencePage />);
-    for (const go of [
-      "Go, with at most one extra Qloo call",
-      "Go: labelled, booking unchanged",
-    ])
-      expect(resultCell(go).querySelector(".result-chip.is-go")).not.toBeNull();
-    expect(
-      resultCell("No-go; they are labelled instead").querySelector(
-        ".result-chip.is-nogo",
-      ),
-    ).not.toBeNull();
+    // Daniel's brief of 2026-10-22, item 6: the chip says go or no-go; the result's words don't
+    // repeat it. A screen reader, which the chip is hidden from, hears the word once.
+    for (const [shown, chip, heard] of [
+      ["With at most one extra Qloo call", "go", "Go: "],
+      ["Labelled, booking unchanged", "go", "Go: "],
+      ["They are labelled instead", "no-go", "No-go: "],
+    ]) {
+      const cell = resultCell(shown);
+      expect(cell.querySelector(".result-chip")!.textContent).toBe(chip);
+      expect(cell.querySelector(".sr-only")!.textContent).toBe(heard);
+    }
+    for (const cell of document.querySelectorAll<HTMLElement>(
+      "td.evidence-result",
+    )) {
+      const chip = cell.querySelector(".result-chip")?.textContent;
+      if (chip)
+        expect(cell.lastElementChild!.textContent).not.toMatch(
+          new RegExp(`^${chip}\\b`, "i"),
+        );
+    }
     // A no-go that counts something is drawn as its count.
     const none = dots(resultCell("No-go: 0 of 4 towns"));
     expect(none).toHaveLength(4);

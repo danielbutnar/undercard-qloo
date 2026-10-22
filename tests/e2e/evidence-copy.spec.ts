@@ -31,9 +31,38 @@ test("the evidence page reads in the plan's order, every label linked", async ({
     "What real people said, and what changed",
     "Five objections, answered",
     "What these numbers don't establish",
-    "Still to come",
   ];
   expect(headings.filter((heading) => ORDER.includes(heading))).toEqual(ORDER);
+  // Daniel's brief of 2026-10-22, item 6: the testers' placeholder once, in What real people
+  // said; the copy of it at the foot is gone.
+  expect(headings).not.toContain("Still to come");
+  // Only tests with a bar had one to write first; evidence 2's isn't dated in the record.
+  await expect(page.locator(".method-lead .compare-what")).toHaveText(
+    "Every test below that has a bar had it written before it ran, except " +
+      "evidence 2, whose bar the record doesn't date. The full record of each " +
+      "is in docs/evidence.md.",
+  );
+  // The location bullet says what evidence 6 tested, and what it didn't.
+  await expect(
+    page.getByRole("region", { name: "What the no-gos taught" }),
+  ).toContainText(
+    "Qloo's location data gave a usable local reading for at most 7 of the " +
+      "10 acts the venues picked (evidence 6), so a town's taste enters the " +
+      "ranking through its venues' fans; drafting from Qloo's location " +
+      "signal itself wasn't tested.",
+  );
+  // A result with a go or no-go chip doesn't repeat the chip's word in what it shows.
+  const repeated = await page
+    .locator("td.evidence-result")
+    .evaluateAll((cells) =>
+      cells.flatMap((cell) => {
+        const chip = cell.querySelector(".result-chip")?.textContent?.trim();
+        const shown = cell.lastElementChild?.textContent?.trim() ?? "";
+        return chip && shown.toLowerCase().startsWith(chip) ? [shown] : [];
+      }),
+    );
+  expect(repeated).toEqual([]);
+  await expect(page.locator("td.evidence-result .result-chip")).toHaveCount(3);
   for (const title of ["Does the idea hold?", "Does the product work?"])
     await expect(page.getByRole("table", { name: title })).toBeVisible();
 
@@ -51,7 +80,7 @@ test("the evidence page reads in the plan's order, every label linked", async ({
     expect(ANCHORS.has(href.split("#")[1])).toBe(true);
   }
 
-  await expect(page.getByText(/^\[Still to come: /).first()).toBeVisible();
+  await expect(page.getByText(/^\[Still to come: /)).toHaveCount(1);
   // Corrections 2 and 3 (plan.md): the block holds the approved sentences and nothing else.
   await expect(
     page.getByRole("region", {
