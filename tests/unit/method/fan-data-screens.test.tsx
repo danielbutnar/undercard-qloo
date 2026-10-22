@@ -38,6 +38,8 @@ afterEach(() => {
 const NO_FAN =
   "Qloo had no fan data for this venue, so its ranking stays the headliners' own.";
 const COTTONWOOD = syntheticSavedBuild().context.anchors.mid![2];
+// The switch build's venue A, read before the planner named Fort Street Ballroom.
+const LINDEN = syntheticSwitchBuild().context.anchors.mid![1];
 
 async function bill(build: SavedBuild, noFanData?: string[]) {
   const first = (await readFirstBill(
@@ -97,24 +99,24 @@ describe("How it works' AI agent's choices", () => {
 
   it("says it in the switch sentence, and drops the venue's own line, when the switch names it", async () => {
     const box = await choices(
-      await bill(syntheticSwitchBuild(), [COTTONWOOD.entityId]),
+      await bill(syntheticSwitchBuild(), [LINDEN.entityId]),
     );
     expect(
       within(box).getByText(
-        "Qloo had no fan data for Cottonwood Social Hall, so the agent read Fort Street Ballroom; 3 acts come from that read.",
+        "Qloo had no fan data for Linden Street Annex, so the agent read Fort Street Ballroom; 3 acts come from that read.",
       ),
     ).toBeTruthy();
-    expect(box.textContent).not.toMatch(/Cottonwood Social Hall: the agent/);
+    expect(box.textContent).not.toMatch(/Linden Street Annex: the agent/);
   });
 
   it("drops the venue's own line under the old switch sentence too", async () => {
     const box = await choices(await bill(syntheticSwitchBuild()));
     expect(
       within(box).getByText(
-        "Cottonwood Social Hall's fans moved no act onto the lineup, so the agent read Fort Street Ballroom; 3 acts come from that read.",
+        "Linden Street Annex's fans moved no act onto the lineup, so the agent read Fort Street Ballroom; 3 acts come from that read.",
       ),
     ).toBeTruthy();
-    expect(box.textContent).not.toMatch(/Cottonwood Social Hall: the agent/);
+    expect(box.textContent).not.toMatch(/Linden Street Annex: the agent/);
   });
 });
 
@@ -157,12 +159,12 @@ describe("Watch", () => {
     const region = await watch(
       nashville,
       saved,
-      await bill(saved, [COTTONWOOD.entityId]),
+      await bill(saved, [LINDEN.entityId]),
     );
     await at(region, "+ Fort Street Ballroom's fans");
     expect(
       within(region).getByText(
-        "Qloo had no fan data for Cottonwood Social Hall, so the agent read Fort Street Ballroom; 3 acts come from that read.",
+        "Qloo had no fan data for Linden Street Annex, so the agent read Fort Street Ballroom; 3 acts come from that read.",
       ),
     ).toBeTruthy();
   });

@@ -5,6 +5,7 @@ import {
   syntheticLlmOnly,
   syntheticPickQloo,
   syntheticSavedBuild,
+  syntheticSwitchBuild,
   syntheticTownBuild,
 } from "../../tests/e2e/synthetic-build";
 import { createBuildStore } from "./build-store";
@@ -20,7 +21,8 @@ import { assemblyFromSaved } from "./venue-switch";
  * answer as LLM only's saved answer, each saved the way a real build and a real answer are.
  * With the build come the Qloo answers its Without Qloo checks read (prompt-4): its venue
  * lists and every pick's search but one, cached by a client whose fetch answers from the
- * invented data, never the network. Loaded only in synthetic mode.
+ * invented data, never the network. The venue lists also carry WS2's no-fan-data case, and
+ * Nashville's switch build's venue. Loaded only in synthetic mode.
  */
 export async function seedSynthetic(
   cache: QlooCache,
@@ -50,6 +52,8 @@ export async function seedSynthetic(
         Response.json(syntheticPickQloo(new URL(String(input)))),
     });
     await assemblyFromSaved(syntheticSavedBuild(), SAGEBRUSH_SOUND, qloo);
+    // Nashville's switch build reads one venue the default build doesn't (WS2).
+    await assemblyFromSaved(syntheticSwitchBuild(), SAGEBRUSH_SOUND, qloo);
     for (const pick of picks)
       if (pick.name !== SYNTHETIC_UNCHECKED_PICK)
         await qloo.search({ query: pick.name });

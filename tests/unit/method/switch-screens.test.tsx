@@ -35,7 +35,7 @@ afterEach(() => {
 });
 
 const SWITCH =
-  "Cottonwood Social Hall's fans moved no act onto the lineup, so the agent read Fort Street Ballroom; 3 acts come from that read.";
+  "Linden Street Annex's fans moved no act onto the lineup, so the agent read Fort Street Ballroom; 3 acts come from that read.";
 const KEY = "Anchors are the venues whose fans it reads.";
 const NASHVILLE = townBySlug("nashville")!.festival;
 
@@ -105,7 +105,7 @@ describe("Watch", () => {
     await at(bill, "+ The Lantern Room's fans");
     expect(
       within(bill).getByText(
-        "The AI agent's plan: Anchors: The Lantern Room for both bands and Cottonwood Social Hall for Mid, with Fort Street Ballroom as a backup.",
+        "The AI agent's plan: Anchors: The Lantern Room for both bands and Linden Street Annex for Mid, with Fort Street Ballroom as a backup.",
       ),
     ).toBeTruthy();
     expect(within(bill).getByText(KEY)).toBeTruthy();
@@ -114,7 +114,7 @@ describe("Watch", () => {
     await at(bill, "+ Fort Street Ballroom's fans");
     expect(
       within(bill).getByText(
-        "The AI agent's plan: Cottonwood Social Hall lifted no act; try Fort Street Ballroom for both bands.",
+        "The AI agent's plan: Linden Street Annex lifted no act; try Fort Street Ballroom for both bands.",
       ),
     ).toBeTruthy();
     expect(within(bill).getByText(SWITCH)).toBeTruthy();

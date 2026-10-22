@@ -17,10 +17,14 @@ const HEADLINERS = "Khruangbin, Japanese Breakfast";
 const id = (n: number) =>
   `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 
-// The rooms the synthetic agent tested: the first two lift every act, the third lifts none.
+// The rooms the synthetic agent tested: the first two lift every act, the third lifts none, and
+// its cached runs are the headliners-only ranking itself, so Qloo had no fan data for it (WS2).
 const LANTERN = { entityId: id(201), name: "The Lantern Room" };
 const FORT = { entityId: id(202), name: "Fort Street Ballroom" };
 const COTTONWOOD = { entityId: id(203), name: "Cottonwood Social Hall" };
+// Nashville's switch build reads this room instead of Cottonwood Social Hall: Qloo's ranking
+// changes with its fans, but no act climbs 5 places, so it moves nothing for real.
+const LINDEN = { entityId: id(204), name: "Linden Street Annex" };
 
 function artistsCall(n: number, band: "Mid" | "Opener", venue?: string) {
   const [min, max] = band === "Mid" ? ["0.8", "0.92"] : ["0.55", "0.8"];
@@ -215,9 +219,10 @@ export const SYNTHETIC_SWITCH_BUILD_ID = "synthetic-switch-build";
 
 /**
  * A synthetic build whose planner switches venue (WS2): the first plan anchors on The Lantern
- * Room and Cottonwood Social Hall, with Fort Street Ballroom as a backup; Cottonwood Social Hall
- * lifts no act, so after its result the planner names Fort Street Ballroom, read next. Same
- * lineup as syntheticSavedBuild() (Fort Street Ballroom's fans put 3 acts on it), invented names.
+ * Room and Linden Street Annex, with Fort Street Ballroom as a backup; Linden Street Annex lifts
+ * no act (its fans were read: the ranking moves, but no act 5 places), so after its result the
+ * planner names Fort Street Ballroom, read next. Same lineup as syntheticSavedBuild() (Fort
+ * Street Ballroom's fans put 3 acts on it), invented names.
  */
 export function syntheticSwitchBuild(): SavedBuild {
   const base = syntheticSavedBuild();
@@ -228,13 +233,13 @@ export function syntheticSwitchBuild(): SavedBuild {
       ...calls.slice(0, 7),
       artistsCall(8, "Mid", LANTERN.name),
       artistsCall(9, "Opener", LANTERN.name),
-      artistsCall(10, "Mid", COTTONWOOD.name),
+      artistsCall(10, "Mid", LINDEN.name),
       artistsCall(11, "Mid", FORT.name),
       artistsCall(12, "Opener", FORT.name),
     ],
     context: {
       ...base.context,
-      anchors: { mid: [LANTERN, COTTONWOOD, FORT], opener: [LANTERN, FORT] },
+      anchors: { mid: [LANTERN, LINDEN, FORT], opener: [LANTERN, FORT] },
     },
     notes: [
       {
@@ -247,11 +252,11 @@ export function syntheticSwitchBuild(): SavedBuild {
       },
       {
         at: 5,
-        text: "Anchors: The Lantern Room for both bands and Cottonwood Social Hall for Mid, with Fort Street Ballroom as a backup.",
+        text: "Anchors: The Lantern Room for both bands and Linden Street Annex for Mid, with Fort Street Ballroom as a backup.",
       },
       {
         at: 10,
-        text: "Cottonwood Social Hall lifted no act; try Fort Street Ballroom for both bands.",
+        text: "Linden Street Annex lifted no act; try Fort Street Ballroom for both bands.",
       },
     ],
   };
@@ -298,7 +303,7 @@ function syntheticClimbs(build: SavedBuild) {
     const inBand = acts.filter((act) => act.band === band);
     const venue =
       call.tool === "venue_artists"
-        ? ([LANTERN, FORT, COTTONWOOD].find((room) =>
+        ? ([LANTERN, FORT, COTTONWOOD, LINDEN].find((room) =>
             call.summary.endsWith(`headliners and ${room.name}`),
           ) ?? null)
         : null;
@@ -497,11 +502,24 @@ const rawArtist = ({
   })),
 });
 
+/** An act of a band's headliners-only ranking as Qloo lists it: the fixture's, or a padded one. */
+function rankedRaw(entityId: string, index: number, band: "mid" | "opener") {
+  const act = lineup.acts.find((entry) => entry.entityId === entityId);
+  return {
+    entity_id: entityId,
+    name: act?.name ?? `Synthetic ${band} act ${index + 1}`,
+    popularity: act?.popularity ?? (band === "mid" ? 0.86 : 0.66),
+    query: { affinity: Math.round((0.9 - index * 0.005) * 1000) / 1000 },
+  };
+}
+
 /**
  * Qloo's answers for the Without Qloo checks (prompt-4), which the synthetic server seeds into
- * its cache (src/server/synthetic-seed.ts): each searched pick's results, and the build's venue
+ * its cache (src/server/synthetic-seed.ts): each searched pick's results, and the builds' venue
  * lists, where only The Lantern Room's fans bring a pick (Marigold Static) into Mid's top 50.
- * Only the checks read these lists.
+ * The checks read these lists, and so does WS2's no-fan-data check (src/lib/fan-data.ts):
+ * Cottonwood Social Hall's list is the band's headliners-only ranking itself, and Linden Street
+ * Annex's swaps each pair of neighbours in it, so its ranking changes but no act climbs 5 places.
  */
 export function syntheticPickQloo(url: URL): unknown {
   if (url.pathname === "/search")
@@ -510,10 +528,28 @@ export function syntheticPickQloo(url: URL): unknown {
         rawArtist,
       ),
     };
-  const lifts =
-    (url.searchParams.get("signal.interests.entities") ?? "").includes(
-      LANTERN.entityId,
-    ) && url.searchParams.get("filter.popularity.min") === "0.8";
+  const signal = (
+    url.searchParams.get("signal.interests.entities") ?? ""
+  ).split(",");
+  const band =
+    url.searchParams.get("filter.popularity.min") === "0.8" ? "mid" : "opener";
+  if (
+    signal.includes(COTTONWOOD.entityId) ||
+    signal.includes(LINDEN.entityId)
+  ) {
+    const ranking = baseline(band);
+    const listed = signal.includes(LINDEN.entityId)
+      ? ranking.map((_, index) => ranking[index ^ 1] ?? ranking[index])
+      : ranking;
+    return {
+      results: {
+        entities: listed.map((entityId, index) =>
+          rankedRaw(entityId, index, band),
+        ),
+      },
+    };
+  }
+  const lifts = signal.includes(LANTERN.entityId) && band === "mid";
   return {
     results: {
       entities: lifts

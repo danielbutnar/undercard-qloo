@@ -272,7 +272,7 @@ describe("the agent's switch in a saved trace", () => {
     const [found, ...more] = agentSwitches(of(syntheticSwitchBuild()));
     expect(more).toEqual([]);
     expect(switchLine(found)).toBe(
-      "Cottonwood Social Hall's fans moved no act onto the lineup, so the agent read Fort Street Ballroom; 3 acts come from that read.",
+      "Linden Street Annex's fans moved no act onto the lineup, so the agent read Fort Street Ballroom; 3 acts come from that read.",
     );
   });
 });
