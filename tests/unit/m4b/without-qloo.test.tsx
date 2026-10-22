@@ -153,7 +153,9 @@ describe("Without Qloo", () => {
     ).toBeNull();
     expect(
       screen.getByRole("region", { name: "The festival" }).textContent,
-    ).not.toMatch(/drafted the rest|Drafted from \d+ Qloo calls|AI agent planned/);
+    ).not.toMatch(
+      /drafted the rest|Drafted from \d+ Qloo calls|AI agent planned/,
+    );
     // Flipping back brings the venues, with their switches, and the agent's credit.
     flip(WITH);
     expect(toggles().every((toggle) => !toggle.disabled)).toBe(true);
@@ -177,7 +179,9 @@ describe("Without Qloo", () => {
     // as the row's big number (M10a).
     const row = within(draft).getByRole("article", { name: "Hollow Pines" });
     expect(
-      within(row).getByText("With The Lantern Room's fans added: up 11 places in Qloo's ranking"),
+      within(row).getByText(
+        "With The Lantern Room's fans added: up 11 places in Qloo's ranking",
+      ),
     ).toBeTruthy();
     expect(row.querySelector(".row-place")!.textContent).toBe("11");
   });

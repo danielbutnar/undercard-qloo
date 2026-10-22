@@ -70,7 +70,9 @@ describe("the mark under an act", () => {
           "Fort Street Ballroom",
         ),
       ),
-    ).toBe("With Fort Street Ballroom's fans added: up 7 places in Qloo's ranking");
+    ).toBe(
+      "With Fort Street Ballroom's fans added: up 7 places in Qloo's ranking",
+    );
     expect(
       markLabel(act("The Lantern Room fans move it into the top 8."), 50),
     ).toBe(

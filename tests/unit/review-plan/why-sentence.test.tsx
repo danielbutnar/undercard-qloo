@@ -40,13 +40,7 @@ describe("an act's why, in one sentence (plan.md item 5)", () => {
   });
 
   it("is the card's Why line", () => {
-    render(
-      <ActCard
-        act={climber}
-        hue={0}
-        place={{ now: 6, was: 21 }}
-      />,
-    );
+    render(<ActCard act={climber} hue={0} place={{ now: 6, was: 21 }} />);
     const card = screen.getByRole("article", { name: "Synthetic Climber" });
     expect(within(card).getByText("Why it's here:")).toBeTruthy();
     expect(card.textContent).toContain(
