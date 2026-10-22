@@ -51,6 +51,36 @@ export function createAgentModel(
   };
 }
 
+/** The deep health check's model call (GET /api/health/deep). */
+export interface HealthModel {
+  /** Resolves once the model answers; nothing from the answer is kept or returned. */
+  ping(): Promise<void>;
+}
+
+/**
+ * The smallest call that shows the key and the model work: a one-character prompt, one token
+ * back, no system prompt and no tools.
+ */
+export function createHealthModel({
+  apiKey = process.env.ANTHROPIC_API_KEY,
+  client,
+}: { apiKey?: string; client?: Anthropic } = {}): HealthModel {
+  if (!client && !apiKey) throw new AiNotConfigured();
+  // A one-token answer takes a second or two; 20 s a try keeps the check inside its route's time.
+  const anthropic = client ?? new Anthropic({ apiKey, timeout: 20_000 });
+  return {
+    async ping() {
+      const response = await anthropic.messages.create({
+        model: AI_MODEL,
+        max_tokens: 1,
+        messages: [{ role: "user", content: "." }],
+      });
+      if (response.stop_reason === "refusal")
+        throw new Error("The model declined the health check.");
+    },
+  };
+}
+
 const LLM_ONLY_SYSTEM = `You are a festival booking assistant with no data tools: answer from your own knowledge only. Suggest 10 artists for the festival's undercard, not the booked headliners. For each, give the artist's name and one sentence on why it fits.`;
 
 const LlmOnlyAnswerSchema = z.object({ picks: z.array(LlmOnlyPickSchema) });
