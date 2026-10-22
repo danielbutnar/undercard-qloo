@@ -649,7 +649,7 @@ Done means: WS1, WS2, WS9, WS10 and WS11 merged into branch integration (WS4 if 
 - [ ] WS9, branch redesign: the first screen; on hold until Daniel's layout brief; core by Saturday 24 October 12:00 at the latest
 - [ ] WS10, branch share-image: after WS9's gate
 - [ ] WS4, branch shortlist (optional): after WS9's gate; green by Saturday 16:00 or cut
-- [ ] Evidence section 34, the premise test's two controls, written and committed before any call
+- [x] Evidence section 34, the premise test's two controls, written and committed before any call: each festival's control town worked out from the saved builds (four need the added rule for a town with too few anchor venues); step 0 can't be counted from .design/m8f/result.json, which holds lifts but no headliners-only affinities and no entity ids; the run is estimated at 298 calls plus up to 130 searches, past 250, so it waits on Daniel
 - [ ] Evidence section 35, Qloo's own attribution, written and committed before the call
 - [ ] Evidence section 36, the 30-second test round 2, written and committed before anyone sees the new screen
 - [ ] Phase 2, in a window Daniel names: section 35's two calls; section 34's run (estimated past 250 calls, so it waits on Daniel); the headliners' /entities script if WS9 needs it; scripts/shortlist-example.ts once WS4 is merged; the 29 pointers re-checked after each
