@@ -126,6 +126,47 @@ describe("what each town's replay gives", () => {
     ).toEqual({ missing: "Raleigh has no saved build" });
   });
 
+  it("knows a venue by the name the docs give it, without Qloo's bracketed abbreviation", () => {
+    // Qloo can file a room as "Name (ABC)"; the docs and the marks (src/lib/marks.ts) drop that.
+    const [boise] = data.towns;
+    const renamed = (text: string) =>
+      text.replace(/The Lantern Room/g, "The Lantern Room (TLR)");
+    const lineup = boise.replay.lineup!;
+    const bracketed: EvidenceData = {
+      ...data,
+      towns: [
+        {
+          ...boise,
+          replay: {
+            ...boise.replay,
+            trace: boise.replay.trace.map((call) => ({
+              ...call,
+              summary: renamed(call.summary),
+            })),
+            lineup: {
+              ...lineup,
+              acts: lineup.acts.map((act) => ({
+                ...act,
+                anchorVenue: {
+                  ...act.anchorVenue,
+                  name: renamed(act.anchorVenue.name),
+                },
+              })),
+            },
+          },
+        },
+      ],
+    };
+    const lifted = (venue: string) =>
+      evaluate({ kind: "venue-acts", town: "Boise", venue }, bracketed);
+    expect(lifted("The Lantern Room")).toBe(7);
+    expect(lifted("The Lantern Room (TLR)")).toBe(7);
+    expect(lifted("Cottonwood Social Hall")).toBe(0);
+    expect(evaluate({ kind: "venues-tested", town: "Boise" }, bracketed)).toBe(
+      3,
+    );
+  });
+
   it("counts the calls, the slots filled and the brief's slots", () => {
     expect(value({ kind: "calls", town: "Austin" })).toBe(12);
     expect(value({ kind: "filled", town: "Boise", band: "mid" })).toBe(4);

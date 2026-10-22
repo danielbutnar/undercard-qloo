@@ -567,6 +567,13 @@ const testedVenues = (trace: readonly TraceCall[]) => [
   ),
 ];
 
+/**
+ * A venue as Qloo names it against a name in the docs, which drop a bracketed note the way the
+ * marks do (src/lib/marks.ts): "Venue 418 (V418)" is "Venue 418".
+ */
+const sameVenue = (qloo: string, named: string) =>
+  qloo === named || qloo.replace(/\s*\([^)]*\)/g, "").trim() === named;
+
 const bandOf = (festival: Festival, band: FeeBandId) =>
   festival.feeBands.find((entry) => entry.id === band);
 
@@ -743,10 +750,15 @@ export function evaluate(
     case "venue-acts": {
       const town = built(data, c.town);
       if (isMissing(town)) return town;
-      const lifted = town.lineup.acts.filter(
-        (act) => act.anchorVenue.name === c.venue,
+      const lifted = town.lineup.acts.filter((act) =>
+        sameVenue(act.anchorVenue.name, c.venue),
       ).length;
-      if (lifted === 0 && !testedVenues(town.replay.trace).includes(c.venue))
+      if (
+        lifted === 0 &&
+        !testedVenues(town.replay.trace).some((name) =>
+          sameVenue(name, c.venue),
+        )
+      )
         return missing(`${c.town}'s saved build didn't test ${c.venue}`);
       return lifted;
     }
