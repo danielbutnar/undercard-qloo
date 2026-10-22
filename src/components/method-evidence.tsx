@@ -182,7 +182,7 @@ const ROWS: Row[] = [
     what: "Without Qloo, do the model's own picks pass the tests every Qloo act passes?",
     result: "10 of 290 model picks pass all three; every Qloo act does",
     limit:
-      "Qloo's own measures, which the model can't see. The two lineups share no act in any of the 29 towns.",
+      "Qloo's own measures, which the model can't see. The two lineups share no act in 28 of the 29 towns, and one in the other.",
   },
   {
     to: "boise",

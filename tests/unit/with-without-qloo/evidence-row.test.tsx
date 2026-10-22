@@ -32,4 +32,17 @@ describe("With and Without Qloo on the evidence page (section 31)", () => {
     ).toBe(evidenceAnchor(SECTION_31));
     expect(row.querySelector(".result-bar")).not.toBeNull();
   });
+
+  // Corrected 2026-10-22: Duluth's two lineups share one act (section 31's own per-town counts).
+  it("says the two lineups share no act in 28 of the 29 towns, and one in the other", () => {
+    render(<MethodEvidencePage />);
+    const idea = screen.getByRole("table", { name: "Does the idea hold?" });
+    const row = within(idea)
+      .getAllByRole("row")
+      .find((candidate) => /Without Qloo/.test(candidate.textContent ?? ""))!;
+    const limit = row.querySelector<HTMLElement>("td.evidence-limit")!;
+    expect(limit.textContent).toBe(
+      "Qloo's own measures, which the model can't see. The two lineups share no act in 28 of the 29 towns, and one in the other.",
+    );
+  });
 });
