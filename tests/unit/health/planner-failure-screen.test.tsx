@@ -70,7 +70,7 @@ describe("a failed planner call on Your festival", () => {
   it("says so and offers the country's checked towns, with the brief kept", async () => {
     const notice = await draft("Minnesota");
     expect(within(notice).getByRole("heading", { level: 2 }).textContent).toBe(
-      "The AI agent couldn't plan this draft",
+      "The AI agent couldn't plan",
     );
     expect(notice.textContent).toContain(FAILED.message);
     const towns = within(notice).getByRole("list", {

@@ -205,7 +205,7 @@ function RunNotice({
                   : code === "too-few-rooms"
                     ? "Too few venues in this town"
                     : code === "planner-failed"
-                      ? "The AI agent couldn't plan this draft"
+                      ? "The AI agent couldn't plan"
                       : "This draft couldn't be finished"}
       </h2>
       <p className="mt-2 text-label">{message}</p>
