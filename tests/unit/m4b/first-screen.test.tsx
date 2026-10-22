@@ -40,7 +40,7 @@ describe("the first screen", () => {
       screen.getByRole("button", { name: "Build undercard" }),
     ).toBeTruthy();
     expect(
-      screen.queryByRole("button", { name: "Watch how it picked these acts" }),
+      screen.queryByRole("button", { name: "Watch the AI agent build it" }),
     ).toBeNull();
   });
 
@@ -94,14 +94,14 @@ describe("the first screen", () => {
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
     );
     fireEvent.click(
-      screen.getByRole("button", { name: "Watch how it picked these acts" }),
+      screen.getByRole("button", { name: "Watch the AI agent build it" }),
     );
     expect(draft()).toBeTruthy();
-    // Watch is playing, with its banner up, and no act waits under it.
-    expect(screen.getByRole("button", { name: "Watching…" })).toHaveProperty(
-      "disabled",
-      true,
-    );
+    // Watch is playing, with its caption up, and no act waits under it. WS9: Watch's own button
+    // turns into Skip while it plays.
+    expect(
+      screen.getByRole("button", { name: "Skip to the lineup" }),
+    ).toHaveProperty("disabled", false);
     expect(
       within(draft()).getByText("Replaying the AI agent's build"),
     ).toBeTruthy();

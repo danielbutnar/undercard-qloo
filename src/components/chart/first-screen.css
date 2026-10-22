@@ -1,0 +1,1696 @@
+/* ========== the first screen (WS9, "Your town prints your poster") ========== */
+/*
+ * The lead and the town on the left, the poster on the right; on a phone the lead, Watch, the
+ * poster, then the town. Colours come from the theme tokens only: the town's shades are the
+ * venue colours and white mixed with ink.
+ */
+
+.chart-app.fs {
+  padding: 0 clamp(16px, 3.4vw, 56px) 48px;
+}
+.chart-app.fs .fs-top,
+.chart-app.fs .fs-main {
+  max-width: 1328px;
+  margin: 0 auto;
+}
+
+/* ---------- the top bar: the wordmark, the tagline with Qloo in plain words, the nav ---------- */
+
+.chart-app.fs .fs-top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "word nav" "tag tag";
+  align-items: center;
+  gap: 2px 16px;
+  padding: 10px 0 8px;
+}
+/* On a laptop the tagline sits between the wordmark and the nav, on two lines at most. */
+@media (min-width: 1100px) {
+  .chart-app.fs .fs-top {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: "word tag nav";
+    gap: 0 20px;
+  }
+  .chart-app.fs .fs-tagline {
+    max-width: 760px;
+  }
+}
+.chart-app.fs .fs-word {
+  grid-area: word;
+  font-size: 28px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.chart-app.fs .fs-top .nav {
+  grid-area: nav;
+  justify-self: end;
+  flex-wrap: nowrap;
+  gap: 2px;
+  margin-right: -8px;
+}
+.chart-app.fs .fs-top .nav a,
+.chart-app.fs .fs-top .nav button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 8px;
+  font-size: 15px;
+}
+.chart-app.fs .fs-tagline {
+  grid-area: tag;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+@media (min-width: 768px) {
+  .chart-app.fs .fs-top .nav a,
+  .chart-app.fs .fs-top .nav button {
+    padding: 0 12px;
+    font-size: 17px;
+  }
+  .chart-app.fs .fs-tagline {
+    font-size: 16px;
+  }
+}
+
+/* ---------- the grid ---------- */
+
+.chart-app.fs .fs-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "lead" "watch" "poster" "town";
+  gap: 22px;
+  align-items: start;
+}
+@media (min-width: 1100px) {
+  .chart-app.fs .fs-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(440px, 520px);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas: "lead poster" "town poster" ". poster";
+    gap: 14px 40px;
+  }
+}
+.chart-app.fs .fs-lead {
+  grid-area: lead;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.chart-app.fs .fs-poster {
+  grid-area: poster;
+  min-width: 0;
+  width: 100%;
+  max-width: 520px;
+  justify-self: center;
+}
+.chart-app.fs .fs-town {
+  grid-area: town;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+/* ---------- the lead ---------- */
+
+.chart-app.fs .fs-title {
+  font-family: var(--font-display);
+  font-size: clamp(30px, 3.8vw, 56px);
+  line-height: 1;
+  text-wrap: balance;
+}
+.chart-app.fs .fs-line {
+  margin-top: -10px;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.7vw, 40px);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+@media (max-width: 599px) {
+  .chart-app.fs .fs-lead {
+    gap: 12px;
+  }
+  .chart-app.fs .fs-line {
+    margin-top: -8px;
+  }
+}
+.chart-app.fs .fs-line mark {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  padding: 0 0.12em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.chart-app.fs .fs-towns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.chart-app.fs .fs-towns ul {
+  display: contents;
+}
+.chart-app.fs .fs-towns-label {
+  margin-right: 4px;
+  font-size: 16px;
+  font-weight: 800;
+}
+.chart-app.fs .fs-town-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 3px solid var(--color-ink);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 19px;
+  line-height: 1;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.chart-app.fs .fs-town-chip[aria-current="page"] {
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+.chart-app.fs .fs-town-chip:hover:not([aria-current="page"]) {
+  background: var(--color-accent);
+}
+.chart-app.fs .fs-town-code {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 800;
+}
+.chart-app.fs .fs-town-yours {
+  gap: 6px;
+  border-style: dashed;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 800;
+  text-transform: none;
+}
+.chart-app.fs .fs-town-yours svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--color-ink);
+  stroke-width: 2.4;
+}
+@media (max-width: 599px) {
+  .chart-app.fs .fs-town-chip {
+    min-height: 44px;
+    padding: 0 9px;
+    font-size: 16px;
+  }
+}
+
+/* ---------- Watch: the first click, over the town on a laptop, under the lead on a phone ---------- */
+
+.chart-app.fs .fs-watch {
+  grid-area: watch;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  min-width: 0;
+}
+.chart-app.fs .fs-watch .watch {
+  justify-content: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 0 20px 0 16px;
+  font-size: 18px;
+  box-shadow: 5px 5px 0 var(--color-ink);
+}
+.chart-app.fs .fs-watch .watch-play {
+  width: auto;
+  height: auto;
+  background: transparent;
+}
+.chart-app.fs .fs-watch .watch-play svg {
+  fill: var(--color-ink);
+}
+.chart-app.fs .fs-watch .watch.is-skip {
+  background: var(--color-surface);
+}
+.chart-app.fs .fs-watch .watch-sub {
+  align-self: center;
+  text-wrap: balance;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}
+@media (min-width: 1100px) {
+  .chart-app.fs .fs-watch {
+    grid-area: town;
+    align-self: end;
+    justify-self: start;
+    z-index: 5;
+    align-items: flex-start;
+    margin: 0 0 15px 15px;
+    max-width: 520px;
+  }
+  .chart-app.fs .fs-watch .watch {
+    width: auto;
+  }
+  .chart-app.fs .fs-watch .watch-sub {
+    align-self: flex-start;
+    padding: 2px 7px;
+    background: var(--color-ink);
+    color: var(--color-surface);
+    font-size: 13px;
+    text-align: left;
+  }
+}
+
+/* ---------- the town ---------- */
+
+.chart-app.fs .fs-legend {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.chart-app.fs .fs-legend strong {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+.chart-app.fs .town-view {
+  --town-white: var(--color-surface);
+  --town-road: color-mix(in srgb, var(--color-ink) 16%, var(--color-surface));
+  position: relative;
+  height: 400px;
+  border: 3px solid var(--color-ink);
+  box-shadow: 10px 10px 0 var(--color-ink);
+  background-color: var(--color-page);
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    color-mix(in srgb, var(--color-ink) 16%, transparent) 1px,
+    transparent 1.5px
+  );
+  background-size: 9px 9px;
+  perspective: 1500px;
+  perspective-origin: 50% 50%;
+  overflow: hidden;
+  touch-action: pan-y;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+@media (min-width: 1100px) {
+  .chart-app.fs .town-view {
+    height: clamp(420px, calc(100svh - 372px), 600px);
+  }
+}
+.chart-app.fs .town-view.is-dragging {
+  cursor: grabbing;
+}
+.chart-app.fs .town-view.is-unmeasured .town-signs,
+.chart-app.fs .town-view.is-unmeasured .town-controls {
+  visibility: hidden;
+}
+.chart-app.fs .town-world {
+  position: absolute;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transform-origin: 0 0;
+}
+.chart-app.fs .town-plate {
+  position: absolute;
+  left: -312px;
+  top: -312px;
+  width: 624px;
+  height: 624px;
+  transform-style: preserve-3d;
+}
+.chart-app.fs .town-face {
+  position: absolute;
+  box-sizing: border-box;
+  transform-origin: 50% 100%;
+  backface-visibility: hidden;
+  border: 2px solid var(--color-ink);
+}
+.chart-app.fs .town-plate-top {
+  border-width: 3px;
+  background-color: var(--town-white);
+  background-image:
+    linear-gradient(
+      90deg,
+      var(--town-road) 0 12px,
+      transparent 12px 180px,
+      var(--town-road) 180px 228px,
+      transparent 228px 396px,
+      var(--town-road) 396px 444px,
+      transparent 444px 612px,
+      var(--town-road) 612px
+    ),
+    linear-gradient(
+      180deg,
+      var(--town-road) 0 12px,
+      transparent 12px 180px,
+      var(--town-road) 180px 228px,
+      transparent 228px 396px,
+      var(--town-road) 396px 444px,
+      transparent 444px 612px,
+      var(--town-road) 612px
+    );
+}
+.chart-app.fs .town-plate-s,
+.chart-app.fs .town-plate-n,
+.chart-app.fs .town-plate-e,
+.chart-app.fs .town-plate-w {
+  border: 0;
+  background: var(--color-ink);
+}
+.chart-app.fs .town-ground {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transform: translateZ(16px);
+}
+.chart-app.fs .town-box {
+  position: absolute;
+  transform-style: preserve-3d;
+  transform-origin: 50% 50% 0;
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1.12);
+  --box-top: var(--town-white);
+  --box-s: color-mix(in srgb, var(--color-ink) 6%, var(--color-surface));
+  --box-n: color-mix(in srgb, var(--color-ink) 3%, var(--color-surface));
+  --box-e: color-mix(in srgb, var(--color-ink) 15%, var(--color-surface));
+  --box-w: color-mix(in srgb, var(--color-ink) 11%, var(--color-surface));
+}
+.chart-app.fs .town-box .town-face {
+  transition: background-color 0.45s ease;
+}
+.chart-app.fs .town-box .town-face-top {
+  background-color: var(--box-top);
+}
+.chart-app.fs .town-box .town-face-s {
+  background-color: var(--box-s);
+}
+.chart-app.fs .town-box .town-face-n {
+  background-color: var(--box-n);
+}
+.chart-app.fs .town-box .town-face-e {
+  background-color: var(--box-e);
+}
+.chart-app.fs .town-box .town-face-w {
+  background-color: var(--box-w);
+}
+/* Plain buildings: white, with a fine halftone down their walls. */
+.chart-app.fs .town-box-plain .town-face:not(.town-face-top) {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-ink) 20%, transparent) 1.1px,
+    transparent 1.6px
+  );
+  background-size: 7px 7px;
+}
+/* A venue lit in its colour: shaded walls, a band of bulbs and a door. */
+.chart-app.fs .town-box-lit {
+  --box-top: var(--venue);
+  --box-s: color-mix(in srgb, var(--venue) 94%, var(--color-ink));
+  --box-n: color-mix(in srgb, var(--venue) 92%, var(--color-surface));
+  --box-e: color-mix(in srgb, var(--venue) 74%, var(--color-ink));
+  --box-w: color-mix(in srgb, var(--venue) 84%, var(--color-ink));
+}
+.chart-app.fs .town-box-dark {
+  --box-top: color-mix(in srgb, var(--color-ink) 48%, var(--color-surface));
+  --box-s: color-mix(in srgb, var(--color-ink) 52%, var(--color-surface));
+  --box-n: color-mix(in srgb, var(--color-ink) 44%, var(--color-surface));
+  --box-e: color-mix(in srgb, var(--color-ink) 60%, var(--color-surface));
+  --box-w: color-mix(in srgb, var(--color-ink) 56%, var(--color-surface));
+}
+.chart-app.fs .town-box-lit .town-face:not(.town-face-top),
+.chart-app.fs .town-box-dark .town-face:not(.town-face-top) {
+  background-image:
+    radial-gradient(
+      circle,
+      var(--bulb, var(--color-accent)) 1.7px,
+      var(--color-ink) 2.2px,
+      transparent 2.6px
+    ),
+    linear-gradient(
+      180deg,
+      transparent 0 8px,
+      var(--stripe, var(--color-surface)) 8px 20px,
+      transparent 20px
+    );
+  background-size:
+    9px 12px,
+    100% 100%;
+  background-position:
+    2px 8px,
+    0 0;
+  background-repeat: repeat-x, no-repeat;
+}
+.chart-app.fs .town-box-dark {
+  --bulb: color-mix(in srgb, var(--color-ink) 60%, var(--color-surface));
+  --stripe: color-mix(in srgb, var(--color-ink) 30%, var(--color-surface));
+}
+.chart-app.fs .town-box-lit .town-door,
+.chart-app.fs .town-box-dark .town-door {
+  background-image:
+    radial-gradient(
+      circle,
+      var(--bulb, var(--color-accent)) 1.7px,
+      var(--color-ink) 2.2px,
+      transparent 2.6px
+    ),
+    linear-gradient(
+      180deg,
+      transparent 0 8px,
+      var(--stripe, var(--color-surface)) 8px 20px,
+      transparent 20px
+    ),
+    linear-gradient(var(--color-ink), var(--color-ink));
+  background-size:
+    9px 12px,
+    100% 100%,
+    20px 28px;
+  background-position:
+    2px 8px,
+    0 0,
+    50% 100%;
+  background-repeat: repeat-x, no-repeat, no-repeat;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .chart-app.fs .town-box-lit .town-face:not(.town-face-top) {
+    animation: town-chase 0.9s steps(2, end) infinite;
+  }
+}
+@keyframes town-chase {
+  to {
+    background-position:
+      11px 8px,
+      0 0,
+      50% 100%;
+  }
+}
+/* A venue Watch hasn't read yet: a dashed outline. */
+.chart-app.fs .town-box-unread .town-face {
+  border-style: dashed;
+}
+.chart-app.fs .town-box-unread {
+  --box-top: var(--color-surface);
+  --box-s: color-mix(in srgb, var(--color-ink) 7%, var(--color-surface));
+  --box-e: color-mix(in srgb, var(--color-ink) 14%, var(--color-surface));
+  --box-w: color-mix(in srgb, var(--color-ink) 10%, var(--color-surface));
+}
+.chart-app.fs .town-box-ghost {
+  --box-top: color-mix(in srgb, var(--color-ink) 4%, var(--color-surface));
+}
+/* The venue's crowd: its fans as dots in front of the doors. */
+.chart-app.fs .town-crowd {
+  position: absolute;
+  height: 30px;
+  opacity: 0;
+  transform-origin: 50% 0;
+  transform: translateZ(1px) scaleY(0.2);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+  --dot: color-mix(in srgb, var(--color-ink) 48%, var(--color-surface));
+  background-image:
+    radial-gradient(
+      circle,
+      var(--dot) 2.7px,
+      var(--color-ink) 3.3px,
+      transparent 3.9px
+    ),
+    radial-gradient(
+      circle,
+      var(--dot) 2.7px,
+      var(--color-ink) 3.3px,
+      transparent 3.9px
+    );
+  background-size:
+    12px 12px,
+    12px 12px;
+  background-position:
+    0 0,
+    6px 6px;
+}
+.chart-app.fs .town-crowd.is-lit {
+  --dot: var(--venue);
+}
+.chart-app.fs .town-crowd.is-shown {
+  opacity: 1;
+  transform: translateZ(1px) scaleY(1);
+}
+.chart-app.fs .town-ring {
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  box-sizing: border-box;
+  border: 6px solid var(--venue, var(--color-ink));
+  border-radius: 50%;
+  opacity: 0;
+  transform: translateZ(2px) scale(0.25);
+  animation: town-ring 1.2s cubic-bezier(0.15, 0.7, 0.3, 1) 0s 2 both;
+}
+@keyframes town-ring {
+  0% {
+    transform: translateZ(2px) scale(0.25);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translateZ(2px) scale(2.7);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chart-app.fs .town-ring {
+    display: none;
+  }
+  .chart-app.fs .town-box,
+  .chart-app.fs .town-crowd {
+    transition: none;
+  }
+}
+.chart-app.fs .town-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-color: transparent;
+  transition: background-color 0.5s ease;
+}
+.chart-app.fs .town-view.is-without .town-veil {
+  background-color: color-mix(in srgb, var(--color-page) 62%, transparent);
+}
+
+/* The signs over the venues, each a button. */
+.chart-app.fs .town-signs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.chart-app.fs .town-sign {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  transform: translate(-50%, -100%);
+  pointer-events: auto;
+  background: transparent;
+}
+.chart-app.fs .town-sign-plate {
+  display: flex;
+  align-items: stretch;
+  border: 3px solid var(--color-ink);
+  background: var(--color-ink);
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--color-ink) 30%, transparent);
+}
+.chart-app.fs .town-sign.is-picked .town-sign-plate,
+.chart-app.fs .town-sign:hover .town-sign-plate {
+  border-color: var(--color-accent);
+}
+.chart-app.fs .town-sign-name {
+  padding: 6px 9px 5px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  line-height: 1;
+  color: var(--color-surface);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.chart-app.fs .town-sign-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  background: var(--venue, var(--color-surface));
+  color: var(--on-venue, var(--color-ink));
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.chart-app.fs .town-sign-plate.is-none .town-sign-chip {
+  background: color-mix(in srgb, var(--color-ink) 22%, var(--color-surface));
+  color: var(--color-ink);
+}
+.chart-app.fs .town-sign-plate.is-off .town-sign-chip {
+  background: var(--color-surface);
+  color: var(--color-danger);
+}
+.chart-app.fs .town-sign-plate.is-unread .town-sign-chip {
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+.chart-app.fs .town-sign-pole {
+  width: 3px;
+  height: 14px;
+  background: var(--color-ink);
+}
+.chart-app.fs .town-sign:disabled {
+  cursor: default;
+}
+@media (max-width: 599px) {
+  .chart-app.fs .town-sign-name {
+    font-size: 12px;
+  }
+  .chart-app.fs .town-sign-chip {
+    font-size: 12px;
+  }
+}
+
+/* The controls, bottom right. */
+.chart-app.fs .town-controls {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 3003;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.chart-app.fs .town-controls.is-waiting {
+  opacity: 0.55;
+}
+.chart-app.fs .town-hint {
+  padding: 2px 7px;
+  border: 2px solid var(--color-ink);
+  background: var(--color-surface);
+  font-size: 13px;
+  font-weight: 800;
+}
+.chart-app.fs .town-buttons {
+  display: flex;
+  gap: 6px;
+}
+.chart-app.fs .town-buttons button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 3px solid var(--color-ink);
+  background: var(--color-surface);
+}
+.chart-app.fs .town-buttons button:hover:not(:disabled) {
+  background: var(--color-accent);
+}
+.chart-app.fs .town-buttons svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: var(--color-ink);
+  stroke-width: 2.6;
+}
+@media (max-width: 559px) {
+  .chart-app.fs .town-zoom {
+    display: none !important;
+  }
+}
+
+/* What sits over the town: Watch's caption, a card, Without Qloo's note. */
+.chart-app.fs .scene-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 3000;
+}
+.chart-app.fs .scene-panel {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  z-index: 3001;
+  width: 380px;
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
+}
+.chart-app.fs .scene-note {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  z-index: 3002;
+  transform: translate(-50%, -50%);
+  width: min(440px, calc(100% - 24px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px;
+  border: 3px solid var(--color-ink);
+  background: var(--color-surface);
+  box-shadow: 8px 8px 0 var(--color-ink);
+}
+.chart-app.fs .scene-note-title {
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1.05;
+}
+.chart-app.fs .scene-note-text {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+@media (max-width: 599px) {
+  .chart-app.fs .scene-note-title {
+    font-size: 24px;
+  }
+  .chart-app.fs .scene-note-text {
+    font-size: 15px;
+  }
+}
+
+/* Watch's caption: a black bar over the town, inside the poster on a phone. */
+.chart-app.fs .watch-caption {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 4px 14px;
+  padding: 11px 14px 12px;
+  border: 0;
+  background: var(--color-ink);
+  color: var(--color-surface);
+  box-shadow: none;
+  text-align: left;
+}
+.chart-app.fs .watch-caption .edition-title {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.chart-app.fs .watch-caption .edition-line {
+  margin-top: 2px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.chart-app.fs .watch-caption .edition-call,
+.chart-app.fs .watch-caption .edition-note {
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.chart-app.fs .watch-caption .ticks i {
+  width: 4px;
+  height: 14px;
+  background: color-mix(in srgb, var(--color-surface) 35%, transparent);
+}
+.chart-app.fs .watch-caption .ticks i.lit {
+  background: var(--color-accent);
+  box-shadow: none;
+}
+.chart-app.fs .watch-caption-poster {
+  margin: 2px 0;
+}
+.chart-app.fs .watch-caption-poster .edition-title {
+  font-size: 15px;
+}
+.chart-app.fs .watch-caption-poster .edition-line,
+.chart-app.fs .watch-caption-poster .edition-call,
+.chart-app.fs .watch-caption-poster .edition-note {
+  font-size: 13.5px;
+}
+
+/* A venue's card, from its sign. */
+.chart-app.fs .scene-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 3px solid var(--color-ink);
+  background: var(--color-surface);
+  box-shadow: 6px 6px 0 var(--color-ink);
+  text-align: left;
+}
+.chart-app.fs .venue-card-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.chart-app.fs .venue-card-swatch {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-ink);
+  background: var(
+    --venue,
+    color-mix(in srgb, var(--color-ink) 48%, var(--color-surface))
+  );
+}
+.chart-app.fs .venue-card-line {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.chart-app.fs .venue-card-note {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-muted);
+}
+.chart-app.fs .venue-card-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chart-app.fs .poster-act-mini {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 3px;
+  min-height: 44px;
+  padding: 8px 9px 4px;
+  border: 2px solid var(--color-ink);
+  background: var(--venue);
+  color: var(--on-venue);
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.chart-app.fs .scene-card-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chart-app.fs .scene-switch,
+.chart-app.fs .scene-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 3px solid var(--color-ink);
+  background: var(--color-surface);
+  font-size: 15px;
+  font-weight: 800;
+}
+.chart-app.fs .scene-switch-track {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 22px;
+  border: 2px solid var(--color-ink);
+  background: var(--color-surface);
+}
+.chart-app.fs .scene-switch-track span {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: var(--color-ink);
+  transition: left 0.2s ease;
+}
+.chart-app.fs .scene-switch-track.is-on {
+  background: var(--color-accent);
+}
+.chart-app.fs .scene-switch-track.is-on span {
+  left: 20px;
+}
+
+/* ---------- the poster ---------- */
+
+.chart-app.fs .poster-tabs {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+  margin-bottom: -3px;
+  padding-left: 18px;
+}
+.chart-app.fs .poster-tabs button {
+  min-height: 46px;
+  padding: 0 16px;
+  border: 3px solid var(--color-ink);
+  border-bottom-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-surface);
+  font-size: 16px;
+  font-weight: 800;
+}
+.chart-app.fs .poster-tabs button[aria-pressed="true"] {
+  border-bottom-color: var(--color-surface);
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+.chart-app.fs .poster-sheet {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 15px 20px 12px;
+  border: 3px solid var(--color-ink);
+  box-shadow: 10px 10px 0 var(--color-ink);
+  background-color: var(--color-surface);
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    color-mix(in srgb, var(--color-ink) 7%, transparent) 1px,
+    transparent 1.4px
+  );
+  background-size: 6px 6px;
+  text-align: center;
+}
+@media (max-width: 599px) {
+  .chart-app.fs .poster-tabs {
+    padding-left: 14px;
+  }
+  .chart-app.fs .poster-tabs button {
+    padding: 0 11px;
+    font-size: 15px;
+  }
+  .chart-app.fs .poster-sheet {
+    padding: 14px 14px 12px;
+  }
+}
+.chart-app.fs .poster-stamp {
+  position: absolute;
+  top: -18px;
+  right: -14px;
+  z-index: 3;
+  padding: 3px 9px;
+  border: 3px solid var(--color-danger);
+  background: var(--color-surface);
+  color: var(--color-danger);
+  font-size: 13px;
+  font-weight: 800;
+  rotate: 6deg;
+}
+@media (max-width: 599px) {
+  .chart-app.fs .poster-stamp {
+    top: -16px;
+    right: -6px;
+  }
+}
+.chart-app.fs .stamp-short {
+  display: none;
+}
+@media (max-width: 599px) {
+  .chart-app.fs .stamp-long {
+    display: none;
+  }
+  .chart-app.fs .stamp-short {
+    display: inline;
+  }
+}
+.chart-app.fs .poster-name {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 2.4vw, 34px);
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.chart-app.fs .poster-sheet .facts {
+  margin: -3px 0 0;
+  text-wrap: balance;
+  font-size: 14px;
+  font-weight: 700;
+}
+.chart-app.fs .poster-rule-line {
+  align-self: stretch;
+  height: 3px;
+  background: var(--color-ink);
+}
+.chart-app.fs .poster-booked,
+.chart-app.fs .poster-chip {
+  padding: 2px 9px;
+  background: var(--color-ink);
+  color: var(--color-surface);
+  font-size: 13px;
+  font-weight: 800;
+}
+.chart-app.fs .poster-chip {
+  border: 2px solid var(--color-ink);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+.chart-app.fs .poster-chip-model {
+  background: var(--color-quiet);
+  color: var(--color-ink);
+}
+.chart-app.fs .poster-heads {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.chart-app.fs .poster-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  line-height: 1;
+  text-transform: uppercase;
+}
+.chart-app.fs .poster-head:first-child {
+  font-size: clamp(32px, 2.8vw, 40px);
+}
+.chart-app.fs .poster-head:nth-child(2) {
+  font-size: clamp(24px, 2.1vw, 31px);
+}
+.chart-app.fs .poster-head-photo {
+  flex: none;
+  display: block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid var(--color-ink);
+  overflow: hidden;
+  background: var(--color-quiet);
+}
+.chart-app.fs .poster-head-cover {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+@media (max-width: 599px) {
+  .chart-app.fs .poster-head:first-child {
+    font-size: 30px;
+  }
+  .chart-app.fs .poster-head:nth-child(2) {
+    font-size: 23px;
+  }
+}
+
+/* The key: whose fans drafted it, each venue a switch. */
+.chart-app.fs .poster-key {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: opacity 0.3s ease;
+}
+.chart-app.fs .poster-key.is-quiet,
+.chart-app.fs .poster-rule.is-quiet {
+  opacity: 0.3;
+}
+.chart-app.fs .poster-key-from {
+  font-size: 14px;
+  font-weight: 800;
+}
+.chart-app.fs .poster-key-break {
+  flex-basis: 100%;
+  height: 0;
+}
+.chart-app.fs .poster-ink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 7px 0 5px;
+  border: 2px solid var(--color-ink);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: 12px;
+  font-weight: 800;
+}
+.chart-app.fs button.poster-ink:hover:not(:disabled) {
+  border-color: var(--color-ink);
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+.chart-app.fs .poster-ink-swatch {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--color-ink);
+  background: color-mix(in srgb, var(--color-ink) 48%, var(--color-surface));
+  --mark: var(--color-ink);
+}
+.chart-app.fs .poster-ink-swatch[class*="venue-"] {
+  background: var(--venue);
+  --mark: var(--on-venue);
+}
+.chart-app.fs .poster-ink-swatch.is-off {
+  background: var(--color-surface);
+}
+.chart-app.fs .poster-ink-swatch svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke-width: 2.8;
+}
+.chart-app.fs .poster-ink-tick {
+  stroke: var(--mark);
+}
+.chart-app.fs .poster-ink-x {
+  stroke: var(--color-danger);
+}
+.chart-app.fs .poster-ink-name {
+  text-transform: uppercase;
+}
+.chart-app.fs .poster-ink.is-off .poster-ink-name {
+  text-decoration: line-through;
+}
+.chart-app.fs .poster-ink-count {
+  padding: 1px 5px;
+  background: var(--color-ink);
+  color: var(--color-surface);
+  font-size: 11px;
+}
+.chart-app.fs .poster-rule {
+  max-width: 440px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-wrap: balance;
+  transition: opacity 0.3s ease;
+}
+.chart-app.fs .poster-caption {
+  align-self: stretch;
+}
+
+/* The bands and their acts. */
+.chart-app.fs .poster-bands {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.chart-app.fs .poster-band {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.chart-app.fs .poster-band-head,
+.chart-app.fs .picks-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0 5px;
+  margin-top: 2px;
+}
+.chart-app.fs .poster-band-name {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.chart-app.fs .poster-band-range {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-muted);
+}
+.chart-app.fs .poster-band-caption {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-muted);
+}
+.chart-app.fs .poster-acts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px 8px;
+}
+.chart-app.fs .poster-acts li {
+  display: flex;
+}
+.chart-app.fs .poster-act {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  border: 3px solid var(--venue);
+  background: var(--venue);
+  color: var(--on-venue);
+  transition: opacity 0.3s ease;
+}
+.chart-app.fs .poster-act > button,
+.chart-app.fs .poster-act > .poster-act-name {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 3px;
+  min-height: 44px;
+  padding: 9px 9px 4px;
+  color: inherit;
+  font-family: var(--font-display);
+  font-size: clamp(21px, 1.75vw, 25px);
+  line-height: 1;
+  text-align: left;
+  text-transform: uppercase;
+}
+.chart-app.fs .poster-act > button {
+  cursor: pointer;
+}
+.chart-app.fs .poster-act > button:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 3px;
+}
+.chart-app.fs .poster-act > button:focus-visible {
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 3px;
+}
+.chart-app.fs .poster-band-opener .poster-act > button,
+.chart-app.fs .poster-band-opener .poster-act > .poster-act-name {
+  padding: 10px 7px 3px;
+  font-size: clamp(16px, 1.3vw, 18px);
+}
+.chart-app.fs .poster-climb {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+}
+.chart-app.fs .poster-band-opener .poster-climb {
+  font-size: 11px;
+}
+.chart-app.fs .poster-act.is-open {
+  border-color: var(--color-ink);
+}
+.chart-app.fs .poster-act.is-dim {
+  opacity: 0.28;
+}
+.chart-app.fs .poster-act.is-gone {
+  opacity: 0.5;
+}
+.chart-app.fs .poster-act.is-gone > button {
+  text-decoration: line-through;
+  text-decoration-thickness: 3px;
+}
+.chart-app.fs .poster-act.is-kept {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 2px;
+}
+.chart-app.fs .poster-flag {
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  translate: -50% 0;
+  padding: 0 5px;
+  background: var(--color-ink);
+  color: var(--color-surface);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.chart-app.fs .poster-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 2px dashed
+    color-mix(in srgb, var(--color-ink) 58%, var(--color-surface));
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+.chart-app.fs .poster-band-opener .poster-slot {
+  min-width: 90px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .chart-app.fs .poster-act.motion-safe\:animate-print-in {
+    animation-name: poster-stamp;
+    animation-duration: 0.42s;
+    animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1.2);
+    animation-fill-mode: backwards;
+  }
+}
+@keyframes poster-stamp {
+  0% {
+    transform: scale(1.4) rotate(-5deg);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(0.94) rotate(1deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+.chart-app.fs .poster-open {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border: 2px dashed var(--color-muted);
+  background: var(--color-surface);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.chart-app.fs .poster-fix {
+  align-self: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 3px solid var(--color-ink);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 15px;
+  font-weight: 800;
+}
+.chart-app.fs .scene-note .poster-fix {
+  align-self: flex-start;
+}
+.chart-app.fs .fs-poster .whatif {
+  align-self: stretch;
+  font-size: 14px;
+  text-align: left;
+}
+.chart-app.fs .poster-example {
+  align-self: stretch;
+  padding-top: 8px;
+  border-top: 3px solid var(--color-ink);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+.chart-app.fs .poster-example-tag {
+  display: inline-block;
+  margin-right: 7px;
+  padding: 1px 7px;
+  background: var(--venue, var(--color-ink));
+  color: var(--on-venue, var(--color-surface));
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  vertical-align: 1px;
+}
+.chart-app.fs .poster-actions {
+  align-self: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.chart-app.fs .poster-actions .tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+.chart-app.fs .poster-actions .poster-own {
+  background: var(--color-accent);
+}
+.chart-app.fs .poster-actions svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--color-ink);
+  stroke-width: 2.3;
+}
+.chart-app.fs .poster-sheet .drafted {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.chart-app.fs .poster-sheet .image-credit,
+.chart-app.fs .poster-foot {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--color-muted);
+}
+.chart-app.fs .poster-sheet .card-panel {
+  align-self: stretch;
+  margin: 2px 0 4px;
+  text-align: left;
+}
+
+/* ---------- Without Qloo on the poster ---------- */
+
+.chart-app.fs .model {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+.chart-app.fs .model-headline {
+  margin-top: 2px;
+  font-family: var(--font-display);
+  font-size: clamp(24px, 2vw, 28px);
+  line-height: 1.05;
+  color: var(--color-danger);
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.chart-app.fs .model-wait {
+  font-size: 15px;
+  font-weight: 700;
+}
+.chart-app.fs .ruler {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 2px 0 1px;
+}
+.chart-app.fs .ruler-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+.chart-app.fs .ruler-scale {
+  position: relative;
+}
+.chart-app.fs .ruler-dot {
+  position: absolute;
+  z-index: 2;
+  width: 11px;
+  height: 11px;
+  margin-left: -5.5px;
+  border: 2px solid var(--color-ink);
+  border-radius: 50%;
+  background: var(--color-surface);
+}
+.chart-app.fs .ruler-dot.is-above {
+  background: var(--color-page);
+}
+.chart-app.fs .ruler-bar {
+  display: flex;
+  height: 26px;
+  border: 2px solid var(--color-ink);
+  background: var(--color-surface);
+}
+.chart-app.fs .ruler-band {
+  flex-basis: 0;
+  flex-shrink: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 2px solid var(--color-ink);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.chart-app.fs .ruler-band-opener {
+  background: color-mix(in srgb, var(--color-ink) 5%, var(--color-surface));
+}
+.chart-app.fs .ruler-band-mid {
+  background: color-mix(in srgb, var(--color-ink) 15%, var(--color-surface));
+}
+.chart-app.fs .ruler-band-over {
+  border-right: 0;
+  background-color: var(--color-surface);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--color-danger) 20%, transparent) 0 3px,
+    transparent 3px 7px
+  );
+  color: var(--color-danger);
+}
+.chart-app.fs .ruler-ticks {
+  position: relative;
+  height: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-muted);
+}
+.chart-app.fs .ruler-ticks span {
+  position: absolute;
+  top: 0;
+  translate: -50% 0;
+}
+.chart-app.fs .ruler-ticks span:first-child {
+  translate: 0 0;
+}
+.chart-app.fs .ruler-ticks span:last-child {
+  translate: -100% 0;
+}
+.chart-app.fs .model-picks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 14px;
+}
+.chart-app.fs .model-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.chart-app.fs .model-pick > button {
+  min-height: 32px;
+  padding: 4px 2px 0;
+  font-family: var(--font-display);
+  font-size: clamp(18px, 1.6vw, 22px);
+  line-height: 1;
+  text-transform: uppercase;
+}
+.chart-app.fs .model-pick > button:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+.chart-app.fs .model-pick-tag {
+  padding: 1px 6px;
+  border: 2px solid var(--color-ink);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.chart-app.fs .model-pick-tag.is-out {
+  border-color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 6%, var(--color-surface));
+  color: var(--color-danger);
+}
+.chart-app.fs .model-pick-tag.is-missing {
+  border-style: dashed;
+  border-color: var(--color-muted);
+  color: var(--color-muted);
+}
+.chart-app.fs .model-pick-tag.tilt-left {
+  rotate: -3deg;
+}
+.chart-app.fs .model-pick-tag.tilt-right {
+  rotate: 2deg;
+}
+.chart-app.fs .pick-card {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: 3px solid var(--color-ink);
+  background: var(--color-surface);
+  box-shadow: 5px 5px 0 var(--color-ink);
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.chart-app.fs .pick-card-name {
+  font-family: var(--font-display);
+  font-size: 21px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.chart-app.fs .pick-card-line {
+  font-weight: 600;
+  color: var(--color-muted);
+}
+.chart-app.fs .pick-card .poster-fix {
+  align-self: flex-start;
+  background: var(--color-surface);
+}
+.chart-app.fs .model-summary {
+  padding-top: 8px;
+  border-top: 3px solid var(--color-ink);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+.chart-app.fs .poster-sheet .mode-number {
+  flex-basis: auto;
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-ink);
+  text-wrap: pretty;
+}
+
+/* ---------- below the fold: the tools and the panels ---------- */
+
+.chart-app.fs .fs-below {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 40px;
+}
+.chart-app.fs .fs-panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+@media (min-width: 1100px) {
+  .chart-app.fs .fs-panels {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.chart-app.fs .fs-below .tools .tool {
+  min-height: 44px;
+}
+
+/* Every control on the first screen shows where the keyboard is. */
+.chart-app.fs button:focus-visible,
+.chart-app.fs a:focus-visible {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 3px;
+}
+.chart-app.fs .poster-sheet button:focus-visible,
+.chart-app.fs .poster-sheet a:focus-visible,
+.chart-app.fs .town-view button:focus-visible {
+  outline-color: var(--color-ink);
+}
+
+/* How an act gets on, below the fold: each band's fee range in words, and what Undercard is. */
+.chart-app.fs .rule-fees {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--color-muted);
+}
+.chart-app.fs .rule-fees strong {
+  color: var(--color-ink);
+}
+.chart-app.fs .rule-what {
+  margin-top: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+/* A venue whose fans lifted no act stands grey in the town, on the key and on its switch. */
+.chart-app.fs .venue-toggle[aria-label$="lifted none"] .swatch {
+  background: color-mix(in srgb, var(--color-ink) 48%, var(--color-surface));
+}

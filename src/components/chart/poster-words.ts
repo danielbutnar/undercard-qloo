@@ -150,6 +150,13 @@ export function exampleAct<
   );
 }
 
+/**
+ * With a venue switched off, an act the re-formed poster books that the saved one doesn't: why
+ * it wasn't there before.
+ */
+export const MISSED_CUT =
+  "With every venue on, it missed the cut: the strongest Qloo match fills each slot first.";
+
 /** The example line's hint: what to try next. */
 export const exampleHint = (switchable: boolean) =>
   switchable
@@ -214,9 +221,31 @@ export function listNames(names: readonly string[]): string {
   return `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
 }
 
-/** The poster's stamp: the demo's festival is fictional; a judge's own is their draft. */
-export const stampWords = (own: boolean) =>
-  own ? "Draft, not announced" : "Fictional festival · demo draft";
+/**
+ * The poster's stamp: the demo's festival is fictional; a judge's own is their draft. A phone
+ * sets the short form.
+ */
+export const stampWords = (own: boolean, short = false) =>
+  own
+    ? short
+      ? "Draft"
+      : "Draft, not announced"
+    : short
+      ? "Fictional demo"
+      : "Fictional festival · demo draft";
+
+/**
+ * The label over the headliners: booked by the buyer, and for the demo's two, that they're
+ * bands (M6q); a judge's own may not be.
+ */
+export function bookedLabel(
+  festival: Pick<Festival, "headliners">,
+): string {
+  const bands =
+    festival.headliners[0] === SAGEBRUSH_SOUND.headliners[0] &&
+    festival.headliners[1] === SAGEBRUSH_SOUND.headliners[1];
+  return bands ? "Booked by you: two bands" : "Booked by you";
+}
 
 /** The poster's last line. */
 export function footnote(
@@ -227,7 +256,7 @@ export function footnote(
     festival.id === SAGEBRUSH_SOUND.id
       ? "Fictional demo festival"
       : festival.id.startsWith(`${SAGEBRUSH_SOUND.id}-`)
-        ? `Fictional demo festival, the same brief as ${SAGEBRUSH_SOUND.city}'s`
+        ? "Fictional demo festival: the same headliners and slot sizes in every town"
         : null;
   const key = anyNew ? "NEW = rose into Qloo's top 50" : null;
   return [demo, key].filter(Boolean).join(" · ");
@@ -238,13 +267,17 @@ export function watchSubLine({
   city,
   calls,
   live,
+  onScreen = true,
 }: {
   city: string;
   calls: number | null;
   /** No saved build: Watch runs the AI agent. */
   live: boolean;
+  /** The saved build Watch replays is the one on screen; false once a live run replaced it. */
+  onScreen?: boolean;
 }): string {
   if (live) return "Runs the AI agent; its Qloo calls list below";
+  if (!onScreen) return "Replays the saved build's Qloo calls";
   const many = calls !== null ? `, in its ${calls} Qloo calls` : "";
   return `Replays how the agent drafted ${city}${many}`;
 }

@@ -1,4 +1,7 @@
 // @vitest-environment jsdom
+// Without Qloo on the poster (WS9): the same headliners, then the model's picks as one list
+// with no slots, each tagged from prompt 4's checks, each opening its card with the model's own
+// reason; the town stands pale with a note that the model can't see its venues.
 import {
   cleanup,
   fireEvent,
@@ -55,15 +58,19 @@ const modelBill = () =>
 // The picks print once the model answers; the section itself shows at once, asking.
 const picksOf = (sheet: HTMLElement) => within(sheet).findAllByRole("article");
 
-describe("the switch", () => {
-  it("says what each side shows", () => {
+describe("the poster's tabs", () => {
+  it("say what each side shows, with the tab's own short words", () => {
     answered();
     const group = screen.getByRole("group", { name: "Which bill" });
-    expect(
-      within(group)
-        .getAllByRole("button")
-        .map((button) => button.textContent),
-    ).toEqual([WITH, WITHOUT]);
+    const tabs = within(group).getAllByRole("button");
+    expect(tabs.map((tab) => tab.textContent)).toEqual([
+      "With Qloo",
+      "Without Qloo",
+    ]);
+    expect(tabs.map((tab) => tab.getAttribute("aria-label"))).toEqual([
+      WITH,
+      WITHOUT,
+    ]);
     expect(
       within(group)
         .getByRole("button", { name: WITH })
@@ -73,7 +80,7 @@ describe("the switch", () => {
 });
 
 describe("Without Qloo", () => {
-  it("reprints the chart with the model's picks under the same headliners, stamped No Qloo data", async () => {
+  it("reprints the poster with the model's picks under the same headliners, picked by the model alone", async () => {
     const fetch = answered();
     flip(WITHOUT);
     const sheet = await modelBill();
@@ -82,8 +89,10 @@ describe("Without Qloo", () => {
       expect.objectContaining({ method: "POST" }),
     );
     expect(modelCalls(fetch)).toHaveLength(1);
-    expect(within(sheet).getByText("No Qloo data")).toBeTruthy();
-    // The draft section is "The festival" now, and the headliners stay above the picks in it.
+    expect(
+      within(sheet).getByText("Picked by Claude Sonnet 5.5 alone"),
+    ).toBeTruthy();
+    // The poster is "The festival" now, and the headliners stay above the picks in it.
     const festival = screen.getByRole("region", { name: "The festival" });
     expect(festival.contains(sheet)).toBe(true);
     const headliners = within(festival).getByRole("list", {
@@ -101,9 +110,14 @@ describe("Without Qloo", () => {
     expect(
       screen.queryByRole("region", { name: "Undercard draft" }),
     ).toBeNull();
+    // One list, titled with the model's own count, never sorted into slots.
+    expect(within(sheet).getByText("The model's 10 picks")).toBeTruthy();
+    expect(
+      within(sheet).queryByRole("region", { name: "Mid-size acts" }),
+    ).toBeNull();
   });
 
-  it("gives each pick the model's own reason and two plain facts", async () => {
+  it("tags each pick from prompt 4's checks, and opens its card with the model's own reason", async () => {
     answered();
     flip(WITHOUT);
     const sheet = await modelBill();
@@ -112,15 +126,26 @@ describe("Without Qloo", () => {
       lineup.picks.map((pick) => pick.name),
     );
     for (const [index, pick] of picks.entries()) {
-      expect(within(pick).getByText(lineup.picks[index].note)).toBeTruthy();
-      // Prompt-4: the line says how Qloo places the pick; this answer came with no checks.
+      // This answer came with no checks: each tag and line says so.
+      expect(within(pick).getByText("not checked on Qloo")).toBeTruthy();
       expect(
         within(pick).getByText("Picked without Qloo; not checked on Qloo"),
       ).toBeTruthy();
-      // Item 5: a drawn cover in the cover's place, not an empty grey box.
-      expect(pick.querySelector("svg.sleeve.pick-sleeve")).not.toBeNull();
-      expect(pick.querySelector(".sleeve-blank")).toBeNull();
+      fireEvent.click(
+        within(pick).getByRole("button", { name: lineup.picks[index].name }),
+      );
+      const card = screen.getByRole("region", { name: "The model's pick" });
+      expect(within(card).getByText(lineup.picks[index].note)).toBeTruthy();
+      expect(card.textContent).toMatch(/^.+The model's reason: /);
     }
+    // A second click on the same name closes its card.
+    const last = picks.at(-1)!;
+    fireEvent.click(
+      within(last).getByRole("button", { name: lineup.picks.at(-1)!.name }),
+    );
+    expect(
+      screen.queryByRole("region", { name: "The model's pick" }),
+    ).toBeNull();
   });
 
   it("puts no score, tally or 0/10 anywhere", async () => {
@@ -132,7 +157,7 @@ describe("Without Qloo", () => {
     expect(text).not.toMatch(/\bscore\b/i);
   });
 
-  it("says beside the picks what the model got, with nothing of the AI agent's beside them", async () => {
+  it("says over the town that the model can't see its venues, with nothing of the AI agent's beside the picks", async () => {
     answered(syntheticVenueSwitch());
     const VENUES = { name: "Boise venues whose fans shaped this lineup" };
     const toggles = () =>
@@ -145,8 +170,15 @@ describe("Without Qloo", () => {
     );
     flip(WITHOUT);
     await picksOf(await modelBill());
-    const note = screen.getByRole("complementary", { name: "The model alone" });
-    expect(note.textContent).toMatch(/Claude Sonnet 5\.5 with no tools/);
+    const note = screen.getByRole("note", { name: "Without Qloo" });
+    expect(note.textContent).toMatch(
+      /^Without Qloo, the model can't see Boise's venues\.Same model as the agent \(Claude Sonnet 5\.5\), same brief, no Qloo: it picks without reading any venue's fans/,
+    );
+    expect(
+      within(screen.getByRole("region", { name: "Your town" })).getByText(
+        /^No venues read\./,
+      ),
+    ).toBeTruthy();
     // The model's picks stand alone: no venues, no Qloo calls, no rule, no credit to the agent.
     expect(screen.queryByRole("region", VENUES)).toBeNull();
     expect(
@@ -158,36 +190,37 @@ describe("Without Qloo", () => {
     expect(
       screen.getByRole("region", { name: "The festival" }).textContent,
     ).not.toMatch(
-      /drafted the rest|Drafted from \d+ Qloo calls|AI agent planned/,
+      /Drafted by Undercard|Drafted from \d+ Qloo calls|AI agent planned/,
     );
-    // Flipping back brings the venues, with their switches, and the agent's credit.
-    flip(WITH);
+    // The note's button, like the tab, brings the venues back, with their switches, and the
+    // agent's credit.
+    fireEvent.click(
+      within(note).getByRole("button", { name: "Show it with Qloo" }),
+    );
     expect(toggles().every((toggle) => !toggle.disabled)).toBe(true);
+    expect(screen.queryByRole("note", { name: "Without Qloo" })).toBeNull();
     expect(
-      screen.queryByRole("complementary", { name: "The model alone" }),
-    ).toBeNull();
-    expect(
-      screen.getByRole("region", { name: "Undercard draft" }).textContent,
-    ).toMatch(
-      /Undercard drafted the rest of the lineup \(the bill\) from Qloo's numbers/,
-    );
+      within(screen.getByRole("region", { name: "Undercard draft" })).getByText(
+        "Drafted by Undercard",
+      ),
+    ).toBeTruthy();
   });
 
-  it("flips back to the agent's chart with its marks", async () => {
+  it("flips back to the agent's poster with its marks", async () => {
     answered();
     flip(WITHOUT);
     await modelBill();
     flip(WITH);
     const draft = screen.getByRole("region", { name: "Undercard draft" });
-    // The row's mark: the venue whose fans lifted it, in words for a screen reader, and the climb
-    // as the row's big number (M10a).
-    const row = within(draft).getByRole("article", { name: "Hollow Pines" });
+    // The act's mark: the venue whose fans lifted it, in words for a screen reader, and the climb
+    // beside its name (M10a).
+    const act = within(draft).getByRole("article", { name: "Hollow Pines" });
     expect(
-      within(row).getByText(
+      within(act).getByText(
         "With The Lantern Room's fans added: up 11 places in Qloo's ranking",
       ),
     ).toBeTruthy();
-    expect(row.querySelector(".row-place")!.textContent).toBe("11");
+    expect(act.querySelector(".poster-climb")!.textContent).toBe("↑11");
   });
 
   it("shows the model's error with a way to try again", async () => {

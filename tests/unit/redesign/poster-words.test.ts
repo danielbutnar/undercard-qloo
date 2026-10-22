@@ -3,12 +3,14 @@
 import { describe, expect, it } from "vitest";
 import {
   bandRange,
+  bookedLabel,
   climbMark,
   exampleAct,
   footnote,
   inkLabel,
   leadLine,
   legendLine,
+  MISSED_CUT,
   listNames,
   modelPicksTitle,
   oneActLine,
@@ -143,17 +145,33 @@ describe("the poster's marks and lines", () => {
     expect(listNames(["A", "B", "C"])).toBe("A, B and C");
   });
 
-  it("stamps the demo's festival as fictional and a judge's own as a draft", () => {
+  it("says over the demo's headliners that they're two bands, and only over the demo's", () => {
+    expect(bookedLabel(SAGEBRUSH_SOUND)).toBe("Booked by you: two bands");
+    expect(
+      bookedLabel({ headliners: ["Mitski", "Khruangbin"] }),
+    ).toBe("Booked by you");
+  });
+
+  it("stamps the demo's festival as fictional and a judge's own as a draft, shorter on a phone", () => {
     expect(stampWords(false)).toBe("Fictional festival · demo draft");
     expect(stampWords(true)).toBe("Draft, not announced");
+    expect(stampWords(false, true)).toBe("Fictional demo");
+    expect(stampWords(true, true)).toBe("Draft");
+  });
+
+  it("says why an act the re-formed poster books missed the cut with every venue on", () => {
+    expect(MISSED_CUT).toBe(
+      "With every venue on, it missed the cut: the strongest Qloo match fills each slot first.",
+    );
   });
 
   it("ends the poster with what the festival is and what NEW means, where an act is new", () => {
     expect(footnote(SAGEBRUSH_SOUND, true)).toBe(
       "Fictional demo festival · NEW = rose into Qloo's top 50",
     );
+    // A town's page names its own town only (M6d).
     expect(footnote(TOWNS[1].festival, false)).toBe(
-      "Fictional demo festival, the same brief as Boise's",
+      "Fictional demo festival: the same headliners and slot sizes in every town",
     );
     expect(footnote({ id: "yours-draft-1" }, true)).toBe(
       "NEW = rose into Qloo's top 50",
@@ -170,6 +188,10 @@ describe("the poster's marks and lines", () => {
     expect(watchSubLine({ city: "Boise", calls: null, live: true })).toBe(
       "Runs the AI agent; its Qloo calls list below",
     );
+    // Once a live run replaced the saved build on screen, Watch still replays the saved one.
+    expect(
+      watchSubLine({ city: "Boise", calls: 12, live: false, onScreen: false }),
+    ).toBe("Replays the saved build's Qloo calls");
   });
 });
 

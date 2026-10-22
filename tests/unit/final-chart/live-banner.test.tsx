@@ -131,7 +131,7 @@ describe("Watch's banner during a live run", () => {
       />,
     );
     fireEvent.click(
-      screen.getByRole("button", { name: "Watch how it picked these acts" }),
+      screen.getByRole("button", { name: "Watch the AI agent build it" }),
     );
     const bill = screen.getByRole("region", { name: "Undercard draft" });
     await waitFor(
