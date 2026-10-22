@@ -114,7 +114,9 @@ describe("Without Qloo", () => {
     for (const [index, pick] of picks.entries()) {
       expect(within(pick).getByText(lineup.picks[index].note)).toBeTruthy();
       expect(
-        within(pick).getByText("No Boise venue · fee range not checked"),
+        within(pick).getByText(
+          "Picked without Qloo: no venue data, no fee check",
+        ),
       ).toBeTruthy();
     }
   });

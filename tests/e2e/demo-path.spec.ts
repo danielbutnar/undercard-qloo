@@ -304,7 +304,7 @@ test.describe("demo path", () => {
     await expect(picks.first()).toBeVisible({ timeout: 60_000 });
     for (const pick of await picks.all()) {
       await expect(pick).toContainText(
-        "No Boise venue · fee range not checked",
+        "Picked without Qloo: no venue data, no fee check",
       );
       await expect(pick).not.toContainText(/affinity/);
     }

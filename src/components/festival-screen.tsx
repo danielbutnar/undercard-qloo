@@ -642,11 +642,7 @@ export function FestivalScreen({
 
   const bandsView =
     mode === "llm" ? (
-      <ModelBill
-        festival={festival}
-        state={llm.state}
-        onRetry={() => void llm.load()}
-      />
+      <ModelBill state={llm.state} onRetry={() => void llm.load()} />
     ) : (
       <div className="bands">
         {festival.feeBands.map((band) => {

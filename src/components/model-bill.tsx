@@ -1,4 +1,3 @@
-import type { Festival } from "@/lib/festival";
 import type { LlmOnlyLineup, LlmOnlyPick } from "@/lib/llm-only";
 
 export interface LlmOnlyState {
@@ -20,14 +19,16 @@ const savedAt = new Intl.DateTimeFormat("en-US", {
 export const formatSavedAt = (iso: string) => savedAt.format(new Date(iso));
 
 // No place, no climb, no venue colour, a blank sleeve: there is no Qloo data behind a pick.
-function Pick({ pick, city }: { pick: LlmOnlyPick; city: string }) {
+function Pick({ pick }: { pick: LlmOnlyPick }) {
   return (
     <article aria-label={pick.name} className="pick">
       <span className="sleeve pick-sleeve sleeve-blank" aria-hidden />
       <div className="min-w-0">
         <h3 className="pick-name">{pick.name}</h3>
         <p className="pick-note">{pick.note}</p>
-        <p className="pick-none">No {city} venue · fee range not checked</p>
+        <p className="pick-none">
+          Picked without Qloo: no venue data, no fee check
+        </p>
       </div>
     </article>
   );
@@ -39,11 +40,9 @@ function Pick({ pick, city }: { pick: LlmOnlyPick; city: string }) {
  * to check against a fee range.
  */
 export function ModelBill({
-  festival,
   state,
   onRetry,
 }: {
-  festival: Festival;
   state: LlmOnlyState;
   onRetry: () => void;
 }) {
@@ -81,7 +80,7 @@ export function ModelBill({
         <ol className="picks">
           {state.lineup.picks.map((pick) => (
             <li key={pick.name}>
-              <Pick city={festival.city} pick={pick} />
+              <Pick pick={pick} />
             </li>
           ))}
         </ol>

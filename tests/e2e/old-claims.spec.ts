@@ -14,6 +14,7 @@ const RETIRED: Record<string, RegExp> = {
   "item 3, the first screen's line":
     /the AI agent (drafted|will draft) the rest/,
   "item 3, the footer": /Drafted by the AI agent/,
+  "item 4, the model's cards": /No Boise venue|fee range not checked/,
 };
 
 async function expectNoneOnScreen(page: Page) {
