@@ -446,10 +446,10 @@ export function MethodEvidencePage() {
               most Qloo affinity an act gains from any one of the town&apos;s
               venues. Mid-size and opening are the two groups of slots, each
               with its own fee range. A fee range is a range of Qloo popularity
-              the buyer sets; it stands in for a fee because no fee data exists.
-              Matched random acts are drawn at random from Qloo&apos;s ranking
-              for the same headliners and matched on fee range, as
-              docs/evidence.md describes.
+              the festival sets; in the demo, Sagebrush Sound&apos;s. It stands
+              in for a fee because no fee data exists. Matched random acts are
+              drawn at random from Qloo&apos;s ranking for the same headliners
+              and matched on fee range, as docs/evidence.md describes.
             </p>
             <EvidenceTable
               title="Does the idea hold?"
@@ -610,6 +610,12 @@ export function MethodEvidencePage() {
                   days, and one second pair of headliners in one town (
                   <Ev to="runs">evidence 5</Ev>, <Ev to="cheap">evidence 33</Ev>
                   ).
+                </li>
+                <li>
+                  That the lineup includes local acts:{" "}
+                  <Ev to="treefort">evidence 2</Ev> infers most sit below the
+                  opening range&apos;s popularity floor, so Undercard drafts the
+                  touring slots and leaves local ones to the buyer.
                 </li>
               </ul>
               <p className="mt-2 text-label">

@@ -62,6 +62,22 @@ test("the evidence page reads in the plan's order, every label linked", async ({
       }),
     );
   expect(repeated).toEqual([]);
+  // Item 7, scope: whose fee ranges these are, and the local acts Undercard leaves out.
+  await expect(page.getByRole("region", { name: "Evidence" })).toContainText(
+    "A fee range is a range of Qloo popularity the festival sets; in the " +
+      "demo, Sagebrush Sound's. It stands in for a fee because no fee data " +
+      "exists.",
+  );
+  await expect(
+    page
+      .getByRole("region", { name: "What these numbers don't establish" })
+      .getByRole("listitem")
+      .filter({ hasText: "local acts" }),
+  ).toHaveText(
+    "That the lineup includes local acts: evidence 2 infers most sit below " +
+      "the opening range's popularity floor, so Undercard drafts the touring " +
+      "slots and leaves local ones to the buyer.",
+  );
   await expect(page.locator("td.evidence-result .result-chip")).toHaveCount(3);
   for (const title of ["Does the idea hold?", "Does the product work?"])
     await expect(page.getByRole("table", { name: title })).toBeVisible();
