@@ -173,14 +173,19 @@ describe("the warm run (WS7 step 4)", () => {
       client: noJitter,
     });
 
-    expect(report).toMatchObject({ attempts: 4, fetched: 4, stopped: null });
+    expect(report).toMatchObject({
+      attempts: 4,
+      fetched: 4,
+      stored: 4,
+      stopped: null,
+    });
     expect(
-      report.rows.map((row) => [row.band, row.acts, row.withSplit]),
+      report.rows.map((row) => [row.band, row.acts, row.withSplit, row.stored]),
     ).toEqual([
-      ["mid", 4, 4],
-      ["opener", 6, 6],
-      ["mid", 4, 4],
-      ["opener", 6, 6],
+      ["mid", 4, 4, true],
+      ["opener", 6, 6, true],
+      ["mid", 4, 4, true],
+      ["opener", 6, 6, true],
     ]);
     // The mid-size range sent five inputs and Qloo scored four (the Diner none).
     expect(report.rows[0]).toMatchObject({ inputs: 5, inputsScored: 4 });
@@ -201,6 +206,30 @@ describe("the warm run (WS7 step 4)", () => {
       client: noJitter,
     });
     expect(again).toMatchObject({ attempts: 0, fetched: 0, alreadyCached: 4 });
+  });
+
+  it("stops when an answer can't be read back from the cache, so no further call is spent", async () => {
+    // Writes that vanish, as the Upstash cache skips a write it can't make.
+    const memory = createMemoryCache();
+    const dropping: QlooCache = {
+      kind: "memory",
+      get: (key) => memory.get(key),
+      set: async () => {},
+    };
+    const fake = fakeFetch(inventedExplainQloo);
+    const report = await warmLive({
+      rows: await warmPlan(twoBuilds(), createMemoryCache()),
+      cache: dropping,
+      apiKey: "test-key",
+      fetch: fake.fetch,
+      maxCalls: 4,
+      client: noJitter,
+    });
+    expect(fake.requests).toHaveLength(1);
+    expect(report).toMatchObject({ attempts: 1, fetched: 1, stored: 0 });
+    expect(report.stopped).toMatch(/not stored for festival-a mid/);
+    expect(report.rows).toHaveLength(1);
+    expect(report.rows[0].stored).toBe(false);
   });
 
   it("refuses to start when the plan needs more calls than MAX_CALLS", async () => {

@@ -120,6 +120,7 @@ if (settings.seedBoise) {
     maxCalls: settings.maxCalls,
     attempts: report.attempts,
     fetched: report.fetched,
+    stored: report.stored,
     alreadyCached: report.alreadyCached,
     stopped: report.stopped,
   });

@@ -168,13 +168,16 @@ export interface WarmCallReport {
   inputsScored: number;
   /** HTTP attempts this call took, retries included. */
   attempts: number;
+  /** The answer reads back from the cache, as the app will read it. */
+  stored: boolean;
 }
 
 export interface WarmReport {
   /** Every HTTP attempt to Qloo, retries included; never past MAX_CALLS. */
   attempts: number;
-  /** Calls answered and cached. */
+  /** Calls Qloo answered, and those whose answer reads back from the cache. */
   fetched: number;
+  stored: number;
   alreadyCached: number;
   /** Why the run stopped early, or null when it finished. */
   stopped: null | string;
@@ -187,7 +190,7 @@ export interface WarmReport {
  * retry budget), with a pause between calls. Every HTTP attempt counts against maxCalls, and the
  * run stops before one would pass it; it refuses to start when the plan alone needs more. A
  * malformed answer, an error answer or a spent retry budget stops the run; nothing is cached for
- * that call.
+ * that call. So does an answer that doesn't read back from the cache.
  */
 export async function warmLive({
   rows,
@@ -227,6 +230,7 @@ export async function warmLive({
   const report: WarmReport = {
     attempts: 0,
     fetched: 0,
+    stored: 0,
     alreadyCached: 0,
     stopped: null,
     rows: [],
@@ -254,7 +258,17 @@ export async function warmLive({
       const scored = new Set(
         data.flatMap((act) => act.shares.map((share) => share.entityId)),
       );
+      // The Upstash cache skips a write it can't make, so the answer is read back as the app
+      // will read it; one that isn't there stops the run before another call is spent.
+      let stored = true;
+      try {
+        await cacheOnly(cache).explain(row.call);
+      } catch (error) {
+        if (!(error instanceof QlooCacheMiss)) throw error;
+        stored = false;
+      }
       report.fetched++;
+      if (stored) report.stored++;
       report.rows.push({
         festivalId: row.festivalId,
         band: row.call.band,
@@ -265,7 +279,12 @@ export async function warmLive({
         inputsScored: row.call.signalEntityIds.filter((id) => scored.has(id))
           .length,
         attempts: attempts - before,
+        stored,
       });
+      if (!stored) {
+        report.stopped = `answer not stored for ${row.festivalId} ${row.call.band}`;
+        break;
+      }
     } catch (error) {
       report.stopped =
         error instanceof CallCap
