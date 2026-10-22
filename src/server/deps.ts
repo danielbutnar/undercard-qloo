@@ -1,5 +1,5 @@
 import { Redis } from "@upstash/redis";
-import { AiNotConfigured, createAgentModel } from "./ai";
+import { AiNotConfigured, createAgentModel, createHealthModel } from "./ai";
 import { createBuildStore, previewSafe } from "./build-store";
 import {
   createQlooClient,
@@ -65,6 +65,17 @@ export function serverModel() {
   if (syntheticMode()) return null;
   try {
     return createAgentModel();
+  } catch (error) {
+    if (error instanceof AiNotConfigured) return null;
+    throw error;
+  }
+}
+
+/** The deep health check's one-token model call; null without a key and in synthetic mode. */
+export function serverHealthModel() {
+  if (syntheticMode()) return null;
+  try {
+    return createHealthModel();
   } catch (error) {
     if (error instanceof AiNotConfigured) return null;
     throw error;
