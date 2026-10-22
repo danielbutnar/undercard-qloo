@@ -178,9 +178,9 @@ export function CompareTowns({
             </h1>
             <p className="compare-what">
               The same headliners ({left.festival.headliners.join(" and ")}) and
-              fee ranges in both towns; only the town changes. The AI agent
-              drafted each lineup from what fans of that town&apos;s own venues
-              like, so {shared.size} of {total} acts are on both and{" "}
+              fee ranges in both towns; only the town changes. Undercard drafted
+              each lineup from what fans of that town&apos;s own venues like, so{" "}
+              {shared.size} of {total} acts are on both and{" "}
               {total - shared.size} differ.
             </p>
           </div>

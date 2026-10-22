@@ -63,6 +63,13 @@ describe("comparing two towns' lineups (M9b)", () => {
         /same headliners \(Khruangbin and Japanese Breakfast\) and fee ranges/i,
       ),
     ).toBeTruthy();
+    // Daniel's brief of 2026-10-22 (second batch, item 1): Undercard drafts; the AI agent plans.
+    expect(
+      screen.getByText(
+        /Undercard drafted each lineup from what fans of that town's own venues like/,
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText(/AI agent drafted/)).toBeNull();
     const left = screen.getByRole("region", { name: "Boise, Idaho" });
     const right = screen.getByRole("region", { name: "Austin, Texas" });
     expect(within(left).getAllByText("On both lineups")).toHaveLength(3);

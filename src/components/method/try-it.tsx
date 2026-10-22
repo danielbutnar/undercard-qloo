@@ -92,7 +92,7 @@ export function TryIt({
       <p className="how-try-says" aria-live="polite">
         {off
           ? `Without ${venue.name}'s fans, ${left.length ? `${names(left)} leave the lineup` : "no act leaves the lineup"}${joined.length ? `; ${names(joined)} ${joined.length === 1 ? "joins" : "join"}` : ""}${open ? `; ${open} ${open === 1 ? "slot stays" : "slots stay"} open` : ""}.`
-          : "Every venue on: the lineup as the AI agent drafted it."}
+          : "Every venue on: the lineup as Undercard drafted it."}
       </p>
       <BandChart
         band={band}

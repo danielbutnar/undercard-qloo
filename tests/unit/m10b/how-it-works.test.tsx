@@ -186,6 +186,12 @@ describe("trying it", () => {
     expect(
       within(tryIt).getByRole("article", { name: "Hollow Pines" }),
     ).toBeTruthy();
+    // Daniel's brief of 2026-10-22 (second batch, item 1): Undercard drafts, as on the first screen.
+    expect(
+      within(tryIt).getByText(
+        "Every venue on: the lineup as Undercard drafted it.",
+      ),
+    ).toBeTruthy();
     fireEvent.click(toggle);
     await waitFor(() =>
       expect(
