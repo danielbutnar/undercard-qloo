@@ -68,6 +68,16 @@ test("the evidence page reads in the plan's order, every label linked", async ({
       "demo, Sagebrush Sound's. It stands in for a fee because no fee data " +
       "exists.",
   );
+  // The second batch, item 2: the first limit says the same.
+  await expect(
+    page
+      .getByRole("region", { name: "What these numbers don't establish" })
+      .getByRole("listitem")
+      .first(),
+  ).toHaveText(
+    "That the acts would sell tickets, take the slot or fit the budget: the " +
+      "fee ranges are popularity ranges the festival sets, not fees.",
+  );
   await expect(
     page
       .getByRole("region", { name: "What these numbers don't establish" })

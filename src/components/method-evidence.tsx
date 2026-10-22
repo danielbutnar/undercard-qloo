@@ -591,8 +591,8 @@ export function MethodEvidencePage() {
               <ul className="limits">
                 <li>
                   That the acts would sell tickets, take the slot or fit the
-                  budget: the fee ranges are popularity ranges the buyer sets,
-                  not fees.
+                  budget: the fee ranges are popularity ranges the festival
+                  sets, not fees.
                 </li>
                 <li>
                   That a town&apos;s crowd knows the undercard acts, or that a
