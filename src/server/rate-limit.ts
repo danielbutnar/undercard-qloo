@@ -2,7 +2,7 @@ import { Ratelimit } from "@upstash/ratelimit";
 import type { Redis } from "@upstash/redis";
 
 /** The routes that spend paid or quota-limited calls. Replaying a saved build is not one. */
-export type LimitedAction = "build" | "refill" | "llmOnly" | "order";
+export type LimitedAction = "build" | "refill" | "llmOnly" | "order" | "health";
 
 export interface ActionLimit {
   /** Per client IP, per UTC day. */
@@ -27,6 +27,8 @@ export const LIMITS: Record<LimitedAction, ActionLimit> = {
   llmOnly: { perIp: 10, perDay: 100, noun: "LLM-only requests", hint: "" },
   // A running order makes up to 10 Qloo calls (M8a); a repeat for the same bill is cached.
   order: { perIp: 10, perDay: 100, noun: "running orders", hint: "" },
+  // The deep health check (GET /api/health/deep): one Qloo search and one one-token model call.
+  health: { perIp: 3, perDay: 3, noun: "deep health checks", hint: "" },
 };
 
 /** A positive whole number from the environment; null for a missing or malformed value. */

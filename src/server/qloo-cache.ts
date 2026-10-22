@@ -45,6 +45,18 @@ export function createMemoryCache(now: () => number = Date.now): QlooCache {
   };
 }
 
+/**
+ * A cache that never answers and keeps nothing: a client on it asks Qloo every time and stores
+ * no answer (the deep health check, GET /api/health/deep).
+ */
+export const NO_CACHE: QlooCache = {
+  kind: "memory",
+  async get() {
+    return null;
+  },
+  async set() {},
+};
+
 /** The two Redis commands the cache needs; @upstash/redis's client provides both. */
 export interface RedisLike {
   get(key: string): Promise<unknown>;

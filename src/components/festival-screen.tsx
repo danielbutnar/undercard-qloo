@@ -123,9 +123,10 @@ function LlmOnlyNote({ city }: { city: string }) {
 
 /** A typed town that can't be found or is too thin (M6n): the checked towns are the next step. */
 const THIN = new Set(["town-not-found", "too-few-rooms", "not-full"]);
-// A run that hit the day's cap or a busy Qloo can't be run again for now: its notice offers the
-// checked towns in the same country to replay, or Sagebrush Sound's (plan.md item 2).
-const REPLAY_INSTEAD = new Set(["limit", "qloo-busy"]);
+// A run that hit the day's cap, a busy Qloo or a failed planner call can't be run again for now:
+// its notice offers the checked towns in the same country to replay, or Sagebrush Sound's
+// (plan.md item 2).
+const REPLAY_INSTEAD = new Set(["limit", "qloo-busy", "planner-failed"]);
 
 /** Why a judge's own draft couldn't be finished, and the next step (M6f). */
 function RunNotice({
@@ -203,7 +204,9 @@ function RunNotice({
                   ? "Qloo couldn't find this town"
                   : code === "too-few-rooms"
                     ? "Too few venues in this town"
-                    : "This draft couldn't be finished"}
+                    : code === "planner-failed"
+                      ? "The AI agent couldn't plan"
+                      : "This draft couldn't be finished"}
       </h2>
       <p className="mt-2 text-label">{message}</p>
       {near && (

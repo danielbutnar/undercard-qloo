@@ -255,8 +255,11 @@ export function TracePanel({
             <p role="alert" className="alert">
               {state.error}
             </p>
-            {/* A busy Qloo (M6g): the saved build still replays, with no Qloo call. */}
-            {state.errorCode === "qloo-busy" && savedCalls ? (
+            {/* A busy Qloo (M6g) or a failed planner call: the saved build still replays, with
+                no Qloo or Claude call. */}
+            {(state.errorCode === "qloo-busy" ||
+              state.errorCode === "planner-failed") &&
+            savedCalls ? (
               <button type="button" onClick={() => onBuild()} className="link">
                 Watch the saved build instead
               </button>
