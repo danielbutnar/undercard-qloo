@@ -14,3 +14,4 @@ export {
   type QlooRetryPolicy,
   type QlooTag,
 } from "./core";
+export type { ActShares, InputShare } from "./explain";
