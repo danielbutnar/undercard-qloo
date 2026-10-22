@@ -1,3 +1,4 @@
+import { Sleeve } from "@/components/chart/sleeve";
 import type { LlmOnlyLineup, LlmOnlyPick } from "@/lib/llm-only";
 
 export interface LlmOnlyState {
@@ -18,11 +19,17 @@ const savedAt = new Intl.DateTimeFormat("en-US", {
 /** When a build or an answer was saved, as "Oct 15, 14:02". */
 export const formatSavedAt = (iso: string) => savedAt.format(new Date(iso));
 
-// No place, no climb, no venue colour, a blank sleeve: there is no Qloo data behind a pick.
+// No place, no climb, no venue colour: there is no Qloo data behind a pick. Its cover is the
+// drawn sleeve an act without a photo gets, with no genres to draw from.
 function Pick({ pick }: { pick: LlmOnlyPick }) {
   return (
     <article aria-label={pick.name} className="pick">
-      <span className="sleeve pick-sleeve sleeve-blank" aria-hidden />
+      <Sleeve
+        genres={[]}
+        id={pick.name}
+        label={false}
+        className="pick-sleeve"
+      />
       <div className="min-w-0">
         <h3 className="pick-name">{pick.name}</h3>
         <p className="pick-note">{pick.note}</p>

@@ -118,6 +118,9 @@ describe("Without Qloo", () => {
           "Picked without Qloo: no venue data, no fee check",
         ),
       ).toBeTruthy();
+      // Item 5: a drawn cover in the cover's place, not an empty grey box.
+      expect(pick.querySelector("svg.sleeve.pick-sleeve")).not.toBeNull();
+      expect(pick.querySelector(".sleeve-blank")).toBeNull();
     }
   });
 

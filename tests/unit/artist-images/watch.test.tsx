@@ -87,9 +87,12 @@ describe("artist images in Watch", () => {
         images[listed.entityId],
       );
     }
+    // Daniel's brief of 2026-10-22, item 5: the drawn cover, never an empty grey box.
     for (const listed of offLineup) {
       const row = within(mid).getByText(listed.name).closest("li")!;
       expect(row.querySelector("img.cover-photo")).toBeNull();
+      expect(row.querySelector("svg.sleeve.row-sleeve")).not.toBeNull();
+      expect(row.querySelector(".sleeve-blank")).toBeNull();
     }
   }, 15000);
 });

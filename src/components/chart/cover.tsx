@@ -6,7 +6,8 @@ import { Sleeve } from "./sleeve";
 /**
  * An act's cover: Qloo's image of the artist when the saved build carries one (only while
  * ARTIST_IMAGES in src/lib/artist-images.ts is on), else, or when it doesn't load, its sleeve
- * drawn from its genres.
+ * drawn from its genres. An act whose genres the build doesn't hold, as in Watch's editions,
+ * still gets a drawn sleeve, never an empty box; with no genre to name, it's decorative.
  */
 export function Cover({
   image,
@@ -46,7 +47,12 @@ export function Cover({
         onError={() => setFailed(true)}
       />
     );
-  if (!genres)
-    return <span className={`sleeve sleeve-blank ${className}`} aria-hidden />;
-  return <Sleeve genres={genres} id={id} label={label} className={className} />;
+  return (
+    <Sleeve
+      genres={genres ?? []}
+      id={id}
+      label={label && Boolean(genres?.length)}
+      className={className}
+    />
+  );
 }

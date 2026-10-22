@@ -307,7 +307,10 @@ test.describe("demo path", () => {
         "Picked without Qloo: no venue data, no fee check",
       );
       await expect(pick).not.toContainText(/affinity/);
+      // Daniel's brief of 2026-10-22, item 5: a drawn cover, not an empty grey box.
+      await expect(pick.locator("svg.sleeve")).toBeVisible();
     }
+    await expect(model.locator(".sleeve-blank")).toHaveCount(0);
     await expect(page.locator("main")).not.toContainText(/\d+\s*\/\s*\d+/);
     await expect(bill(page)).toHaveCount(0);
 

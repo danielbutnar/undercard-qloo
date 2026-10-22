@@ -25,6 +25,28 @@ test("the lineup's rows show each act's Qloo photo, with the credit", async ({
   await expect(page.getByText("Artist images via Qloo")).toHaveCount(1);
 });
 
+// Daniel's brief of 2026-10-22, item 5: an act in Watch's editions with no photo (not on the
+// lineup, so no image was read for it) shows the drawn cover, never an empty grey box.
+test("Watch's editions give every act a photo or its drawn cover", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Watch how it picked these acts" })
+    .click();
+  const bill = page.getByRole("region", { name: "Undercard draft" });
+  await expect(bill.getByText(/^\+ .+'s fans$/).first()).toBeVisible({
+    timeout: 30_000,
+  });
+  const listed = bill.locator(".row-listed");
+  await expect(listed.first()).toBeVisible();
+  await expect(bill.locator(".sleeve-blank")).toHaveCount(0);
+  for (const row of await listed.all())
+    await expect(
+      row.locator("img.cover-photo, svg.sleeve").first(),
+    ).toBeAttached();
+});
+
 test("with Qloo's image host blocked, every row shows its drawn cover", async ({
   page,
 }) => {
