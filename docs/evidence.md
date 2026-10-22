@@ -757,6 +757,8 @@ Written on 2026-10-22, before the call. The bar doesn't change after the answers
 
 **What each outcome means for the site.** A no-go changes nothing. A go ships nothing by itself: a line on each act card built on it waits for Daniel's yes, and then needs the other 28 builds' answers, in a second window of at most 56 calls, with the line read from the cache only.
 
+**Result, 2026-10-22 (16:24 UTC, 19:24 Bucharest): go, 10 of 10 (the bar was 8).** 2 calls, one per range, no retry. Every act's answer carries query.explainability with a score for individual inputs of the call (an entity id and a score each), its own anchor venue among them, and each act's scores add up to 1 (to within 0.NN). Qloo scores no contribution from the venue the build ran that lifted no lineup act (Venue 166 Boise) in either range: 4 of the 5 inputs get a score in the mid-size range, 3 of the 4 in the opening range. The headliners take the largest share for every act: for none of the 10 is its own venue the largest contributor. In the mid-size range, where two lineup venues are inputs, 2 of the 4 acts get a larger share from the venue the lineup credits than from the other; the other 2 lean to the other venue. So a card line built on it could say how much of a pick Qloo puts on a venue's fans, but not that the venue the card credits is always the one Qloo leans on most. Raw answers in .design/explainability/.
+
 ## 36. The 30-second test, round 2, written before it runs
 
 Written on 2026-10-22, before the new first screen is built and before anyone sees it. The protocol and the bar don't change after the answers are in.
