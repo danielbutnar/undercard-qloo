@@ -1,5 +1,8 @@
+import { MIN_LIFT } from "@/lib/assemble-lineup";
+import type { TraceCall } from "@/lib/build-events";
 import { feeBandFor, type FeeBand, type FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
+import type { ClimbEvent } from "@/lib/lift-climb";
 import type { PickCheck } from "@/lib/llm-only";
 import { formatBandRange, formatCount } from "@/lib/format";
 import { roomShortName } from "@/lib/marks";
@@ -64,6 +67,71 @@ export const STAMP = "Draft, not announced";
 export const WATCH = "Watch how it picked these acts";
 export const SKIP = "Skip to the lineup";
 export const RUN_LIVE = "Run the agent live instead";
+
+/**
+ * Watch's banner over the chart (festival-screen.tsx's EditionBanner): whose fans this edition
+ * adds, what it shows, the Qloo call it came from and the AI agent's line. `first` is the banner
+ * before the first edition; `lifted` counts the acts on the lineup from this edition's venue,
+ * null until the lineup is in.
+ */
+export interface WatchEdition {
+  first: boolean;
+  step: ClimbEvent | null;
+}
+
+export function watchTitle({
+  first,
+  step,
+  replayed,
+  headliners,
+}: WatchEdition & {
+  replayed: boolean;
+  headliners: readonly string[];
+}): string {
+  if (first || !step)
+    return replayed
+      ? "Replaying the AI agent's build"
+      : "The AI agent is planning its Qloo calls";
+  return step.venue
+    ? `+ ${step.venue.name}'s fans`
+    : `${headliners.join(" + ")} fans alone`;
+}
+
+export function watchLine({
+  first,
+  step,
+  lifted,
+}: WatchEdition & { lifted: number | null }): string {
+  if (first || !step)
+    return "First it finds the headliners and the town's music venues in Qloo.";
+  if (!step.venue)
+    return "Qloo ranks the artists the headliners' fans like: the chart before any venue.";
+  // A live run sends its lineup after its last call: until then, the edition's own climbs.
+  const climbs = step.acts.filter((listed) => listed.move !== null).length;
+  if (lifted === null)
+    return climbs > 0
+      ? `Qloo's ranking re-sorts with this venue's fans added: ${climbs} of the top ${step.acts.length} ${climbs === 1 ? "climbs" : "climb"} ${MIN_LIFT} places or more.`
+      : `Qloo's ranking re-sorts with this venue's fans added: no act in view climbs ${MIN_LIFT} places.`;
+  return lifted > 0
+    ? `Qloo's ranking re-sorts with this venue's fans added: ${lifted} ${lifted === 1 ? "act climbs" : "acts climb"} onto the lineup.`
+    : `Qloo's ranking re-sorts with this venue's fans added: no act climbs ${MIN_LIFT} places onto the lineup.`;
+}
+
+export const watchCallLine = (
+  call: Pick<TraceCall, "n" | "summary" | "resultCount">,
+  shown: number,
+) =>
+  `Qloo call ${call.n} of ${shown}: ${call.summary}${call.resultCount !== null ? ` · ${call.resultCount} results` : ""}`;
+
+export const watchTicksLabel = (calls: number, shown: number) =>
+  `${calls} of ${shown} Qloo calls in`;
+
+/** The AI agent's own line from the trace, as Watch's banner sets it under an edition. */
+export const agentLine = (note: string) => `The AI agent: ${note}`;
+
+/** Where the saved trace holds no line of the agent's for a step: what it decides, never a reason. */
+export const AGENT_DECIDES =
+  "The AI agent chose which venues to read, and in what order; Qloo's numbers and the rule pick the acts.";
 
 /** The fee range in plain words (M6r): the plain term first, the buyer's once in brackets. */
 export const feeRangeWords = (band: FeeBand) =>

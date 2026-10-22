@@ -16,6 +16,8 @@ import { Quilt } from "@/components/chart/sleeve";
 import { TopBar } from "@/components/chart/top-bar";
 import { VenueSwitch, type VenueLine } from "@/components/chart/venue-switch";
 import {
+  AGENT_DECIDES,
+  agentLine,
   headlinersBooked,
   headlinersNote,
   factsLine,
@@ -24,6 +26,10 @@ import {
   SKIP,
   STAMP,
   WATCH,
+  watchCallLine,
+  watchLine,
+  watchTicksLabel,
+  watchTitle,
 } from "@/components/chart/words";
 import { ModelBill } from "@/components/model-bill";
 import { RunningOrderPanel } from "@/components/running-order-panel";
@@ -33,7 +39,6 @@ import { useLlmOnly } from "@/components/use-llm-only";
 import { useUndercardBuild } from "@/components/use-undercard-build";
 import { useVenueSwitch } from "@/components/use-venue-switch";
 import { useWatch, type WatchPhase } from "@/components/use-watch";
-import { MIN_LIFT } from "@/lib/assemble-lineup";
 import type { TraceCall } from "@/lib/build-events";
 import { firstBoard } from "@/lib/build-state";
 import {
@@ -299,27 +304,8 @@ function EditionBanner({
   onSkip: () => void;
 }) {
   const first = phase === "calls" || !step;
-  // A live run sends its lineup after its last call: until then, the edition's own climbs.
-  const climbs =
-    step?.acts.filter((listed) => listed.move !== null).length ?? 0;
-  const title = first
-    ? replayed
-      ? "Replaying the AI agent's build"
-      : "The AI agent is planning its Qloo calls"
-    : step.venue
-      ? `+ ${step.venue.name}'s fans`
-      : `${headliners.join(" + ")} fans alone`;
-  const line = first
-    ? "First it finds the headliners and the town's music venues in Qloo."
-    : step.venue
-      ? lifted === null
-        ? climbs > 0
-          ? `Qloo's ranking re-sorts with this venue's fans added: ${climbs} of the top ${step.acts.length} ${climbs === 1 ? "climbs" : "climb"} ${MIN_LIFT} places or more.`
-          : `Qloo's ranking re-sorts with this venue's fans added: no act in view climbs ${MIN_LIFT} places.`
-        : lifted > 0
-          ? `Qloo's ranking re-sorts with this venue's fans added: ${lifted} ${lifted === 1 ? "act climbs" : "acts climb"} onto the lineup.`
-          : `Qloo's ranking re-sorts with this venue's fans added: no act climbs ${MIN_LIFT} places onto the lineup.`
-      : "Qloo ranks the artists the headliners' fans like: the chart before any venue.";
+  const title = watchTitle({ first, step, replayed, headliners });
+  const line = watchLine({ first, step, lifted });
   const shown = Math.max(total, calls);
   return (
     <div
@@ -328,28 +314,20 @@ function EditionBanner({
       <div className="edition-main" aria-live="polite">
         <p className="edition-title">{title}</p>
         <p className="edition-line">{line}</p>
-        {call && (
-          <p className="edition-call">
-            Qloo call {call.n} of {shown}: {call.summary}
-            {call.resultCount !== null ? ` · ${call.resultCount} results` : ""}
-          </p>
-        )}
+        {call && <p className="edition-call">{watchCallLine(call, shown)}</p>}
         {note ? (
-          <p className="edition-note">The AI agent: {note}</p>
+          <p className="edition-note">{agentLine(note)}</p>
         ) : !first && step?.venue ? (
           // Where the saved trace holds no line of the agent's for this step, say what it
           // decides rather than invent a reason (plan.md item 3).
-          <p className="edition-note">
-            The AI agent chose which venues to read, and in what order;
-            Qloo&apos;s numbers and the rule pick the acts.
-          </p>
+          <p className="edition-note">{AGENT_DECIDES}</p>
         ) : null}
       </div>
       <div className="edition-side">
         <span
           className="ticks"
           role="img"
-          aria-label={`${calls} of ${shown} Qloo calls in`}
+          aria-label={watchTicksLabel(calls, shown)}
         >
           {Array.from({ length: shown }, (_, i) => (
             <i key={i} className={i < calls ? "lit" : ""} />
