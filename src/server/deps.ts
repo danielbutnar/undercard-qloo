@@ -1,8 +1,12 @@
 import { Redis } from "@upstash/redis";
 import { AiNotConfigured, createAgentModel } from "./ai";
 import { createBuildStore, previewSafe } from "./build-store";
-import { createQlooClient, type QlooClient } from "./qloo";
-import { createQlooCache, syntheticMode } from "./qloo-cache";
+import {
+  createQlooClient,
+  type QlooClient,
+  type QlooClientOptions,
+} from "./qloo";
+import { createQlooCache, NO_CACHE, syntheticMode } from "./qloo-cache";
 import {
   createMemoryLimiter,
   createUpstashLimiter,
@@ -35,6 +39,25 @@ export function serverCachedQloo(): QlooClient | null {
     cache: createQlooCache(),
     baseUrl: process.env.QLOO_BASE_URL || undefined,
     cacheOnly: true,
+  });
+}
+
+/**
+ * Neither reads nor writes the Qloo cache (the deep health check): every call reaches Qloo,
+ * with the usual retries and budget. Tests pass their own fetch and clock.
+ */
+export function serverUncachedQloo(
+  env: Partial<Record<string, string | undefined>> = process.env,
+  testing: Pick<QlooClientOptions, "fetch" | "sleep" | "clock" | "random"> = {},
+): QlooClient | null {
+  if (syntheticMode(env)) return null;
+  const apiKey = env.QLOO_API_KEY;
+  if (!apiKey) return null;
+  return createQlooClient({
+    apiKey,
+    cache: NO_CACHE,
+    baseUrl: env.QLOO_BASE_URL || undefined,
+    ...testing,
   });
 }
 
