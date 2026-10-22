@@ -14,6 +14,17 @@ describe("the With and Without Qloo measures (plan.md item 8)", () => {
     expect(lineupMeasures(towns).changed).toEqual([3, 3, 4]);
   });
 
+  // Corrected 2026-10-22: the average rounded to 10 hid Duluth's one shared act, so the count is
+  // exact: the Qloo acts each town's model picks also have, and the towns with any.
+  it("counts the acts the two lineups share, and the towns where they share any", () => {
+    const m = lineupMeasures(towns);
+    expect(m.sharedActs).toBe(2);
+    expect(m.townsSharingAnAct).toBe(2);
+    expect(
+      lineupMeasures([{ with: ["a", "b"], without: ["c", "d"] }]),
+    ).toMatchObject({ sharedActs: 0, townsSharingAnAct: 0 });
+  });
+
   it("counts the distinct acts on each side, and the model's acts in half the towns or more", () => {
     const m = lineupMeasures(towns);
     expect(m.distinctWith).toBe(11);
