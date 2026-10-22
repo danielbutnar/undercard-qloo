@@ -74,6 +74,29 @@ describe("replay-only requests", () => {
     });
   });
 
+  it("try once more after a network error, then say the request failed", async () => {
+    let tries = 0;
+    const flaky: typeof fetch = async (input, init) => {
+      if (++tries === 1) throw new TypeError("fetch failed");
+      return routeFetch(input, init);
+    };
+    const replay = await replayOnly(BASE, "sagebrush-sound", flaky, {
+      retryDelayMs: 0,
+    });
+    expect(tries).toBe(2);
+    expect(replay.lineup?.acts).toHaveLength(10);
+    tries = 0;
+    const down: typeof fetch = async () => {
+      tries++;
+      throw new TypeError("fetch failed");
+    };
+    const failed = await replayOnly(BASE, "sagebrush-sound", down, {
+      retryDelayMs: 0,
+    });
+    expect(tries).toBe(2);
+    expect(failed.error).toMatch(/the request failed/);
+  });
+
   it("stop reading when the answer isn't a replay", async () => {
     let cancelled = false;
     const live: typeof fetch = async () =>

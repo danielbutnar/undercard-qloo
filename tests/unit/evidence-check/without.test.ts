@@ -127,6 +127,37 @@ describe("the Without Qloo counts from the store", () => {
   });
 });
 
+describe("a store that doesn't answer", () => {
+  // Like createUpstashCache: get reads an outage as a miss; getOrThrow says it failed.
+  const down: QlooCache = {
+    kind: "upstash",
+    get: async () => null,
+    getOrThrow: async () => {
+      throw new Error("network down");
+    },
+    set: async () => {},
+  };
+
+  it("fails the read instead of counting its towns as unbuilt", async () => {
+    await expect(withoutFromStore(down)).rejects.toThrow(/network down/);
+  });
+
+  it("leaves every Without Qloo claim without data, saying why", async () => {
+    const data = await loadEvidence({
+      base: "http://synthetic.test",
+      fetch: async () => new Response("", { status: 503 }),
+      store: down,
+      design: null,
+    });
+    expect(evaluate({ kind: "without", count: "picks" }, data)).toEqual({
+      missing: "the store didn't answer: network down",
+    });
+    expect(evaluate({ kind: "measure", of: "distinct-with" }, data)).toEqual({
+      missing: "the store didn't answer: network down",
+    });
+  });
+});
+
 describe("the Without Qloo counts from section 31's raw files", () => {
   function rawDir() {
     const dir = mkdtempSync(join(tmpdir(), "evidence-check-"));

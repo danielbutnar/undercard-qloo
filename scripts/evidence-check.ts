@@ -312,12 +312,14 @@ export interface TownBuild {
 /**
  * One town's saved build, as a judge's replay streams it: POST /api/undercard with only the
  * festival and replayOnly, never fresh, so the server replays or says there's no saved build.
- * If the first event isn't a replay, the request is dropped unread.
+ * If the first event isn't a replay, the request is dropped unread. A request the network drops
+ * is tried once more; an answer from the server, whatever its status, is taken as it is.
  */
 export async function replayOnly(
   base: string,
   festivalId: string,
   fetchImpl: typeof fetch = fetch,
+  { retryDelayMs = 2000 }: { retryDelayMs?: number } = {},
 ): Promise<Replay> {
   const replay: Replay = {
     festivalId,
@@ -328,13 +330,18 @@ export async function replayOnly(
     code: null,
     error: null,
   };
-  let response: Response;
-  try {
-    response = await fetchImpl(new URL("/api/undercard", base), {
+  const request = () =>
+    fetchImpl(new URL("/api/undercard", base), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ festival: festivalId, replayOnly: true }),
       signal: AbortSignal.timeout(60_000),
+    });
+  let response: Response;
+  try {
+    response = await request().catch(async () => {
+      await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+      return request();
     });
   } catch (error) {
     return { ...replay, error: `the request failed: ${String(error)}` };
@@ -485,8 +492,11 @@ export type Computation =
 
 export interface EvidenceData {
   towns: TownBuild[];
-  /** The Without Qloo counts as they stand: from the store, else from the raw files. */
-  without: WithoutData | null;
+  /**
+   * The Without Qloo counts as they stand: from the store, else from the raw files; why there
+   * are none when the store didn't answer.
+   */
+  without: WithoutData | Missing | null;
   /** Section 31's run as its raw files recorded it. */
   run: RunRecord | null;
 }
@@ -723,13 +733,18 @@ const RUN_WORDS: Record<Extract<Computation, { kind: "run" }>["of"], string> = {
   "answers-asked": "towns whose model answer the run asked for",
 };
 
+/** The Without Qloo data, or why there is none. */
+const withoutOf = (data: EvidenceData): WithoutData | Missing =>
+  data.without ?? NO_WITHOUT;
+
 /** The rebuilt towns' counts of one kind, or why the source can't give them. */
 function withoutCounts(
   data: EvidenceData,
   count: WithoutCount,
 ): number[] | Missing {
-  if (!data.without) return NO_WITHOUT;
-  const towns = data.without.towns.filter((town) => town.rebuilt);
+  const without = withoutOf(data);
+  if (isMissing(without)) return without;
+  const towns = without.towns.filter((town) => town.rebuilt);
   const counts = towns.map((town) => town.counts[count]);
   if (counts.some((value) => value === undefined))
     return missing(`the raw files don't hold ${count}; read the store`);
@@ -896,10 +911,11 @@ export function evaluate(
     case "checked-towns":
       return CHECKED_TOWNS.length;
     case "without": {
-      if (!data.without) return NO_WITHOUT;
-      if (c.count === "towns") return data.without.towns.length;
+      const without = withoutOf(data);
+      if (isMissing(without)) return without;
+      if (c.count === "towns") return without.towns.length;
       if (c.count === "rebuilt")
-        return data.without.towns.filter((town) => town.rebuilt).length;
+        return without.towns.filter((town) => town.rebuilt).length;
       const counts = withoutCounts(data, c.count);
       return isMissing(counts)
         ? counts
@@ -917,8 +933,9 @@ export function evaluate(
       return counts.length ? Math.max(...counts) : missing("no town measured");
     }
     case "measure": {
-      if (!data.without) return NO_WITHOUT;
-      const towns = data.without.towns.flatMap((town) =>
+      const without = withoutOf(data);
+      if (isMissing(without)) return without;
+      const towns = without.towns.flatMap((town) =>
         town.keys ? [town.keys] : [],
       );
       if (towns.length === 0) return missing("no town's two lineups were read");
@@ -1003,11 +1020,16 @@ export interface RunRecord {
   answersAsked: number;
 }
 
-/** Reads pass through; a write throws, so nothing here can change the store. */
+/**
+ * Reads pass through and a write throws, so nothing here can change the store. A read that
+ * fails throws too (getOrThrow, where the cache has it) rather than reading as a miss, so an
+ * outage can't pass for a town with no saved build: it fails closed.
+ */
 export function readOnlyCache(cache: QlooCache): QlooCache {
   return {
     kind: cache.kind,
-    get: <T>(key: string) => cache.get<T>(key),
+    get: <T>(key: string) =>
+      cache.getOrThrow ? cache.getOrThrow<T>(key) : cache.get<T>(key),
     ...(cache.getOrThrow
       ? { getOrThrow: <T>(key: string) => cache.getOrThrow!<T>(key) }
       : {}),
@@ -1217,7 +1239,8 @@ export function withoutFromRaw(design: string): {
 /**
  * Everything the claims are checked against: the replays from `base`; the Without Qloo counts
  * from the store when there is one, else from the raw files under `design`; and section 31's run
- * record from those files.
+ * record from those files. A store that doesn't answer leaves the counts without data, not
+ * filled from the raw files, so a failed read never passes for the store's numbers.
  */
 export async function loadEvidence({
   base,
@@ -1231,9 +1254,20 @@ export async function loadEvidence({
   design: string | null;
 }): Promise<EvidenceData> {
   const raw = design ? withoutFromRaw(design) : { without: null, run: null };
+  const fromStore = async (
+    cache: QlooCache,
+  ): Promise<WithoutData | Missing> => {
+    try {
+      return await withoutFromStore(cache);
+    } catch (error) {
+      return missing(
+        `the store didn't answer: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  };
   const [towns, without] = await Promise.all([
     loadReplays(base, { fetch: fetchImpl }),
-    store ? withoutFromStore(store) : Promise.resolve(raw.without),
+    store ? fromStore(store) : Promise.resolve(raw.without),
   ]);
   return { towns, without, run: raw.run };
 }
@@ -1349,8 +1383,9 @@ export async function main(
   print(
     `Replays: ${data.towns.length} replay-only requests (the server makes no Qloo or model call for them), ${plural(replayed, "saved build", "saved builds")} read${failed.length ? `; ${failed.length} failed, ${failed[0].town.city}'s: ${failed[0].replay.error}` : ""}.`,
   );
+  const without = withoutOf(data);
   print(
-    `Without Qloo: ${data.without ? `${data.without.source}, ${plural(data.without.towns.length, "town", "towns")}` : "no store and no raw files"}. Section 31's run: ${data.run ? data.run.source : "no run record (.design/with-without-qloo/result.json)"}.`,
+    `Without Qloo: ${isMissing(without) ? without.missing : `${without.source}, ${plural(without.towns.length, "town", "towns")}`}. Section 31's run: ${data.run ? data.run.source : "no run record (.design/with-without-qloo/result.json)"}.`,
   );
   print("");
   print(formatTable(rows).trimEnd());
