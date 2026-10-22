@@ -745,6 +745,18 @@ Written on 2026-10-22, before any of its calls (Daniel's brief of that evening).
 
 The copy changes a result calls for are drafted after the run and applied only with Daniel's yes. A limit known now: the own-town lifts were measured on 2026-10-21 and the controls on the day of the run, so any change in Qloo's data in between falls into bar A's comparison; each lift is a gain over the same day's headliners-only call, which takes out a shift common to both.
 
+## 35. Qloo's own attribution, written before the call
+
+Written on 2026-10-22, before the call. The bar doesn't change after the answers are in. Raw answers only in .design/explainability/ (git-ignored); counts only in this file.
+
+**The question.** Each act's card says which venue's fans lifted it, from the app's own arithmetic: the act's place for the headliners' fans against its place with one venue's fans added. Can Qloo say the same in its own terms, how much of an act's result comes from each input?
+
+**The calls.** Two, one per fee range, for Boise's saved build (17 October, 12:13 UTC): the headliners and that range's anchor venues as the signal (signal.interests.entities; the mid-size range has two anchor venues on the saved lineup, the opening range one), filter.type=urn:entity:artist, filter.results.entities set to that range's lineup acts (4 and 6), the crowd-age signal as the build sends it (signal.demographics.age=25_to_29,30_to_34) and feature.explainability=true. The entity ids come from the saved build and the app's Qloo cache, read-only; if the headliners' searches aren't in the cache, two searches more. One call at a time, and every attempt is counted.
+
+**The bar.** Go if a per-input contribution comes back for at least 8 of the 10 acts: for an act, Qloo's answer attributes a numeric part of its result to individual inputs of the call, the act's own anchor venue among them, not one score for all of them together. Otherwise no-go, recorded in this section as tried, not shipped.
+
+**What each outcome means for the site.** A no-go changes nothing. A go ships nothing by itself: a line on each act card built on it waits for Daniel's yes, and then needs the other 28 builds' answers, in a second window of at most 56 calls, with the line read from the cache only.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
