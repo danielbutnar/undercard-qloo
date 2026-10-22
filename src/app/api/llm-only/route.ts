@@ -2,6 +2,7 @@ import { festivalFromBody } from "@/lib/towns";
 import { AiNotConfigured, createLlmOnlyModel } from "@/server/ai";
 import { jsonBody, serverLimiter } from "@/server/deps";
 import { handleLlmOnly } from "@/server/llm-only";
+import { savedPickChecks } from "@/server/pick-checks";
 import { createQlooCache } from "@/server/qloo-cache";
 import { clientIp } from "@/server/rate-limit";
 
@@ -28,5 +29,7 @@ export async function POST(request: Request): Promise<Response> {
         throw error;
       }
     },
+    // Each pick's checks for its card, from the Qloo cache alone: no Qloo call, no model.
+    checks: (lineup) => savedPickChecks(festival, lineup),
   });
 }

@@ -1,5 +1,9 @@
 import type { Festival } from "@/lib/festival";
-import { LlmOnlyLineupSchema, type LlmOnlyLineup } from "@/lib/llm-only";
+import {
+  LlmOnlyLineupSchema,
+  type LlmOnlyLineup,
+  type PickCheck,
+} from "@/lib/llm-only";
 import { festivalBrief } from "./agent";
 import type { LlmOnlyModel } from "./ai";
 import { cacheTtlSeconds, type QlooCache } from "./qloo-cache";
@@ -17,7 +21,8 @@ const json = (body: unknown, status = 200) =>
  * POST /api/llm-only: the same festival brief answered by the model alone, for comparison
  * with the Qloo board. The answer is saved as long as Qloo data is, so the model is asked
  * once per festival. Asking the model is rate-limited per IP and per day; the saved answer
- * is not.
+ * is not. With `checks`, each pick's checks on Qloo come with the answer
+ * (src/server/pick-checks.ts); if they fail, the answer comes without them.
  */
 export async function handleLlmOnly({
   festival,
@@ -26,6 +31,7 @@ export async function handleLlmOnly({
   limiter,
   ip,
   now = Date.now,
+  checks,
 }: {
   festival: Festival;
   model: () => LlmOnlyModel | null;
@@ -33,10 +39,24 @@ export async function handleLlmOnly({
   limiter: RateLimiter;
   ip: string;
   now?: () => number;
+  checks?: (lineup: LlmOnlyLineup) => Promise<PickCheck[]>;
 }): Promise<Response> {
+  const withChecks = async (lineup: LlmOnlyLineup) => {
+    if (!checks) return {};
+    try {
+      return { checks: await checks(lineup) };
+    } catch {
+      return {};
+    }
+  };
   const key = `${PREFIX}${festival.id}`;
   const saved = LlmOnlyLineupSchema.safeParse(await cache.get(key));
-  if (saved.success) return json({ lineup: saved.data, cached: true });
+  if (saved.success)
+    return json({
+      lineup: saved.data,
+      cached: true,
+      ...(await withChecks(saved.data)),
+    });
 
   const llm = model();
   if (!llm)
@@ -76,5 +96,5 @@ export async function handleLlmOnly({
       .slice(0, SLOTS),
   };
   await cache.set(key, lineup, cacheTtlSeconds(now()));
-  return json({ lineup, cached: false });
+  return json({ lineup, cached: false, ...(await withChecks(lineup)) });
 }
