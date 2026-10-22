@@ -135,6 +135,28 @@ describe("an act on the bill", () => {
     expect(document.activeElement).toBe(card);
   });
 
+  it("names its venue on a phone by the row tab's label, and in full elsewhere", () => {
+    // Daniel's second batch of 2026-10-22, item 5: below 560 px chart.css shows the short line,
+    // so it fits in two lines at 375 px; the climb and Why lines keep the full name.
+    open();
+    fireEvent.click(actButton("Marisol Vey"));
+    const card = screen.getByRole("region", { name: "Act card" });
+    expect(card.querySelector(".card-venue-short")!.textContent).toBe(
+      "Climbs with FSB's fans added",
+    );
+    expect(card.querySelector(".card-venue-full")!.textContent).toBe(
+      "Climbs with Fort Street Ballroom's fans added",
+    );
+    expect(card.textContent).toContain("with Fort Street Ballroom's fans");
+    // A venue whose tab shows its whole name keeps one line on every screen.
+    fireEvent.click(actButton("Hollow Pines"));
+    const other = screen.getByRole("region", { name: "Act card" });
+    expect(other.querySelector(".card-venue-short")).toBeNull();
+    expect(other.querySelector(".card-venue-full")!.textContent).toBe(
+      "Climbs with The Lantern Room's fans added",
+    );
+  });
+
   it("closes its card", () => {
     open();
     fireEvent.click(actButton("Marisol Vey"));

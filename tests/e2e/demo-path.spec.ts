@@ -198,9 +198,16 @@ test.describe("demo path", () => {
       const name = (await act.getAttribute("aria-label"))!;
       await act.getByRole("button", { name, exact: true }).click();
       const opened = card.getByRole("article", { name, exact: true });
-      // Daniel's brief of 2026-10-22, item 1: the badge says what the venue's fans did, no more.
+      // Daniel's brief of 2026-10-22, item 1: the badge says what the venue's fans did, no more,
+      // naming the venue in full on a laptop (a phone takes the row tab's label, item 5 of the
+      // second batch).
+      const [, venue] = /^with (.+)'s fans$/.exec(
+        await opened.locator(".card-place small").last().innerText(),
+      )!;
       await expect(
-        opened.getByText(/^Climbs with .+'s fans added$/),
+        opened
+          .getByText(`Climbs with ${venue}'s fans added`, { exact: true })
+          .filter({ visible: true }),
       ).toBeVisible();
       // Card text runs together ("Qloo affinity0.94Popularity86th"), so no word boundaries.
       await expect(opened).toContainText(/affinity0\.\d\d/);

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ClimbArrow } from "@/components/chart/band-chart";
 import { Cover } from "@/components/chart/cover";
 import { whySentence } from "@/components/chart/why";
-import { ordinal } from "@/components/chart/words";
+import { ordinal, venueShort } from "@/components/chart/words";
 import type { FeeBand } from "@/lib/fee-bands";
 import {
   formatAffinity,
@@ -63,6 +63,8 @@ export function ActCard({
 }) {
   const [asking, setAsking] = useState(false);
   const lift = liftOf(act);
+  // The label on the row's tab ("V418"): a phone's venue line uses it so it fits in two lines.
+  const short = venueShort(act.anchorVenue.name);
   const popularity = Math.round(act.popularity * 100);
   return (
     <article
@@ -83,7 +85,14 @@ export function ActCard({
           <h4 className="card-name">{act.name}</h4>
           <p className="card-venue">
             <span className="card-swatch" aria-hidden />
-            Climbs with {act.anchorVenue.name}&apos;s fans added
+            {short !== act.anchorVenue.name && (
+              <span className="card-venue-short">
+                Climbs with {short}&apos;s fans added
+              </span>
+            )}
+            <span className="card-venue-full">
+              Climbs with {act.anchorVenue.name}&apos;s fans added
+            </span>
           </p>
         </div>
         {onClose && (

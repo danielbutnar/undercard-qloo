@@ -1043,6 +1043,19 @@
   background: var(--venue);
   border: 2px solid var(--color-ink);
 }
+/* On a phone the venue line names the venue as the row's tab does ("V418"), so it fits in two
+   lines; the climb and Why lines keep the full name (Daniel's second batch of 2026-10-22). */
+.chart-app .card-venue-short {
+  display: none;
+}
+@media (max-width: 559px) {
+  .chart-app .card-venue-short {
+    display: inline;
+  }
+  .chart-app .card-venue-short + .card-venue-full {
+    display: none;
+  }
+}
 .chart-app .card-close {
   align-self: start;
   font-weight: 800;

@@ -24,6 +24,49 @@ test.describe("the first screen on a phone", () => {
     });
   });
 
+  // Daniel's second batch of 2026-10-22, item 5: on a 375 px phone an act's card names its
+  // venue as the row's tab does ("V418"), so the line fits in two lines where that label is
+  // short; the card's climb line keeps the full name.
+  test.describe("at 375x812", () => {
+    test.use({ viewport: { width: 375, height: 812 } });
+
+    test("an act's card names its venue as the row's tab does", async ({
+      page,
+    }) => {
+      await page.goto("/");
+      await page.evaluate(() => document.fonts.ready);
+      const card = page.getByRole("region", { name: "Act card" });
+      let shortened = 0;
+      for (const row of await page
+        .getByRole("region", { name: "Undercard draft" })
+        .getByRole("article")
+        .all()) {
+        const name = (await row.getAttribute("aria-label"))!;
+        const tab = (await row.locator(".row-venue").innerText()).trim();
+        await row.getByRole("button", { name, exact: true }).click();
+        const opened = card.getByRole("article", { name, exact: true });
+        const line = opened.locator(".card-venue");
+        await expect(line).toHaveText(`Climbs with ${tab}'s fans added`, {
+          useInnerText: true,
+        });
+        const [, full] = /^with (.+)'s fans$/.exec(
+          await opened.locator(".card-place small").last().innerText(),
+        )!;
+        if (tab !== full) {
+          shortened += 1;
+          const lines = await line.evaluate(
+            (element) =>
+              element.getBoundingClientRect().height /
+              parseFloat(getComputedStyle(element).lineHeight),
+          );
+          expect(Math.round(lines)).toBeLessThanOrEqual(2);
+        }
+        await card.getByRole("button", { name: "Close the card" }).click();
+      }
+      expect(shortened).toBeGreaterThan(0);
+    });
+  });
+
   test.describe("at 390x844", () => {
     test.use({ viewport: { width: 390, height: 844 } });
 
