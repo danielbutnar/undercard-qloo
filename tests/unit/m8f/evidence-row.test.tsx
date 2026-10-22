@@ -28,8 +28,12 @@ describe("the second premise test on the evidence page (M8f)", () => {
     expect(second.textContent).toMatch(
       /^At 30 real festivals chosen before any run/,
     );
+    // Its first source is section 26; section 34's controls follow it (tests/unit/evidence-34).
     expect(
-      within(second).getByRole("link").getAttribute("href")!.split("#")[1],
+      within(second)
+        .getAllByRole("link")[0]
+        .getAttribute("href")!
+        .split("#")[1],
     ).toBe(evidenceAnchor(SECTION_26));
   });
 
