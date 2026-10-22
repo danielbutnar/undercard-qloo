@@ -1,7 +1,8 @@
 // Judging-window resilience (plan.md item 2, prompt A part 2): when a judge's live run ends
-// because Qloo is busy, or the day's per-IP or global cap is reached, the notice says so in one
-// sentence and offers the checked towns in the same country to replay; with none there, it
-// offers Sagebrush Sound's replay. The builds are stubbed, so no Qloo call is made.
+// because Qloo is busy, the planner's model call failed, or the day's per-IP or global cap is
+// reached, the notice says so in one sentence and offers the checked towns in the same country
+// to replay; with none there, it offers Sagebrush Sound's replay. The builds are stubbed, so no
+// Qloo or Claude call is made.
 import { expect, test, type Page } from "@playwright/test";
 
 const NDJSON = "application/x-ndjson";
@@ -28,6 +29,13 @@ const STATES = [
     code: "qloo-busy",
     status: 200,
     message: "Qloo is busy right now. Try again in a minute.",
+  },
+  {
+    name: "a failed planner call",
+    code: "planner-failed",
+    status: 200,
+    message:
+      "The planning model is unavailable right now. Try again in a minute.",
   },
 ];
 
