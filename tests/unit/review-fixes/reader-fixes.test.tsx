@@ -90,11 +90,11 @@ describe("the climb is Qloo's ranking, never the AI agent's", () => {
     );
     cleanup();
     expect(markLabel(acts[0])).toBe(
-      "The Lantern Room's crowd: up 11 places in Qloo's ranking",
+      "With The Lantern Room's fans added: up 11 places in Qloo's ranking",
     );
     const fresh = acts.find((act) => /into the top/.test(act.reason))!;
     expect(markLabel(fresh)).toBe(
-      "The Lantern Room's crowd: new in Qloo's ranking, from outside the headliners-only ranking",
+      "With The Lantern Room's fans added: new in Qloo's ranking, from outside the headliners-only ranking",
     );
     render(
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,

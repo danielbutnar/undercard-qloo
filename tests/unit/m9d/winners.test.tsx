@@ -75,13 +75,13 @@ describe("the first screen's chart (M9d winner)", () => {
     expect(within(mid).getAllByRole("article")).toHaveLength(4);
     const row = within(mid).getByRole("article", { name: first.name });
     expect(within(row).getByRole("button", { name: first.name })).toBeTruthy();
-    // The venue whose fans like it: its mark and its crowd on the row...
+    // The venue whose fans lift it: its mark, and its fans in words, on the row...
     expect(
       within(row).getByText(roomShortName(first.anchorVenue.name)),
     ).toBeTruthy();
     expect(
       within(row).getByText(
-        `${first.anchorVenue.name}'s crowd: up ${move} places in Qloo's ranking`,
+        `With ${first.anchorVenue.name}'s fans added: up ${move} places in Qloo's ranking`,
       ),
     ).toBeTruthy();
     // ...the climb as the big number (M10a), and under the name the ladder from the place it

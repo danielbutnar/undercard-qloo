@@ -54,14 +54,14 @@ export function markText(act: Act): string {
 const outsideTop = (top?: number) =>
   top ? `the headliners-only top ${top}` : "the headliners-only ranking";
 
-/** The mark in words, for screen readers. */
+/** The mark in words, for screen readers: what adding the venue's fans did, no more. */
 export function markLabel(act: Act, top?: number): string {
-  const crowd = `${act.anchorVenue.name}'s crowd`;
+  const added = `With ${act.anchorVenue.name}'s fans added`;
   const lift = liftOf(act);
-  if (!lift) return crowd;
+  if (!lift) return added;
   return lift.kind === "up"
-    ? `${crowd}: up ${lift.places} places in Qloo's ranking`
-    : `${crowd}: new in Qloo's ranking, from outside ${outsideTop(top)}`;
+    ? `${added}: up ${lift.places} places in Qloo's ranking`
+    : `${added}: new in Qloo's ranking, from outside ${outsideTop(top)}`;
 }
 
 const RANKING = "Qloo ranks artists for the headliners' fans";

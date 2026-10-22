@@ -79,7 +79,7 @@ describe("variant (a): the climb as the hero", () => {
       "The Lantern Room",
     );
     expect(riders.querySelector(".sr-only")!.textContent).toBe(
-      "The Lantern Room's crowd: up 26 places in Qloo's ranking",
+      "With The Lantern Room's fans added: up 26 places in Qloo's ranking",
     );
   });
 

@@ -70,11 +70,15 @@ describe("the mark under an act", () => {
           "Fort Street Ballroom",
         ),
       ),
-    ).toBe("Fort Street Ballroom's crowd: up 7 places in Qloo's ranking");
+    ).toBe("With Fort Street Ballroom's fans added: up 7 places in Qloo's ranking");
     expect(
       markLabel(act("The Lantern Room fans move it into the top 8."), 50),
     ).toBe(
-      "The Lantern Room's crowd: new in Qloo's ranking, from outside the headliners-only top 50",
+      "With The Lantern Room's fans added: new in Qloo's ranking, from outside the headliners-only top 50",
+    );
+    // A line the lift can't be read from still names the venue whose fans were added.
+    expect(markLabel(act("Picked for its sound."))).toBe(
+      "With The Lantern Room's fans added",
     );
   });
 });

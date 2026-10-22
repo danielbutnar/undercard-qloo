@@ -9,6 +9,8 @@ import { SYNTHETIC } from "./env";
 const RETIRED: Record<string, RegExp> = {
   "item 1, the card's badge": /fans like it/,
   "item 1, the card's Why line": /Why Boise/,
+  // A town's crowd stays (the evidence page's limits name it); a venue's is retired.
+  "item 2, a row's words for a screen reader": /(?<!town)'s crowd/,
 };
 
 async function expectNoneOnScreen(page: Page) {

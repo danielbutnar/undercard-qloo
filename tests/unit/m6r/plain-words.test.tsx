@@ -107,9 +107,9 @@ describe("plain words, round 2 (M6r)", () => {
         row.querySelector(".ladder")!.textContent!,
       )!;
       expect(Number(was) - Number(now)).toBe(climb);
-      // Heard: the venue's crowd and how many places it moved the act up.
+      // Heard: the venue whose fans were added and how many places the act climbed.
       expect(row.querySelector(".sr-only")!.textContent).toMatch(
-        /'s crowd: up \d+ places in Qloo's ranking$/,
+        /^With .+'s fans added: up \d+ places in Qloo's ranking$/,
       );
     }
     // Each band's key says in words what the climb counts.
@@ -135,13 +135,13 @@ describe("plain words, round 2 (M6r)", () => {
     const fresh = fixtureActs.find((act) => liftOf(act)?.kind === "new")!;
     const bill = screen.getByRole("region", { name: "Undercard draft" });
     const row = within(bill).getByRole("article", { name: fresh.name });
-    // Seen: NEW, its ladder from outside the top 50. Heard: the same, with the venue's crowd.
+    // Seen: NEW, its ladder from outside the top 50. Heard: the same, with the venue's fans.
     expect(row.querySelector(".row-place")!.textContent).toBe("NEW");
     expect(row.querySelector(".ladder")!.textContent).toMatch(
       /^outside the top 50\d+(st|nd|rd|th)$/,
     );
     expect(row.querySelector(".sr-only")!.textContent).toBe(
-      `${fresh.anchorVenue.name}'s crowd: new in Qloo's ranking, from outside the headliners-only top 50`,
+      `With ${fresh.anchorVenue.name}'s fans added: new in Qloo's ranking, from outside the headliners-only top 50`,
     );
     // The card says it as a sentence.
     fireEvent.click(within(row).getByRole("button", { name: fresh.name }));
