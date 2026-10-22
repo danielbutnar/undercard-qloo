@@ -593,3 +593,17 @@ Daniel's answers (2026-10-21, night): yes to the deploy, after the items below, 
 - [x] c. The act list for the first-screen comparison outside git; each of the 29 festivals' current latest build id recorded in .design/, from replay-only requests, so a pointer can be put back if one slips. The act list lives in this session's scratchpad, outside the repository, and isn't tracked. The 29 ids are in .design/pinned-builds/latest-pointers-2026-10-21.json (git-ignored), read again just before the deploy: none had moved since the first read; 28 of 17 October and Cluj-Napoca's of 18 October. .design/pinned-builds/README.md says how to put a pointer back (not tried)
 - [x] d. src/app/page.tsx's comment: "A festival's first saved build shows up within that minute; a later live run never replaces it."
 - [x] Push main (production deploys); the first screen against the list, with no live build; `pnpm e2e --workers=1` against production, without E2E_LIVE_QLOO. Before the push, gate (561 unit tests and the design scan), build and local e2e (80 passed, 15 skipped) passed again. Pushed e098874 at 21:02 UTC on 2026-10-21; Vercel finished at 21:03:12 UTC, and production's scripts carry the new live-run line. First screen: 10 acts, the same in the same order, "saved Oct 17, 12:13 UTC", no live build run. Production e2e 88 passed, 7 skipped (the 3 live-Qloo steps and the 4 empty-server scenes), the new smoke check among the passes. CI gate run 39675508685 green. All 29 latest pointers unchanged against the record after the deploy and again after the e2e (21:07 UTC)
+
+# TASKS: Daniel's brief of 2026-10-22: words that claim more than the evidence, before Thursday's test with real people
+
+Done means: the seven items are committed and green; the rendered first screen, act card, Watch, Without Qloo view and evidence page, checked in Playwright (not by grepping source), no longer show "fans like it", "Why Boise", a venue's "crowd", "No Boise venue" or "too thin to build on"; production shows the new words. Copy and small UI only: the chart, the act row layout, the rule, the saved builds and the why sentence stay. One commit per item, test-first; no Qloo response data in the repo (tests use invented names); no layout change beyond item 5; no new dependency. The production deploy waits on Daniel's yes.
+
+- [ ] 1. Act card: the badge reads "Climbs with <venue>'s fans added" and the label "Why it's here:" (labels only; no data field or saved text changes)
+- [ ] 2. Each lineup row's accessible text: "With <venue>'s fans added: up N places in Qloo's ranking", and the same for new entries
+- [ ] 3. First screen: "Undercard drafted the rest of the lineup (the bill) from Qloo's numbers"; the footer "Drafted from 12 Qloo calls the AI agent planned", its saved date kept; How it works' Who does what still agrees
+- [ ] 4. Without Qloo cards: "Picked without Qloo: no venue data, no fee check"
+- [ ] 5. No empty grey boxes on Watch's ranking rows or the Without Qloo cards: the drawn cover or no box, whichever needs no layout change
+- [ ] 6. Evidence page: the testers' placeholder kept once (the copy at the foot removed); no result repeats its go or no-go badge; the location bullet reworded; "too thin to build on" gone; the first line says only tests with a bar had it written first
+- [ ] 7. Scope: the fee range term ("the festival sets; in the demo, Sagebrush Sound's"); the local-acts limit
+- [ ] `pnpm gate` and the synthetic e2e suite pass; then stop for Daniel's yes to deploy
+- [ ] Deploy; `pnpm e2e --workers=1` against production
