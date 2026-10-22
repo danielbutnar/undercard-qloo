@@ -211,8 +211,146 @@ export function syntheticSavedBuild(): SavedBuild {
   };
 }
 
+export const SYNTHETIC_SWITCH_BUILD_ID = "synthetic-switch-build";
+
+/**
+ * A synthetic build whose planner switches venue (WS2): the first plan anchors on The Lantern
+ * Room and Cottonwood Social Hall, with Fort Street Ballroom as a backup; Cottonwood Social Hall
+ * lifts no act, so after its result the planner names Fort Street Ballroom, read next. Same
+ * lineup as syntheticSavedBuild() (Fort Street Ballroom's fans put 3 acts on it), invented names.
+ */
+export function syntheticSwitchBuild(): SavedBuild {
+  const base = syntheticSavedBuild();
+  return {
+    ...base,
+    id: SYNTHETIC_SWITCH_BUILD_ID,
+    trace: [
+      ...calls.slice(0, 7),
+      artistsCall(8, "Mid", LANTERN.name),
+      artistsCall(9, "Opener", LANTERN.name),
+      artistsCall(10, "Mid", COTTONWOOD.name),
+      artistsCall(11, "Mid", FORT.name),
+      artistsCall(12, "Opener", FORT.name),
+    ],
+    context: {
+      ...base.context,
+      anchors: { mid: [LANTERN, COTTONWOOD, FORT], opener: [LANTERN, FORT] },
+    },
+    notes: [
+      {
+        at: 0,
+        text: "Search both headliners and find the tag Qloo puts on live music venues.",
+      },
+      {
+        at: 3,
+        text: "List the town's places with that tag, and compare what the two headliners' fans share.",
+      },
+      {
+        at: 5,
+        text: "Anchors: The Lantern Room for both bands and Cottonwood Social Hall for Mid, with Fort Street Ballroom as a backup.",
+      },
+      {
+        at: 10,
+        text: "Cottonwood Social Hall lifted no act; try Fort Street Ballroom for both bands.",
+      },
+    ],
+  };
+}
+
+/**
+ * Each other town's synthetic saved build (src/server/synthetic-seed.ts): Boise's bill under the
+ * town's own id, and for Nashville the build whose planner switches venue.
+ */
+export function syntheticTownBuild(
+  slug: string,
+  festivalId: string,
+): SavedBuild {
+  const build =
+    slug === "nashville" ? syntheticSwitchBuild() : syntheticSavedBuild();
+  return {
+    ...build,
+    id: `${build.id}-${slug}`,
+    festivalId,
+    lineup: { ...build.lineup, festivalId },
+  };
+}
+
 const ndjson = (events: unknown[]) =>
   events.map((event) => JSON.stringify(event)).join("\n") + "\n";
+
+const climbPlace = (reason: string) =>
+  Number(/move it up (\d+) places/.exec(reason)?.[1] ?? 0);
+
+/**
+ * Watch's editions for a synthetic build, invented from its lineup (the synthetic server has no
+ * Qloo lists to rebuild them from): each band's acts for the headliners alone, then, for each
+ * venue's call, the acts its fans put on the lineup with their climb, above the band's others.
+ */
+function syntheticClimbs(build: SavedBuild) {
+  const acts = build.lineup.acts;
+  return build.trace.map((call) => {
+    const band = call.summary.startsWith("Mid-band")
+      ? "mid"
+      : call.summary.startsWith("Opener-band")
+        ? "opener"
+        : null;
+    if (!band || !/^(baseline|venue)_artists$/.test(call.tool)) return null;
+    const inBand = acts.filter((act) => act.band === band);
+    const venue =
+      call.tool === "venue_artists"
+        ? ([LANTERN, FORT, COTTONWOOD].find((room) =>
+            call.summary.endsWith(`headliners and ${room.name}`),
+          ) ?? null)
+        : null;
+    const lifted = venue
+      ? inBand.filter((act) => act.anchorVenue.entityId === venue.entityId)
+      : [];
+    const rest = inBand.filter((act) => !lifted.includes(act));
+    return {
+      type: "climb",
+      band,
+      venue,
+      acts: [...lifted, ...rest].slice(0, 8).map((act) => {
+        const fresh = lifted.includes(act) && /into the top/.test(act.reason);
+        return {
+          entityId: act.entityId,
+          name: act.name,
+          move: lifted.includes(act) && !fresh ? climbPlace(act.reason) : null,
+          ...(fresh ? { fresh: true } : {}),
+        };
+      }),
+    };
+  });
+}
+
+/**
+ * A saved build's replay as the server streams it (src/server/undercard-build.ts), with the
+ * planner's lines before the calls they came before and an edition after each artist call, so
+ * Watch steps through every venue at its own pace.
+ */
+export function syntheticReplayStream(build: SavedBuild): string {
+  const climbs = syntheticClimbs(build);
+  const notes = build.notes ?? [];
+  const said = (at: (n: number) => boolean) =>
+    notes
+      .filter((note) => at(note.at))
+      .map((note) => ({ type: "status", text: note.text, planner: true }));
+  return ndjson([
+    { type: "build", id: build.id, createdAt: build.createdAt, replayed: true },
+    {
+      type: "status",
+      text: "Replaying the saved build: no new Qloo or Claude calls.",
+    },
+    ...build.trace.flatMap((call, index) => [
+      ...said((at) => at === index),
+      { type: "call", call: { ...call, cached: true } },
+      ...(climbs[index] ? [climbs[index]] : []),
+    ]),
+    ...said((at) => at >= build.trace.length),
+    { type: "lineup", lineup: build.lineup },
+    { type: "done", calls: build.trace.length, ms: 1400 },
+  ]);
+}
 
 /** The full NDJSON body of a finished synthetic build, run fresh or replayed from the saved one. */
 export function syntheticBuildStream({

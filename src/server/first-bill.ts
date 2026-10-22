@@ -1,3 +1,4 @@
+import { agentSwitches } from "@/lib/agent-switch";
 import type { FeeBandId } from "@/lib/fee-bands";
 import type { FirstBill } from "@/lib/first-bill";
 import { billPlaces } from "@/lib/places";
@@ -11,6 +12,13 @@ function toFirstBill(saved: SavedBuild): FirstBill {
   for (const [band, ids] of Object.entries(saved.context.baselines)) {
     if (ids) baselineTop[band as FeeBandId] = ids.length;
   }
+  // The planner's venue switch, from the saved trace only (WS2).
+  const switches = agentSwitches({
+    trace: saved.trace,
+    notes: saved.notes ?? [],
+    acts: saved.lineup.acts,
+    venues: Object.values(saved.context.anchors).flatMap((list) => list ?? []),
+  });
   return {
     build: { id: saved.id, createdAt: saved.createdAt },
     acts: saved.lineup.acts,
@@ -19,6 +27,7 @@ function toFirstBill(saved: SavedBuild): FirstBill {
     anchors: saved.context.anchors,
     baselineTop,
     places: billPlaces(saved.lineup.acts, saved.context.baselines),
+    ...(switches.length > 0 ? { agentSwitches: switches } : {}),
   };
 }
 

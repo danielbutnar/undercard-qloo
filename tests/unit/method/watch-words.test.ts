@@ -100,8 +100,9 @@ describe("Watch's banner, in words", () => {
       "Qloo call 8 of 12: Mid-band artists for the headliners and The Lantern Room",
     );
     expect(watchTicksLabel(3, 12)).toBe("3 of 12 Qloo calls in");
+    // WS2 (b): the label became "The AI agent's plan:".
     expect(agentLine("Try Cottonwood Social Hall for Mid.")).toBe(
-      "The AI agent: Try Cottonwood Social Hall for Mid.",
+      "The AI agent's plan: Try Cottonwood Social Hall for Mid.",
     );
     expect(AGENT_DECIDES).toBe(
       "The AI agent chose which venues to read, and in what order; Qloo's numbers and the rule pick the acts.",

@@ -1,3 +1,4 @@
+import type { AgentSwitch } from "@/lib/agent-switch";
 import { MIN_LIFT } from "@/lib/assemble-lineup";
 import type { TraceCall } from "@/lib/build-events";
 import { feeBandFor, type FeeBand, type FeeBandId } from "@/lib/fee-bands";
@@ -127,7 +128,29 @@ export const watchTicksLabel = (calls: number, shown: number) =>
   `${calls} of ${shown} Qloo calls in`;
 
 /** The AI agent's own line from the trace, as Watch's banner sets it under an edition. */
-export const agentLine = (note: string) => `The AI agent: ${note}`;
+export const agentLine = (note: string) => `The AI agent's plan: ${note}`;
+
+/** Whether a line of the agent's says "Anchors": the first such line gets ANCHORS_KEY under it. */
+export const saysAnchors = (note: string) => /\banchors\b/i.test(note);
+export const ANCHORS_KEY = "Anchors are the venues whose fans it reads.";
+
+/**
+ * The agent's switch, from the saved trace only (src/lib/agent-switch.ts): the venue read before
+ * the planner's line moved no act onto the lineup, and the line named the next venue read.
+ */
+export function switchLine({
+  from,
+  to,
+  acts,
+}: Pick<AgentSwitch, "from" | "to" | "acts">): string {
+  const come =
+    acts === 0
+      ? "no act comes"
+      : acts === 1
+        ? "1 act comes"
+        : `${acts} acts come`;
+  return `${from.name}'s fans moved no act onto the lineup, so the agent read ${to.name}; ${come} from that read.`;
+}
 
 /** Where the saved trace holds no line of the agent's for a step: what it decides, never a reason. */
 export const AGENT_DECIDES =

@@ -5,6 +5,7 @@ import {
   syntheticLlmOnly,
   syntheticPickQloo,
   syntheticSavedBuild,
+  syntheticTownBuild,
 } from "../../tests/e2e/synthetic-build";
 import { createBuildStore } from "./build-store";
 import { handleLlmOnly } from "./llm-only";
@@ -28,16 +29,10 @@ export async function seedSynthetic(
   if (savedBuild) {
     const store = createBuildStore(cache);
     await store.save(syntheticSavedBuild());
-    // The same synthetic bill under each other town's id, so the town switcher has towns.
-    for (const town of TOWNS.slice(1)) {
-      const build = syntheticSavedBuild();
-      await store.save({
-        ...build,
-        id: `${build.id}-${town.slug}`,
-        festivalId: town.festival.id,
-        lineup: { ...build.lineup, festivalId: town.festival.id },
-      });
-    }
+    // The same synthetic bill under each other town's id, so the town switcher has towns;
+    // Nashville's trace has the planner switch venue (WS2).
+    for (const town of TOWNS.slice(1))
+      await store.save(syntheticTownBuild(town.slug, town.festival.id));
   }
   const picks = syntheticLlmOnly().lineup.picks;
   await handleLlmOnly({

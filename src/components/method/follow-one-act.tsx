@@ -13,7 +13,12 @@ import {
   type ChartRowData,
 } from "@/components/chart/band-chart";
 import { billRows } from "@/components/chart/chart-rows";
-import { liftedWords, ordinal, PLAIN_BAND } from "@/components/chart/words";
+import {
+  liftedWords,
+  ordinal,
+  PLAIN_BAND,
+  switchLine,
+} from "@/components/chart/words";
 import { useReducedMotion } from "@/components/use-watch";
 import { pictured } from "@/lib/artist-images";
 import { MIN_LIFT } from "@/lib/assemble-lineup";
@@ -116,6 +121,12 @@ function AgentChoices({
           onto the lineup.
         </p>
       )}
+      {/* The planner's venue switch, only where the saved trace shows one (WS2). */}
+      {(story.switches ?? []).map((entry) => (
+        <p key={entry.to.entityId} className="panel-sub">
+          {switchLine(entry)}
+        </p>
+      ))}
     </section>
   );
 }

@@ -18,13 +18,16 @@ import { VenueSwitch, type VenueLine } from "@/components/chart/venue-switch";
 import {
   AGENT_DECIDES,
   agentLine,
+  ANCHORS_KEY,
   headlinersBooked,
   headlinersNote,
   factsLine,
   headline,
   QLOO_LINE,
+  saysAnchors,
   SKIP,
   STAMP,
+  switchLine,
   WATCH,
   watchCallLine,
   watchLine,
@@ -285,6 +288,8 @@ function EditionBanner({
   calls,
   total,
   note,
+  anchorsKey,
+  switched,
   lifted,
   headliners,
   replayed,
@@ -297,6 +302,10 @@ function EditionBanner({
   calls: number;
   total: number;
   note: string | null;
+  /** The agent's line is its first that says "Anchors": the key goes under it. */
+  anchorsKey: boolean;
+  /** The planner's venue switch, in one sentence, where the saved trace shows it here. */
+  switched: string | null;
   /** Acts on the lineup this edition's venue lifted; null until the lineup is in. */
   lifted: number | null;
   headliners: readonly string[];
@@ -322,6 +331,8 @@ function EditionBanner({
           // decides rather than invent a reason (plan.md item 3).
           <p className="edition-note">{AGENT_DECIDES}</p>
         ) : null}
+        {note && anchorsKey && <p className="edition-note">{ANCHORS_KEY}</p>}
+        {switched && <p className="edition-note">{switched}</p>}
       </div>
       <div className="edition-side">
         <span
@@ -614,9 +625,29 @@ export function FestivalScreen({
         ).length
       : null;
   // Only the planner's own lines are the agent's; a replay's status line isn't.
-  const note = call
-    ? (state.notes.filter((entry) => entry.at < call.n).at(-1)?.text ?? null)
-    : (state.notes.at(-1)?.text ?? null);
+  const noteAt = call
+    ? state.notes.findLastIndex((entry) => entry.at < call.n)
+    : state.notes.length - 1;
+  const note = state.notes[noteAt]?.text ?? null;
+  // The first of the agent's lines that says "Anchors" gets a one-line key under it.
+  const anchorsKey =
+    noteAt >= 0 &&
+    noteAt === state.notes.findIndex((entry) => saysAnchors(entry.text));
+  // The planner's venue switch, from the saved trace only (WS2): while Watch replays the saved
+  // build this page came with, on the editions of the venue it switched to (before the first
+  // edition, under the line that made the switch).
+  const savedSwitches =
+    firstBill?.agentSwitches &&
+    state.build?.replayed === true &&
+    state.build.id === firstBill.build.id
+      ? firstBill.agentSwitches
+      : [];
+  const switched =
+    savedSwitches.find((entry) =>
+      step?.venue
+        ? step.venue.entityId === entry.to.entityId
+        : !step && entry.note === noteAt,
+    ) ?? null;
 
   const bandsView =
     mode === "llm" ? (
@@ -855,6 +886,8 @@ export function FestivalScreen({
                 calls={state.calls.length}
                 total={calls ?? 12}
                 note={note}
+                anchorsKey={anchorsKey}
+                switched={switched ? switchLine(switched) : null}
                 lifted={liftedHere}
                 headliners={festival.headliners}
                 replayed={replaying || state.build?.replayed === true}

@@ -1,3 +1,4 @@
+import type { AgentSwitch } from "./agent-switch";
 import type { ArtistImages } from "./artist-images";
 import type { FeeBand } from "./fee-bands";
 import type { Festival } from "./festival";
@@ -36,6 +37,8 @@ export interface MethodStory {
   places: Record<string, Placed>;
   /** Each act's image on Qloo, as on the first screen, while ARTIST_IMAGES is on. */
   images?: ArtistImages;
+  /** Where the saved trace shows the planner switch venue (WS2); left out when it shows none. */
+  switches?: AgentSwitch[];
 }
 
 export function methodStory(
@@ -71,5 +74,6 @@ export function methodStory(
     acts: bill.acts,
     places: bill.places ?? {},
     ...(bill.images ? { images: bill.images } : {}),
+    ...(bill.agentSwitches ? { switches: bill.agentSwitches } : {}),
   };
 }
