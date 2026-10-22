@@ -143,6 +143,7 @@ export async function runUndercardAgent({
       if (response.stop_reason === "refusal") {
         emit({
           type: "error",
+          code: "planner-failed",
           message: "The planning model declined this build. Try again.",
         });
         return failed();
@@ -178,6 +179,7 @@ export async function runUndercardAgent({
         ? { type: "error", code: "qloo-busy", message: error.message }
         : {
             type: "error",
+            code: "planner-failed",
             message:
               "The planning model is unavailable right now. Try again in a minute.",
           },

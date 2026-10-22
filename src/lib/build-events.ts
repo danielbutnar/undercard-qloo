@@ -54,6 +54,8 @@ export const BuildEventSchema = z.discriminatedUnion("type", [
       .enum([
         "limit",
         "qloo-busy",
+        // The planner's model call failed or refused: the run ends as a busy Qloo ends it.
+        "planner-failed",
         "headliner-not-found",
         "town-not-found",
         "too-few-rooms",

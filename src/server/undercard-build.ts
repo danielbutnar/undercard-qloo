@@ -264,11 +264,14 @@ export async function handleUndercardBuild({
       },
     });
     if (!save) {
-      // A busy Qloo already said why; a second diagnosis would only blur it.
-      const busy = seen.some(
-        (event) => event.type === "error" && event.code === "qloo-busy",
+      // A busy Qloo or a failed planner call already said why; a second diagnosis would only
+      // blur it, and would blame the town.
+      const stopped = seen.some(
+        (event) =>
+          event.type === "error" &&
+          (event.code === "qloo-busy" || event.code === "planner-failed"),
       );
-      const problem = busy
+      const problem = stopped
         ? null
         : diagnoseRun(
             seen,
