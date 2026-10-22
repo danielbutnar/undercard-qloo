@@ -96,7 +96,7 @@ describe("an act on the bill", () => {
     ).toBeTruthy();
   });
 
-  it("opens its card under its row: the Why Boise line, Qloo's numbers, the shared tags and Unavailable", () => {
+  it("opens its card under its row: the Why line, Qloo's numbers, the shared tags and Unavailable", () => {
     open();
     fireEvent.click(actButton("Marisol Vey"));
     const card = screen.getByRole("region", { name: "Act card" });
@@ -108,7 +108,7 @@ describe("an act on the bill", () => {
       ),
     ).toBe(card);
     const article = within(card).getByRole("article", { name: "Marisol Vey" });
-    expect(within(article).getByText("Why Boise:")).toBeTruthy();
+    expect(within(article).getByText("Why it's here:")).toBeTruthy();
     // Plan.md item 5: the why in one sentence, from the saved build's places and climb.
     expect(article.textContent).toMatch(
       /Fans of Fort Street Ballroom rank Marisol Vey \d+(st|nd|rd|th); fans of the headliners alone rank them \d+(st|nd|rd|th)\. That climb of 7 is why Marisol Vey is here\./,

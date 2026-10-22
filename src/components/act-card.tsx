@@ -22,7 +22,7 @@ import type { Placed } from "@/lib/venue-switch";
 
 /**
  * An act's card, opened under its row on the chart: the climb drawn large with the venue whose
- * fans lifted it, the words behind the row's marks (Why Boise), Qloo's affinity and popularity,
+ * fans lifted it, the words behind the row's marks (Why it's here), Qloo's affinity and popularity,
  * the two genres it shares with the headliners, then Keep and Unavailable.
  */
 export function ActCard({
@@ -31,7 +31,6 @@ export function ActCard({
   disabled = false,
   onUnavailable,
   onClose,
-  city = "Boise",
   kept = false,
   onKeep,
   place,
@@ -48,8 +47,6 @@ export function ActCard({
   onUnavailable?: (act: Act, reason: UnavailableReason) => void;
   /** Shown as Close beside the name when the card is opened from the chart. */
   onClose?: () => void;
-  /** The festival's town, which names the Why line. */
-  city?: string;
   /** The buyer keeps this act (M8c); a redraft refills every other slot. */
   kept?: boolean;
   onKeep?: (act: Act) => void;
@@ -86,7 +83,7 @@ export function ActCard({
           <h4 className="card-name">{act.name}</h4>
           <p className="card-venue">
             <span className="card-swatch" aria-hidden />
-            {act.anchorVenue.name} fans like it
+            Climbs with {act.anchorVenue.name}&apos;s fans added
           </p>
         </div>
         {onClose && (
@@ -127,7 +124,7 @@ export function ActCard({
         </span>
       </div>
       <p className="card-why">
-        <strong>Why {city}: </strong>
+        <strong>Why it&apos;s here: </strong>
         {whySentence(act, place)}
       </p>
       {act.anchorVenue.kind && (

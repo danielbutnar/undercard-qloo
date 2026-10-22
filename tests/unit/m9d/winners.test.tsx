@@ -104,11 +104,11 @@ describe("the first screen's chart (M9d winner)", () => {
       );
     }
     expect(row.querySelector(".ladder-arrow")).not.toBeNull();
-    // The card says in full whose fans like it.
+    // The card says in full whose fans lift it.
     fireEvent.click(within(row).getByRole("button", { name: first.name }));
     expect(
       within(screen.getByRole("region", { name: "Act card" })).getByText(
-        `${first.anchorVenue.name} fans like it`,
+        `Climbs with ${first.anchorVenue.name}'s fans added`,
       ),
     ).toBeTruthy();
     // M9d's separate key note stays gone; since M10a each band has a one-line key instead.

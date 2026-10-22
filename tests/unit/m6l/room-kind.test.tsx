@@ -49,7 +49,7 @@ describe("an anchor that isn't a club", () => {
       ...acts[0],
       anchorVenue: { ...acts[0].anchorVenue, kind: "an outdoor festival site" },
     };
-    render(<ActCard act={act} city="Duluth" />);
+    render(<ActCard act={act} />);
     expect(
       screen.getByText(
         `${act.anchorVenue.name} is an outdoor festival site, not a club.`,

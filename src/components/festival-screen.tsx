@@ -733,7 +733,6 @@ export function FestivalScreen({
                   kept={!whatIf && state.keeping.includes(act.entityId)}
                   onKeep={custom || whatIf ? undefined : toggleKeep}
                   onClose={() => setOpenId(null)}
-                  city={festival.city}
                   place={placeOf[act.entityId]}
                   image={images?.[act.entityId]}
                   hue={hues.get(act.anchorVenue.entityId) ?? null}

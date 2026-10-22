@@ -114,7 +114,7 @@ describe("a town's screen", () => {
       within(draft).getByRole("button", { name: "Hollow Pines" }),
     );
     const card = screen.getByRole("region", { name: "Act card" });
-    expect(within(card).getByText("Why Austin:")).toBeTruthy();
+    expect(within(card).getByText("Why it's here:")).toBeTruthy();
     expect(screen.queryByText(/Boise/)).toBeNull();
   });
 

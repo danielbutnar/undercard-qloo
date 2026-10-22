@@ -177,7 +177,7 @@ test.describe("demo path", () => {
     ).toBeVisible();
   });
 
-  test("step 3: an act's card opens with its Why Boise line, Qloo's numbers and two shared tags", async ({
+  test("step 3: an act's card opens with its venue's climb, its Why line, Qloo's numbers and two shared tags", async ({
     page,
   }) => {
     await page.goto("/");
@@ -186,13 +186,17 @@ test.describe("demo path", () => {
       const name = (await act.getAttribute("aria-label"))!;
       await act.getByRole("button", { name, exact: true }).click();
       const opened = card.getByRole("article", { name, exact: true });
+      // Daniel's brief of 2026-10-22, item 1: the badge says what the venue's fans did, no more.
+      await expect(
+        opened.getByText(/^Climbs with .+'s fans added$/),
+      ).toBeVisible();
       // Card text runs together ("Qloo affinity0.94Popularity86th"), so no word boundaries.
       await expect(opened).toContainText(/affinity0\.\d\d/);
       await expect(opened).toContainText(/Popularity\d{1,2}(st|nd|rd|th)/);
       // Plan.md item 5: the why in one sentence from the saved places and climb; a build without
       // its places keeps its own line.
       await expect(opened).toContainText(
-        /Why Boise: (Fans of .+ rank .+ \d+(st|nd|rd|th); fans of the headliners alone (rank them \d+(st|nd|rd|th)\. That climb of \d+|don't rank them in their top 50\. That climb into the top 50) is why .+ is here\.|.+ fans move it (up \d+ places|into the top \d+)\.)/,
+        /Why it's here: (Fans of .+ rank .+ \d+(st|nd|rd|th); fans of the headliners alone (rank them \d+(st|nd|rd|th)\. That climb of \d+|don't rank them in their top 50\. That climb into the top 50) is why .+ is here\.|.+ fans move it (up \d+ places|into the top \d+)\.)/,
       );
       await expect(
         opened

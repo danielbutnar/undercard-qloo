@@ -76,7 +76,7 @@ describe("The band charts with the synthetic lineup", () => {
     expect(within(opener).getAllByRole("article")).toHaveLength(6);
   });
 
-  it("shows each act's Qloo affinity, popularity percentile, Why Boise line and two tags on its card", () => {
+  it("shows each act's Qloo affinity, popularity percentile, Why line and two tags on its card", () => {
     render(<Board lineup={acts} />);
     fireEvent.click(screen.getByRole("button", { name: "Hollow Pines" }));
     const card = within(
@@ -84,7 +84,7 @@ describe("The band charts with the synthetic lineup", () => {
     ).getByRole("article", { name: "Hollow Pines" });
     expect(within(card).getByText("0.94")).toBeTruthy();
     expect(within(card).getByText("91st")).toBeTruthy();
-    expect(within(card).getByText("Why Boise:")).toBeTruthy();
+    expect(within(card).getByText("Why it's here:")).toBeTruthy();
     expect(
       within(card).getByText("The Lantern Room fans move it up 11 places."),
     ).toBeTruthy();

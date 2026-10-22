@@ -124,7 +124,7 @@ describe("plain words, round 2 (M6r)", () => {
     fireEvent.click(first);
     const card = screen.getByRole("region", { name: "Act card" });
     expect(card.textContent).toMatch(
-      /Why Boise: Fans of .+ rank .+ \d+(st|nd|rd|th); fans of the headliners alone rank them \d+(st|nd|rd|th)\. That climb of \d+ is why .+ is here\./,
+      /Why it's here: Fans of .+ rank .+ \d+(st|nd|rd|th); fans of the headliners alone rank them \d+(st|nd|rd|th)\. That climb of \d+ is why .+ is here\./,
     );
   });
 
@@ -148,7 +148,7 @@ describe("plain words, round 2 (M6r)", () => {
     expect(
       screen.getByRole("region", { name: "Act card" }).textContent,
     ).toMatch(
-      /Why Boise: Fans of .+ rank .+ \d+(st|nd|rd|th); fans of the headliners alone don't rank them in their top 50\. That climb into the top 50 is why .+ is here\./,
+      /Why it's here: Fans of .+ rank .+ \d+(st|nd|rd|th); fans of the headliners alone don't rank them in their top 50\. That climb into the top 50 is why .+ is here\./,
     );
   });
 

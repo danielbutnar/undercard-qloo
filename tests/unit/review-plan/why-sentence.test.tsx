@@ -44,12 +44,11 @@ describe("an act's why, in one sentence (plan.md item 5)", () => {
       <ActCard
         act={climber}
         hue={0}
-        city="Boise"
         place={{ now: 6, was: 21 }}
       />,
     );
     const card = screen.getByRole("article", { name: "Synthetic Climber" });
-    expect(within(card).getByText("Why Boise:")).toBeTruthy();
+    expect(within(card).getByText("Why it's here:")).toBeTruthy();
     expect(card.textContent).toContain(
       "Fans of The Lantern Room rank Synthetic Climber 6th; fans of the headliners alone rank them 21st. That climb of 15 is why Synthetic Climber is here.",
     );
