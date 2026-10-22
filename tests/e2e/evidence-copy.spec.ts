@@ -36,12 +36,27 @@ test("the evidence page reads in the plan's order, every label linked", async ({
   // Daniel's brief of 2026-10-22, item 6: the testers' placeholder once, in What real people
   // said; the copy of it at the foot is gone.
   expect(headings).not.toContain("Still to come");
-  // Only tests with a bar had one to write first; evidence 2's isn't dated in the record.
-  await expect(page.locator(".method-lead .compare-what")).toHaveText(
-    "Every test below that has a bar had it written before it ran, except " +
-      "evidence 2, whose bar the record doesn't date. The full record of each " +
-      "is in docs/evidence.md.",
+  // The second batch, item 4: every section the page cites was checked against the record;
+  // the line names each with no bar (evidence 1, 5 and 8) and the one that describes the code
+  // (22), each linked to its own heading.
+  const lead = page.locator(".method-lead .compare-what");
+  await expect(lead).toHaveText(
+    "Every test below that has a bar had it written before it ran; evidence " +
+      "1, 5 and 8 have none, and evidence 22 describes the code. The full " +
+      "record of each is in docs/evidence.md.",
   );
+  const named = await lead
+    .getByRole("link")
+    .evaluateAll((links) =>
+      links.map((link) => link.getAttribute("href")!.split("#")[1]),
+    );
+  expect(named.map((anchor) => anchor.split("-")[0])).toEqual([
+    "1",
+    "5",
+    "8",
+    "22",
+  ]);
+  for (const anchor of named) expect(ANCHORS.has(anchor)).toBe(true);
   // The location bullet says what evidence 6 tested, and what it didn't.
   await expect(
     page.getByRole("region", { name: "What the no-gos taught" }),

@@ -429,9 +429,11 @@ export function MethodEvidencePage() {
         <div className="method-lead">
           <h1 className="compare-title">The evidence</h1>
           <p className="compare-what">
-            Every test below that has a bar had it written before it ran, except{" "}
-            <Ev to="treefort">evidence 2</Ev>, whose bar the record doesn&apos;t
-            date. The full record of each is in docs/evidence.md.
+            Every test below that has a bar had it written before it ran;{" "}
+            <Ev to="boise">evidence 1</Ev>, <Ev to="runs">5</Ev> and{" "}
+            <Ev to="retry">8</Ev> have none, and{" "}
+            <Ev to="decides">evidence 22</Ev> describes the code. The full
+            record of each is in docs/evidence.md.
           </p>
         </div>
 
