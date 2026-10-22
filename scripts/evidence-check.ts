@@ -632,14 +632,27 @@ const ordinal = (n: number) => {
   const teen = Math.floor((n % 100) / 10) === 1;
   return `${n}${teen ? "th" : (["th", "st", "nd", "rd"][n % 10] ?? "th")}`;
 };
-const setName = (set: TownSet) =>
-  set === "all"
-    ? "the 29 towns"
-    : set === "later"
-      ? "the 25 towns built after M6d"
-      : set.join(", ");
+/** "the saved builds of Austin, Denver and Nashville" */
+const savedBuildsOf = (set: TownSet) =>
+  `the saved builds of ${
+    set === "all"
+      ? "the 29 towns"
+      : set === "later"
+        ? "the 25 towns built after M6d"
+        : set.length > 1
+          ? `${set.slice(0, -1).join(", ")} and ${set.at(-1)}`
+          : set.join("")
+  }`;
 const bandName = (band: FeeBandId) =>
   bandOf(SAGEBRUSH_SOUND, band)?.label ?? band;
+const WITH_WORDS: Record<WithQlooCount, string> = {
+  acts: "acts",
+  found: "acts found on Qloo",
+  inRange: "acts in the fee range",
+  twoGenres: "acts sharing two genres with the headliners",
+  climbs: "acts that climb with a venue's fans",
+  allThree: "acts passing all three tests",
+};
 
 /** Where a computation's number comes from, in words, for the table. */
 export function describe(computation: Computation): string {
@@ -652,17 +665,17 @@ export function describe(computation: Computation): string {
     case "calls":
       return `${c.town}'s saved build: Qloo calls`;
     case "calls-across":
-      return `${setName(c.towns)}' saved builds: the ${c.end} Qloo calls`;
+      return `${savedBuildsOf(c.towns)}: the ${c.end} Qloo calls`;
     case "refused-calls":
-      return `${setName(c.towns)}' saved builds: calls refused or retried`;
+      return `${savedBuildsOf(c.towns)}: calls refused or retried`;
     case "filled":
       return `${c.town}'s saved build: ${bandName(c.band)} acts`;
     case "slots":
       return `${c.town}'s brief: ${bandName(c.band)} slots`;
     case "full-lineups":
-      return `${setName(c.towns)}' saved builds: every slot filled`;
+      return `${savedBuildsOf(c.towns)}: every slot filled`;
     case "built-on":
-      return `${setName(c.towns)}' saved builds: made on ${c.date}`;
+      return `${savedBuildsOf(c.towns)}: made on ${c.date}`;
     case "shared-with-boise":
       return `${c.town}'s saved lineup: acts also on Boise's`;
     case "own-vs-boise":
@@ -678,7 +691,7 @@ export function describe(computation: Computation): string {
         ? "the replays: towns whose climb rebuilt in full"
         : `the replays: the ${c.of === "fewest-lists" ? "fewest" : "most"} lists in one climb`;
     case "with-qloo":
-      return `With Qloo, the saved lineups: ${c.count === "acts" ? "acts" : `acts passing ${c.count}`}`;
+      return `With Qloo, the saved lineups: ${WITH_WORDS[c.count]}`;
     case "rule":
       return c.of === "min-lift"
         ? "src/lib/assemble-lineup.ts: MIN_LIFT"

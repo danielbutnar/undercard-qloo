@@ -314,7 +314,25 @@ describe("what each town's replay gives", () => {
       describeComputation({ kind: "shared-with-boise", town: "Denver" }),
     ).toBe("Denver's saved lineup: acts also on Boise's");
     expect(describeComputation({ kind: "full-lineups", towns: "all" })).toBe(
-      "the 29 towns' saved builds: every slot filled",
+      "the saved builds of the 29 towns: every slot filled",
+    );
+    expect(
+      describeComputation({
+        kind: "calls-across",
+        towns: ["Austin", "Denver", "Nashville"],
+        end: "most",
+      }),
+    ).toBe(
+      "the saved builds of Austin, Denver and Nashville: the most Qloo calls",
+    );
+    expect(describeComputation({ kind: "refused-calls", towns: "later" })).toBe(
+      "the saved builds of the 25 towns built after M6d: calls refused or retried",
+    );
+    expect(describeComputation({ kind: "with-qloo", count: "inRange" })).toBe(
+      "With Qloo, the saved lineups: acts in the fee range",
+    );
+    expect(describeComputation({ kind: "with-qloo", count: "found" })).toBe(
+      "With Qloo, the saved lineups: acts found on Qloo",
     );
   });
 });
