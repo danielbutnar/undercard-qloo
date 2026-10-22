@@ -64,7 +64,7 @@ Beyond the demo path, one click from the bill:
   among them as anchors, gets the taste the headliners share, then asks for each band's
   artists for the headliners alone, then once more for each anchor venue. It
   runs independent calls in parallel and stops at 12. In live builds it has changed course
-  mid-build: when one anchor venue lifted no acts, it spent its last call on another room.
+  mid-build: when Qloo had no fan data for one anchor venue, it spent its last call on another room.
 - **The app books the acts.** [src/lib/assemble-lineup.ts](src/lib/assemble-lineup.ts) takes
   an act when an anchor venue lifts it at least five places above the headliners-only
   ranking, its popularity sits inside the band, and it shares two genre tags with the
