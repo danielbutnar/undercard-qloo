@@ -28,8 +28,11 @@ import type { RateLimiter } from "@/server/rate-limit";
 import { REFILL_CALL_CAP } from "@/server/refill";
 import { assemblyFromSaved } from "@/server/venue-switch";
 import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { z } from "zod";
+import { createQlooCache, syntheticMode } from "@/server/qloo-cache";
+import { CLAIMS } from "./evidence-claims";
 
 /** A computation's number, or why there isn't one. */
 export type Missing = { missing: string };
@@ -127,7 +130,7 @@ export function sectionText(markdown: string, section: number): string | null {
 }
 
 /** The phrase as the file should have it, and the number it claims (or why it can't say). */
-function readPhrase(phrase: string): {
+export function readPhrase(phrase: string): {
   text: string;
   claimed: number | null;
   numbers: string[];
@@ -1221,4 +1224,136 @@ export async function loadEvidence({
     store ? withoutFromStore(store) : Promise.resolve(raw.without),
   ]);
   return { towns, without, run: raw.run };
+}
+
+// ---------------------------------------------------------------------------------------------
+// The command: pnpm evidence:check [--base <url>] [--design <dir>] [--no-store] [--no-raw]
+
+/** The judge URL: production's domain, which serves the latest production deploy. */
+export const PRODUCTION = "https://undercard-daniel-51ed.vercel.app";
+
+export function parseArgs(argv: readonly string[]) {
+  const options = {
+    base: PRODUCTION,
+    design: ".design",
+    store: true,
+    raw: true,
+  };
+  for (let index = 0; index < argv.length; index++) {
+    const arg = argv[index];
+    if (arg === "--") continue;
+    if (arg === "--base" || arg === "--design") {
+      const value = argv[++index];
+      if (!value || value.startsWith("--"))
+        throw new Error(`${arg} needs a value`);
+      if (arg === "--base")
+        options.base = new URL(value).href.replace(/\/$/, "");
+      else options.design = value;
+    } else if (arg === "--no-store") options.store = false;
+    else if (arg === "--no-raw") options.raw = false;
+    else
+      throw new Error(
+        `unknown option ${arg}: use --base <url>, --design <dir>, --no-store or --no-raw`,
+      );
+  }
+  return options;
+}
+
+/** The store, read-only, when the environment names one (Upstash, or the synthetic seed). */
+function storeFromEnv(): QlooCache | null {
+  const cache = createQlooCache();
+  return cache.kind === "upstash" || syntheticMode() ? cache : null;
+}
+
+const ROOT = new URL("../", import.meta.url);
+
+function readRepoFile(file: string): string | null {
+  const path = fileURLToPath(new URL(file, ROOT));
+  return existsSync(path) ? readFileSync(path, "utf8") : null;
+}
+
+const plural = (n: number, one: string, many: string) =>
+  `${n} ${n === 1 ? one : many}`;
+
+/** The count under the table. */
+export function summary(rows: readonly Row[]): string {
+  const count = (status: Status) =>
+    rows.filter((row) => row.status === status).length;
+  return [
+    `${plural(rows.length, "claim", "claims")}: ${count("match")} match`,
+    plural(count("differs"), "differs", "differ"),
+    plural(count("no data"), "has no data", "have no data"),
+    `${count("not found")} not found`,
+    `${count("bad claim")} bad`,
+    `${count("not recomputable")} not recomputable.`,
+  ].join(", ");
+}
+
+/**
+ * Re-derives every claim's number and prints one table. Replays come from --base (production by
+ * default); the Without Qloo counts from the store when the environment has one, else from the
+ * raw files under --design. Returns the exit code: 1 on any recomputable mismatch.
+ */
+export async function main(
+  argv: readonly string[],
+  {
+    claims = CLAIMS,
+    fetch: fetchImpl = fetch,
+    store,
+    read = readRepoFile,
+    print = (line: string) => console.log(line),
+  }: {
+    claims?: readonly Claim<Computation>[];
+    fetch?: typeof fetch;
+    /** The store to read; from the environment when undefined. */
+    store?: QlooCache | null;
+    read?: (file: string) => string | null;
+    print?: (line: string) => void;
+  } = {},
+): Promise<0 | 1> {
+  const options = parseArgs(argv);
+  const data = await loadEvidence({
+    base: options.base,
+    fetch: fetchImpl,
+    store: options.store
+      ? store === undefined
+        ? storeFromEnv()
+        : store
+      : null,
+    design: options.raw ? options.design : null,
+  });
+  const rows = checkClaims(claims, {
+    read,
+    evaluate: (computation) => evaluate(computation, data),
+    describe,
+  });
+  const replayed = data.towns.filter((town) => town.replay.lineup).length;
+  const failed = data.towns.filter(
+    (town) => !town.replay.lineup && town.replay.code !== "no-saved-build",
+  );
+  print(
+    `evidence:check: ${plural(claims.length, "claim", "claims")}, re-derived from ${options.base}`,
+  );
+  print(
+    `Replays: ${data.towns.length} replay-only requests (the server makes no Qloo or model call for them), ${plural(replayed, "saved build", "saved builds")} read${failed.length ? `; ${failed.length} failed, ${failed[0].town.city}'s: ${failed[0].replay.error}` : ""}.`,
+  );
+  print(
+    `Without Qloo: ${data.without ? `${data.without.source}, ${plural(data.without.towns.length, "town", "towns")}` : "no store and no raw files"}. Section 31's run: ${data.run ? data.run.source : "no run record (.design/with-without-qloo/result.json)"}.`,
+  );
+  print("");
+  print(formatTable(rows).trimEnd());
+  print("");
+  print(summary(rows));
+  return exitCode(rows);
+}
+
+const entry = process.argv[1];
+if (entry && import.meta.url === pathToFileURL(resolve(entry)).href) {
+  if (existsSync(".env.local")) process.loadEnvFile(".env.local");
+  try {
+    process.exitCode = await main(process.argv.slice(2));
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+  }
 }

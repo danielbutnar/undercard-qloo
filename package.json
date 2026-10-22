@@ -12,7 +12,8 @@
     "gate": "pnpm typecheck && pnpm lint && pnpm test && node scripts/design-check.mjs scan",
     "e2e": "playwright test",
     "format": "prettier --write .",
-    "seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON seed/seed.ts"
+    "seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON seed/seed.ts",
+    "evidence:check": "node --experimental-transform-types --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-ts.mjs scripts/evidence-check.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
