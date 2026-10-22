@@ -693,6 +693,8 @@ Written on 2026-10-21 (plan.md, from the review's section 9b.2), before Daniel r
 
 **The bar.** It passes if (1) the first answer names the venue or the climb, in the person's own words, for at least 3 of 4 people (4 of 5; all 3 of 3, an extension of the review's bar to three people at the same strictness), and (2) the second answer says a buyer would use it to shortlist or research, not to book, for the same share. Otherwise it fails, and the result is reported either way.
 
+Moved, 2026-10-22: Daniel runs the test on Thursday 22 October, not on Friday 23 and Saturday 24 October as written above; the bar is unchanged.
+
 **What goes public.** The counts, and the wording changes that followed. A tester's words are quoted only with that person's permission; until then, none.
 
 ## 33. Two cheap tests, written before any run
