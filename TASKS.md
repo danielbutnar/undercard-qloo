@@ -653,6 +653,9 @@ Done means: WS1, WS2, WS9, WS10 and WS11 merged into branch integration (WS4 if 
 - [x] Evidence section 35, Qloo's own attribution, written and committed before the call: two calls, every id from the saved build; a range's anchor venues are the ones the build ran for it (corrected before any call)
 - [x] Evidence section 36, the 30-second test round 2, written and committed before anyone sees the new screen
 - [ ] Phase 2, in a window Daniel names: section 35's two calls; section 34's run (estimated past 250 calls, so it waits on Daniel); the headliners' /entities script if WS9 needs it; scripts/shortlist-example.ts once WS4 is merged; the 29 pointers re-checked after each
+  - [x] Window 1 (Daniel, 2026-10-22: from 19:24 to 23:30 Bucharest; section 34 with MAX_CALLS=440)
+  - [x] Section 35's two calls at 16:24 UTC, no retry: go, 10 of 10 (706bf8b); the 29 pointers matched afterwards (16:26 UTC)
+  - [x] Section 34's run, 16:26-16:34 UTC: 298 calls, no retry, every act found again; bar A not met (15 of 22, bar 16), bar B neither (the signal 11, the venues 4, 15 scored), step 0 22 of 22; names in .design/m8f/controls/
 - [ ] Phase 3: integration from main, merged in order (health, method, evidence-check, redesign, share-image, shortlist, evidence), gate and synthetic e2e after each; the reports' text applied
 - [ ] The local production build of integration for the 30-second test, by Saturday 16:00
 - [ ] Phase 4, after Daniel's yes: main fast-forwarded and pushed; production e2e, then with E2E_LIVE_QLOO=1; first-screen checks at 1440x780 and 390x664; share images; pointers; smoke workflow

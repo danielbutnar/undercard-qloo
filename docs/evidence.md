@@ -745,6 +745,40 @@ Written on 2026-10-22, before any of its calls (Daniel's brief of that evening).
 
 The copy changes a result calls for are drafted after the run and applied only with Daniel's yes. A limit known now: the own-town lifts were measured on 2026-10-21 and the controls on the day of the run, so any change in Qloo's data in between falls into bar A's comparison; each lift is a gain over the same day's headliners-only call, which takes out a shift common to both.
 
+**Results, 2026-10-22 (16:26 to 16:34 UTC, 19:26 to 19:34 Bucharest): bar A not met, 15 of 22 (the bar was 16); bar B, neither (the signal 11, the venues 4, with 15 of the 22 scored); step 0, 22 of 22.** 298 Qloo calls, one at a time, from scripts/premise-controls.ts; the attempts equal the plan, so no call was retried. All 44 headliners and 130 booked acts were found again by section 26's search, and all 130 random acts were in their pools by name, so no extra search was needed. A festival's advantage is its booked acts' mean lift minus its random acts' mean lift, in Qloo affinity; "own venues" is section 26's, from its saved lifts:
+
+| Festival | Control town | Own venues | Another town's venues | Location signal | Booked acts start lower | Acts answered with the location signal |
+|---|---|---|---|---|---|---|
+| Boise Music Festival 2024, Boise | Bucharest | +0.007 | +0.040 | not scored | yes | 3 of 6 |
+| Bumbershoot 2026, Seattle | Tallinn | +0.036 | +0.028 | +0.087 | yes | 6 of 14 |
+| Calgary Folk Music Festival 2026, Calgary | Chicago | +0.013 | +0.025 | not scored | yes | 5 of 16 |
+| MS Dockville 2024, Hamburg | Kansas City | +0.032 | −0.004 | +0.026 | yes | 15 of 24 |
+| FOCUS Wales 2026, Wrexham | Aarhus | +0.042 | +0.026 | not scored | yes | 0 of 4 |
+| Hopscotch Music Festival 2025, Raleigh | Reykjavík | +0.028 | +0.016 | +0.084 | yes | 3 of 16 |
+| Iceland Airwaves 2025, Reykjavík | Rotterdam | +0.007 | +0.030 | +0.089 | yes | 6 of 14 |
+| ÎleSoniq 2026, Montreal | Oslo | −0.006 | −0.003 | +0.009 | yes | 7 of 14 |
+| NN North Sea Jazz Festival 2026, Rotterdam | Seattle | +0.050 | +0.044 | not scored | yes | 1 of 6 |
+| NorthSide 2024, Aarhus | Asheville | −0.013 | −0.004 | +0.029 | yes | 7 of 12 |
+| Old Settler's Music Festival 2026, Austin | Berlin | +0.019 | +0.025 | −0.004 | yes | 2 of 6 |
+| Osheaga 2026, Montreal | Oslo | +0.009 | −0.003 | +0.067 | yes | 4 of 12 |
+| Øyafestivalen 2026, Oslo | Paris | +0.055 | +0.037 | +0.098 | yes | 3 of 14 |
+| Pop-Kultur Festival 2026, Berlin | Boise | +0.028 | +0.015 | +0.021 | yes | 3 of 6 |
+| Prepare The Ground 2024, Toronto | Utrecht | +0.009 | +0.005 | +0.051 | yes | 5 of 24 |
+| Reeperbahn Festival 2026, Hamburg | Kansas City | +0.048 | +0.005 | +0.104 | yes | 6 of 14 |
+| Soenda Festival 2026, Utrecht | Vienna | +0.035 | +0.002 | not scored | yes | 3 of 6 |
+| Solidays 2025, Paris | Raleigh | +0.019 | +0.008 | +0.060 | yes | 7 of 16 |
+| Summer Well 2026, Bucharest | Calgary | +0.004 | +0.002 | +0.055 | yes | 10 of 14 |
+| Tallinn Music Week 2026, Tallinn | Utrecht | +0.059 | +0.033 | not scored | yes | 1 of 4 |
+| Tomato Art Fest 2026, Nashville | Oslo | +0.003 | +0.020 | not scored | yes | 1 of 8 |
+| Toronto Jazz Festival 2026, Toronto | Utrecht | +0.027 | +0.021 | +0.018 | yes | 4 of 10 |
+
+**What it says.**
+- **Control A.** At 15 of the 22, the booked acts' advantage was larger with their own town's venues than with a town's in another country: more often than not, one short of the bar. With the other town's venues, the booked acts still out-lift the random acts at 18 of the 30 festivals, against section 26's 20 of 30. So the test doesn't show that the edge is the town's own: fans of venues in another country like the acts these festivals booked more than matched random acts nearly as often.
+- **Step 0.** At all 22, the booked acts' mean affinity with the headliners alone is below the random acts'. An inference from section 26's code, not measured: the random acts are drawn from Qloo's top 50 for the headliners, so they start near the top of the headliners' ranking, while the booked acts are whatever the festival booked; an act that starts lower has more room to gain from any added input. So part of the booked acts' larger lift, in section 18 and section 26 alike, may come from where they start, which fits Control A's result.
+- **Control B.** With signal.location.query added, Qloo's answers left out most of the asked acts: an affinity came back for 102 of the 260, and 7 festivals couldn't be scored because one side had no lift. Where they could, the signal's advantage was larger than the venues' at 11 of 15, the venues' at 4; neither reaches 16 of 22. The signal's lifts rest on the acts Qloo still answered with it, a different set from the venues', so this comparison is weaker than Control A's. Under the signal, the booked acts out-lift the random acts at 14 of the 30.
+
+So, by the outcomes written above: bar A not met, so the premise test shows that venue fans like the acts festivals book more than matched random acts, not that the town's own venues do; step 0 names a limit of sections 18 and 26; bar B, neither, so "Why venues?" keeps section 6's reason alone. The copy changes are drafted and wait for Daniel's yes. Names stay in .design/m8f/controls/.
+
 ## 35. Qloo's own attribution, written before the call
 
 Written on 2026-10-22, before the call. The bar doesn't change after the answers are in. Raw answers only in .design/explainability/ (git-ignored); counts only in this file.
