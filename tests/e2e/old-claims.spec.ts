@@ -11,6 +11,8 @@ const RETIRED: Record<string, RegExp> = {
   "item 1, the card's Why line": /Why Boise/,
   // A town's crowd stays (the evidence page's limits name it); a venue's is retired.
   "item 2, a row's words for a screen reader": /(?<!town)'s crowd/,
+  "item 3, the first screen's line": /the AI agent (drafted|will draft) the rest/,
+  "item 3, the footer": /Drafted by the AI agent/,
 };
 
 async function expectNoneOnScreen(page: Page) {

@@ -55,6 +55,18 @@ test.describe("demo path", () => {
         .getByRole("listitem"),
     ).toHaveText(["Khruangbin", "Japanese Breakfast"]);
     await expect(bill(page).getByText("Draft, not announced")).toBeVisible();
+    // Daniel's brief of 2026-10-22, item 3: Undercard drafts from Qloo's numbers; the AI agent
+    // plans the calls. The footer keeps the build's saved date.
+    await expect(
+      bill(page).getByText(
+        "The headliners, two bands, are already booked · Undercard drafted the rest of the lineup (the bill) from Qloo's numbers",
+      ),
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        /^Drafted from \d+ Qloo calls the AI agent planned · saved [A-Z][a-z]{2} \d{1,2}, \d\d:\d\d UTC$/,
+      ),
+    ).toBeVisible();
 
     // Every act is on the bill at first paint, in its fee band, with its mark.
     await expect(band(page, /^Mid/).getByRole("article")).toHaveCount(4);

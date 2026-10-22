@@ -60,9 +60,9 @@ describe("the first screen for a lay reader (M6q)", () => {
         "Boise, Idaho · 3,000 capacity · crowd aged 25–34",
       ),
     ).toBeTruthy();
-    // No lineup yet on this screen, so the agent will draft the rest.
+    // No lineup yet on this screen, so Undercard will draft the rest.
     const note = within(draft).getByText(
-      "The headliners, two bands, are already booked · the AI agent will draft the rest of the lineup (the bill)",
+      "The headliners, two bands, are already booked · Undercard will draft the rest of the lineup (the bill) from Qloo's numbers",
     );
     expect(follows(headliners, note)).toBe(true);
   });
@@ -87,7 +87,7 @@ describe("the first screen for a lay reader (M6q)", () => {
     ).toEqual(["Mitski", "Khruangbin"]);
     expect(
       within(draft).getByText(
-        "The headliners are already booked · the AI agent will draft the rest of the lineup (the bill)",
+        "The headliners are already booked · Undercard will draft the rest of the lineup (the bill) from Qloo's numbers",
       ),
     ).toBeTruthy();
     expect(screen.queryByText(/two bands/)).toBeNull();

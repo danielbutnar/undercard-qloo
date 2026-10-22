@@ -140,7 +140,7 @@ describe("a live run on the first screen", () => {
     await waitFor(() => expect(boise.switches).toContain(run.id));
     // Where the run finishes, it says it isn't the build other visitors open on.
     expect(drafted()).toMatch(
-      /^Drafted by the AI agent from \d+ Qloo calls · run live .+ UTC, not saved for other visitors$/,
+      /^Drafted from \d+ Qloo calls the AI agent planned · run live .+ UTC, not saved for other visitors$/,
     );
 
     // Watch replays the run on screen: no request, so the saved build can't take its place.
@@ -173,7 +173,7 @@ describe("where a live run finishes", () => {
       boise.builds[0].id,
     );
     expect(drafted()).toMatch(
-      /^Drafted by the AI agent from \d+ Qloo calls · saved .+ UTC$/,
+      /^Drafted from \d+ Qloo calls the AI agent planned · saved .+ UTC$/,
     );
   }, 20000);
 

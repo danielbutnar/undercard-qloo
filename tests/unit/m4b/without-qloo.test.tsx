@@ -153,7 +153,7 @@ describe("Without Qloo", () => {
     ).toBeNull();
     expect(
       screen.getByRole("region", { name: "The festival" }).textContent,
-    ).not.toMatch(/AI agent drafted|Drafted by the AI agent|Qloo calls ·/);
+    ).not.toMatch(/drafted the rest|Drafted from \d+ Qloo calls|AI agent planned/);
     // Flipping back brings the venues, with their switches, and the agent's credit.
     flip(WITH);
     expect(toggles().every((toggle) => !toggle.disabled)).toBe(true);
@@ -162,7 +162,9 @@ describe("Without Qloo", () => {
     ).toBeNull();
     expect(
       screen.getByRole("region", { name: "Undercard draft" }).textContent,
-    ).toMatch(/the AI agent drafted the rest/);
+    ).toMatch(
+      /Undercard drafted the rest of the lineup \(the bill\) from Qloo's numbers/,
+    );
   });
 
   it("flips back to the agent's chart with its marks", async () => {

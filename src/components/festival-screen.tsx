@@ -981,8 +981,8 @@ export function FestivalScreen({
               <p className="drafted">
                 {calls && state.build?.createdAt
                   ? liveOnly
-                    ? `Drafted by the AI agent from ${calls} Qloo calls · run live ${savedAt.format(new Date(state.build.createdAt))} UTC, not saved for other visitors`
-                    : `Drafted by the AI agent from ${calls} Qloo calls · saved ${savedAt.format(new Date(state.build.createdAt))} UTC`
+                    ? `Drafted from ${calls} Qloo calls the AI agent planned · run live ${savedAt.format(new Date(state.build.createdAt))} UTC, not saved for other visitors`
+                    : `Drafted from ${calls} Qloo calls the AI agent planned · saved ${savedAt.format(new Date(state.build.createdAt))} UTC`
                   : state.status === "building"
                     ? "The AI agent is drafting the undercard."
                     : "No undercard drafted yet."}

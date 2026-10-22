@@ -15,10 +15,10 @@ export const QLOO_LINE =
 
 /**
  * Under the headliners: who they are (M6q: the demo's are bands; a judge's own may not be) and
- * that everyone below is the AI agent's draft.
+ * that everyone below is Undercard's draft from Qloo's numbers (the AI agent plans the calls).
  */
 export function headlinersNote(festival: Festival, drafted = true): string {
-  return `${headlinersBooked(festival)} · the AI agent ${drafted ? "drafted" : "will draft"} the rest of the lineup (the bill)`;
+  return `${headlinersBooked(festival)} · Undercard ${drafted ? "drafted" : "will draft"} the rest of the lineup (the bill) from Qloo's numbers`;
 }
 
 /** Only who the headliners are: Without Qloo, nothing below them is the AI agent's. */
