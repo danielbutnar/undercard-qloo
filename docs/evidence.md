@@ -824,6 +824,8 @@ The round passes if each question passes for at least 4 of 5 people (3 of 4; all
 
 **What goes public.** The counts and the wording changes that followed; no tester is quoted without permission.
 
+**Note of 2026-10-23, written before any answer.** The round runs remotely on the live site, not on a local build: each person opens https://undercard-daniel-51ed.vercel.app (main at c556b1a, deployed at 14:42 UTC) on their own laptop or desktop with the browser maximized, keeps to the top of the page for 30 seconds with no scrolling, no clicking and no help, then leaves the page and answers the three questions in order, in writing, adding their screen size and whether the browser was maximized. The bar doesn't change. Watch's button on this build says "Watch the AI agent build it", with "Replays how the agent drafted Boise" under it; round 1 (section 32) saw the earlier first screen, whose button said "Watch how it picked these acts". On this build a maximized browser on a common small laptop (1366×640 or 1280×650 of page) shows the lead, the venue signs and 4 of the 10 acts, Act 84 among them, with Watch below the fold; 1536×730 shows 7 of the 10, and 1366×768 and larger all 10.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
