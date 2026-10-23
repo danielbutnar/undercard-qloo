@@ -240,7 +240,7 @@ describe("the town", () => {
     open();
     expect(
       within(town()).getByText(
-        /^Qloo found 8 live-music venues in Boise; the AI agent tested these 3\. Coloured: their fans lifted acts onto your poster\. Grey: none did\.$/,
+        /^Qloo found 8 live-music venues in Boise; the AI agent tested these 3\. Coloured: their fans lifted acts onto your poster\. Grey: none of their acts are on your poster\.$/,
       ),
     ).toBeTruthy();
     const signs = await within(town()).findAllByRole("button", {

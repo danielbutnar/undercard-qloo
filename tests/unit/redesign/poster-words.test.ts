@@ -21,6 +21,7 @@ import {
   modelPicksTitle,
   oneActLine,
   openBandLine,
+  venueReadLine,
   openPosterLine,
   pickTag,
   regionCode,
@@ -149,6 +150,20 @@ describe("the poster's marks and lines", () => {
     );
     expect(venueLine("Cottonwood Social Hall", 0, false)).toBe(
       "Cottonwood Social Hall's fans lifted no act onto your poster.",
+    );
+    // WS8: a venue Qloo had no fan data for.
+    expect(venueLine("Cottonwood Social Hall", 0, false, true)).toBe(
+      "Qloo had no fan data for Cottonwood Social Hall, so it lifted no act onto your poster.",
+    );
+    // WS8: what the agent read each venue for, never the count it chose from.
+    expect(venueReadLine(["mid-size acts"], false)).toBe(
+      "The AI agent read its fans for mid-size acts.",
+    );
+    expect(venueReadLine(["mid-size acts", "opening acts"], false)).toBe(
+      "The AI agent read its fans for both slot sizes.",
+    );
+    expect(venueReadLine(["mid-size acts"], true)).toBe(
+      "The AI agent tried it for mid-size acts.",
     );
     expect(venueLine("The Lantern Room", 7, true)).toBe(
       "The Lantern Room's fans are off, so its acts left your poster.",
@@ -306,7 +321,7 @@ describe("the lead and the town", () => {
       legendLine({ city: "Boise", placesListed: 8, tested: 3, lifting: 2 }),
     ).toEqual({
       title: "Venues the agent tested",
-      text: "Qloo found 8 live-music venues in Boise; the AI agent tested these 3. Coloured: their fans lifted acts onto your poster. Grey: none did.",
+      text: "Qloo found 8 live-music venues in Boise; the AI agent tested these 3. Coloured: their fans lifted acts onto your poster. Grey: none of their acts are on your poster.",
     });
     expect(
       legendLine({ city: "Boise", placesListed: null, tested: 2, lifting: 2 })
@@ -336,6 +351,8 @@ describe("the lead and the town", () => {
     expect(signChip({ lifted: 7 })).toBe("7 acts");
     expect(signChip({ lifted: 1 })).toBe("1 act");
     expect(signChip({ lifted: 0 })).toBe("none");
+    // WS8: a venue Qloo had no fan data for says so.
+    expect(signChip({ lifted: 0, noFanData: true })).toBe("no fan data");
     expect(signChip({ lifted: 3, off: true })).toBe("Fans off");
     expect(signChip({ lifted: 3, unread: true })).toBe("not read yet");
   });

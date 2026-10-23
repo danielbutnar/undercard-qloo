@@ -77,8 +77,8 @@ export function legendLine({
     lifting === tested
       ? "Coloured: their fans lifted acts onto your poster."
       : lifting === 0
-        ? "Grey: their fans lifted no act onto your poster."
-        : "Coloured: their fans lifted acts onto your poster. Grey: none did.";
+        ? "Grey: none of their acts are on your poster."
+        : "Coloured: their fans lifted acts onto your poster. Grey: none of their acts are on your poster.";
   return { title: "Venues the agent tested", text: `${found} ${key}` };
 }
 
@@ -87,14 +87,17 @@ export function signChip({
   lifted,
   off = false,
   unread = false,
+  noFanData = false,
 }: {
   lifted: number;
   off?: boolean;
   unread?: boolean;
+  /** Qloo had no fan data for the venue (WS8). */
+  noFanData?: boolean;
 }): string {
   if (unread) return "not read yet";
   if (off) return "Fans off";
-  if (lifted === 0) return "none";
+  if (lifted === 0) return noFanData ? "no fan data" : "none";
   return lifted === 1 ? "1 act" : `${lifted} acts`;
 }
 
@@ -184,6 +187,19 @@ export const cardGenresLine = (genres: number) =>
 export const CARD_STRONGEST =
   "Of the acts that pass all three, the strongest Qloo match fills each slot first.";
 
+/**
+ * A venue card's second line (WS8): what the AI agent read the venue's fans for, or tried it for
+ * when Qloo had no fan data; never the count of venues it chose from.
+ */
+export function venueReadLine(
+  read: readonly string[],
+  noFanData: boolean,
+): string {
+  const did = noFanData ? "tried it" : "read its fans";
+  if (read.length === 0) return `The AI agent ${did}.`;
+  return `The AI agent ${did} for ${read.length > 1 ? "both slot sizes" : read[0]}.`;
+}
+
 /** The example line's hint: what to try next. */
 export const exampleHint = (switchable: boolean) =>
   switchable
@@ -191,9 +207,17 @@ export const exampleHint = (switchable: boolean) =>
     : "Pick a name for why.";
 
 /** A selected venue's line on the poster, in place of the example. */
-export function venueLine(venue: string, lifted: number, off: boolean): string {
+export function venueLine(
+  venue: string,
+  lifted: number,
+  off: boolean,
+  noFanData = false,
+): string {
   if (off) return `${venue}'s fans are off, so its acts left your poster.`;
-  if (lifted === 0) return `${venue}'s fans lifted no act onto your poster.`;
+  if (lifted === 0)
+    return noFanData
+      ? `Qloo had no fan data for ${venue}, so it lifted no act onto your poster.`
+      : `${venue}'s fans lifted no act onto your poster.`;
   return `${venue}'s fans lifted ${lifted === 1 ? "1 act" : `${lifted} acts`} onto your poster. Pick one for why.`;
 }
 

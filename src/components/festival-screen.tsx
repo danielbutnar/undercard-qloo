@@ -42,6 +42,7 @@ import {
   TAGLINE_LEAD,
   TAGLINE_QLOO,
   venueLine,
+  venueReadLine,
   WATCH_AGENT,
   watchSubLine,
   withoutCounts,
@@ -404,8 +405,7 @@ function VenueCard({
   off,
   acts,
   read,
-  placesListed,
-  city,
+  noFanData,
   kind,
   switchable,
   onToggle,
@@ -419,8 +419,8 @@ function VenueCard({
   acts: readonly Act[];
   /** The fee ranges its fans were read for. */
   read: readonly string[];
-  placesListed: number | null;
-  city: string;
+  /** Qloo had no fan data for it (WS8). */
+  noFanData: boolean;
   kind?: string;
   switchable: boolean;
   onToggle: () => void;
@@ -436,20 +436,15 @@ function VenueCard({
         />
         {signName(venue.name)}
       </p>
-      <p className="venue-card-line">{venueLine(venue.name, lifted, off)}</p>
+      <p className="venue-card-line">
+        {venueLine(venue.name, lifted, off, noFanData)}
+      </p>
       {kind && (
         <p className="venue-card-note">
           {venue.name} is {kind}, not a club.
         </p>
       )}
-      <p className="venue-card-note">
-        {placesListed !== null
-          ? `The AI agent chose it from the ${placesListed} live-music venues Qloo found in ${city}`
-          : "The AI agent chose it"}
-        {read.length > 0
-          ? `; its fans were read for ${read.join(" and ")}.`
-          : "."}
-      </p>
+      <p className="venue-card-note">{venueReadLine(read, noFanData)}</p>
       {acts.length > 0 && !off && (
         <ul aria-label="Acts its fans lifted" className="venue-card-acts">
           {acts.map((act) => (
@@ -668,6 +663,8 @@ export function FestivalScreen({
         counts[entry.venue.entityId] = (counts[entry.venue.entityId] ?? 0) + 1;
     return counts;
   }, [picks, watch.seen]);
+  // The venues Qloo had no fan data for, from the saved build on screen (WS8).
+  const fanless = onFirst ? (firstBill?.noFanData ?? []) : [];
   const sceneVenues: SceneVenue[] = standing.map((venue) => {
     const line = venueLines.find((entry) => entry.entityId === venue.entityId);
     const lifted = watching ? savedLifted(venue.entityId) : (line?.lifted ?? 0);
@@ -679,6 +676,7 @@ export function FestivalScreen({
       lifted,
       off,
       unread: watching && !read.has(venue.entityId),
+      noFanData: fanless.includes(venue.entityId),
     };
   });
   const keyVenues: KeyVenue[] = sceneVenues.map((venue) => ({
@@ -1098,8 +1096,7 @@ export function FestivalScreen({
           .map((band) =>
             band.id === "mid" ? "mid-size acts" : "opening acts",
           )}
-        placesListed={placesListed}
-        city={festival.city}
+        noFanData={pickedScene.noFanData === true}
         kind={
           venueLines.find((line) => line.entityId === picked.entityId)?.kind
         }
