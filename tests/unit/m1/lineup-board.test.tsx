@@ -83,7 +83,7 @@ describe("The band charts with the synthetic lineup", () => {
       screen.getByRole("region", { name: "Act card" }),
     ).getByRole("article", { name: "Hollow Pines" });
     expect(within(card).getByText("0.94")).toBeTruthy();
-    expect(within(card).getByText("91st")).toBeTruthy();
+    expect(within(card).getByText("91")).toBeTruthy();
     expect(within(card).getByText("Why it's here:")).toBeTruthy();
     expect(
       within(card).getByText("The Lantern Room fans move it up 11 places."),

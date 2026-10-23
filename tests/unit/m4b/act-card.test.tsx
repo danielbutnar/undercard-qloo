@@ -120,7 +120,7 @@ describe("an act on the bill", () => {
     ).toBe("Qloo affinity0.91");
     expect(
       within(article).getByText("Popularity").parentElement?.textContent,
-    ).toBe("Popularity88th");
+    ).toBe("Popularity88");
     expect(
       within(article)
         .getByRole("list", { name: "Tags shared with the headliners" })

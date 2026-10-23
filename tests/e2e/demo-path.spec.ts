@@ -210,7 +210,7 @@ test.describe("demo path", () => {
       ).toBeVisible();
       // Card text runs together ("Qloo affinity0.94Popularity86th"), so no word boundaries.
       await expect(opened).toContainText(/affinity0\.\d\d/);
-      await expect(opened).toContainText(/Popularity\d{1,2}(st|nd|rd|th)/);
+      await expect(opened).toContainText(/Popularity\d{1,2}popularity on Qloo/);
       // Plan.md item 5: the why in one sentence from the saved places and climb; a build without
       // its places keeps its own line.
       await expect(opened).toContainText(
@@ -276,7 +276,7 @@ test.describe("demo path", () => {
     expect(added).toBeLessThanOrEqual(3);
     await expect(page.getByText(/^[123] refill calls?$/)).toBeVisible();
     const refillRow = traceRows(page)
-      .filter({ hasText: "Refill (radius clause): Mid-band artists" })
+      .filter({ hasText: "Refill (radius clause): Mid-tier artists" })
       .last();
     await refillRow.getByRole("button", { name: "Parameters" }).click();
     await expect(refillRow).toContainText("filter.exclude.entities=");

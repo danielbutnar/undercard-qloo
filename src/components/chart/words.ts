@@ -129,11 +129,18 @@ export function watchLine({
     : `Qloo's ranking re-sorts with this venue's fans added: no act climbs ${MIN_LIFT} places onto the lineup.`;
 }
 
+/**
+ * A saved call's line in today's words (WS8): a fee range is a tier, never a band ("Mid-tier
+ * artists for the headliners and …"); the saved line itself keeps its words, which the app parses.
+ */
+export const callWords = (summary: string) =>
+  summary.replace(/\b(Mid|Opener)-band\b/g, "$1-tier");
+
 export const watchCallLine = (
   call: Pick<TraceCall, "n" | "summary" | "resultCount">,
   shown: number,
 ) =>
-  `Qloo call ${call.n} of ${shown}: ${call.summary}${call.resultCount !== null ? ` · ${call.resultCount} results` : ""}`;
+  `Qloo call ${call.n} of ${shown}: ${callWords(call.summary)}${call.resultCount !== null ? ` · ${call.resultCount} results` : ""}`;
 
 export const watchTicksLabel = (calls: number, shown: number) =>
   `${calls} of ${shown} Qloo calls in`;

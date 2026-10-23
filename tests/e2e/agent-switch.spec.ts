@@ -56,7 +56,7 @@ test.describe("the agent's switch, from the saved trace", () => {
       .filter({ hasText: "+ The Room's fans" })
       .first();
     await expect(caption.locator(".edition-call")).toHaveText(
-      /^Qloo call 9 of \d+: Mid-band artists for the headliners and The Room · 50 results$/,
+      /^Qloo call 9 of \d+: Mid-tier artists for the headliners and The Room · 50 results$/,
       { timeout: 30_000 },
     );
   });

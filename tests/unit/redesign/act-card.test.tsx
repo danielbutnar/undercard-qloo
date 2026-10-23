@@ -78,7 +78,7 @@ describe("an act's card", () => {
     expect(
       within(checks[1] as HTMLElement).getByText("Popularity").parentElement
         ?.textContent,
-    ).toBe("Popularity88th");
+    ).toBe("Popularity88");
     // The two genres it shares with the headliners.
     expect(checks[2].textContent).toContain(
       "It shares two genres with the headliners:",

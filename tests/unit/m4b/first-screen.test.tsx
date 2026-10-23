@@ -110,7 +110,7 @@ describe("the first screen", () => {
     for (const band of ["Mid-size acts", "Opening acts"])
       expect(
         within(within(draft()).getByRole("region", { name: band })).getByText(
-          "Waiting for this band's first ranking…",
+          "Waiting for this tier's first ranking…",
         ),
       ).toBeTruthy();
   });

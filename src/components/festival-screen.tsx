@@ -1261,7 +1261,7 @@ export function FestivalScreen({
                       ? edition.venue
                         ? `With ${edition.venue.name}'s fans added`
                         : "For the headliners' fans alone"
-                      : "Waiting for this band's first ranking…"
+                      : "Waiting for this tier's first ranking…"
                     : undefined
                 }
                 message={

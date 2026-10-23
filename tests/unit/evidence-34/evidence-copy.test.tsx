@@ -26,7 +26,7 @@ describe("section 34 on the evidence page", () => {
       .getAllByRole("listitem")
       .find((li) => text(li).startsWith("Partly shown:"))!;
     expect(text(item)).toBe(
-      "Partly shown: venue fans like the acts festivals book. At 40 real festivals, the acts each festival booked showed more lift from the town's venues than band-matched random acts at 27: 7 of 10 in the first round, one short of its bar of 8, and 20 of 30 in the second, the bar set beforehand. With another country's venues in place of the town's, they still did at 18 of those 30, so the test doesn't show the edge is the town's own, and the random acts start higher in the headliners' ranking, which leaves the booked acts more room to climb (evidence 34). The differences are small. Treefort 2026 used two of the three Boise venues tested.",
+      "Partly shown: venue fans like the acts festivals book. At 40 real festivals, the acts each festival booked showed more lift from the town's venues than tier-matched random acts at 27: 7 of 10 in the first round, one short of its bar of 8, and 20 of 30 in the second, the bar set beforehand. With another country's venues in place of the town's, they still did at 18 of those 30, so the test doesn't show the edge is the town's own, and the random acts start higher in the headliners' ranking, which leaves the booked acts more room to climb (evidence 34). The differences are small. Treefort 2026 used two of the three Boise venues tested.",
     );
     const link = within(item).getByRole("link", { name: "evidence 34" });
     expect(anchorOf(link)).toBe(evidenceAnchor(heading(34)));

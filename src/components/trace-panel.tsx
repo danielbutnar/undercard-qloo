@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { TraceCall } from "@/lib/build-events";
 import type { BuildState } from "@/lib/build-state";
+import { callWords } from "@/components/chart/words";
 
 const CALL_CAP = 12;
 
@@ -56,7 +57,7 @@ export function CallRow({
       ))}
       <div className="trace-call-head">
         <p className="trace-summary">
-          {call.n}. {call.summary}
+          {call.n}. {callWords(call.summary)}
         </p>
         <p aria-label={`${count} results`} className="trace-count">
           {count}
