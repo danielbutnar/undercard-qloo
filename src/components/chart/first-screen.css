@@ -1803,7 +1803,8 @@
   line-height: 1.4;
 }
 .chart-app.fs .card-check-rule,
-.chart-app.fs .card-strongest {
+.chart-app.fs .card-strongest,
+.chart-app.fs .card-split {
   font-size: 13px;
   font-weight: 600;
   line-height: 1.35;

@@ -10,11 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { ActCardPanel } from "@/components/act-card-panel";
-import {
-  FlyingActs,
-  landsAt,
-  type Flight,
-} from "@/components/chart/flights";
+import { FlyingActs, landsAt, type Flight } from "@/components/chart/flights";
 import type { Printing } from "@/components/chart/band-chart";
 import { billRows } from "@/components/chart/chart-rows";
 import { ImageCredit } from "@/components/chart/image-credit";
@@ -970,6 +966,13 @@ export function FestivalScreen({
       band={festival.feeBands.find((entry) => entry.id === act.band)}
       note={
         whatIf ? "Turn every venue back on to keep or replace acts." : undefined
+      }
+      // Qloo's split was read for the saved lineup with every venue on (WS7): only there, and
+      // only for its own acts (a refill's replacement has none).
+      split={
+        savedBuildOnScreen && !whatIf
+          ? firstBill?.splits?.[act.entityId]
+          : undefined
       }
     />
   );

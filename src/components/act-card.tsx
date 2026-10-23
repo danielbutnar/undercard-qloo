@@ -13,6 +13,7 @@ import {
 } from "@/components/chart/poster-words";
 import { whySentence } from "@/components/chart/why";
 import { ordinal, venueShort } from "@/components/chart/words";
+import type { SplitLine } from "@/lib/attribution-line";
 import type { FeeBand } from "@/lib/fee-bands";
 import {
   formatAffinity,
@@ -43,7 +44,8 @@ function Tick() {
  * lifted it, then "Why it's on your poster" as the three checks every act on the poster passed:
  * the climb drawn large with its places and the words behind the act's mark (Why it's here), the
  * fee range with Qloo's affinity and popularity, and the two genres it shares with the
- * headliners; then the rule that fills a slot, Keep and Unavailable.
+ * headliners; then the rule that fills a slot, Qloo's own split of the act's match when the
+ * first bill has it (WS7), Keep and Unavailable.
  */
 export function ActCard({
   act,
@@ -58,6 +60,7 @@ export function ActCard({
   note,
   band,
   image,
+  split,
 }: {
   act: Act;
   /** Struck through while its slot is refilled, or when no refill was found. */
@@ -80,6 +83,11 @@ export function ActCard({
   band?: FeeBand;
   /** Its image on Qloo, only while ARTIST_IMAGES is on. */
   image?: string;
+  /**
+   * Qloo's split of its match (src/lib/attribution-line.ts), worked out on the server from the
+   * Qloo cache: only for an act on the saved lineup with every venue on.
+   */
+  split?: SplitLine;
 }) {
   const [asking, setAsking] = useState(false);
   const lift = liftOf(act);
@@ -223,6 +231,16 @@ export function ActCard({
         </li>
       </ul>
       <p className="card-strongest">{CARD_STRONGEST}</p>
+      {/* After the rule, outside the checks: Qloo's split as it comes, never a check that backs
+          the venue the card credits. A phone names each venue by its mark, as its venue line does. */}
+      {split && (
+        <p className="card-split">
+          {split.short !== split.line && (
+            <span className="card-split-short">{split.short}</span>
+          )}
+          <span className="card-split-full">{split.line}</span>
+        </p>
+      )}
       {act.anchorVenue.kind && (
         <p className="card-kind">
           {act.anchorVenue.name} is {act.anchorVenue.kind}, not a club.
