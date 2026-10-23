@@ -181,6 +181,7 @@ function PosterAct({
   return (
     <article
       aria-label={row.name}
+      data-act={row.act.entityId}
       className={`poster-act ${row.hue !== null ? `venue-${row.hue}` : ""} ${open ? "is-open" : ""} ${gone ? "is-gone" : ""} ${kept ? "is-kept" : ""} ${dim ? "is-dim" : ""} ${print !== null ? "motion-safe:animate-print-in" : ""}`}
       style={
         print !== null ? { animationDelay: `${print.toFixed(2)}s` } : undefined
@@ -234,6 +235,7 @@ export function PosterBand({
   printing = null,
   column = 0,
   landed,
+  stampAt,
   dimmed,
   caption,
   message,
@@ -253,6 +255,8 @@ export function PosterBand({
   column?: number;
   /** While Watch plays: whether an act's venue has been read yet. */
   landed?: (act: Act) => boolean;
+  /** While Watch flies an act in: seconds until its card lands and its slot stamps in. */
+  stampAt?: (act: Act) => number | undefined;
   /** Acts faded while another venue is picked. */
   dimmed?: (act: Act) => boolean;
   /** A line under the head: what this band waits for while Watch plays. */
@@ -333,9 +337,11 @@ export function PosterBand({
                       ? null
                       : // A refill's act, and an act landing while Watch reads its venue, stamp
                         // in at once; the rest of a replay's lineup prints in down the poster.
-                        printing === "refill" || landed
+                        printing === "refill"
                         ? 0
-                        : (index * 2 + column) * PRINT_STEP_S
+                        : landed
+                          ? (stampAt?.(act) ?? 0)
+                          : (index * 2 + column) * PRINT_STEP_S
                   }
                 />
               </li>

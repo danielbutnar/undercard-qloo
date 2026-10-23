@@ -10,6 +10,11 @@ import {
   type ReactNode,
 } from "react";
 import { ActCardPanel } from "@/components/act-card-panel";
+import {
+  FlyingActs,
+  landsAt,
+  type Flight,
+} from "@/components/chart/flights";
 import type { Printing } from "@/components/chart/band-chart";
 import { billRows } from "@/components/chart/chart-rows";
 import { ImageCredit } from "@/components/chart/image-credit";
@@ -893,6 +898,28 @@ export function FestivalScreen({
   const landed = watching
     ? (act: Act) => landedSteps.has(`${act.band}|${act.anchorVenue.entityId}`)
     : undefined;
+  // On a laptop with motion on, the acts the venue being read put on the poster fly there from
+  // it as Watch reads it, each stamping into its slot as its card lands (the brief's play()).
+  const flights: Flight[] =
+    watching && wide && !watch.reduced && step?.venue
+      ? state.acts
+          .filter(
+            (act) =>
+              act.band === step.band &&
+              act.anchorVenue.entityId === step.venue!.entityId,
+          )
+          .map((act, order) => ({
+            key: `${watch.seen.length}-${act.entityId}`,
+            act,
+            hue: hues.get(act.anchorVenue.entityId) ?? null,
+            image: images?.[act.entityId],
+            order,
+          }))
+      : [];
+  const stampAt = (act: Act) => {
+    const flight = flights.find((entry) => entry.act.entityId === act.entityId);
+    return flight ? landsAt(flight.order) : undefined;
+  };
   // A picked venue (or one hovered on the key) fades the other venues' acts.
   const focusVenue = !watching && !without ? (pickedVenue ?? hoverVenue) : null;
   const dimmed = focusVenue
@@ -1211,6 +1238,7 @@ export function FestivalScreen({
                 printing={printing}
                 column={column}
                 landed={landed}
+                stampAt={stampAt}
                 dimmed={dimmed}
                 caption={
                   watching
@@ -1563,6 +1591,7 @@ export function FestivalScreen({
               }
             />
           </section>
+          <FlyingActs flights={flights} />
         </div>
 
         <div className="fs-below">

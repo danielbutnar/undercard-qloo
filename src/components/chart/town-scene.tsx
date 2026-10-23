@@ -544,6 +544,7 @@ export function TownScene({
               }}
               aria-pressed={selected === venue.entityId}
               aria-label={`${venue.name}, ${chip}. Show this venue`}
+              data-venue={venue.entityId}
               disabled={!interactive || dim}
               onClick={() =>
                 onPick?.(selected === venue.entityId ? null : venue.entityId)
