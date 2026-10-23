@@ -1333,6 +1333,15 @@
 .chart-app.fs .poster-band-opener .poster-climb {
   font-size: 11px;
 }
+/* WS8: the act's place in its venue's ranking sits over its climb, so the pill keeps its width. */
+.chart-app.fs .poster-climb {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.chart-app.fs .poster-rank {
+  text-transform: none;
+}
 .chart-app.fs .poster-act.is-open {
   border-color: var(--color-ink);
 }

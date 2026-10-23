@@ -939,7 +939,21 @@ export function FestivalScreen({
         );
     return {
       band,
-      rows: billRows(band, shownActs, placeOf, hues, open, openWords, "climb"),
+      // In the rule's order (WS8): the strongest Qloo match first, then the bigger climb; the
+      // open slots after the acts.
+      rows: billRows(
+        band,
+        shownActs,
+        placeOf,
+        hues,
+        open,
+        openWords,
+        "climb",
+      ).sort(
+        (a, b) =>
+          (b.act?.affinity ?? -1) - (a.act?.affinity ?? -1) ||
+          (b.move ?? 0) - (a.move ?? 0),
+      ),
     };
   });
   const printedActs = bandRows.flatMap(({ rows }) =>

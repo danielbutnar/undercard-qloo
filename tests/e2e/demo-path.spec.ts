@@ -103,7 +103,7 @@ test.describe("demo path", () => {
     // then the venues behind the lineup, in the town and under the poster.
     await expect(
       bill(page).getByRole("article").first().locator(".poster-climb"),
-    ).toHaveText(/^(↑\d+|NEW)$/);
+    ).toHaveText(/^(\d+(st|nd|rd|th) )?(↑\d+|NEW)$/);
     await expect(
       bill(page).getByText(
         "↑ = places it rose in Qloo's ranking with that venue's fans (5+ to qualify); the strongest Qloo match takes each slot",

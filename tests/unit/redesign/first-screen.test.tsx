@@ -133,11 +133,33 @@ describe("the poster", () => {
       expect(example.textContent).toMatch(/switch a venue off above\.$/),
     );
     expect(example.textContent).toMatch(
-      /^THE LANTERN ROOM ↑26|^The Lantern Room ↑26/i,
+      /^THE LANTERN ROOM ↑11|^The Lantern Room ↑11/i,
     );
     expect(example.textContent).toContain(
-      "The Ditch Riders climbed from 33rd to 7th in Qloo's ranking once The Lantern Room's fans joined the headliners' fans.",
+      // The poster's first act in the rule's order (WS8).
+      "Hollow Pines climbed from 12th to 1st in Qloo's ranking once The Lantern Room's fans joined the headliners' fans.",
     );
+  });
+
+  // WS8: each tier lists its acts in the rule's order (the strongest Qloo match first), each with
+  // its place in its venue's ranking beside the climb.
+  it("lists each tier in the rule's order, with the rank beside the climb (WS8)", async () => {
+    withSwitch();
+    open();
+    const mid = within(poster()).getByRole("region", { name: "Mid-size acts" });
+    const acts = within(mid).getAllByRole("article");
+    expect(acts.map((act) => act.getAttribute("aria-label"))).toEqual(
+      FIRST_BILL.acts
+        .filter((act) => act.band === "mid")
+        .sort((a, b) => b.affinity - a.affinity)
+        .map((act) => act.name),
+    );
+    for (const act of acts)
+      await waitFor(() =>
+        expect(act.querySelector(".poster-climb")?.textContent).toMatch(
+          /^\d+(st|nd|rd|th) (↑\d+|NEW)$/,
+        ),
+      );
   });
 
   it("keeps a band's acts and says why the other band's slots stay open when its venue is off (WS8)", async () => {

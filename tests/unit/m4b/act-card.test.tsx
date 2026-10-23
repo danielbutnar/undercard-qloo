@@ -186,12 +186,12 @@ describe("an act on the bill", () => {
     );
     vi.stubGlobal("fetch", fetch);
     open();
-    // The band sorts by climb, biggest first (M10a).
+    // The tier lists its acts in the rule's order, the strongest Qloo match first (WS8).
     expect(midNames()).toEqual([
-      "The Ditch Riders",
       "Hollow Pines",
-      "Kestrel & Bloom",
       "Marisol Vey",
+      "The Ditch Riders",
+      "Kestrel & Bloom",
     ]);
     fireEvent.click(actButton("Hollow Pines"));
     fireEvent.click(
@@ -218,10 +218,10 @@ describe("an act on the bill", () => {
     await waitFor(() => expect(actButton("Sego Lily")).toBeTruthy());
     // The replacement's place isn't in the build, but its climb is (its reason says up 13).
     expect(midNames()).toEqual([
-      "The Ditch Riders",
-      "Sego Lily",
-      "Kestrel & Bloom",
       "Marisol Vey",
+      "The Ditch Riders",
+      "Kestrel & Bloom",
+      "Sego Lily",
     ]);
     expect(screen.queryByRole("region", { name: "Act card" })).toBeNull();
   });
