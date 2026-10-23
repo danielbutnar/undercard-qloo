@@ -57,14 +57,15 @@ const venueInk = (hue: number) => ({
   color: C[`on-venue-${hue % 6}` as keyof typeof C],
 });
 
+const NO_BREAK_SPACE = String.fromCharCode(0xa0);
+
 /**
- * A "·"-separated line in the parts it wraps between. Each part is set with no-break spaces and
- * the dots are drawn, not set: satori spaces Geist's "·" and a part's words unevenly where a
- * line wraps.
+ * A "·"-separated line in the parts it wraps between. Satori measures a word letter by letter
+ * but draws it kerned, so a kerned word leaves a gap after it, and Geist's "·" sits off centre:
+ * each part is set with no-break spaces, as one word, and the dots between parts are drawn.
  */
 export const lineParts = (line: string) =>
   line.split(" · ").map((part) => part.replaceAll(" ", NO_BREAK_SPACE));
-const NO_BREAK_SPACE = String.fromCharCode(0xa0);
 // A drawn dot between two parts: its width and the space on each side.
 const DOT = { size: 4, space: 7 };
 
