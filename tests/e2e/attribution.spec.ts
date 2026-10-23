@@ -38,6 +38,7 @@ for (const view of [
   { label: "390x844", width: 390, height: 844, phone: true },
 ])
   test.describe(`at ${view.label}`, () => {
+    test.skip(SYNTHETIC !== "1", "names the synthetic build's acts");
     test.use({ viewport: { width: view.width, height: view.height } });
 
     test("a mid-size and an opening act's card each show Qloo's split, and nothing reaches Qloo", async ({
@@ -99,6 +100,7 @@ for (const view of [
   });
 
 test.describe("at 1440x900", () => {
+  test.skip(SYNTHETIC !== "1", "names the synthetic build's venues");
   test.use({ viewport: { width: 1440, height: 900 } });
 
   test("a venue switched off takes the line away until every venue is back on", async ({
