@@ -25,22 +25,27 @@ why for each one.
 The demo festival is Sagebrush Sound: fictional, 3,000 capacity, in Boise, Idaho, with
 Khruangbin and Japanese Breakfast booked and two fee bands, Mid (4 slots) and Opener (6 slots).
 
-1. The page opens on the saved build as the buyer's draft bill: the headliners over 4 Mid and
-   6 Opener acts, each marked with the Boise room whose crowd lifted it in Qloo's ranking and
-   how far ("new" when it entered the top 50). A rail counts what each tested room lifted, a zero included.
-2. **Watch the agent build it**: the trace panel replays every Qloo call the agent made, with
-   its parameters and result count, and the bill reprints. **Run the agent live instead**
-   runs a fresh build.
-3. Click an act to open its card: Qloo affinity, its popularity percentile inside the band,
-   a "Why Boise" line naming the local venue whose fans lift it, and two Qloo tags it shares
-   with the headliners.
+1. The page opens on the saved build as the buyer's draft, a poster beside a small 3D model of
+   Boise. The headliners sit over 4 mid-size and 6 opening acts, each act's name in the colour
+   of the Boise venue whose fans lifted it in Qloo's ranking, with how far (↑ and the places, or
+   NEW when it entered the top 50). In the town each venue the AI agent tested stands lit in
+   its colour, or grey when it lifted no act, with a sign counting its acts.
+2. **Watch the AI agent build it**: the camera closes on each venue as the replay reads its
+   fans; the caption gives the Qloo call, its result count and the agent's own line, and the
+   acts its fans lifted fly from the venue into their slots on the poster. The Qloo calls panel
+   below lists every call with its parameters. **Run the agent live instead** runs a fresh
+   build.
+3. Click an act to open its card: its slot and the venue whose fans lift it, then the three
+   checks it passed: its climb in Qloo's ranking with the "Why it's here" sentence, its
+   popularity percentile inside the fee range with its Qloo affinity, and two Qloo tags it
+   shares with the headliners; a last line gives Qloo's own split of its match by input.
 4. Mark it **Unavailable** and say why: a radius clause, routing or the fee. Undercard finds a
    replacement in the same fee band with a new Qloo call, the replacement prints into the slot,
    and the reason names the refill's line in the trace.
-5. Flip to **Without Qloo: the model's picks** to see the same brief answered by the model
-   alone, each pick with the model's reason, no Boise room and no fee band check. **Export
-   CSV** in the bar downloads the booking sheet; a replacement's row names the act it
-   replaced and why.
+5. Flip to **Without Qloo** to see the same brief answered by the model alone: one list of its
+   10 picks, each tagged with where Qloo's popularity puts it ("99th · above both ranges", "not
+   on Qloo"), its reason one click away. **Export CSV** under the poster downloads the booking
+   sheet; a replacement's row names the act it replaced and why.
 
 Beyond the demo path, one click from the bill:
 
@@ -53,6 +58,14 @@ Beyond the demo path, one click from the bill:
   music rooms and the daily limit each have their own designed state. A link can fill the form
   in: `/your-festival?town=Tallinn&headliner=Khruangbin&headliner=Japanese%20Breakfast`. It never
   runs on load, because mail clients and link previews open links by themselves.
+- **Check a shortlist** (`/shortlist`). A buyer picks one of the 29 checked towns and pastes up
+  to 10 acts they've been pitched. Undercard finds each on Qloo (a name it can't match reads
+  "not found on Qloo"), ranks them for the headliners' fans alone and again with each of the
+  town's venues' fans, every act scored inside the same call, and sorts them by how far a
+  venue's fans lift them, with each act's fee range and genre fit. A check makes at most 14 Qloo
+  calls and is limited like a fresh build (5 a day per address, 60 for everyone). It drafts
+  nothing and books nothing. The page opens on the model's own ten picks for Boise, from its
+  saved Without Qloo answer, sorted from the Qloo cache.
 
 ## How it works
 
@@ -132,7 +145,7 @@ pass all three tests that every act on the Qloo lineup passes.
 
 Qloo responses are cached server-side in Upstash Redis until at least 2026-11-18, past the end
 of judging, and never committed. A festival's first complete build is saved the same way, so
-every visitor opens on it and "Watch the agent build it" replays its calls in 2 to 3 seconds,
+every visitor opens on it and "Watch the AI agent build it" replays its calls in 2 to 3 seconds,
 marked as a replay; "Run the agent live instead" starts a fresh build, which isn't saved for
 other visitors. [docs/qloo-spike.md](docs/qloo-spike.md) records what the first live calls
 returned, as counts only.
@@ -239,6 +252,19 @@ returned, as counts only.
   named, the premise test's two controls (evidence 34) and Qloo's own attribution of each act
   (evidence 35), wrote the protocol for the second 30-second test (evidence 36), and upgraded
   Next.js to 16.4.1 for two security advisories.
+- 23 October: Claude (Opus 5.5) rebuilt the first screen from Daniel's layout brief ("Your town
+  prints your poster"): the town in CSS 3D with the build's own venues, the poster with each act
+  in its venue's colour and its climb, the act card's three checks, Without Qloo as one list
+  tagged from the Qloo checks, and Watch flying each venue's acts into their slots; it made the
+  page read its photos, the headliners' included, from the Qloo cache only.
+- 23 October: Claude (Opus 5.5) wrote the link previews: the opengraph-image routes for the home
+  page and each town, which draw the poster from the saved build with next/og (code, no image
+  model, no Qloo call), the pages' og:title, og:description and Twitter card, and their tests.
+- 23 October: Claude (Opus 5.5) wrote the buyer's shortlist (`/shortlist`): the name matching,
+  the ranking calls and their climb, the 14-call cap and the daily limit, the page in the
+  lineup's rows, Boise's example and scripts/shortlist-example.ts, with unit tests and a
+  Playwright spec on the synthetic build; and the line on each act card giving Qloo's own split
+  of its match (scripts/attribution-warm.ts), read from the cache only.
 - Kept current as each milestone lands.
 
 ## Built on
@@ -255,6 +281,8 @@ There is no starter kit. The app was generated with
   response cache.
 - Styling: [Tailwind CSS](https://tailwindcss.com) 4, with Anton and Schibsted Grotesk
   from [Google Fonts](https://fonts.google.com) (SIL Open Font License) through `next/font`.
+- Link previews: `next/og`, part of Next.js, draws each page's 1200×630 picture on the server
+  from the saved build, in its bundled Geist font; no extra package.
 - Tooling: TypeScript 5, ESLint 9 with `eslint-config-next`, Prettier 3,
   [Vitest](https://vitest.dev) 5 with `@vitejs/plugin-react`, jsdom and
   [Testing Library](https://testing-library.com/docs/react-testing-library/intro/), and
