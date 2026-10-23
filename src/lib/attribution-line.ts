@@ -22,6 +22,15 @@ export interface ActSplit {
   parts: SplitPart[];
 }
 
+/** Each lineup act's split, by the act's entity id; an act without one is left out. */
+export type ActSplits = Record<string, ActSplit>;
+
+/** An act's line on its card, and the phone's form with each venue by its mark. */
+export interface SplitLine {
+  line: string;
+  short: string;
+}
+
 const TOGETHER = "With this fee range's venues together, ";
 
 /**
@@ -84,4 +93,18 @@ export function attributionLine(
       ? phrases[0]
       : `${phrases.slice(0, -1).join(", ")} and ${phrases[phrases.length - 1]}`;
   return `${venues > 1 ? TOGETHER : ""}Qloo traces ${list}.`;
+}
+
+/** Each act's card line and its phone form, for the acts that have one. */
+export function splitLines(splits: ActSplits): Record<string, SplitLine> {
+  const lines: Record<string, SplitLine> = {};
+  for (const [entityId, split] of Object.entries(splits)) {
+    const line = attributionLine(split);
+    if (line)
+      lines[entityId] = {
+        line,
+        short: attributionLine(split, { short: true }) ?? line,
+      };
+  }
+  return lines;
 }

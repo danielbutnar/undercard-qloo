@@ -1,9 +1,18 @@
 import { z } from "zod";
-import type { ActSplit, SplitPart } from "@/lib/attribution-line";
+import {
+  splitLines,
+  type ActSplits,
+  type SplitPart,
+} from "@/lib/attribution-line";
 import { FEE_BAND_IDS, type FeeBandId } from "@/lib/fee-bands";
-import type { SavedBuild } from "./build-store";
+import type { Festival } from "@/lib/festival";
+import type { FirstBill } from "@/lib/first-bill";
+import type { BuildStore, SavedBuild } from "./build-store";
+import { serverBuildStore } from "./deps";
 import { createQlooClient, QlooCacheMiss } from "./qloo";
-import type { QlooCache } from "./qloo-cache";
+import { createQlooCache, type QlooCache } from "./qloo-cache";
+
+export type { ActSplits } from "@/lib/attribution-line";
 
 /** Section 35's call for one fee range of a saved build (docs/evidence.md section 35). */
 export interface ExplainCall {
@@ -41,9 +50,6 @@ export function explainCalls(build: SavedBuild): ExplainCall[] {
     ];
   });
 }
-
-/** Each lineup act's split, by the act's entity id; an act without one is left out. */
-export type ActSplits = Record<string, ActSplit>;
 
 // What the explain call caches (src/lib/qloo/explain.ts), checked again on the way out: a value
 // of another shape under the key reads as no split, not as a page error.
@@ -117,4 +123,29 @@ export async function attributionFor(
     }
   }
   return splits;
+}
+
+/**
+ * The first bill with each saved lineup act's card line on Qloo's split (WS7 part b), worked out
+ * on the server from the saved build and the Qloo cache only, as withVenueSwitch and withFanData
+ * are: never a Qloo call. In synthetic mode the cache is the seeded one. The bill is left as it
+ * was when no act has a line, the build isn't stored or is another festival's, or a read fails.
+ */
+export async function withSplits(
+  bill: FirstBill | null,
+  festival: Festival,
+  {
+    store = serverBuildStore(),
+    cache = createQlooCache(),
+  }: { store?: Pick<BuildStore, "byId">; cache?: QlooCache } = {},
+): Promise<FirstBill | null> {
+  if (!bill) return bill;
+  try {
+    const saved = await store.byId(bill.build.id);
+    if (!saved || saved.festivalId !== festival.id) return bill;
+    const splits = splitLines(await attributionFor(saved, cache));
+    return Object.keys(splits).length > 0 ? { ...bill, splits } : bill;
+  } catch {
+    return bill;
+  }
 }
