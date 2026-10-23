@@ -133,10 +133,12 @@ test.describe("the first screen above the fold", () => {
   });
 
   // WS8: a maximized browser on the commonest small laptops shows Watch before any scroll, with
-  // the lead, the town picker and the top of the poster; the town is shorter there.
+  // the lead, the town picker and the top of the poster; the town is shorter there. 1280x720
+  // too, where Watch was still cut off (Daniel, 2026-10-24).
   for (const [width, height] of [
     [1366, 640],
     [1280, 650],
+    [1280, 720],
   ] as const)
     test.describe(`on a short laptop, ${width}x${height}`, () => {
       test.use({ viewport: { width, height } });

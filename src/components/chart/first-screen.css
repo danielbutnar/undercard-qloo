@@ -279,9 +279,9 @@
   }
 }
 
-/* WS8: on a short laptop (a maximized browser at 1366x640 or 1280x650) Watch sits above the town
+/* WS8: on a short laptop (a maximized browser at 1366x640 or 1280x650, and 1280x720) Watch sits above the town
    instead of over its corner, so it shows before any scroll. */
-@media (min-width: 1100px) and (max-height: 700px) {
+@media (min-width: 1100px) and (max-height: 720px) {
   .chart-app.fs .fs-grid {
     grid-template-rows: auto auto auto auto 1fr;
     grid-template-areas: "lead poster" "towns poster" "watch poster" "town poster" ". poster";
