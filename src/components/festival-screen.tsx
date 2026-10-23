@@ -46,7 +46,6 @@ import {
   WATCH_AGENT,
   watchSubLine,
   withoutCounts,
-  withoutHeadline,
   withoutNote,
   withoutSummary,
 } from "@/components/chart/poster-words";
@@ -1059,7 +1058,7 @@ export function FestivalScreen({
     llm.state.status === "ready"
       ? withoutCounts(modelPicks, llm.state.checks, festival)
       : null;
-  const lead = leadLine(festival, without, counts);
+  const lead = leadLine(festival, without);
   const legend = legendLine({
     city: festival.city,
     placesListed,
@@ -1437,9 +1436,6 @@ export function FestivalScreen({
             Try again
           </button>
         </div>
-      )}
-      {counts && withoutHeadline(counts) && (
-        <p className="model-headline">{withoutHeadline(counts)}</p>
       )}
       {counts && llm.state.checks && llm.state.checks.length > 0 && (
         <PicksRuler

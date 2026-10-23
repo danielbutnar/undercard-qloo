@@ -496,6 +496,8 @@ export function ModelPicks({
         ? "is-in"
         : "is-out";
   const openPick = picks.find((pick) => pick.name === open);
+  // The model's own reason under each pick's name, when its answer gave one for every pick (WS8).
+  const reasons = picks.every((pick) => pick.note?.trim());
   return (
     <>
       <div className="picks-head">
@@ -520,6 +522,7 @@ export function ModelPicks({
                 >
                   {pick.name}
                 </button>
+                {reasons && <p className="model-pick-reason">{pick.note}</p>}
                 <span
                   className={`model-pick-tag ${tone(check)} ${index % 2 ? "tilt-right" : "tilt-left"}`}
                 >

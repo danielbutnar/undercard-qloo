@@ -1623,6 +1623,14 @@
   align-items: center;
   gap: 3px;
 }
+/* WS8: the model's own reason under a pick's name. */
+.chart-app.fs .model-pick-reason {
+  max-width: 34ch;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+}
 .chart-app.fs .model-pick > button {
   min-height: 32px;
   padding: 4px 2px 0;

@@ -31,7 +31,6 @@ import {
   venueLine,
   watchSubLine,
   withoutCounts,
-  withoutHeadline,
   withoutNote,
   withoutSummary,
 } from "@/components/chart/poster-words";
@@ -302,18 +301,12 @@ describe("the lead and the town", () => {
     });
   });
 
-  it("says Without Qloo picks bigger names only when most found picks sit above the ranges", () => {
-    const most = { ...counted(), found: 8, above: 6 };
-    expect(leadLine({ city: "Boise" }, true, most)).toEqual({
-      mark: "Without Qloo, an AI picks bigger names",
-      rest: "and it can't see Boise's venues.",
+  // WS8: the headline never grades the model on a number it never saw.
+  it("says Without Qloo the AI picks without seeing the town's venues", () => {
+    expect(leadLine({ city: "Boise" }, true)).toEqual({
+      mark: "Without Qloo, an AI picks",
+      rest: "without seeing Boise's venues.",
     });
-    expect(leadLine({ city: "Boise" }, true, { ...most, above: 4 }).mark).toBe(
-      "Without Qloo, an AI picks from what it already knows",
-    );
-    expect(leadLine({ city: "Boise" }, true, null).mark).toBe(
-      "Without Qloo, an AI picks from what it already knows",
-    );
   });
 
   it("explains the coloured and grey venues, with the places Qloo listed", () => {
@@ -450,16 +443,6 @@ describe("Without Qloo: the model's picks, checked on Qloo afterwards", () => {
       notChecked: 1,
       climbers: ["Marigold Static"],
     });
-  });
-
-  it("heads the poster with the picks too big for these slots, and only then", () => {
-    expect(withoutHeadline(counted())).toBe(
-      "By Qloo popularity, 2 of its 7 picks are too big for these slots",
-    );
-    expect(withoutHeadline({ ...counted(), above: 1 })).toBe(
-      "By Qloo popularity, 1 of its 7 picks is too big for these slots",
-    );
-    expect(withoutHeadline({ ...counted(), above: 0 })).toBeNull();
   });
 
   it("says the model can't see the town's venues", () => {

@@ -26,19 +26,16 @@ export const LEAD_TITLE = "You booked the headliners.";
 export function leadLine(
   festival: Pick<Festival, "city">,
   without: boolean,
-  counts?: WithoutCounts | null,
 ): { mark: string; rest: string } {
   if (!without)
     return {
       mark: "Undercard drafts the rest",
       rest: `from what fans of ${festival.city}'s music venues like.`,
     };
-  const bigger = counts && counts.found > 0 && counts.above * 2 > counts.found;
+  // The headline never grades the model on a number it never saw (WS8).
   return {
-    mark: bigger
-      ? "Without Qloo, an AI picks bigger names"
-      : "Without Qloo, an AI picks from what it already knows",
-    rest: `and it can't see ${festival.city}'s venues.`,
+    mark: "Without Qloo, an AI picks",
+    rest: `without seeing ${festival.city}'s venues.`,
   };
 }
 
@@ -428,12 +425,6 @@ export function withoutCounts(
     }
   }
   return counts;
-}
-
-/** The Without Qloo poster's headline, while any pick sits above every range; null otherwise. */
-export function withoutHeadline(counts: WithoutCounts): string | null {
-  if (counts.above === 0) return null;
-  return `By Qloo popularity, ${counts.above} of its ${counts.picks} picks ${counts.above === 1 ? "is" : "are"} too big for these slots`;
 }
 
 /** The scene's note while Without Qloo is on: the model can't see the town's venues. */
