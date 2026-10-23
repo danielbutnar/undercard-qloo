@@ -222,7 +222,14 @@ function PosterAct({
       )}
       {kept && !gone && <span className="poster-flag">Kept</span>}
       {gone && <span className="poster-flag">Unavailable</span>}
-      <p className="sr-only">{row.words ?? markLabel(row.act, top)}</p>
+      <p className="sr-only">
+        {row.words ??
+          markLabel(
+            row.act,
+            top,
+            row.place !== null ? ordinal(row.place) : undefined,
+          )}
+      </p>
     </article>
   );
 }

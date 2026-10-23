@@ -54,11 +54,18 @@ export function markText(act: Act): string {
 const outsideTop = (top?: number) =>
   top ? `the headliners-only top ${top}` : "the headliners-only ranking";
 
-/** The mark in words, for screen readers: what adding the venue's fans did, no more. */
-export function markLabel(act: Act, top?: number): string {
+/**
+ * The mark in words, for screen readers: what adding the venue's fans did, no more. Where the
+ * poster stacks the act's rank over its climb (`rank`, e.g. "5th"), the rank is read out first.
+ */
+export function markLabel(act: Act, top?: number, rank?: string): string {
   const added = `With ${act.anchorVenue.name}'s fans added`;
   const lift = liftOf(act);
   if (!lift) return added;
+  if (rank)
+    return lift.kind === "up"
+      ? `${added}: ${rank} in Qloo's ranking, up ${lift.places} places`
+      : `${added}: ${rank} in Qloo's ranking, new from outside ${outsideTop(top)}`;
   return lift.kind === "up"
     ? `${added}: up ${lift.places} places in Qloo's ranking`
     : `${added}: new in Qloo's ranking, from outside ${outsideTop(top)}`;

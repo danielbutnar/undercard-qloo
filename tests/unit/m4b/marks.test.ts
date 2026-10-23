@@ -83,6 +83,32 @@ describe("the mark under an act", () => {
       "With The Lantern Room's fans added",
     );
   });
+
+  // The poster stacks the act's rank over its climb, hidden from screen readers (WS8); its
+  // words read the rank out first (Daniel, 2026-10-24).
+  it("reads out the act's rank before its climb when the poster shows one", () => {
+    expect(
+      markLabel(
+        act(
+          "Fort Street Ballroom fans move it up 7 places.",
+          "Fort Street Ballroom",
+        ),
+        50,
+        "5th",
+      ),
+    ).toBe(
+      "With Fort Street Ballroom's fans added: 5th in Qloo's ranking, up 7 places",
+    );
+    expect(
+      markLabel(
+        act("The Lantern Room fans move it into the top 8."),
+        50,
+        "8th",
+      ),
+    ).toBe(
+      "With The Lantern Room's fans added: 8th in Qloo's ranking, new from outside the headliners-only top 50",
+    );
+  });
 });
 
 describe("the key beside the first mark", () => {
