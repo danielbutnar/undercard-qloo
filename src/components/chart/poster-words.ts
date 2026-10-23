@@ -157,6 +157,33 @@ export function exampleAct<
 export const MISSED_CUT =
   "With every venue on, it missed the cut: the strongest Qloo match fills each slot first.";
 
+/** The act card's slot line: "Mid-size act", "Opening act". */
+export const cardBand = (band: Pick<FeeBand, "id">) =>
+  band.id === "mid" ? "Mid-size act" : "Opening act";
+
+/** The act card's heading over the three checks every act on the poster passed. */
+export const CARD_CHECKS = "Why it's on your poster";
+
+/** The climb check's bar, from the booking rule's own number (src/lib/assemble-lineup.ts). */
+export const cardClimbRule = () =>
+  `Undercard only books a climb of ${MIN_LIFT} places or more.`;
+
+/** The fee check: the act's Qloo popularity sits inside its slot's range. */
+export function cardPopularityLine(band: FeeBand | undefined): string {
+  if (!band) return "Its Qloo popularity stands in for its fee.";
+  const low = Math.round(band.minPopularity * 100);
+  const high = Math.round(band.maxPopularity * 100);
+  return `Its Qloo popularity is inside the ${RANGE_NAME[band.id]} range, ${low}–${high} out of 100, our stand-in for fee.`;
+}
+
+/** The genre check, before the act's two shared genres. */
+export const cardGenresLine = (genres: number) =>
+  `It shares ${genres === 2 ? "two" : String(genres)} ${genres === 1 ? "genre" : "genres"} with the headliners:`;
+
+/** Under the checks: which act a slot goes to when several pass. */
+export const CARD_STRONGEST =
+  "Of the acts that pass all three, the strongest Qloo match fills each slot first.";
+
 /** The example line's hint: what to try next. */
 export const exampleHint = (switchable: boolean) =>
   switchable
@@ -238,9 +265,7 @@ export const stampWords = (own: boolean, short = false) =>
  * The label over the headliners: booked by the buyer, and for the demo's two, that they're
  * bands (M6q); a judge's own may not be.
  */
-export function bookedLabel(
-  festival: Pick<Festival, "headliners">,
-): string {
+export function bookedLabel(festival: Pick<Festival, "headliners">): string {
   const bands =
     festival.headliners[0] === SAGEBRUSH_SOUND.headliners[0] &&
     festival.headliners[1] === SAGEBRUSH_SOUND.headliners[1];

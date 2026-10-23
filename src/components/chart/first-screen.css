@@ -1738,3 +1738,90 @@
     font-size: 22px;
   }
 }
+
+/* The act's card, as the layout brief draws it: its slot, then the three checks it passed, each
+   ticked in its venue's colour, then the rule that fills a slot. */
+.chart-app.fs .card-sleeve {
+  border: 2px solid var(--color-ink);
+  background: var(--venue, var(--color-quiet));
+}
+.chart-app.fs .card-band {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.chart-app.fs .card-checks-title {
+  font-size: 14px;
+  font-weight: 800;
+}
+.chart-app.fs .card-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: -4px;
+}
+.chart-app.fs .card-check {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+}
+.chart-app.fs .card-tick {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+}
+.chart-app.fs .card-tick-box {
+  fill: var(--venue, var(--color-surface));
+  stroke: var(--color-ink);
+  stroke-width: 2;
+}
+.chart-app.fs .card-tick-mark {
+  fill: none;
+  stroke: var(--on-venue, var(--color-ink));
+  stroke-width: 2.4;
+}
+.chart-app.fs .card-check-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.chart-app.fs .card-check-body .card-climb-title {
+  margin-top: 0;
+  font-size: 14px;
+}
+.chart-app.fs .card-check-text {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.chart-app.fs .card-check-body .card-why {
+  font-size: 14px;
+  line-height: 1.4;
+}
+.chart-app.fs .card-check-rule,
+.chart-app.fs .card-strongest {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-muted);
+}
+.chart-app.fs .card-check-body .card-figures {
+  margin-top: 0;
+}
+.chart-app.fs .card-check-body .card-tags {
+  margin-top: 0;
+}
+.chart-app.fs .card-check-body .card-place,
+.chart-app.fs .card-check-body .card-figures dd {
+  font-size: 28px;
+}
+.chart-app.fs .card-check-body .card-place small {
+  font-size: 13px;
+}
+/* The check's own sentence says the fee range: the track keeps its dot, without the words. */
+.chart-app.fs .card-check-body .card-pop-words {
+  display: none;
+}

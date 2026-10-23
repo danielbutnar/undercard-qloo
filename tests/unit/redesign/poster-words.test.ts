@@ -4,6 +4,12 @@ import { describe, expect, it } from "vitest";
 import {
   bandRange,
   bookedLabel,
+  cardBand,
+  CARD_CHECKS,
+  cardClimbRule,
+  cardGenresLine,
+  cardPopularityLine,
+  CARD_STRONGEST,
   climbMark,
   exampleAct,
   footnote,
@@ -79,6 +85,36 @@ describe("the one-act sentence", () => {
 
 const ordinalOf = (n: number) =>
   `${n}${[11, 12, 13].includes(n % 100) ? "th" : (["th", "st", "nd", "rd"][n % 10] ?? "th")}`;
+
+// The act card's words (the layout brief's card): its slot, then the three checks it passed.
+describe("the act card", () => {
+  const [mid, opener] = SAGEBRUSH_SOUND.feeBands;
+
+  it("names the act's slot, and heads the three checks it passed", () => {
+    expect(cardBand(mid)).toBe("Mid-size act");
+    expect(cardBand(opener)).toBe("Opening act");
+    expect(CARD_CHECKS).toBe("Why it's on your poster");
+  });
+
+  it("says the rule each check holds the act to, from the rule's own numbers", () => {
+    expect(cardClimbRule()).toBe(
+      "Undercard only books a climb of 5 places or more.",
+    );
+    expect(cardPopularityLine(mid)).toBe(
+      "Its Qloo popularity is inside the mid-size range, 80–92 out of 100, our stand-in for fee.",
+    );
+    expect(cardPopularityLine(opener)).toBe(
+      "Its Qloo popularity is inside the opening range, 55–80 out of 100, our stand-in for fee.",
+    );
+    expect(cardPopularityLine(undefined)).toBe(
+      "Its Qloo popularity stands in for its fee.",
+    );
+    expect(cardGenresLine(2)).toBe("It shares two genres with the headliners:");
+    expect(CARD_STRONGEST).toBe(
+      "Of the acts that pass all three, the strongest Qloo match fills each slot first.",
+    );
+  });
+});
 
 describe("the poster's marks and lines", () => {
   it("marks a climb with its places, and a new entry as NEW", () => {
