@@ -448,7 +448,7 @@ test.describe("demo path", () => {
   });
 
   // WS8: a room that alone fills a tier, switched off from the poster's key, empties that tier:
-  // Denver's synthetic build credits all six openers to Larimer Hall, as Boise's credits its
+  // Denver's synthetic build credits all six openers to The Room, as Boise's credits its
   // openers to Venue 418. The mid-size tier keeps its other room's act.
   test("the venue switch: a room that fills a tier alone, switched off, empties it and says why", async ({
     page,
@@ -459,7 +459,7 @@ test.describe("demo path", () => {
       name: "Venue fans used for this draft",
     });
     const larimer = key.getByRole("button", {
-      name: /^Larimer Hall's fans: on/,
+      name: /^The Room's fans: on/,
     });
     await expect(larimer).toBeEnabled({ timeout: 15_000 });
     await larimer.click();
@@ -472,10 +472,10 @@ test.describe("demo path", () => {
     await expect(openers.getByRole("article")).toHaveCount(0);
     await expect(openers.locator(".poster-slot")).toHaveCount(0);
     await expect(openers.getByRole("status")).toContainText(
-      "The 6 opening slots stay open. For opening acts this draft read Larimer Hall's fans. With Larimer Hall off, no act passes the rule for these slots.",
+      "The 6 opening slots stay open. For opening acts this draft read The Room's fans. With The Room off, no act passes the rule for these slots.",
     );
     await openers
-      .getByRole("button", { name: "Switch Larimer Hall back on" })
+      .getByRole("button", { name: "Switch The Room back on" })
       .click();
     await expect(bill(page).getByRole("article")).toHaveCount(10);
   });

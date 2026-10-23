@@ -1,5 +1,6 @@
 import type { TraceCall } from "./build-events";
 import type { Act, Venue } from "./lineup";
+import { namesVenue } from "./venue-call";
 
 /**
  * A venue switch the saved trace shows (WS2): after venue A's result, a line of the planner's
@@ -55,9 +56,7 @@ export function agentSwitches({
   const reads: { index: number; room: Room }[] = [];
   for (const [index, call] of trace.entries()) {
     if (call.tool !== "venue_artists") continue;
-    const held = rooms.filter((room) =>
-      call.summary.includes(`headliners and ${room.name}`),
-    );
+    const held = rooms.filter((room) => namesVenue(call.summary, room.name));
     const longest = Math.max(0, ...held.map((room) => room.name.length));
     const best = held.filter((room) => room.name.length === longest);
     if (best.length !== 1) return [];

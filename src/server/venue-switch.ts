@@ -8,6 +8,7 @@ import {
   type VenueSwitchData,
 } from "@/lib/venue-switch";
 import type { FirstBill } from "@/lib/first-bill";
+import { afterVenue, venueOfCall } from "@/lib/venue-call";
 import type { BuildStore, SavedBuild } from "./build-store";
 import { serverBuildStore, serverCachedQloo } from "./deps";
 import { QlooCacheMiss, type QlooClient } from "./qloo";
@@ -24,7 +25,7 @@ const KINDS = [
 
 /** "Mid-band artists for the headliners and Expo Park (an outdoor festival site) …" */
 function kindIn(summary: string, venue: string): string | undefined {
-  const after = summary.split(`headliners and ${venue}`)[1] ?? "";
+  const after = afterVenue(summary, venue);
   return KINDS.find((kind) => after.startsWith(` (${kind})`));
 }
 
@@ -49,9 +50,7 @@ export async function assemblyFromSaved(
       call.summary.startsWith(`${entry.label}-band`),
     );
     const anchor = band
-      ? (context.anchors[band.id] ?? []).find((venue) =>
-          call.summary.includes(`headliners and ${venue.name}`),
-        )
+      ? venueOfCall(call.summary, context.anchors[band.id] ?? [])
       : undefined;
     if (!band || !anchor) return null;
     const kind = kindIn(call.summary, anchor.name);

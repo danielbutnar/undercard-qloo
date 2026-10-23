@@ -77,6 +77,7 @@ import { TracePanel, type BuildRequest } from "@/components/trace-panel";
 import { useLlmOnly } from "@/components/use-llm-only";
 import { useUndercardBuild } from "@/components/use-undercard-build";
 import { useVenueSwitch } from "@/components/use-venue-switch";
+import { namesVenue } from "@/lib/venue-call";
 import { useWatch, type WatchPhase } from "@/components/use-watch";
 import type { TraceCall } from "@/lib/build-events";
 import { firstBoard } from "@/lib/build-state";
@@ -314,7 +315,7 @@ function stepCall(
         call.summary.startsWith(`${band.label}-band`) &&
         (step.venue
           ? call.tool === "venue_artists" &&
-            call.summary.includes(`headliners and ${step.venue.name}`)
+            namesVenue(call.summary, step.venue.name)
           : call.tool === "baseline_artists"),
     ) ?? null
   );

@@ -262,14 +262,14 @@ export function syntheticSwitchBuild(): SavedBuild {
   };
 }
 
-// Denver's rooms (WS8): Larimer Hall's fans lift three mid-size acts and all six openers,
-// Ironworks Annex's the fourth mid-size act, and Cottonwood Social Hall is read for mid-size acts
-// and lifts none. Larimer Hall alone fills the opening slots, so with it switched off the opening
+// Denver's rooms (WS8): The Room's fans lift three mid-size acts and all six openers, The Room
+// East's the fourth mid-size act, and Cottonwood Social Hall is read for mid-size acts
+// and lifts none. The Room alone fills the opening slots, so with it switched off the opening
 // tier empties while the mid-size tier keeps one act and three open slots.
-const LARIMER = { entityId: id(205), name: "Larimer Hall" };
-const IRONWORKS = { entityId: id(206), name: "Ironworks Annex" };
+const LARIMER = { entityId: id(205), name: "The Room" };
+const IRONWORKS = { entityId: id(206), name: "The Room East" };
 
-/** Boise's bill re-credited to Denver's rooms: Fort Street Ballroom's mid-size act to Ironworks. */
+/** Boise's bill re-credited to Denver's rooms: Fort Street Ballroom's mid-size act to The Room East. */
 function denverActs(): SavedBuild["lineup"]["acts"] {
   return (lineup.acts as SavedBuild["lineup"]["acts"]).map((act) => {
     const room =
@@ -316,7 +316,7 @@ export function syntheticDenverBuild(): SavedBuild {
       },
       {
         at: 5,
-        text: "Rank each band for the headliners alone, then add Ironworks Annex and Larimer Hall for Mid and Larimer Hall for openers.",
+        text: "Rank each band for the headliners alone, then add The Room East and The Room for Mid and The Room for openers.",
       },
       { at: 10, text: "Try Cottonwood Social Hall for Mid as a third room." },
     ],
