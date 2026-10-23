@@ -49,7 +49,7 @@ Against the same call without Venue 227, an artist lifted five or more places, w
 
 - **A room is a real signal, but not every room.** In the first live test (15 October 2026), adding Venue 227 to the headliners moved N–29 artists per fee band up five or more places, 22–23 of them sharing two genre tags. The Venue 418 moved N–31. Venue 166 Boise changed nothing, so the agent measures each room it tests.
 - **The current build (17 October 2026):** 12 Qloo calls; both bands full, 4 of 4 and 6 of 6. The Venue 418 lifted N acts, Venue 227 2 and Venue 166 Boise 0.
-- **Three more towns, one run each.** Run offline on 17 October 2026 with only the town changed, the agent filled both bands in Austin, Denver and Nashville within 12 Qloo calls. Venue 213 Austin lifted N acts, Venue 62 2, Venue 420 0; in Denver, Venue 333 and Venue 184 5 each; in Nashville, Venue 331 10, Venue 106 and Venue 330 0.
+- **Three more towns, one run each.** Run fresh once on production on 17 October 2026, with only the town changed, the agent filled both bands in Austin, Denver and Nashville within 12 Qloo calls; these are the builds the town pages replay. In Austin, Venue 213 Austin lifted all 10 acts, Venue 420 and Venue 316 0; in Denver, Venue 333 and Venue 184 5 each; in Nashville, Venue 331 10, Venue 106 and Venue 330 0.
 - **Why a club's crowd.** Venue 227 and the Venue 166, two of the three rooms tested in Boise, were venues of Treefort Music Fest 2026, Boise's own festival (KIVI, 23 March 2026).
 
 <!-- A buyer's words go here if any arrive. -->
