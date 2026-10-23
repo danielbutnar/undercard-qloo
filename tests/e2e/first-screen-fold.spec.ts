@@ -103,6 +103,32 @@ test.describe("the first screen above the fold", () => {
       });
   });
 
+  // WS8: a maximized browser on the commonest small laptops shows Watch before any scroll, with
+  // the lead, the town picker and the top of the poster; the town is shorter there.
+  for (const [width, height] of [
+    [1366, 640],
+    [1280, 650],
+  ] as const)
+    test.describe(`on a short laptop, ${width}x${height}`, () => {
+      test.use({ viewport: { width, height } });
+
+      for (const { path, town } of PATHS)
+        test(`${path}: the lead, the town picker, Watch and the top of the poster`, async ({
+          page,
+        }) => {
+          await open(page, path);
+          await aboveTheFold(page, town);
+          await expect(
+            page.getByRole("region", { name: "Your town" }),
+          ).toBeInViewport();
+          expect(
+            await page.evaluate(
+              () => document.documentElement.scrollWidth - window.innerWidth,
+            ),
+          ).toBeLessThanOrEqual(0);
+        });
+    });
+
   // The poster's stamp sits in its corner beside the tabs; on a narrower phone it must not slide
   // under them (WS9's phone pass, at 375 px).
   for (const width of [375, 360])
