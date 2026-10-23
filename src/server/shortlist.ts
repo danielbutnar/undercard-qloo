@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   headlinerTagWeights,
   sharedTags,
@@ -12,6 +13,8 @@ import {
   distinctNames,
   placesIn,
   sameAnswer,
+  SHORTLIST_CALL_CAP,
+  SHORTLIST_MAX_NAMES,
   sortShortlist,
   type Climb,
   type Repeat,
@@ -19,15 +22,22 @@ import {
   type ShortlistAct,
   type VenuePlaces,
 } from "@/lib/shortlist";
+import { festivalById } from "@/lib/towns";
 import { venueHues } from "@/lib/venue-colours";
-import type { BuildContext, SavedBuild } from "./build-store";
+import type { BuildContext, BuildStore, SavedBuild } from "./build-store";
+import { serverCachedQloo, serverQloo } from "./deps";
 import {
+  createQlooClient,
+  QlooBusy,
   QlooCacheMiss,
+  QlooError,
   type QlooCall,
   type QlooClient,
   type QlooEntity,
   type QlooResult,
 } from "./qloo";
+import { createMemoryCache, syntheticMode, type QlooCache } from "./qloo-cache";
+import type { RateLimiter } from "./rate-limit";
 
 /** One Qloo call a check may make, run against the client the budget gives it. */
 export type ShortlistTask<T extends unknown[]> = (
@@ -35,12 +45,15 @@ export type ShortlistTask<T extends unknown[]> = (
 ) => Promise<QlooResult<T>>;
 
 /**
- * A check's Qloo calls (WS4): each runs through the live client, and a call the server's Qloo
- * cache answers still lists, marked cached. A cache-only client's miss is a call not made: its
- * result is null. `made` counts the calls that reached Qloo.
+ * A check's Qloo calls under its hard cap (WS4, step 4). A call the server's Qloo cache answers
+ * costs nothing and still lists, marked cached; `made` counts the calls that reached Qloo. When
+ * a batch holds more calls than the cap leaves, the cache answers what it can first, and the
+ * calls that must reach Qloo take what's left in order: the rest aren't made, and their result is
+ * null, as a cache-only client's miss is.
  */
 export function callBudget({
   live,
+  cached,
   cap,
 }: {
   /** Calls that may reach Qloo go here (cache first, as every client reads). */
@@ -51,21 +64,33 @@ export function callBudget({
   cap: number;
 }) {
   let made = 0;
+  async function attempt<T extends unknown[]>(
+    task: ShortlistTask<T>,
+    qloo: QlooClient,
+  ): Promise<QlooResult<T> | null> {
+    try {
+      return await task(qloo);
+    } catch (error) {
+      if (error instanceof QlooCacheMiss) return null;
+      throw error;
+    }
+  }
   return {
     cap,
     async run<T extends unknown[]>(
       tasks: readonly ShortlistTask<T>[],
     ): Promise<(QlooResult<T> | null)[]> {
-      const results = await Promise.all(
-        tasks.map(async (task) => {
-          try {
-            return await task(live);
-          } catch (error) {
-            if (error instanceof QlooCacheMiss) return null;
-            throw error;
-          }
-        }),
-      );
+      let spare = cap - made;
+      const results =
+        tasks.length <= spare
+          ? await Promise.all(tasks.map((task) => attempt(task, live)))
+          : await Promise.all(
+              (
+                await Promise.all(tasks.map((task) => attempt(task, cached)))
+              ).map((hit, index) =>
+                hit ? hit : spare-- > 0 ? attempt(tasks[index], live) : null,
+              ),
+            );
       made += results.filter((result) => result && !result.call.cached).length;
       return results;
     },
@@ -370,4 +395,137 @@ export async function checkShortlist({
     made: budget.made(),
     cap: budget.cap,
   };
+}
+
+/** The clients a check runs on: one that may call Qloo, and one that reads the cache only. */
+export interface ShortlistClients {
+  live: QlooClient;
+  cached: QlooClient;
+}
+
+/** POST /api/shortlist's body: a checked town's festival id and the names as pasted. */
+export const ShortlistRequestSchema = z.object({
+  festival: z.string().min(1).max(120),
+  names: z.array(z.string().max(200)).max(50),
+});
+
+const answer = (
+  body: unknown,
+  status: number,
+  headers: Record<string, string> = {},
+) =>
+  Response.json(body, {
+    status,
+    headers: { "cache-control": "no-store", ...headers },
+  });
+
+/**
+ * POST /api/shortlist (WS4, step 4): one check of up to 10 names against a checked town's
+ * saved build, at most 14 Qloo calls, limited per IP and per day like a live build with the
+ * limiter's own message. A request it refuses never reaches the limiter or Qloo.
+ */
+export async function handleShortlist({
+  body,
+  store,
+  clients,
+  limiter,
+  ip,
+}: {
+  body: unknown;
+  store: Pick<BuildStore, "latest">;
+  clients: () => Promise<ShortlistClients | null>;
+  limiter: RateLimiter;
+  ip: string;
+}): Promise<Response> {
+  const request = ShortlistRequestSchema.safeParse(body);
+  if (!request.success)
+    return answer({ error: "That shortlist request isn't valid." }, 400);
+  const festival = festivalById(request.data.festival);
+  if (!festival)
+    return answer(
+      { error: "Pick one of the towns Undercard has already read." },
+      400,
+    );
+  const { names } = distinctNames(request.data.names);
+  if (names.length === 0)
+    return answer(
+      {
+        error: "Paste at least one act's name, one per line.",
+        code: "no-names",
+      },
+      400,
+    );
+  if (names.length > SHORTLIST_MAX_NAMES)
+    return answer(
+      {
+        error: `Paste at most ${SHORTLIST_MAX_NAMES} names: this list has ${names.length}.`,
+        code: "too-many",
+      },
+      400,
+    );
+  const build = await store.latest(festival.id);
+  if (!build || build.festivalId !== festival.id)
+    return answer(
+      {
+        error: `Undercard has no saved build for ${festival.city} yet, so it has no venues to read there.`,
+        code: "no-saved-build",
+      },
+      404,
+    );
+  const qloo = await clients();
+  if (!qloo)
+    return answer({ error: "Qloo isn't configured on this server." }, 503);
+  const verdict = await limiter.check("shortlist", ip);
+  if (!verdict.allowed)
+    return answer({ error: verdict.message, code: "limit" }, 429, {
+      "retry-after": String(verdict.retryAfterSeconds),
+    });
+  try {
+    const shortlist = await checkShortlist({
+      festival,
+      build,
+      names,
+      budget: callBudget({ ...qloo, cap: SHORTLIST_CALL_CAP }),
+    });
+    return answer({ shortlist }, 200);
+  } catch (error) {
+    if (!(error instanceof QlooError)) throw error;
+    return answer(
+      {
+        error:
+          error instanceof QlooBusy
+            ? error.message
+            : "Qloo didn't answer the check. Try again in a minute.",
+        code: "qloo-busy",
+      },
+      503,
+    );
+  }
+}
+
+let syntheticCache: QlooCache | null = null;
+
+/**
+ * The server's clients for a check: Qloo through the shared cache, null without a key. In
+ * synthetic mode (local e2e runs), the invented answers of tests/e2e/synthetic-build.ts on a
+ * memory cache of their own, so a check never reaches the network or the seeded cache.
+ */
+export async function serverShortlistClients(): Promise<ShortlistClients | null> {
+  if (syntheticMode()) {
+    const { syntheticShortlistQloo } =
+      await import("../../tests/e2e/synthetic-build");
+    const cache = (syntheticCache ??= createMemoryCache());
+    return {
+      live: createQlooClient({
+        apiKey: "synthetic",
+        cache,
+        fetch: async (input) =>
+          Response.json(syntheticShortlistQloo(new URL(String(input)))),
+      }),
+      cached: createQlooClient({ apiKey: "", cache, cacheOnly: true }),
+    };
+  }
+  const live = serverQloo();
+  const cached = serverCachedQloo();
+  return live && cached ? { live, cached } : null;
 }

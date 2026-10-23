@@ -31,8 +31,9 @@ function PlannerLine({ text }: { text: string }) {
   );
 }
 
-// The newest call shows its parameters as it streams in; the rest fold behind a toggle.
-function CallRow({
+// The newest call shows its parameters as it streams in; the rest fold behind a toggle. The
+// shortlist (WS4) lists its calls with the same row.
+export function CallRow({
   call,
   highlighted,
   before = [],

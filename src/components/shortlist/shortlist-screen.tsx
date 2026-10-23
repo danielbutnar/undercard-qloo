@@ -6,38 +6,67 @@ import "@/components/chart/chart.css";
 import "./shortlist.css";
 import { CHECKED_TOWNS, checkedTownLabel } from "@/lib/checked-towns";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
-import { pastedNames, ShortlistSchema, type Shortlist } from "@/lib/shortlist";
+import {
+  distinctNames,
+  pastedNames,
+  SHORTLIST_MAX_NAMES,
+  ShortlistSchema,
+  type Shortlist,
+} from "@/lib/shortlist";
 import { checkedFestival } from "@/lib/towns";
+import { ShortlistCalls } from "./shortlist-calls";
 import { ShortlistResults } from "./shortlist-results";
-import { CHECK_BUTTON, SHORTLIST_LEAD, SHORTLIST_TITLE } from "./words";
+import {
+  CHECK_BUTTON,
+  namesProblem,
+  SHORTLIST_LEAD,
+  SHORTLIST_TITLE,
+} from "./words";
 
 const TOWNS = CHECKED_TOWNS.map((town) => ({
   festival: checkedFestival(town),
   label: checkedTownLabel(town),
 }));
 
-type State =
-  | { status: "idle" }
-  | { status: "checking"; names: number }
-  | { status: "error"; message: string }
-  | { status: "done"; shortlist: Shortlist };
+const FAILED = "The check didn't finish. Try again in a minute.";
+
+type Status =
+  | { kind: "idle" }
+  | { kind: "checking"; names: number }
+  | { kind: "error"; message: string };
+
+/** The route's error message, or the plain one. */
+function errorOf(body: unknown): string {
+  return body && typeof body === "object" && "error" in body
+    ? String(body.error)
+    : FAILED;
+}
 
 /**
  * The buyer's shortlist (WS4): pick one of the checked towns, paste the acts you've been
  * pitched, and Undercard sorts them by how fans of that town's venues rank them, with each
- * act's fee range and genre fit. It drafts nothing and books nothing.
+ * act's fee range and genre fit. It drafts nothing and books nothing; the page calls Qloo only
+ * when the buyer presses the button.
  */
 export function ShortlistScreen() {
   const [festivalId, setFestivalId] = useState(SAGEBRUSH_SOUND.id);
   const [text, setText] = useState("");
-  const [state, setState] = useState<State>({ status: "idle" });
+  const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const [result, setResult] = useState<Shortlist | null>(null);
+  // Each answered check brings its rows into view (a phone shows them under the form).
+  const [answered, setAnswered] = useState(0);
   const town = TOWNS.find((entry) => entry.festival.id === festivalId);
-  const checking = state.status === "checking";
+  const checking = status.kind === "checking";
 
   async function check(event: FormEvent) {
     event.preventDefault();
     const names = pastedNames(text);
-    setState({ status: "checking", names: names.length });
+    const problem = namesProblem(
+      distinctNames(names).names.length,
+      SHORTLIST_MAX_NAMES,
+    );
+    if (problem) return setStatus({ kind: "error", message: problem });
+    setStatus({ kind: "checking", names: distinctNames(names).names.length });
     try {
       const response = await fetch("/api/shortlist", {
         method: "POST",
@@ -50,22 +79,16 @@ export function ShortlistScreen() {
           ? body.shortlist
           : null,
       );
-      if (response.ok && parsed.success)
-        return setState({ status: "done", shortlist: parsed.data });
-      const message =
-        body && typeof body === "object" && "error" in body
-          ? String(body.error)
-          : "The check didn't finish. Try again in a minute.";
-      setState({ status: "error", message });
+      if (!response.ok || !parsed.success)
+        return setStatus({ kind: "error", message: errorOf(body) });
+      setResult(parsed.data);
+      setAnswered((n) => n + 1);
+      setStatus({ kind: "idle" });
     } catch {
-      setState({
-        status: "error",
-        message: "The check didn't finish. Try again in a minute.",
-      });
+      setStatus({ kind: "error", message: FAILED });
     }
   }
 
-  const shown = state.status === "done" ? state.shortlist : null;
   return (
     <div className="chart-app stage-bg">
       <TopBar />
@@ -98,7 +121,8 @@ export function ShortlistScreen() {
             </label>
             <label className="field">
               <span className="field-label">
-                Acts you&apos;ve been pitched, one per line, up to 10
+                Acts you&apos;ve been pitched, one per line, up to{" "}
+                {SHORTLIST_MAX_NAMES}
               </span>
               <textarea
                 name="names"
@@ -125,42 +149,54 @@ export function ShortlistScreen() {
             <p className="yours-note">
               A check makes up to 14 Qloo calls: a search for each name, then
               one ranking for the headliners&apos; fans alone and one for each
-              of the town&apos;s venues. It drafts nothing and books nothing.
+              of the town&apos;s venues. Limited to 5 checks a day from your
+              address. It drafts nothing and books nothing.
             </p>
           </form>
           <div className="shortlist-out">
-            {state.status === "idle" && (
-              <section
-                className="panel shortlist-empty"
-                aria-label="Your sorted shortlist"
-              >
-                <h2 className="panel-title">Your sorted shortlist</h2>
-                <p className="panel-sub">
-                  Paste the names and press {CHECK_BUTTON}: each act&apos;s
-                  climb with {town?.festival.city ?? "the town"}&apos;s venue
-                  fans, its fee range and its genre fit print here.
-                </p>
-              </section>
-            )}
-            {checking && (
+            {status.kind === "checking" && (
               <p className="panel shortlist-status" aria-live="polite">
-                Checking {state.names} {state.names === 1 ? "name" : "names"} on
-                Qloo: a search each, then a ranking for the headliners&apos;
+                Checking {status.names} {status.names === 1 ? "name" : "names"}{" "}
+                on Qloo: a search each, then a ranking for the headliners&apos;
                 fans alone and one for each venue…
               </p>
             )}
-            {state.status === "error" && (
+            {status.kind === "error" && (
               <p role="alert" className="panel alert shortlist-status">
-                {state.message}
+                {status.message}
               </p>
             )}
-            {shown && (
-              <ShortlistResults
-                shortlist={shown}
-                title={`Sorted for ${shown.city}'s venues`}
-              />
+            {result ? (
+              <>
+                {result.festivalId !== festivalId && town && (
+                  <p className="shortlist-note">
+                    These are sorted for {result.city}. Press {CHECK_BUTTON} to
+                    sort them for {town.festival.city}.
+                  </p>
+                )}
+                <ShortlistResults
+                  shortlist={result}
+                  title={`Sorted for ${result.city}'s venues`}
+                  focusKey={answered}
+                />
+              </>
+            ) : (
+              status.kind !== "checking" && (
+                <section
+                  className="panel shortlist-empty"
+                  aria-label="Your sorted shortlist"
+                >
+                  <h2 className="panel-title">Your sorted shortlist</h2>
+                  <p className="panel-sub">
+                    Paste the names and press {CHECK_BUTTON}: each act&apos;s
+                    climb with {town?.festival.city ?? "the town"}&apos;s venue
+                    fans, its fee range and its genre fit print here.
+                  </p>
+                </section>
+              )
             )}
           </div>
+          {result && <ShortlistCalls shortlist={result} />}
         </div>
       </main>
     </div>

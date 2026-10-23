@@ -10,22 +10,31 @@
   gap: 18px;
   max-width: 1328px;
 }
+/* The form, then the sorted rows, then the calls; on a laptop the calls sit under the form. */
 .chart-app .shortlist-layout {
   display: grid;
+  grid-template-areas: "form" "out" "calls";
   grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   align-items: start;
 }
 @media (min-width: 1100px) {
   .chart-app .shortlist-layout {
+    grid-template-areas: "form out" "calls out";
     grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
     gap: 24px 32px;
   }
 }
 .chart-app .shortlist-form {
+  grid-area: form;
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+.chart-app .shortlist-calls {
+  grid-area: calls;
+  min-width: 0;
 }
 .chart-app .shortlist-names {
   min-height: 15rem;
@@ -33,6 +42,7 @@
   line-height: 1.4;
 }
 .chart-app .shortlist-out {
+  grid-area: out;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -47,6 +57,14 @@
   flex-direction: column;
   gap: 14px;
 }
+/* Focused after a check so it comes into view; the outline shows only for keyboard focus. */
+.chart-app .shortlist-title:focus {
+  outline: none;
+}
+.chart-app .shortlist-title:focus-visible {
+  outline: 4px solid var(--color-accent);
+  outline-offset: 2px;
+}
 
 /* The venues read: each in its colour on the town's lineup, grey where Qloo had no fan data. */
 .chart-app .shortlist .shortlist-venue {
@@ -57,21 +75,16 @@
   border-style: dashed;
 }
 
-/* A row: the climb, the sleeve, the name and the ladder, then its three lines under them. */
+/*
+ * A row: the climb, the sleeve, the name and the ladder, then its three lines under them. The
+ * lineup's row has four columns at every width (chart.css); this adds a third row for the lines.
+ */
 .chart-app .shortlist .row.shortlist-row {
   grid-template-areas:
-    "place who venue"
-    "place climb venue"
-    "place lines venue";
+    "place sleeve who venue"
+    "place sleeve climb venue"
+    "place sleeve lines venue";
   row-gap: 2px;
-}
-@media (min-width: 560px) {
-  .chart-app .shortlist .row.shortlist-row {
-    grid-template-areas:
-      "place sleeve who venue"
-      "place sleeve climb venue"
-      "place sleeve lines venue";
-  }
 }
 .chart-app .shortlist-lines {
   grid-area: lines;

@@ -78,6 +78,25 @@ export function venueWords(venue: ShortlistVenue, cap: number): string {
     : `${venue.name}'s fans lift ${venue.lifts} of your acts`;
 }
 
+/** Under the calls' tally: how many there were, how many reached Qloo, how many the cache answered. */
+export function callsLine({
+  calls,
+  made,
+}: {
+  calls: readonly { cached: boolean }[];
+  made: number;
+}): string {
+  const cached = calls.filter((call) => call.cached).length;
+  return `${calls.length} ${calls.length === 1 ? "call" : "calls"}: ${made} made, ${cached} answered from the server's Qloo cache.`;
+}
+
+/** Too many names, or none: what to change before a check. */
+export function namesProblem(count: number, max: number): string | null {
+  if (count === 0) return "Paste at least one act's name, one per line.";
+  if (count > max) return `Paste at most ${max} names: this list has ${count}.`;
+  return null;
+}
+
 /** The climb's one-line key over the rows. */
 export const CLIMB_KEY =
   "places it climbs among your acts once a venue's fans join the headliners' fans";

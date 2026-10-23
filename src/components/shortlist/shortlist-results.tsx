@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Tri } from "@/components/chart/band-chart";
 import { Cover } from "@/components/chart/cover";
 import { ordinal, venueShort } from "@/components/chart/words";
@@ -142,10 +143,17 @@ function MissingRow({ act }: { act: Exclude<ShortlistAct, Found> }) {
 export function ShortlistResults({
   shortlist,
   title,
+  focusKey = 0,
 }: {
   shortlist: Shortlist;
   title: string;
+  /** Bumped by each check the buyer runs: the answer's heading takes focus and comes into view. */
+  focusKey?: number;
 }) {
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (focusKey > 0) heading.current?.focus();
+  }, [focusKey]);
   const feeBands = festivalById(shortlist.festivalId) ?? {
     feeBands: [],
   };
@@ -157,7 +165,12 @@ export function ShortlistResults({
       className="shortlist-results"
     >
       <div className="panel">
-        <h2 id="shortlist-results-title" className="panel-title">
+        <h2
+          ref={heading}
+          id="shortlist-results-title"
+          tabIndex={-1}
+          className="panel-title shortlist-title"
+        >
           {title}
         </h2>
         <p className="panel-sub">
