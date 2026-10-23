@@ -103,6 +103,33 @@ test.describe("the first screen above the fold", () => {
       });
   });
 
+  // WS8 (the brief's item 15): on a laptop an act's card over the town scrolls inside itself with
+  // its head and its actions pinned, so Close, Keep and Unavailable stay in view, in each tier.
+  test.describe("an act's card on a laptop, 1440x900", () => {
+    test.use({ viewport: { width: 1440, height: 900 } });
+
+    test("Keep, Unavailable and Close stay in view, for an act in each tier", async ({
+      page,
+    }) => {
+      await open(page, "/");
+      const poster = page.getByRole("region", { name: "Undercard draft" });
+      for (const tier of ["Mid-size acts", "Opening acts"]) {
+        const act = poster
+          .getByRole("region", { name: tier })
+          .getByRole("article")
+          .first();
+        const name = (await act.getAttribute("aria-label"))!;
+        await act.getByRole("button", { name, exact: true }).click();
+        const card = page.getByRole("region", { name: "Act card" });
+        for (const button of ["Keep", "Unavailable", "Close the card"])
+          await expect(
+            card.getByRole("button", { name: button, exact: true }),
+          ).toBeInViewport({ ratio: 1 });
+        await card.getByRole("button", { name: "Close the card" }).click();
+      }
+    });
+  });
+
   // WS8: a maximized browser on the commonest small laptops shows Watch before any scroll, with
   // the lead, the town picker and the top of the poster; the town is shorter there.
   for (const [width, height] of [

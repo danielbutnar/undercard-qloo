@@ -755,6 +755,21 @@
   max-height: calc(100% - 24px);
   overflow-y: auto;
 }
+/* WS8 (the brief's item 15): an act's card over the town scrolls inside its panel with its head
+   and its actions pinned, so Close, Keep and Unavailable stay in view on a short laptop. */
+.chart-app.fs .scene-panel .card-head,
+.chart-app.fs .scene-panel .card-actions {
+  position: sticky;
+  z-index: 2;
+  background: inherit;
+}
+.chart-app.fs .scene-panel .card-head {
+  top: 0;
+}
+.chart-app.fs .scene-panel .card-actions {
+  bottom: 0;
+  padding: 8px 0;
+}
 .chart-app.fs .scene-note {
   position: absolute;
   left: 50%;
