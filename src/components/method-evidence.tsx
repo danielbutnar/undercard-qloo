@@ -455,9 +455,10 @@ export function MethodEvidencePage() {
               venues. Mid-size and opening are the two groups of slots, each
               with its own fee range. A fee range is a range of Qloo popularity
               the buyer sets, fixed to Sagebrush Sound&apos;s in this demo. It
-              stands in for a fee because no fee data exists. Matched random acts are
-              drawn at random from Qloo&apos;s ranking for the same headliners
-              and matched on fee range, as docs/evidence.md describes.
+              stands in for a fee because no fee data exists. Matched random
+              acts are drawn at random from Qloo&apos;s ranking for the same
+              headliners and matched on fee range, as docs/evidence.md
+              describes.
             </p>
             <EvidenceTable
               title="Does the idea hold?"
