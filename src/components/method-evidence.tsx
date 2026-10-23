@@ -454,8 +454,8 @@ export function MethodEvidencePage() {
               most Qloo affinity an act gains from any one of the town&apos;s
               venues. Mid-size and opening are the two groups of slots, each
               with its own fee range. A fee range is a range of Qloo popularity
-              the festival sets; in the demo, Sagebrush Sound&apos;s. It stands
-              in for a fee because no fee data exists. Matched random acts are
+              the buyer sets, fixed to Sagebrush Sound&apos;s in this demo. It
+              stands in for a fee because no fee data exists. Matched random acts are
               drawn at random from Qloo&apos;s ranking for the same headliners
               and matched on fee range, as docs/evidence.md describes.
             </p>
@@ -599,8 +599,8 @@ export function MethodEvidencePage() {
               <ul className="limits">
                 <li>
                   That the acts would sell tickets, take the slot or fit the
-                  budget: the fee ranges are popularity ranges the festival
-                  sets, not fees.
+                  budget: the fee ranges are popularity ranges the buyer sets,
+                  not fees.
                 </li>
                 <li>
                   That a town&apos;s crowd knows the undercard acts, or that a

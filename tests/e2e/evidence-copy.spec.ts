@@ -79,9 +79,10 @@ test("the evidence page reads in the plan's order, every label linked", async ({
   expect(repeated).toEqual([]);
   // Item 7, scope: whose fee ranges these are, and the local acts Undercard leaves out.
   await expect(page.getByRole("region", { name: "Evidence" })).toContainText(
-    "A fee range is a range of Qloo popularity the festival sets; in the " +
-      "demo, Sagebrush Sound's. It stands in for a fee because no fee data " +
-      "exists.",
+    // Daniel, 2026-10-23 (WS6, version A): the buyer sets it, fixed in this demo.
+    "A fee range is a range of Qloo popularity the buyer sets, fixed to " +
+      "Sagebrush Sound's in this demo. It stands in for a fee because no fee " +
+      "data exists.",
   );
   // The second batch, item 2: the first limit says the same.
   await expect(
@@ -91,7 +92,7 @@ test("the evidence page reads in the plan's order, every label linked", async ({
       .first(),
   ).toHaveText(
     "That the acts would sell tickets, take the slot or fit the budget: the " +
-      "fee ranges are popularity ranges the festival sets, not fees.",
+      "fee ranges are popularity ranges the buyer sets, not fees.",
   );
   await expect(
     page
