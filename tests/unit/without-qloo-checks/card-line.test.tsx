@@ -139,7 +139,7 @@ describe("each card, one line in the small style", () => {
 });
 
 const CHECKS_LINE =
-  "Across 29 towns, 235 of the model's 290 picks share two genres with the headliners, 204 of the 268 Qloo finds sit above the fee range, and 11 climb with a town venue's fans, a check only Qloo data can pass.";
+  "Across 29 towns, the model alone picked 290 acts; Qloo found 268 of them. Of those 268, 204 sit above the fee range, 235 share two genres with the headliners, and 10 pass all three of the rule's checks.";
 const OLD_LINE =
   /^Across \d+ towns, the model alone and Qloo share [^,]+(, in [^,]+)?, and \d+ of the model's \d+ picks pass all three checks\.$/;
 

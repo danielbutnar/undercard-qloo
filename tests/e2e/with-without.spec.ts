@@ -10,7 +10,7 @@ const LINE =
   /^Across \d+ towns, .+, and \d+ of the model's \d+ picks pass all three checks\.$/;
 // Prompt-4: under the toggle, the line counts each check.
 const CHECKS_LINE =
-  /^Across \d+ towns, \d+ of the model's \d+ picks share two genres with the headliners, \d+ of the \d+ Qloo finds sit above the fee range, and \d+ climb with a town venue's fans, a check only Qloo data can pass\.$/;
+  /^Across \d+ towns, the model alone picked \d+ acts; Qloo found \d+ of them\. Of those \d+, \d+ sit above the fee range, \d+ share two genres with the headliners, and \d+ pass all three of the rule's checks\.$/;
 
 test("the per-check line sits under the toggle, and the With and Without Qloo line on How it works", async ({
   page,
