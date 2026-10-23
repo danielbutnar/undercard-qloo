@@ -1,6 +1,8 @@
+import type { Metadata } from "next";
 import { cacheLife } from "next/cache";
 import { notFound } from "next/navigation";
 import { FestivalScreen } from "@/components/festival-screen";
+import { shareMetadata } from "@/components/share/share-words";
 import { TOWNS, townBySlug } from "@/lib/towns";
 import { withArtistImages } from "@/server/artist-images";
 import { serverBuildStore } from "@/server/deps";
@@ -38,6 +40,16 @@ export const instant = false;
 
 export function generateStaticParams() {
   return TOWNS.slice(1).map((town) => ({ town: town.slug }));
+}
+
+// The town's link preview tags (WS10); the picture is ./opengraph-image.ts.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ town: string }>;
+}): Promise<Metadata> {
+  const town = townBySlug((await params).town);
+  return town ? shareMetadata(town.festival) : {};
 }
 
 export default async function TownPage({
