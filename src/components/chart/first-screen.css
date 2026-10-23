@@ -1886,3 +1886,30 @@
     display: none;
   }
 }
+
+/* Below 390 px the tabs reach the corner: the stamp sits in the poster's flow instead, over the
+   festival's name, as the layout brief's board sets it inline (stampInline). */
+@media (max-width: 389px) {
+  .chart-app.fs .poster-stamp {
+    position: static;
+    align-self: center;
+    margin: -2px 0 2px;
+    rotate: -3deg;
+  }
+}
+
+/* Below 400 px the wordmark and the nav share a narrower bar: both a little smaller, the links
+   still 44 px tall. */
+@media (max-width: 399px) {
+  .chart-app.fs .fs-word {
+    font-size: 24px;
+  }
+  .chart-app.fs .fs-top .nav {
+    margin-right: -6px;
+  }
+  .chart-app.fs .fs-top .nav a,
+  .chart-app.fs .fs-top .nav button {
+    padding: 0 6px;
+    font-size: 14px;
+  }
+}

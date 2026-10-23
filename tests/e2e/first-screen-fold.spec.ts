@@ -103,6 +103,50 @@ test.describe("the first screen above the fold", () => {
       });
   });
 
+  // The poster's stamp sits in its corner beside the tabs; on a narrower phone it must not slide
+  // under them (WS9's phone pass, at 375 px).
+  for (const width of [375, 360])
+    test.describe(`on a ${width} px phone`, () => {
+      test.use({ viewport: { width, height: 812 } });
+
+      test("the poster's stamp clears its tabs", async ({ page }) => {
+        await open(page, "/");
+        const stamp = (await page.locator(".poster-stamp").boundingBox())!;
+        for (const tab of await page
+          .getByRole("group", { name: "Which bill" })
+          .getByRole("button")
+          .all()) {
+          const box = (await tab.boundingBox())!;
+          const overlaps =
+            stamp.x < box.x + box.width &&
+            box.x < stamp.x + stamp.width &&
+            stamp.y < box.y + box.height &&
+            box.y < stamp.y + stamp.height;
+          expect(overlaps).toBe(false);
+        }
+        await expect(page.locator(".poster-stamp")).toBeInViewport({
+          ratio: 1,
+        });
+      });
+
+      test("the wordmark clears the nav, with room between them", async ({
+        page,
+      }) => {
+        await open(page, "/");
+        const banner = page.getByRole("banner");
+        const word = (await banner
+          .getByRole("link", { name: /^Undercard/ })
+          .boundingBox())!;
+        const how = (await banner
+          .getByRole("link", { name: "How it works" })
+          .boundingBox())!;
+        expect(how.x - (word.x + word.width)).toBeGreaterThanOrEqual(8);
+        await expect(
+          banner.getByRole("link", { name: "Your festival" }),
+        ).toBeInViewport({ ratio: 1 });
+      });
+    });
+
   test.describe("on a phone, 390x664", () => {
     test.use({ viewport: { width: 390, height: 664 } });
 
