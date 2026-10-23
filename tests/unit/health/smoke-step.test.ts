@@ -157,6 +157,19 @@ describe("the smoke workflow", () => {
     );
   });
 
+  // Daniel, 2026-10-23: ubuntu-latest moves to Ubuntu 26 from 19 October, which may be what broke
+  // that morning's Playwright install; this workflow and the gate's stay on 24.04 until judging ends.
+  it("runs on ubuntu-24.04, as the gate's workflow does", () => {
+    for (const file of [
+      ".github/workflows/smoke.yml",
+      ".github/workflows/gate.yml",
+    ]) {
+      const text = readFileSync(file, "utf8");
+      expect(text).toMatch(/\n {4}runs-on: ubuntu-24\.04\n/);
+      expect(text).not.toMatch(/runs-on: ubuntu-latest/);
+    }
+  });
+
   it("tries the Playwright install once more when it fails", () => {
     expect(yaml).toContain(
       "run: pnpm exec playwright install --with-deps chromium || (sleep 30 && pnpm exec playwright install --with-deps chromium)",

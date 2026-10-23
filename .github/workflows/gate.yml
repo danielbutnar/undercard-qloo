@@ -13,7 +13,9 @@ permissions:
 
 jobs:
   gate:
-    runs-on: ubuntu-latest
+    # Pinned until judging ends: GitHub moves ubuntu-latest to Ubuntu 26 from 19 October, which
+    # may be what broke the 23 October morning run's Playwright install.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
