@@ -27,7 +27,6 @@ import {
   climbMark,
   exampleAct,
   exampleHint,
-  bookedLabel,
   footnote,
   LEAD_TITLE,
   leadLine,
@@ -62,6 +61,8 @@ import {
   agentLine,
   ANCHORS_KEY,
   factsLine,
+  headlinersBooked,
+  headlinersNote,
   saysAnchors,
   SKIP,
   switchLine,
@@ -1564,12 +1565,18 @@ export function FestivalScreen({
               <h1 className="poster-name">{festival.name}</h1>
               <p className="facts">{factsLine(festival)}</p>
               <span className="poster-rule-line" aria-hidden />
-              <p className="poster-booked">{bookedLabel(festival)}</p>
               <HeadlinerList
                 headliners={festival.headliners}
                 images={firstBill?.headlinerImages}
                 ids={headlinerIds}
               />
+              {/* Under the headliners (WS8, item 12a): who they are, and that Undercard drafted
+                  the rest; Without Qloo, nothing below them is the agent's. */}
+              <p className="poster-headliners-note">
+                {without
+                  ? headlinersBooked(festival)
+                  : headlinersNote(festival, state.acts.length > 0)}
+              </p>
               <span className="poster-rule-line" aria-hidden />
               {without ? withoutPoster : withPoster}
               {/* Prompt 4's count of each check, on both sides of the tabs. */}
@@ -1634,7 +1641,10 @@ export function FestivalScreen({
             {!without && !custom && !watching && allVenues.length > 0 && (
               <VenueSwitch
                 city={festival.city}
-                venues={venueLines}
+                venues={venueLines.map((venue) => ({
+                  ...venue,
+                  noFanData: fanless.includes(venue.entityId),
+                }))}
                 off={switcher.off}
                 status={switcher.status}
                 onToggle={(id) => {

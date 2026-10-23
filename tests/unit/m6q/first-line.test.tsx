@@ -63,9 +63,11 @@ describe("the first screen for a lay reader (M6q)", () => {
         "Boise, Idaho · 3,000 capacity · crowd aged 25–34",
       ),
     ).toBeTruthy();
-    // WS9: the label over them says they're booked, and that the demo's two are bands.
-    const label = within(draft).getByText("Booked by you: two bands");
-    expect(follows(label, headliners)).toBe(true);
+    // WS8 (item 12a): the note under them says they're booked, and that the demo's two are bands.
+    const note = within(draft).getByText(
+      /^The headliners, two bands, are already booked · /,
+    );
+    expect(follows(headliners, note)).toBe(true);
   });
 
   it("doesn't call a judge's own headliners bands", () => {
@@ -86,7 +88,9 @@ describe("the first screen for a lay reader (M6q)", () => {
         .getAllByRole("listitem")
         .map((item) => item.textContent),
     ).toEqual(["Mitski", "Khruangbin"]);
-    expect(within(draft).getByText("Booked by you")).toBeTruthy();
+    expect(
+      within(draft).getByText(/^The headliners are already booked · /),
+    ).toBeTruthy();
     expect(screen.queryByText(/two bands/)).toBeNull();
   });
 

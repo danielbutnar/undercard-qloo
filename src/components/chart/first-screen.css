@@ -1005,6 +1005,13 @@
     order: 2;
   }
 }
+/* WS8 (item 12a): the note under the headliners. */
+.chart-app.fs .poster-headliners-note {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+}
 .chart-app.fs .poster-sheet {
   position: relative;
   z-index: 1;

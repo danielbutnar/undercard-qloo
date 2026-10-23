@@ -29,8 +29,8 @@ export function WithWithoutLine() {
   return (
     <p className="mode-number">
       Across {counts.towns} towns, {sharedPhrase(counts)}, and{" "}
-      {counts.picksPassing} of the model&apos;s {counts.picks} picks pass the
-      tests every Qloo act passes.
+      {counts.picksPassing} of the model&apos;s {counts.picks} picks pass all
+      three checks.
     </p>
   );
 }

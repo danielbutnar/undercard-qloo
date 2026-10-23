@@ -141,6 +141,29 @@ describe("the poster", () => {
     );
   });
 
+  // WS8 (item 12a): under the headliners, the note words.ts has (headlinersNote); no "Booked by
+  // you" chip over them.
+  it("says under the headliners that they're booked and Undercard drafted the rest (WS8)", () => {
+    open();
+    const heads = within(poster()).getByRole("list", {
+      name: "Booked headliners",
+    });
+    const note = heads.nextElementSibling;
+    expect(note?.textContent).toBe(
+      "The headliners, two bands, are already booked · Undercard drafted the rest of the lineup (the bill) from Qloo's numbers",
+    );
+    expect(within(poster()).queryByText(/Booked by you/)).toBeNull();
+  });
+
+  it("says Undercard will draft the rest before a draft exists (WS8)", () => {
+    render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={null} />);
+    expect(
+      within(poster()).getByText(
+        "The headliners, two bands, are already booked · Undercard will draft the rest of the lineup (the bill) from Qloo's numbers",
+      ),
+    ).toBeTruthy();
+  });
+
   // WS8: each tier lists its acts in the rule's order (the strongest Qloo match first), each with
   // its place in its venue's ranking beside the climb.
   it("lists each tier in the rule's order, with the rank beside the climb (WS8)", async () => {
