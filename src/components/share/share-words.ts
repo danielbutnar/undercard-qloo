@@ -3,6 +3,7 @@ import type { Festival } from "@/lib/festival";
 import type { FirstBill } from "@/lib/first-bill";
 import type { Act, Venue } from "@/lib/lineup";
 import { liftOf } from "@/lib/marks";
+import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import type { Placed } from "@/lib/venue-switch";
 import { venueHues } from "@/lib/venue-colours";
 import {
@@ -27,6 +28,18 @@ export const SHARE_DRAFTED = "Drafted by Undercard";
 /** Daniel's line for the preview (WS10 brief): whose fans drafted the acts. */
 export const draftedFrom = (city: string) =>
   `from what fans of ${city}'s music venues love`;
+
+/**
+ * The picture's alt text. A route's alt text can't read its params, so the towns' route has one
+ * for every town (`null`).
+ */
+export function shareAlt(festival: Festival | null): string {
+  const shows = (whose: string) =>
+    `its booked headliners, then the acts Undercard drafted from what fans of ${whose} music venues love, each in its venue's colour.`;
+  return festival
+    ? `${festival.name}, a fictional festival in ${festival.city}, ${festival.region}: ${shows(`${festival.city}'s`)}`
+    : `${SAGEBRUSH_SOUND.name}, a fictional festival: ${shows("the town's")}`;
+}
 
 export interface ShareVenue {
   name: string;
@@ -68,10 +81,34 @@ export type ShareCard =
     }
   | { kind: "plain"; wordmark: string; tagline: string };
 
-// What next/og's own font (Geist Regular, bundled with Next.js) draws: ASCII, Latin-1 and Latin
-// Extended-A but for the 12 letters it lacks, the dashes, quotes and dots the words use, and ↑.
-// Satori fetches a font from Google for any other character, so the preview never draws one.
-const DRAWABLE = /[ -~ -¬®-ēĖ-īĮ-ķĹ-ľŁ-ňŊ-ōŐ-ž–—‘’“”•…↑]/;
+// The code points next/og's own font (Geist Regular, bundled with Next.js) draws, of those a name
+// is likely to hold: ASCII; Latin-1 but the soft hyphen; Latin Extended-A but the 11 letters it
+// lacks (Ĕ ĕ Ĭ ĭ ĸ Ŀ ŀ ŉ Ŏ ŏ ſ); the dashes, quotes, bullet and ellipsis; and ↑. Satori fetches a
+// font from Google for any character its fonts lack, so the preview never draws one.
+const DRAWABLE: readonly (readonly [number, number])[] = [
+  [0x20, 0x7e],
+  [0xa0, 0xac],
+  [0xae, 0x113],
+  [0x116, 0x12b],
+  [0x12e, 0x137],
+  [0x139, 0x13e],
+  [0x141, 0x148],
+  [0x14a, 0x14d],
+  [0x150, 0x17e],
+  [0x2013, 0x2014],
+  [0x2018, 0x2019],
+  [0x201c, 0x201d],
+  [0x2022, 0x2022],
+  [0x2026, 0x2026],
+  [0x2191, 0x2191],
+];
+const canDraw = (char: string) => {
+  const code = char.codePointAt(0)!;
+  return DRAWABLE.some(([from, to]) => code >= from && code <= to);
+};
+// The hyphens the font lacks (U+2010 to U+2012), and the horizontal bar (U+2015).
+const HYPHENS = [0x2010, 0x2011, 0x2012];
+const BAR = 0x2015;
 
 /**
  * A name as the image can draw it: a letter the font lacks loses its accent ("Ŏ" → "O"), a
@@ -80,16 +117,15 @@ const DRAWABLE = /[ -~ -¬®-ēĖ-īĮ-ķĹ-ľŁ-ňŊ-ōŐ-ž–—‘’“”
 export function drawable(text: string): string {
   let out = "";
   for (const char of text.normalize("NFC")) {
-    if (DRAWABLE.test(char)) out += char;
-    else if (/[‐-‒]/.test(char)) out += "-";
-    else if (char === "―") out += "—";
+    const code = char.codePointAt(0)!;
+    if (canDraw(char)) out += char;
+    else if (HYPHENS.includes(code)) out += "-";
+    else if (code === BAR) out += "—";
     else
-      for (const part of char.normalize("NFKD"))
-        if (DRAWABLE.test(part)) out += part;
+      for (const part of char.normalize("NFKD")) if (canDraw(part)) out += part;
   }
   return out.replace(/\s+/g, " ").trim();
 }
-
 /** A name in the poster's capitals, as the image can draw it. */
 export const capitals = (text: string) => drawable(text.toUpperCase());
 
