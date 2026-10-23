@@ -1,12 +1,14 @@
 // M6d: the same brief in other towns, one click from the bill. Locally the synthetic server
 // seeds a saved build for every town; on a deployment a town shows only once its build is saved.
 import { expect, test } from "@playwright/test";
+import { townBySlug } from "../../src/lib/towns";
 import { SYNTHETIC } from "./env";
 
 test.describe("the same brief in other towns", () => {
   test.skip(SYNTHETIC === "empty", "needs saved builds");
 
-  test("the switcher sits one click from the bill and opens a town's own bill and rooms", async ({
+  // WS9: the town picker sits in the lead, each town's link named by the town.
+  test("the town picker sits one click from the bill and opens a town's own bill and venues", async ({
     page,
   }) => {
     await page.goto("/");
@@ -22,7 +24,11 @@ test.describe("the same brief in other towns", () => {
       "page",
     );
     const other = towns.getByRole("link").nth(1);
-    const city = (await other.textContent())!.trim();
+    const slug = /\/towns\/([^/]+)$/.exec(
+      (await other.getAttribute("href"))!,
+    )![1];
+    const city = townBySlug(slug)!.festival.city;
+    await expect(other).toHaveAccessibleName(city);
     await other.click();
 
     await expect(page).toHaveURL(new RegExp(`/towns/${city.toLowerCase()}$`));
@@ -32,7 +38,7 @@ test.describe("the same brief in other towns", () => {
         .getByRole("list", { name: "Booked headliners" })
         .getByRole("listitem"),
     ).toHaveText(["Khruangbin", "Japanese Breakfast"]);
-    // The town's own venues, in the venue switch beside its chart.
+    // The town's own venues, in the venue switch under its poster.
     await expect(
       page.getByRole("region", {
         name: `${city} venues whose fans shaped this lineup`,

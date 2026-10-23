@@ -110,7 +110,7 @@ describe("The line under Watch on a saved town", () => {
       />,
     );
     expect(under()).toBe(
-      `Replays how the agent drafted Boise, in its ${saved.trace.length} Qloo calls`,
+      "Replays how the agent drafted Boise",
     );
     fireEvent.click(
       screen.getAllByRole("button", { name: "Run the agent live instead" })[0],

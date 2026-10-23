@@ -1135,7 +1135,6 @@ export function FestivalScreen({
               : "Runs the AI agent; its Qloo calls list below"
           : watchSubLine({
               city: festival.city,
-              calls: calls ?? null,
               live: !state.build,
               onScreen: savedOnScreen || ownRun,
             })}
@@ -1430,7 +1429,13 @@ export function FestivalScreen({
       </header>
 
       <main ref={board} className="fs-main">
-        <div className="fs-grid">
+        <div
+          className={`fs-grid ${
+            wide && ((cardInTown && openAct) || (venueCard && !openAct))
+              ? "has-panel"
+              : ""
+          }`}
+        >
           <section aria-label="What Undercard does" className="fs-lead">
             <p className="fs-title">{LEAD_TITLE}</p>
             <p className="fs-line">

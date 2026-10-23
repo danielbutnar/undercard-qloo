@@ -62,14 +62,14 @@ test.describe("the retired words", () => {
     test("Watch, while it plays and after", async ({ page }) => {
       await page.goto("/");
       await page
-        .getByRole("button", { name: "Watch how it picked these acts" })
+        .getByRole("button", { name: "Watch the AI agent build it" })
         .click();
       await expect(page.getByText(/^Replayed the build saved/)).toBeVisible({
         timeout: 30_000,
       });
       // On a deployment the venues' editions play now; the synthetic build has none.
       await expectNoneOnScreen(page);
-      const skip = bill(page).getByRole("button", {
+      const skip = page.getByRole("button", {
         name: "Skip to the lineup",
       });
       if (await skip.isVisible()) await skip.click();

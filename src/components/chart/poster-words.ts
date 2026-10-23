@@ -262,15 +262,16 @@ export function footnote(
   return [demo, key].filter(Boolean).join(" · ");
 }
 
-/** Under Watch: what the replay shows, and how many Qloo calls it replays. */
+/**
+ * Under Watch: what it replays, in one line on a phone too (the layout brief's words); the
+ * poster counts the calls ("Drafted from 12 Qloo calls").
+ */
 export function watchSubLine({
   city,
-  calls,
   live,
   onScreen = true,
 }: {
   city: string;
-  calls: number | null;
   /** No saved build: Watch runs the AI agent. */
   live: boolean;
   /** The saved build Watch replays is the one on screen; false once a live run replaced it. */
@@ -278,8 +279,7 @@ export function watchSubLine({
 }): string {
   if (live) return "Runs the AI agent; its Qloo calls list below";
   if (!onScreen) return "Replays the saved build's Qloo calls";
-  const many = calls !== null ? `, in its ${calls} Qloo calls` : "";
-  return `Replays how the agent drafted ${city}${many}`;
+  return `Replays how the agent drafted ${city}`;
 }
 
 /** The Watch button's label (the layout brief's words for the first click). */

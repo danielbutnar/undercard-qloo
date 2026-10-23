@@ -73,7 +73,7 @@ const SCENES: {
     viewports: [VIDEO, MOBILE],
     prepare: async (page) => {
       await page
-        .getByRole("button", { name: "Watch how it picked these acts" })
+        .getByRole("button", { name: "Watch the AI agent build it" })
         .click();
       await page
         .getByRole("list", { name: "Qloo calls" })
@@ -87,11 +87,11 @@ const SCENES: {
     viewports: [WIDE, VIDEO, MOBILE],
     prepare: async (page) => {
       await page
-        .getByRole("button", { name: "Watch how it picked these acts" })
+        .getByRole("button", { name: "Watch the AI agent build it" })
         .click();
       await page.getByText(/^Replayed the build saved/).waitFor();
       // M9a: the climb plays first on a deployment; skip to the reprinted lineup.
-      const skip = bill(page).getByRole("button", {
+      const skip = page.getByRole("button", {
         name: "Skip to the lineup",
       });
       if (await skip.isVisible()) await skip.click();
@@ -184,7 +184,7 @@ const SCENES: {
     prepare: async (page) => {
       await page.route("**/api/undercard", never);
       await page
-        .getByRole("button", { name: "Watch how it picked these acts" })
+        .getByRole("button", { name: "Watch the AI agent build it" })
         .click();
       await page
         .getByText("Waiting for this band's first ranking…")

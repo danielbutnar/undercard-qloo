@@ -178,19 +178,17 @@ describe("the poster's marks and lines", () => {
     );
   });
 
-  it("says what Watch replays, with the build's own call count", () => {
-    expect(watchSubLine({ city: "Boise", calls: 12, live: false })).toBe(
-      "Replays how the agent drafted Boise, in its 12 Qloo calls",
-    );
-    expect(watchSubLine({ city: "Boise", calls: null, live: false })).toBe(
+  // One line on a phone too, as the layout brief has it; the calls are counted on the poster.
+  it("says what Watch replays", () => {
+    expect(watchSubLine({ city: "Boise", live: false })).toBe(
       "Replays how the agent drafted Boise",
     );
-    expect(watchSubLine({ city: "Boise", calls: null, live: true })).toBe(
+    expect(watchSubLine({ city: "Boise", live: true })).toBe(
       "Runs the AI agent; its Qloo calls list below",
     );
     // Once a live run replaced the saved build on screen, Watch still replays the saved one.
     expect(
-      watchSubLine({ city: "Boise", calls: 12, live: false, onScreen: false }),
+      watchSubLine({ city: "Boise", live: false, onScreen: false }),
     ).toBe("Replays the saved build's Qloo calls");
   });
 });

@@ -83,11 +83,11 @@ describe("the lead", () => {
     ).toBe("/your-festival");
   });
 
-  it("says under Watch what it replays, with the build's own call count", () => {
+  it("says under Watch what it replays", () => {
     withSwitch();
     open();
     expect(document.querySelector(".watch-sub")!.textContent).toBe(
-      "Replays how the agent drafted Boise, in its 12 Qloo calls",
+      "Replays how the agent drafted Boise",
     );
   });
 });
