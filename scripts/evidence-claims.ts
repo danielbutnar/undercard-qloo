@@ -114,17 +114,17 @@ export const CLAIMS: readonly Entry[] = [
   },
   {
     file: README,
-    phrase: "the headliners over {4} Mid and 6 Opener acts",
+    phrase: "The headliners sit over {4} mid-size and 6 opening acts",
     equals: filled("Boise", "mid"),
   },
   {
     file: README,
-    phrase: "the headliners over 4 Mid and {6} Opener acts",
+    phrase: "The headliners sit over 4 mid-size and {6} opening acts",
     equals: filled("Boise", "opener"),
   },
   {
     file: README,
-    phrase: '("new" when it entered the top {50})',
+    phrase: "NEW when it entered the top {50})",
     equals: { kind: "baseline-top", town: "Boise" },
   },
   { file: README, phrase: "stops at {12}", equals: rule("call-cap") },
