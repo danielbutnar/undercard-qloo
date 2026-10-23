@@ -22,6 +22,37 @@ export const normalise = (name: string) =>
  * top five whose name matches it after section 18's normalising, or null when none does. A
  * pick Qloo doesn't find fails all three tests.
  */
+// Letters NFKD leaves whole, folded to the ASCII a search would match (WS8).
+const LETTERS: Record<string, string> = {
+  ı: "i",
+  İ: "I",
+  ł: "l",
+  Ł: "L",
+  ø: "o",
+  Ø: "O",
+  đ: "d",
+  Đ: "D",
+  ð: "d",
+  Ð: "D",
+  þ: "th",
+  Þ: "Th",
+  ß: "ss",
+  æ: "ae",
+  Æ: "Ae",
+  œ: "oe",
+  Œ: "Oe",
+};
+
+/** A name with its accents folded: "Altın Gün" is "Altin Gun" (WS8). */
+export const foldAccents = (name: string) =>
+  name
+    .normalize("NFKD")
+    .replace(/\p{M}/gu, "")
+    .replace(/[ıİłŁøØđĐðÐþÞßæÆœŒ]/g, (letter) => LETTERS[letter] ?? letter);
+
+/** Whether a name has a letter beyond ASCII, which Qloo's search can miss (WS8). */
+export const hasNonAscii = (name: string) => /[^\x00-\x7F]/.test(name);
+
 export function foundOnQloo<Artist extends { name: string }>(
   name: string,
   results: readonly Artist[],
