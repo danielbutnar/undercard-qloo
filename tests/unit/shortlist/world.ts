@@ -1,0 +1,163 @@
+// An invented world for the buyer's shortlist (WS4): a saved build's context, what Qloo's search
+// answers for the names a buyer pastes, and a fake fetch that records every request. Invented
+// names and reserved all-zero ids, shaped like Qloo's answers; no Qloo response data.
+import type { SavedBuild } from "@/server/build-store";
+import { createMemoryCache, type QlooCache } from "@/server/qloo-cache";
+import { createQlooClient } from "@/server/qloo";
+import {
+  fakeFetch,
+  params,
+  searchEntity,
+  syntheticId as id,
+} from "../m2/fake-qloo";
+
+type Genre = [type: string, slug: string, name: string];
+const genre = (slug: string, name: string): Genre => [
+  "urn:tag:genre:music",
+  `music:${slug}`,
+  name,
+];
+export const PSYCH = genre("psychedelic_rock", "Psychedelic Rock");
+export const DREAM = genre("dream_pop", "Dream Pop");
+export const INDIE = genre("indie_pop", "Indie Pop");
+export const FUNK = genre("funk", "Funk");
+
+export const HEADLINERS = [
+  { n: 1, name: "Khruangbin" },
+  { n: 2, name: "Japanese Breakfast" },
+];
+export const LANTERN = { entityId: id(201), name: "The Lantern Room" };
+export const FORT = { entityId: id(202), name: "Fort Street Ballroom" };
+export const COTTONWOOD = { entityId: id(203), name: "Cottonwood Social Hall" };
+
+/** The invented acts search can find, by entity number: name, popularity and genres. */
+export const ARTISTS: Record<
+  number,
+  { name: string; popularity: number; genres: Genre[] }
+> = {
+  301: { name: "Velvet Coyote", popularity: 0.963, genres: [PSYCH, INDIE] },
+  302: { name: "Long Drives", popularity: 0.941, genres: [DREAM] },
+  303: { name: "Marigold Static", popularity: 0.862, genres: [DREAM, INDIE] },
+  304: { name: "Paper Canyon", popularity: 0.975, genres: [FUNK] },
+  305: { name: "Dusk Arcade", popularity: 0.912, genres: [INDIE, DREAM] },
+  306: { name: "Honey Basin", popularity: 0.958, genres: [PSYCH, DREAM] },
+  307: { name: "Lowland Choir", popularity: 0.64, genres: [INDIE] },
+  308: { name: "Silver Mesa", popularity: 0.47, genres: [PSYCH] },
+  309: { name: "Fjärilsdal (band)", popularity: 0.81, genres: [DREAM, PSYCH] },
+  399: { name: "Long Drives Tribute Band", popularity: 0.3, genres: [] },
+  904: { name: "Nobody Knows", popularity: 0.6, genres: [INDIE] },
+};
+
+const found = (...ns: number[]) =>
+  ns.map((n) =>
+    searchEntity(n, ARTISTS[n].name, ARTISTS[n].popularity, ARTISTS[n].genres),
+  );
+
+/** What /search answers for each name, as typed; any other name finds nothing. */
+export const SEARCHES: Record<string, unknown[]> = {
+  "Velvet Coyote": found(301),
+  // The top result isn't the act: the second is, once a leading "The" is dropped.
+  "The Long Drives": found(399, 302),
+  "Long Drives": found(302),
+  "Marigold Static": found(303),
+  "Paper Canyon": found(304),
+  "Dusk Arcade": found(305),
+  "Honey Basin": found(306),
+  "Lowland Choir": found(307),
+  "Silver Mesa": found(308),
+  // Accents and a bracketed note don't stop a match.
+  Fjarilsdal: found(309),
+  // A near miss is not a match: the name is not found, never guessed.
+  "Nobody Knows Us": found(904),
+  Khruangbin: [searchEntity(1, "Khruangbin", 0.99, [PSYCH])],
+};
+
+/** The saved build whose context the shortlist reads: the headliners, venues, crowd age. */
+export function savedBuild(): SavedBuild {
+  const venueRun = (n: number, band: "Mid" | "Opener", venue: string) => ({
+    n,
+    tool: "venue_artists",
+    endpoint: "/v2/insights",
+    summary: `${band}-band artists for the headliners and ${venue}`,
+    params: [],
+    resultCount: 50,
+    ms: 1000,
+    cached: false,
+  });
+  return {
+    id: "shortlist-build",
+    festivalId: "sagebrush-sound",
+    createdAt: "2026-10-15T14:02:00.000Z",
+    trace: [
+      venueRun(1, "Mid", LANTERN.name),
+      venueRun(2, "Opener", LANTERN.name),
+      venueRun(3, "Mid", FORT.name),
+      venueRun(4, "Opener", FORT.name),
+      venueRun(5, "Mid", COTTONWOOD.name),
+    ],
+    lineup: {
+      festivalId: "sagebrush-sound",
+      acts: [
+        {
+          entityId: id(701),
+          name: "Booked Act",
+          band: "mid",
+          affinity: 0.9,
+          popularity: 0.85,
+          anchorVenue: LANTERN,
+          reason: `${LANTERN.name} fans move it up 9 places.`,
+          sharedTags: [
+            { id: "urn:tag:genre:music:dream_pop", name: "Dream Pop" },
+            { id: "urn:tag:genre:music:indie_pop", name: "Indie Pop" },
+          ],
+        },
+      ],
+    },
+    context: {
+      headliners: HEADLINERS.map(({ n, name }) => ({
+        entityId: id(n),
+        name,
+        tags: (n === 1 ? [PSYCH] : [DREAM]).map(([type, slug, tagName]) => ({
+          id: `urn:tag:genre:${slug}`,
+          name: tagName,
+          type,
+        })),
+      })),
+      comparedTags: [{ name: "Indie Pop", score: 0.8 }],
+      baselines: {},
+      anchors: { mid: [LANTERN, FORT, COTTONWOOD], opener: [LANTERN, FORT] },
+      ages: ["25_to_29", "30_to_34"],
+    },
+  };
+}
+
+/** A Qloo client on a fresh memory cache whose fetch answers `route` and records requests. */
+export function qlooWorld(
+  route: (url: URL) => unknown,
+  cache: QlooCache = createMemoryCache(),
+) {
+  const fake = fakeFetch(route);
+  const live = createQlooClient({
+    apiKey: "test-key",
+    cache,
+    fetch: fake.fetch,
+  });
+  const cached = createQlooClient({
+    apiKey: "",
+    cache,
+    cacheOnly: true,
+    fetch: async () => {
+      throw new Error("a cache-only client never fetches");
+    },
+  });
+  return { cache, live, cached, requests: fake.requests };
+}
+
+/** Search answers from SEARCHES; anything else is a 404. */
+export function searchOnly(url: URL): unknown {
+  if (url.pathname === "/search")
+    return { results: SEARCHES[params(url).query] ?? [] };
+  return new Response("{}", { status: 404 });
+}
+
+export { id, params };
