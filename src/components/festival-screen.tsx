@@ -967,6 +967,13 @@ export function FestivalScreen({
       note={
         whatIf ? "Turn every venue back on to keep or replace acts." : undefined
       }
+      // Qloo's split was read for the saved lineup with every venue on (WS7): only there, and
+      // only for its own acts (a refill's replacement has none).
+      split={
+        savedBuildOnScreen && !whatIf
+          ? firstBill?.splits?.[act.entityId]
+          : undefined
+      }
     />
   );
   // On a laptop an act's card opens over the town, beside the poster; on a phone, in the poster.

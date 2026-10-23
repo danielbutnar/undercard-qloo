@@ -4,6 +4,7 @@ import { FestivalScreen } from "@/components/festival-screen";
 import { shareMetadata } from "@/components/share/share-words";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { withArtistImages } from "@/server/artist-images";
+import { withSplits } from "@/server/attribution";
 import { serverBuildStore } from "@/server/deps";
 import { withFanData } from "@/server/fan-data";
 import { readFirstBill } from "@/server/first-bill";
@@ -18,11 +19,15 @@ async function firstBill() {
   cacheLife("minutes");
   // Qloo's artist images join only while ARTIST_IMAGES is on (src/lib/artist-images.ts).
   // The venue switch comes with it, so the first paint shows the venue results (plan.md item 4),
-  // and the venues Qloo had no fan data for, from the cache, for Watch (WS2).
-  return withFanData(
-    await withVenueSwitch(
-      await withArtistImages(
-        await readFirstBill(serverBuildStore(), SAGEBRUSH_SOUND.id),
+  // and the venues Qloo had no fan data for, from the cache, for Watch (WS2), and each act's
+  // card line on Qloo's split, from the cache too (WS7).
+  return withSplits(
+    await withFanData(
+      await withVenueSwitch(
+        await withArtistImages(
+          await readFirstBill(serverBuildStore(), SAGEBRUSH_SOUND.id),
+        ),
+        SAGEBRUSH_SOUND,
       ),
       SAGEBRUSH_SOUND,
     ),

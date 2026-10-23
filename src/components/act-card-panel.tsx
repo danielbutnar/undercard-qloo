@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { ActCard } from "@/components/act-card";
+import type { SplitLine } from "@/lib/attribution-line";
 import type { FeeBand } from "@/lib/fee-bands";
 import type { Act } from "@/lib/lineup";
 import type { UnavailableReason } from "@/lib/unavailable";
@@ -25,6 +26,7 @@ export function ActCardPanel({
   note,
   band,
   image,
+  split,
 }: {
   act: Act;
   unavailable: boolean;
@@ -39,6 +41,8 @@ export function ActCardPanel({
   note?: string;
   band?: FeeBand;
   image?: string;
+  /** Qloo's split of its match, for an act on the saved lineup with every venue on (WS7). */
+  split?: SplitLine;
 }) {
   const ref = useRef<HTMLElement>(null);
 
@@ -68,6 +72,7 @@ export function ActCardPanel({
         note={note}
         band={band}
         image={image}
+        split={split}
       />
     </section>
   );

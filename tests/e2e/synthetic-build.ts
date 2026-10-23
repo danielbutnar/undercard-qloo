@@ -626,6 +626,71 @@ export function syntheticShortlistQloo(url: URL): unknown {
   };
 }
 
+/**
+ * Qloo's split of each act's result (WS7, docs/evidence.md section 35), invented for the
+ * synthetic builds, which the synthetic server seeds into its cache: every input of the call
+ * is scored but Cottonwood Social Hall, which Qloo has no fan data for (the answer lists it as
+ * not found, as the real answers list such a venue). The headliners take about half; the venues
+ * split the rest by weights from the act's number, so for some acts the venue its card credits
+ * isn't the larger share. Each act's shares add up to 1, to four places.
+ */
+export function syntheticExplainQloo(url: URL): unknown {
+  const listed = (name: string) =>
+    (url.searchParams.get(name) ?? "").split(",").filter(Boolean);
+  const inputs = listed("signal.interests.entities");
+  return {
+    success: true,
+    results: {
+      entities: listed("filter.results.entities").map((entityId) => {
+        const k = Number(entityId.slice(-3));
+        const headliners: [string, number][] = [
+          [id(1), 0.24 + (k % 3) * 0.02],
+          [id(2), 0.2 + (k % 2) * 0.03],
+        ];
+        const weights: Record<string, number> = {
+          [LANTERN.entityId]: 1 + (k % 3),
+          [FORT.entityId]: 1 + ((k + 1) % 3),
+          [LINDEN.entityId]: 1,
+        };
+        const venues = inputs.filter((input) => input in weights);
+        const rest = 1 - headliners.reduce((sum, [, share]) => sum + share, 0);
+        const total = venues.reduce((sum, venue) => sum + weights[venue], 0);
+        const shares = [
+          ...headliners.filter(([headliner]) => inputs.includes(headliner)),
+          ...venues.map((venue): [string, number] => [
+            venue,
+            (rest * weights[venue]) / total,
+          ]),
+        ]
+          .map(([input, score]) => ({
+            entity_id: input,
+            score: Number(score.toFixed(4)),
+          }))
+          .sort((a, b) => b.score - a.score);
+        return {
+          name:
+            lineup.acts.find((act) => act.entityId === entityId)?.name ??
+            "Invented act",
+          entity_id: entityId,
+          type: "urn:entity:artist",
+          query: {
+            affinity: 0.9,
+            explainability: { "signal.interests.entities": shares },
+          },
+        };
+      }),
+    },
+    warnings: inputs.includes(COTTONWOOD.entityId)
+      ? [
+          {
+            type: "not_found",
+            "signal.interests.entities": [COTTONWOOD.entityId],
+          },
+        ]
+      : [],
+  };
+}
+
 /** A synthetic LLM-only answer: invented acts, as the model alone might list them. */
 export function syntheticLlmOnly() {
   const picks: [string, string][] = [

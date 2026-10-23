@@ -2,6 +2,7 @@ import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { TOWNS } from "@/lib/towns";
 import {
   SYNTHETIC_UNCHECKED_PICK,
+  syntheticExplainQloo,
   syntheticLlmOnly,
   syntheticPickQloo,
   syntheticSavedBuild,
@@ -9,6 +10,7 @@ import {
   syntheticSwitchBuild,
   syntheticTownBuild,
 } from "../../tests/e2e/synthetic-build";
+import { explainCalls } from "./attribution";
 import { createBuildStore } from "./build-store";
 import { handleLlmOnly } from "./llm-only";
 import { createQlooClient } from "./qloo";
@@ -24,8 +26,9 @@ import { assemblyFromSaved } from "./venue-switch";
  * With the build come the Qloo answers its Without Qloo checks read (prompt-4): its venue
  * lists and every pick's search but one, cached by a client whose fetch answers from the
  * invented data, never the network. The venue lists also carry WS2's no-fan-data case, and
- * Nashville's switch build's venue; then the shortlist's Boise example (WS4). Loaded only in
- * synthetic mode.
+ * Nashville's switch build's venue; then the shortlist's Boise example (WS4). So is Qloo's
+ * invented split of each act (WS7), which the act cards' lines read. Loaded only in synthetic
+ * mode.
  */
 export async function seedSynthetic(
   cache: QlooCache,
@@ -51,12 +54,21 @@ export async function seedSynthetic(
     const qloo = createQlooClient({
       apiKey: "synthetic",
       cache,
-      fetch: async (input) =>
-        Response.json(syntheticPickQloo(new URL(String(input)))),
+      fetch: async (input) => {
+        const url = new URL(String(input));
+        return Response.json(
+          url.searchParams.has("feature.explainability")
+            ? syntheticExplainQloo(url)
+            : syntheticPickQloo(url),
+        );
+      },
     });
     await assemblyFromSaved(syntheticSavedBuild(), SAGEBRUSH_SOUND, qloo);
     // Nashville's switch build reads one venue the default build doesn't (WS2).
     await assemblyFromSaved(syntheticSwitchBuild(), SAGEBRUSH_SOUND, qloo);
+    // Qloo's split of each act, for both builds' fee ranges (WS7); the towns share these keys.
+    for (const build of [syntheticSavedBuild(), syntheticSwitchBuild()])
+      for (const call of explainCalls(build)) await qloo.explain(call);
     for (const pick of picks)
       if (pick.name !== SYNTHETIC_UNCHECKED_PICK)
         await qloo.search({ query: pick.name });

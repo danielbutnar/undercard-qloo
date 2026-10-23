@@ -1,5 +1,6 @@
 import type { AgentSwitch } from "./agent-switch";
 import type { ArtistImages } from "./artist-images";
+import type { SplitLine } from "./attribution-line";
 import type { FeeBandId } from "./fee-bands";
 import type { Act, Venue } from "./lineup";
 import type { Placed, VenueSwitchData } from "./venue-switch";
@@ -32,4 +33,7 @@ export interface FirstBill {
   /** The venues Qloo had no fan data for (src/lib/fan-data.ts), by entity id, from the server's
    * Qloo cache; left out when there are none. */
   noFanData?: string[];
+  /** Each saved lineup act's card line on Qloo's split (src/lib/attribution-line.ts), by entity
+   * id, from the server's Qloo cache (WS7); left out when no act has one. */
+  splits?: Record<string, SplitLine>;
 }
