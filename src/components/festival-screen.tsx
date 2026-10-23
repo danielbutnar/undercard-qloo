@@ -1493,48 +1493,51 @@ export function FestivalScreen({
             <p className="fs-line">
               <mark>{lead.mark}</mark> {lead.rest}
             </p>
-            {!custom && !checked && onShow.length >= 2 && (
-              <nav aria-label="Same brief, other towns" className="fs-towns">
-                <span className="fs-towns-label">Pick a town</span>
-                <ul>
-                  {onShow.map((town) => {
-                    const code = regionCode(town.festival.region);
-                    return (
-                      <li key={town.slug}>
-                        <Link
-                          href={townHref(town.slug)}
-                          aria-current={
-                            town.slug === current ? "page" : undefined
-                          }
-                          className="fs-town-chip"
-                        >
-                          {town.festival.city}
-                          {code && (
-                            <span className="fs-town-code" aria-hidden>
-                              {" "}
-                              {code}
-                            </span>
-                          )}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-                <Link
-                  href="/your-festival"
-                  className="fs-town-chip fs-town-yours"
-                >
-                  Your town
-                  <svg viewBox="0 0 16 16" aria-hidden>
-                    <path d="M2 8 H13 M9 4 L13 8 L9 12" />
-                  </svg>
-                </Link>
-              </nav>
-            )}
             {/* A town Qloo can't find, or too thin to read: running it again can't help, so its
                 notice and the checked towns take the run button's place, under what happened. */}
             {thinTown && notice}
           </section>
+
+          {/* The town picker: under the lead on a laptop; on a phone after the poster, so the first
+              act shows before any scroll with Watch (WS8, brief item 22). */}
+          {!custom && !checked && onShow.length >= 2 && (
+            <nav aria-label="Same brief, other towns" className="fs-towns">
+              <span className="fs-towns-label">Pick a town</span>
+              <ul>
+                {onShow.map((town) => {
+                  const code = regionCode(town.festival.region);
+                  return (
+                    <li key={town.slug}>
+                      <Link
+                        href={townHref(town.slug)}
+                        aria-current={
+                          town.slug === current ? "page" : undefined
+                        }
+                        className="fs-town-chip"
+                      >
+                        {town.festival.city}
+                        {code && (
+                          <span className="fs-town-code" aria-hidden>
+                            {" "}
+                            {code}
+                          </span>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+              <Link
+                href="/your-festival"
+                className="fs-town-chip fs-town-yours"
+              >
+                Your town
+                <svg viewBox="0 0 16 16" aria-hidden>
+                  <path d="M2 8 H13 M9 4 L13 8 L9 12" />
+                </svg>
+              </Link>
+            </nav>
+          )}
 
           {!thinTown && watchButton}
 

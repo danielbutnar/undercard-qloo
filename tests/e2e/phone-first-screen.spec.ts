@@ -13,11 +13,16 @@ test.describe("the first screen on a phone", () => {
   test.describe("with the browser's bars in view", () => {
     test.use({ viewport: { width: 390, height: 664 } });
 
-    test("shows Watch and the poster's top before any scroll", async ({
-      page,
-    }) => {
+    // Daniel's decision of 2026-10-21 (brief item 22), restored by WS8 from c9064aa: the first
+    // act's name shows before any scroll, and Watch with it.
+    test("shows the first act's name before any scroll", async ({ page }) => {
       await page.goto("/");
       await page.evaluate(() => document.fonts.ready);
+      const first = page
+        .getByRole("region", { name: "Mid-size acts" })
+        .getByRole("article")
+        .first();
+      await expect(first.getByRole("button")).toBeInViewport({ ratio: 1 });
       await expect(
         page.getByRole("button", { name: "Watch the AI agent build it" }),
       ).toBeInViewport({ ratio: 1 });

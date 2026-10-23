@@ -17,7 +17,7 @@ async function open(page: Page, path: string) {
   await page.evaluate(() => document.fonts.ready);
 }
 
-async function aboveTheFold(page: Page, town: string) {
+async function aboveTheFold(page: Page, town: string, withPicker = true) {
   const banner = page.getByRole("banner");
   await expect(banner.getByRole("link", { name: /^Undercard/ })).toBeInViewport(
     {
@@ -45,8 +45,10 @@ async function aboveTheFold(page: Page, town: string) {
   const picker = page.getByRole("navigation", {
     name: "Same brief, other towns",
   });
-  for (const link of await picker.getByRole("link").all())
-    await expect(link).toBeInViewport({ ratio: 1 });
+  // On a phone the picker follows the poster (WS8, brief item 22).
+  if (withPicker)
+    for (const link of await picker.getByRole("link").all())
+      await expect(link).toBeInViewport({ ratio: 1 });
   await expect(
     page.getByRole("button", { name: "Watch the AI agent build it" }),
   ).toBeInViewport({ ratio: 1 });
@@ -204,11 +206,16 @@ test.describe("the first screen above the fold", () => {
     test.use({ viewport: { width: 390, height: 664 } });
 
     for (const { path, town } of PATHS)
-      test(`${path}: the lead, the town picker, Watch and the top of the poster`, async ({
+      test(`${path}: the lead, Watch, the top of the poster and its first act`, async ({
         page,
       }) => {
         await open(page, path);
-        await aboveTheFold(page, town);
+        await aboveTheFold(page, town, false);
+        const first = page
+          .getByRole("region", { name: "Mid-size acts" })
+          .getByRole("article")
+          .first();
+        await expect(first.getByRole("button")).toBeInViewport({ ratio: 1 });
         // Nothing scrolls sideways.
         expect(
           await page.evaluate(
