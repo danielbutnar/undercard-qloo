@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { FestivalScreen } from "@/components/festival-screen";
 import { TOWNS, townBySlug } from "@/lib/towns";
 import { withArtistImages } from "@/server/artist-images";
+import { withSplits } from "@/server/attribution";
 import { serverBuildStore } from "@/server/deps";
 import { withFanData } from "@/server/fan-data";
 import { readFirstBill } from "@/server/first-bill";
@@ -17,9 +18,12 @@ async function townPage(slug: string) {
   const town = townBySlug(slug);
   if (!town || slug === "boise") return null;
   const store = serverBuildStore();
-  const firstBill = await withFanData(
-    await withVenueSwitch(
-      await withArtistImages(await readFirstBill(store, town.festival.id)),
+  const firstBill = await withSplits(
+    await withFanData(
+      await withVenueSwitch(
+        await withArtistImages(await readFirstBill(store, town.festival.id)),
+        town.festival,
+      ),
       town.festival,
     ),
     town.festival,
