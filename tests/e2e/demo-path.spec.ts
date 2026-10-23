@@ -62,7 +62,10 @@ test.describe("demo path", () => {
     // plans the calls. WS9: booked by you over the headliners, drafted by Undercard from the
     // venues' fans over the rest; the poster keeps the build's saved date.
     await expect(
-      bill(page).getByText("Booked by you: two bands"),
+      // WS8 (item 12a): the note under the headliners, no "Booked by you" chip.
+      bill(page).getByText(
+        "The headliners, two bands, are already booked · Undercard drafted the rest of the lineup (the bill) from Qloo's numbers",
+      ),
     ).toBeVisible();
     await expect(bill(page).getByText("Drafted by Undercard")).toBeVisible();
     await expect(
