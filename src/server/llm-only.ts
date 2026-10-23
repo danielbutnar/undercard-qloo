@@ -14,6 +14,20 @@ import type { RateLimiter } from "./rate-limit";
 const PREFIX = "undercard:llm-only:v2:";
 const SLOTS = 10;
 
+/**
+ * A festival's saved model answer, read from the cache only: never asks the model (the
+ * shortlist's Boise example, WS4). Null when none is saved.
+ */
+export async function savedLlmOnly(
+  festival: Pick<Festival, "id">,
+  cache: QlooCache,
+): Promise<LlmOnlyLineup | null> {
+  const saved = LlmOnlyLineupSchema.safeParse(
+    await cache.get(`${PREFIX}${festival.id}`),
+  );
+  return saved.success ? saved.data : null;
+}
+
 const json = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: { "cache-control": "no-store" } });
 

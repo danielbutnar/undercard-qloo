@@ -564,6 +564,68 @@ export function syntheticPickQloo(url: URL): unknown {
   };
 }
 
+/**
+ * Invented Qloo scores for the shortlist (WS4), per searched pick: for the headliners alone and
+ * with each venue's fans added. Qloo normalises each answer, so The Lantern Room's scores sit
+ * lower across the board, yet Marigold Static rises from 6th to 1st in it; Cottonwood Social
+ * Hall's answer is the headliners' own (Qloo had no fan data for it).
+ */
+const SHORTLIST_SCORES: Record<
+  number,
+  { alone: number; lantern: number; fort: number }
+> = {
+  301: { alone: 0.95, lantern: 0.74, fort: 0.93 },
+  302: { alone: 0.91, lantern: 0.68, fort: 0.89 },
+  303: { alone: 0.85, lantern: 0.8, fort: 0.84 },
+  304: { alone: 0.87, lantern: 0.62, fort: 0.91 },
+  305: { alone: 0.89, lantern: 0.66, fort: 0.96 },
+  306: { alone: 0.93, lantern: 0.7, fort: 0.92 },
+  307: { alone: 0.81, lantern: 0.72, fort: 0.82 },
+  308: { alone: 0.83, lantern: 0.6, fort: 0.86 },
+};
+
+/**
+ * Qloo's answers for a shortlist check on the synthetic server (WS4), never the network: the
+ * picks' searches (any other name finds nothing, so it reads "not found on Qloo"), and Insights
+ * limited to the listed acts, scored from SHORTLIST_SCORES by the venue in the signal.
+ */
+export function syntheticShortlistQloo(url: URL): unknown {
+  if (url.pathname === "/search")
+    return {
+      results: (PICK_RESULTS[url.searchParams.get("query") ?? ""] ?? []).map(
+        rawArtist,
+      ),
+    };
+  const venue = (url.searchParams.get("signal.interests.entities") ?? "").split(
+    ",",
+  )[2];
+  const column =
+    venue === LANTERN.entityId
+      ? "lantern"
+      : venue === FORT.entityId
+        ? "fort"
+        : "alone";
+  const known = new Map(
+    Object.values(PICK_RESULTS)
+      .flat()
+      .map((pick) => [id(pick.n), pick]),
+  );
+  return {
+    results: {
+      entities: (url.searchParams.get("filter.results.entities") ?? "")
+        .split(",")
+        .flatMap((entityId) => {
+          const pick = known.get(entityId);
+          const scores = pick && SHORTLIST_SCORES[pick.n];
+          return pick && scores
+            ? [{ ...rawArtist(pick), query: { affinity: scores[column] } }]
+            : [];
+        })
+        .sort((a, b) => b.query.affinity - a.query.affinity),
+    },
+  };
+}
+
 /** A synthetic LLM-only answer: invented acts, as the model alone might list them. */
 export function syntheticLlmOnly() {
   const picks: [string, string][] = [
