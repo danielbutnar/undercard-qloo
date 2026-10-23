@@ -150,6 +150,34 @@ describe("the smoke workflow", () => {
     );
   });
 
+  // Daniel's message of 2026-10-23, after the 14:34 run failed installing Chromium before any test.
+  it("runs only in danielbutnar/undercard, so the public copy never runs it", () => {
+    expect(yaml).toMatch(
+      /\n {2}smoke:\n(?: {4}#[^\n]*\n)* {4}if: github\.repository == 'danielbutnar\/undercard'\n/,
+    );
+  });
+
+  it("tries the Playwright install once more when it fails", () => {
+    expect(yaml).toContain(
+      "run: pnpm exec playwright install --with-deps chromium || (sleep 30 && pnpm exec playwright install --with-deps chromium)",
+    );
+  });
+
+  it("opens an issue only when the smoke test step itself fails", () => {
+    const test = yaml.slice(
+      yaml.indexOf("- name: Smoke test against production"),
+    );
+    expect(test).toMatch(
+      /^- name: Smoke test against production\n {8}id: smoke\n/,
+    );
+    const issue = yaml.slice(
+      yaml.indexOf("- name: Open an issue when the smoke test fails"),
+    );
+    expect(issue).toMatch(
+      /if: \$\{\{ failure\(\) && steps\.smoke\.outcome == 'failure' \}\}/,
+    );
+  });
+
   it("runs it even when the smoke test failed, before the step that opens an issue", () => {
     expect(step).toMatch(/if: \$\{\{ !cancelled\(\) \}\}/);
     expect(yaml.indexOf("- name: Deep health check")).toBeLessThan(

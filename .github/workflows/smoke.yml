@@ -15,6 +15,8 @@ permissions:
 
 jobs:
   smoke:
+    # This repository only: Monday's public copy must never run it against production.
+    if: github.repository == 'danielbutnar/undercard'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -26,8 +28,12 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm e2e tests/e2e/smoke.spec.ts --workers=1
+      # Once more on failure: the scheduled run of 2026-10-23 (11:34 UTC) died here (apt, exit
+      # code 100) before any test ran.
+      - run: pnpm exec playwright install --with-deps chromium || (sleep 30 && pnpm exec playwright install --with-deps chromium)
+      - name: Smoke test against production
+        id: smoke
+        run: pnpm e2e tests/e2e/smoke.spec.ts --workers=1
         env:
           E2E_BASE_URL: https://undercard-daniel-51ed.vercel.app
       # GET /api/health/deep once (src/server/health.ts): one Qloo search and one one-token Claude
@@ -40,8 +46,9 @@ jobs:
         env:
           E2E_BASE_URL: https://undercard-daniel-51ed.vercel.app
           HEALTH_TOKEN: ${{ secrets.HEALTH_TOKEN }}
+      # Only when the smoke test step itself failed, not a failed install or deep check.
       - name: Open an issue when the smoke test fails
-        if: failure()
+        if: ${{ failure() && steps.smoke.outcome == 'failure' }}
         uses: actions/github-script@v7
         with:
           script: |
