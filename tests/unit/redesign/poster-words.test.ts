@@ -234,7 +234,7 @@ describe("the poster's marks and lines", () => {
       openPosterLine({ slots: 10, on: ["Cottonwood Social Hall"] }),
     ).toEqual({
       head: "All 10 slots stay open.",
-      text: "Only Cottonwood Social Hall's fans are on, and they lift no act 5 places.",
+      text: "Only Cottonwood Social Hall's fans are on, and no act passes the rule.",
     });
   });
 
@@ -314,13 +314,24 @@ describe("the lead and the town", () => {
       legendLine({ city: "Boise", placesListed: 8, tested: 3, lifting: 2 }),
     ).toEqual({
       title: "Venues the agent tested",
-      text: "Qloo found 8 live-music venues in Boise; the AI agent tested these 3. Coloured: their fans lifted acts onto your poster. Grey: none of their acts are on your poster.",
+      text: "Qloo listed 8 live-music places in Boise. The AI agent tested these 3 venues. Coloured: their fans lifted acts onto your poster. Grey: none of their acts are on your poster.",
     });
     expect(
       legendLine({ city: "Boise", placesListed: null, tested: 2, lifting: 2 })
         .text,
     ).toBe(
-      "The AI agent chose these venues to test. Coloured: their fans lifted acts onto your poster.",
+      "The AI agent tested these 2 venues. Coloured: their fans lifted acts onto your poster.",
+    );
+    // WS8: the search's cap of 20 is "at least 20"; one place and one venue in the singular.
+    expect(
+      legendLine({ city: "Boise", placesListed: 20, tested: 3, lifting: 3 })
+        .text,
+    ).toMatch(/^Qloo listed at least 20 live-music places in Boise\. /);
+    expect(
+      legendLine({ city: "Boise", placesListed: 1, tested: 1, lifting: 1 })
+        .text,
+    ).toMatch(
+      /^Qloo listed 1 live-music place in Boise\. The AI agent tested this venue\. /,
     );
     expect(
       legendLine({ city: "Boise", placesListed: 8, tested: 0, lifting: 0 })

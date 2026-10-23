@@ -66,10 +66,12 @@ export function legendLine({
       title: "No venues read yet",
       text: `Once the AI agent drafts the lineup, the ${city} venues whose fans it tested stand here.`,
     };
+  // WS8: Qloo's search lists places (its cap is 20); the agent tested venues among them.
+  const testedWords = `The AI agent tested ${tested === 1 ? "this venue" : `these ${tested} venues`}.`;
   const found =
     placesListed !== null
-      ? `Qloo found ${placesListed} live-music ${placesListed === 1 ? "venue" : "venues"} in ${city}; the AI agent tested ${tested === 1 ? "this one" : `these ${tested}`}.`
-      : `The AI agent chose ${tested === 1 ? "this venue" : "these venues"} to test.`;
+      ? `Qloo listed ${placesListed >= 20 ? "at least 20" : placesListed} live-music ${placesListed === 1 ? "place" : "places"} in ${city}. ${testedWords}`
+      : testedWords;
   const key =
     lifting === tested
       ? "Coloured: their fans lifted acts onto your poster."
@@ -279,8 +281,8 @@ export function openPosterLine({
     head: `All ${slots} slots stay open.`,
     text:
       on.length === 0
-        ? `Every venue's fans are off, so no act rises ${MIN_LIFT} places.`
-        : `Only ${listNames(on)}'s fans are on, and they lift no act ${MIN_LIFT} places.`,
+        ? "Every venue's fans are off, so no act passes the rule."
+        : `Only ${listNames(on)}'s fans are on, and no act passes the rule.`,
   };
 }
 

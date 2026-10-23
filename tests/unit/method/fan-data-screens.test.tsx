@@ -103,7 +103,7 @@ describe("How it works' AI agent's choices", () => {
     );
     expect(
       within(box).getByText(
-        "Qloo had no fan data for Linden Street Annex, so the agent read Fort Street Ballroom; 3 acts come from that read.",
+        "Qloo had no fan data for Linden Street Annex; the agent read Fort Street Ballroom next. 3 acts come from that read.",
       ),
     ).toBeTruthy();
     expect(box.textContent).not.toMatch(/Linden Street Annex: the agent/);
@@ -113,7 +113,7 @@ describe("How it works' AI agent's choices", () => {
     const box = await choices(await bill(syntheticSwitchBuild()));
     expect(
       within(box).getByText(
-        "Linden Street Annex's fans moved no act onto the lineup, so the agent read Fort Street Ballroom; 3 acts come from that read.",
+        "Linden Street Annex's fans moved no act onto the lineup; the agent read Fort Street Ballroom next. 3 acts come from that read.",
       ),
     ).toBeTruthy();
     expect(box.textContent).not.toMatch(/Linden Street Annex: the agent/);
@@ -164,7 +164,7 @@ describe("Watch", () => {
     await at(region, "+ Fort Street Ballroom's fans");
     expect(
       within(region).getByText(
-        "Qloo had no fan data for Linden Street Annex, so the agent read Fort Street Ballroom; 3 acts come from that read.",
+        "Qloo had no fan data for Linden Street Annex; the agent read Fort Street Ballroom next. 3 acts come from that read.",
       ),
     ).toBeTruthy();
   });

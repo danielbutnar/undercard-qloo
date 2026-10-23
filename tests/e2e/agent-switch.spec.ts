@@ -17,7 +17,7 @@ import {
 
 const NDJSON = "application/x-ndjson; charset=utf-8";
 const SWITCH =
-  "Linden Street Annex's fans moved no act onto the lineup, so the agent read Fort Street Ballroom; 3 acts come from that read.";
+  "Linden Street Annex's fans moved no act onto the lineup; the agent read Fort Street Ballroom next. 3 acts come from that read.";
 const NO_FAN =
   "Qloo had no fan data for this venue, so its ranking stays the headliners' own.";
 
@@ -108,7 +108,7 @@ test.describe("the agent's switch, from the saved trace", () => {
     ).toBeVisible();
     await expect(bill.getByText(NO_FAN)).toBeVisible();
     await expect(bill.getByText(/no act climbs/)).toHaveCount(0);
-    await expect(bill.getByText(/so the agent read/)).toHaveCount(0);
+    await expect(bill.getByText(/the agent read .+ next/)).toHaveCount(0);
   });
 
   test("How it works adds no switch on a trace without one, and says Qloo had no fan data for Cottonwood Social Hall", async ({
@@ -123,6 +123,6 @@ test.describe("the agent's switch, from the saved trace", () => {
       "Cottonwood Social Hall: the agent read it too, but Qloo had no fan data for it.",
     );
     await expect(choices).not.toContainText("moved no act");
-    await expect(choices).not.toContainText("so the agent read");
+    await expect(choices).not.toContainText(/the agent read [^.]+ next./);
   });
 });

@@ -75,7 +75,7 @@ test.describe("the first screen above the fold", () => {
         await aboveTheFold(page, town);
         const scene = page.getByRole("region", { name: "Your town" });
         await expect(
-          scene.getByText(/Qloo found \d+ live-music venues in /),
+          scene.getByText(/Qloo listed (at least )?\d+ live-music places? in /),
         ).toBeInViewport({ ratio: 1 });
         const signs = scene.getByRole("button", {
           name: /\. Show this venue$/,

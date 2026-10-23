@@ -246,7 +246,7 @@ describe("the poster", () => {
       .getByText(/^All 10 slots stay open\./)
       .closest<HTMLElement>("[role=status]")!;
     expect(open10.textContent).toContain(
-      "All 10 slots stay open. Every venue's fans are off, so no act rises 5 places.",
+      "All 10 slots stay open. Every venue's fans are off, so no act passes the rule.",
     );
     fireEvent.click(
       within(open10).getByRole("button", {
@@ -263,7 +263,7 @@ describe("the town", () => {
     open();
     expect(
       within(town()).getByText(
-        /^Qloo found 8 live-music venues in Boise; the AI agent tested these 3\. Coloured: their fans lifted acts onto your poster\. Grey: none of their acts are on your poster\.$/,
+        /^Qloo listed 8 live-music places in Boise\. The AI agent tested these 3 venues\. Coloured: their fans lifted acts onto your poster\. Grey: none of their acts are on your poster\.$/,
       ),
     ).toBeTruthy();
     const signs = await within(town()).findAllByRole("button", {

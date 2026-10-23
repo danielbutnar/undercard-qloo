@@ -161,15 +161,16 @@ export function switchLine(
   { from, to, acts }: Pick<AgentSwitch, "from" | "to" | "acts">,
   noFanData: readonly string[] = [],
 ): string {
+  // The order, not a reason (WS8): the agent doesn't see Qloo's no-fan-data warning.
   const come =
     acts === 0
-      ? "no act comes"
+      ? "No act comes"
       : acts === 1
         ? "1 act comes"
         : `${acts} acts come`;
   return noFanData.includes(from.entityId)
-    ? `Qloo had no fan data for ${from.name}, so the agent read ${to.name}; ${come} from that read.`
-    : `${from.name}'s fans moved no act onto the lineup, so the agent read ${to.name}; ${come} from that read.`;
+    ? `Qloo had no fan data for ${from.name}; the agent read ${to.name} next. ${come} from that read.`
+    : `${from.name}'s fans moved no act onto the lineup; the agent read ${to.name} next. ${come} from that read.`;
 }
 
 /** How it works' line for the venues the agent read that Qloo had no fan data for (WS2). */

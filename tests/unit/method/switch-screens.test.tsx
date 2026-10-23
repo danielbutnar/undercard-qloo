@@ -35,7 +35,7 @@ afterEach(() => {
 });
 
 const SWITCH =
-  "Linden Street Annex's fans moved no act onto the lineup, so the agent read Fort Street Ballroom; 3 acts come from that read.";
+  "Linden Street Annex's fans moved no act onto the lineup; the agent read Fort Street Ballroom next. 3 acts come from that read.";
 const KEY = "Anchors are the venues whose fans it reads.";
 const NASHVILLE = townBySlug("nashville")!.festival;
 
@@ -77,7 +77,7 @@ describe("How it works' AI agent's choices", () => {
 
   it("adds nothing where it doesn't", async () => {
     expect((await choices(syntheticSavedBuild())).textContent).not.toMatch(
-      /so the agent read/,
+      /the agent read .+ next/,
     );
   });
 });
@@ -137,7 +137,7 @@ describe("Watch", () => {
         "The AI agent's plan: Try Cottonwood Social Hall for Mid as a third room.",
       ),
     ).toBeTruthy();
-    expect(bill.textContent).not.toMatch(/so the agent read/);
+    expect(bill.textContent).not.toMatch(/the agent read .+ next/);
     expect(within(bill).queryByText(KEY)).toBeNull();
   });
 
@@ -149,6 +149,6 @@ describe("Watch", () => {
     );
     const bill = await watch(NASHVILLE, saved, live);
     await at(bill, "+ Fort Street Ballroom's fans");
-    expect(bill.textContent).not.toMatch(/so the agent read/);
+    expect(bill.textContent).not.toMatch(/the agent read .+ next/);
   });
 });
