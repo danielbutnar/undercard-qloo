@@ -8,7 +8,7 @@ import { SYNTHETIC } from "./env";
 import { SYNTHETIC_UNCHECKED_PICK, syntheticLlmOnly } from "./synthetic-build";
 
 const LEAD =
-  "Paste the acts you've been pitched; Undercard sorts them by how fans of this town's venues rank them. You make every call.";
+  "Paste the acts you've been pitched; Undercard sorts them by how Qloo ranks them with this town's venue fans added to the headliners'. You make every call.";
 const LIMIT =
   "You've used today's 5 shortlist checks from this network. Try again tomorrow (UTC).";
 const SYNTHETIC_ONLY = "a check's invented names are the synthetic server's";

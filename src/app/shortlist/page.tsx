@@ -8,7 +8,7 @@ import { shortlistExample } from "@/server/shortlist";
 export const metadata: Metadata = {
   title: "Check a shortlist · Undercard",
   description:
-    "Paste the acts you've been pitched; Undercard sorts them by how fans of a town's own music venues rank them on Qloo. It drafts nothing and books nothing.",
+    "Paste the acts you've been pitched; Undercard sorts them by how Qloo ranks them with a town's music-venue fans added to the headliners'. It drafts nothing and books nothing.",
 };
 
 // The buyer's shortlist (WS4). Boise's example, the model's own ten picks from its saved

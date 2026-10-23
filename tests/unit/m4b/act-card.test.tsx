@@ -113,7 +113,7 @@ describe("an act on the bill", () => {
     expect(within(article).getByText("Why it's here:")).toBeTruthy();
     // Plan.md item 5: the why in one sentence, from the saved build's places and climb.
     expect(article.textContent).toMatch(
-      /Fans of Fort Street Ballroom rank Marisol Vey \d+(st|nd|rd|th); fans of the headliners alone rank them \d+(st|nd|rd|th)\. That climb of 7 is why Marisol Vey is here\./,
+      /With Fort Street Ballroom's fans added to the headliners', Qloo ranks Marisol Vey \d+(st|nd|rd|th); for the headliners' fans alone, \d+(st|nd|rd|th)\. That climb of 7 is why Marisol Vey is here\./,
     );
     expect(
       within(article).getByText("Qloo affinity").parentElement?.textContent,

@@ -214,7 +214,7 @@ test.describe("demo path", () => {
       // Plan.md item 5: the why in one sentence from the saved places and climb; a build without
       // its places keeps its own line.
       await expect(opened).toContainText(
-        /Why it's here: (Fans of .+ rank .+ \d+(st|nd|rd|th); fans of the headliners alone (rank them \d+(st|nd|rd|th)\. That climb of \d+|don't rank them in their top 50\. That climb into the top 50) is why .+ is here\.|.+ fans move it (up \d+ places|into the top \d+)\.)/,
+        /Why it's here: (With .+'s fans added to the headliners', Qloo ranks .+ \d+(st|nd|rd|th); for the headliners' fans alone, (\d+(st|nd|rd|th)\. That climb of \d+|it isn't in the top 50\. That climb into the top 50) is why .+ is here\.|.+ fans move it (up \d+ places|into the top \d+)\.)/,
       );
       await expect(
         opened

@@ -530,14 +530,14 @@ export function MethodEvidencePage() {
                 verdict="not"
               >
                 <p>
-                  Undercard measures that fans of the town&apos;s venues rank an
-                  act higher than fans of the headliners alone: its climb. A
-                  direct local measure was a no-go (
-                  <Ev to="local">evidence 6</Ev>); the ten-festival test fell
-                  one short of its bar (<Ev to="premise">evidence 18</Ev>) and
-                  the thirty-festival test met it exactly (
-                  <Ev to="premise2">evidence 26</Ev>). Both measure the
-                  venues&apos; fans, not the town&apos;s crowd.
+                  Undercard measures that Qloo ranks an act higher with a town
+                  venue&apos;s fans added to the headliners&apos; than for the
+                  headliners&apos; fans alone: its climb. A direct local measure
+                  was a no-go (<Ev to="local">evidence 6</Ev>); the ten-festival
+                  test fell one short of its bar (
+                  <Ev to="premise">evidence 18</Ev>) and the thirty-festival
+                  test met it exactly (<Ev to="premise2">evidence 26</Ev>). Both
+                  measure the venues&apos; fans, not the town&apos;s crowd.
                 </p>
               </Objection>
               <Objection

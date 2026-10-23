@@ -62,7 +62,7 @@ describe("an act's card", () => {
     // The climb, with its places and the rule's bar.
     expect(checks[0].textContent).toContain("Its place in Qloo's ranking");
     expect(checks[0].textContent).toContain(
-      "Why it's here: Fans of Fort Street Ballroom rank Marisol Vey 4th; fans of the headliners alone rank them 11th. That climb of 7 is why Marisol Vey is here.",
+      "Why it's here: With Fort Street Ballroom's fans added to the headliners', Qloo ranks Marisol Vey 4th; for the headliners' fans alone, 11th. That climb of 7 is why Marisol Vey is here.",
     );
     expect(checks[0].textContent).toContain(
       "Undercard only books a climb of 5 places or more.",
@@ -115,7 +115,7 @@ describe("an act's card", () => {
       "Its Qloo popularity is inside the opening range, 55–80 out of 100, our stand-in for fee.",
     );
     expect(card.textContent).toMatch(
-      /Why it's here: Fans of The Lantern Room rank Low Bench Choir 8th; fans of the headliners alone don't rank them in their top 50\./,
+      /Why it's here: With The Lantern Room's fans added to the headliners', Qloo ranks Low Bench Choir 8th; for the headliners' fans alone, it isn't in the top 50\./,
     );
   });
 });
