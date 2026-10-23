@@ -1343,7 +1343,9 @@ export function FestivalScreen({
                   <path d="M2 8 H13 M9 4 L13 8 L9 12" />
                 </svg>
               </Link>
-              <Link href="/shortlist" className="tool">
+              {/* No prefetch: on a dev server each act card opened re-prefetched the
+                  shortlist, and the demo path's card step went from 19 s to 42 s. */}
+              <Link href="/shortlist" prefetch={false} className="tool">
                 Check the acts you&apos;ve been pitched
               </Link>
             </>

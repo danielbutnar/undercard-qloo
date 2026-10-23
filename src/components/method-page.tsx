@@ -197,7 +197,7 @@ export function MethodPage({
         <WhoDoesWhat calls={story?.calls ?? 12} />
 
         <p className="how-sub">
-          <Link href="/shortlist" className="link">
+          <Link href="/shortlist" prefetch={false} className="link">
             Check the acts you&apos;ve been pitched against a town&apos;s venue
             fans
           </Link>
