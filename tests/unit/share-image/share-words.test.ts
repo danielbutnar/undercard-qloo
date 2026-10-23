@@ -48,10 +48,9 @@ describe("the link preview's text on a saved build", () => {
       stamp: "Fictional festival · demo draft",
       festival: "Sagebrush Sound",
       facts: "Boise, Idaho · 3,000 capacity · crowd aged 25–34",
-      booked: "Booked by you: two bands",
       headliners: ["Khruangbin", "Japanese Breakfast"],
       drafted: "Drafted by Undercard",
-      from: "from what fans of Boise's music venues love",
+      from: "from what fans of Boise's music venues like",
       // Only the venues whose fans lifted an act, most acts first, each in its poster colour.
       venues: [
         { name: "The Lantern Room", hue: 0, acts: "7 acts" },
@@ -96,11 +95,10 @@ describe("the link preview's text on a saved build", () => {
       // The facts' three parts, each kept on one line by no-break spaces; the dots between
       // them are drawn.
       ...["Boise, Idaho", "3,000 capacity", "crowd aged 25–34"].map(unbroken),
-      "Booked by you: two bands",
       "KHRUANGBIN",
       "JAPANESE BREAKFAST",
       "Drafted by Undercard",
-      "from what fans of Boise's music venues love",
+      "from what fans of Boise's music venues like",
       "THE LANTERN ROOM",
       "7 acts",
       "FORT STREET BALLROOM",
@@ -178,7 +176,7 @@ describe("the link preview's text on a saved build", () => {
     expect(card.facts).toBe(
       "Austin, Texas · 3,000 capacity · crowd aged 25–34",
     );
-    expect(card.from).toBe("from what fans of Austin's music venues love");
+    expect(card.from).toBe("from what fans of Austin's music venues like");
   });
 
   it("draws an open slot where a band is short", async () => {

@@ -299,17 +299,6 @@ export function listNames(names: readonly string[]): string {
 export const stampWords = (own: boolean, short = false) =>
   own ? "Draft" : short ? "Fictional demo" : "Fictional festival · demo draft";
 
-/**
- * The label over the headliners: booked by the buyer, and for the demo's two, that they're
- * bands (M6q); a judge's own may not be.
- */
-export function bookedLabel(festival: Pick<Festival, "headliners">): string {
-  const bands =
-    festival.headliners[0] === SAGEBRUSH_SOUND.headliners[0] &&
-    festival.headliners[1] === SAGEBRUSH_SOUND.headliners[1];
-  return bands ? "Booked by you: two bands" : "Booked by you";
-}
-
 /** The poster's last line. */
 export function footnote(
   festival: Pick<Festival, "id">,

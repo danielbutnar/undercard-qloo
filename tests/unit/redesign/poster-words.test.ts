@@ -3,7 +3,6 @@
 import { describe, expect, it } from "vitest";
 import {
   bandRange,
-  bookedLabel,
   cardBand,
   CARD_CHECKS,
   cardClimbRule,
@@ -243,13 +242,6 @@ describe("the poster's marks and lines", () => {
     expect(listNames(["A"])).toBe("A");
     expect(listNames(["A", "B"])).toBe("A and B");
     expect(listNames(["A", "B", "C"])).toBe("A, B and C");
-  });
-
-  it("says over the demo's headliners that they're two bands, and only over the demo's", () => {
-    expect(bookedLabel(SAGEBRUSH_SOUND)).toBe("Booked by you: two bands");
-    expect(bookedLabel({ headliners: ["Mitski", "Khruangbin"] })).toBe(
-      "Booked by you",
-    );
   });
 
   it("stamps the demo's festival as fictional and a judge's own as a draft, shorter on a phone", () => {

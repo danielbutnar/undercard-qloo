@@ -269,7 +269,7 @@ export function posterLayout(
     ) *
     FACTS_TEXT *
     1.3;
-  // The left panel: the festival's name, its facts, the rule, the booked chip, the headliners.
+  // The left panel: the festival's name, its facts, the rule, the headliners.
   const leftAt = (scale: number) => {
     const festival = fitLines(
       capitals(card.festival),
@@ -669,19 +669,6 @@ function Poster({ card }: { card: Extract<ShareCard, { kind: "poster" }> }) {
               backgroundColor: C.ink,
             }}
           />
-          <div
-            style={{
-              display: "flex",
-              padding: "3px 11px",
-              backgroundColor: C.ink,
-              color: C.surface,
-              fontSize: 18,
-              lineHeight: 1.2,
-              ...heavy(18, C.surface),
-            }}
-          >
-            {card.booked}
-          </div>
           {card.headliners.map((name, index) => (
             <div
               key={name}

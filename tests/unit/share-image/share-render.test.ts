@@ -75,11 +75,11 @@ describe("the link preview's PNG", () => {
 
   it("says in its alt text what the poster shows", () => {
     expect(shareAlt(SAGEBRUSH_SOUND)).toBe(
-      "Sagebrush Sound, a fictional festival in Boise, Idaho: its booked headliners, then the acts Undercard drafted from what fans of Boise's music venues love, each in its venue's colour.",
+      "Sagebrush Sound, a fictional festival in Boise, Idaho: its booked headliners, then the acts Undercard drafted from what fans of Boise's music venues like, each in its venue's colour.",
     );
     // A town's route has one alt text for every town.
     expect(shareAlt(null)).toBe(
-      "Sagebrush Sound, a fictional festival: its booked headliners, then the acts Undercard drafted from what fans of the town's music venues love, each in its venue's colour.",
+      "Sagebrush Sound, a fictional festival: its booked headliners, then the acts Undercard drafted from what fans of the town's music venues like, each in its venue's colour.",
     );
   });
 

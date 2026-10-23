@@ -8,7 +8,6 @@ import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import type { Placed } from "@/lib/venue-switch";
 import { venueHues } from "@/lib/venue-colours";
 import {
-  bookedLabel,
   climbMark,
   LEAD_TITLE,
   leadLine,
@@ -30,7 +29,7 @@ export const SHARE_DRAFTED = "Drafted by Undercard";
 
 /** Daniel's line for the preview (WS10 brief): whose fans drafted the acts. */
 export const draftedFrom = (city: string) =>
-  `from what fans of ${city}'s music venues love`;
+  `from what fans of ${city}'s music venues like`;
 
 /**
  * A page's link-preview tags, in the first screen's words: its lead for the title, its tagline
@@ -58,7 +57,7 @@ export function shareMetadata(festival: Festival) {
  */
 export function shareAlt(festival: Festival | null): string {
   const shows = (whose: string) =>
-    `its booked headliners, then the acts Undercard drafted from what fans of ${whose} music venues love, each in its venue's colour.`;
+    `its booked headliners, then the acts Undercard drafted from what fans of ${whose} music venues like, each in its venue's colour.`;
   return festival
     ? `${festival.name}, a fictional festival in ${festival.city}, ${festival.region}: ${shows(`${festival.city}'s`)}`
     : `${SAGEBRUSH_SOUND.name}, a fictional festival: ${shows("the town's")}`;
@@ -95,7 +94,6 @@ export type ShareCard =
       stamp: string;
       festival: string;
       facts: string;
-      booked: string;
       headliners: string[];
       drafted: string;
       from: string;
@@ -217,7 +215,6 @@ export function shareCard(
     stamp: stampWords(false),
     festival: drawable(festival.name),
     facts: drawable(factsLine(festival)),
-    booked: bookedLabel(festival),
     headliners: festival.headliners.map(drawable),
     drafted: SHARE_DRAFTED,
     from: drawable(draftedFrom(festival.city)),
