@@ -141,7 +141,8 @@ describe("following one act through the saved build", () => {
     expect(checks.map((check) => check.textContent)).toEqual([
       expect.stringMatching(/^Climbs 5 places or more in Qloo's ranking: 11/),
       expect.stringMatching(
-        /^Inside the fee range \(80th–92nd\): \d+(st|nd|rd|th)/,
+        // Popularity on the tier's own scale, as the act card and the tier captions give it.
+        /^Inside the tier's popularity range \(80–92\): \d+$/,
       ),
       "Shares two genres with the headliners: Dream Pop, Psychedelic Rock",
     ]);

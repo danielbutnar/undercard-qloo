@@ -23,7 +23,7 @@ import {
 import { useReducedMotion } from "@/components/use-watch";
 import { pictured } from "@/lib/artist-images";
 import { MIN_LIFT } from "@/lib/assemble-lineup";
-import { formatBandRange, formatPercentile } from "@/lib/format";
+import { formatPopularity, formatPopularityRange } from "@/lib/format";
 import type { MethodStory } from "@/lib/method-story";
 import { venueHues } from "@/lib/venue-colours";
 
@@ -206,7 +206,7 @@ export function FollowOneAct({
   };
   const checks = [
     `Climbs ${MIN_LIFT} places or more in Qloo's ranking: ${fresh ? "new to the top 50" : climb}`,
-    `Inside the fee range (${formatBandRange(band)}): ${formatPercentile(act.popularity)}`,
+    `Inside the tier's popularity range (${formatPopularityRange(band)}): ${formatPopularity(act.popularity)}`,
     `Shares two genres with the headliners: ${act.sharedTags.map((tag) => tag.name).join(", ")}`,
   ];
   const steps = [
