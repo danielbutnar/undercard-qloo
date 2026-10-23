@@ -306,17 +306,17 @@ export const CLAIMS: readonly Entry[] = [
   },
   {
     file: STORY,
-    phrase: "Venue 213 Austin lifted {8} acts",
+    phrase: "Venue 213 Austin lifted all {10} acts",
     equals: venue("Austin", "Venue 213 Austin"),
   },
   {
     file: STORY,
-    phrase: "Venue 62 {2}",
-    equals: venue("Austin", "Venue 62"),
+    phrase: "Venue 420 and Venue 316 {0}",
+    equals: venue("Austin", "Venue 316"),
   },
   {
     file: STORY,
-    phrase: "Venue 420 {0}",
+    phrase: "Venue 420 and Venue 316 {0}",
     equals: venue("Austin", "Venue 420"),
   },
   {
