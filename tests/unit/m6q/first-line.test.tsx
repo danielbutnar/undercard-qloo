@@ -42,7 +42,10 @@ describe("the first screen for a lay reader (M6q)", () => {
     ).toBeNull();
     expect(draft.contains(mode)).toBe(true);
     expect(
-      follows(mode, screen.getByRole("heading", { level: 1, name: "Sagebrush Sound" })),
+      follows(
+        mode,
+        screen.getByRole("heading", { level: 1, name: "Sagebrush Sound" }),
+      ),
     ).toBe(true);
   });
 
