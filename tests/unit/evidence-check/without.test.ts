@@ -107,6 +107,9 @@ describe("the Without Qloo counts from the store", () => {
     // Eight found by their Qloo ids, the unfound and the unsearched pick by their names.
     expect(value({ kind: "measure", of: "distinct-without" })).toBe(10);
     expect(value({ kind: "measure", of: "average-changed" })).toBe(10);
+    // The exact counts the data file carries since Duluth's shared act was found (2026-10-22).
+    expect(value({ kind: "measure", of: "shared-acts" })).toBe(0);
+    expect(value({ kind: "measure", of: "towns-sharing-an-act" })).toBe(0);
   });
 
   it("leave a town out when its build's lists aren't in the cache", async () => {

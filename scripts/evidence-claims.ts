@@ -804,8 +804,7 @@ export const CLAIMS: readonly Entry[] = [
   {
     file: EVIDENCE,
     section: 31,
-    phrase:
-      "in every one of the {29} towns: no town's two lineups share an act",
+    phrase: "Qloo changes all 10 acts in {28} of the 29 towns",
     equals: measure("towns-sharing-no-act"),
   },
   {
@@ -905,8 +904,18 @@ export const CLAIMS: readonly Entry[] = [
   { file: AGGREGATE, phrase: '"towns": {29}', equals: without("towns") },
   {
     file: AGGREGATE,
-    phrase: '"averageChanged": {10}',
+    phrase: '"averageChanged": {9.97}',
     equals: measure("average-changed"),
+  },
+  {
+    file: AGGREGATE,
+    phrase: '"sharedActs": {1}',
+    equals: measure("shared-acts"),
+  },
+  {
+    file: AGGREGATE,
+    phrase: '"townsSharingAnAct": {1}',
+    equals: measure("towns-sharing-an-act"),
   },
   {
     file: AGGREGATE,
@@ -960,7 +969,7 @@ export const CLAIMS: readonly Entry[] = [
   },
   {
     file: EVIDENCE_PAGE,
-    phrase: "The two lineups share no act in any of the {29} towns.",
+    phrase: "The two lineups share no act in {28} of the 29 towns",
     equals: measure("towns-sharing-no-act"),
   },
   {

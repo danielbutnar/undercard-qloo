@@ -478,7 +478,9 @@ export type Computation =
         | "distinct-with"
         | "distinct-without"
         | "named-in-half"
-        | "average-changed";
+        | "average-changed"
+        | "shared-acts"
+        | "towns-sharing-an-act";
     }
   | {
       kind: "run";
@@ -736,7 +738,9 @@ const MEASURE_WORDS: Record<
   "distinct-with": "distinct acts on the With Qloo lineups",
   "distinct-without": "distinct acts on the Without Qloo lineups",
   "named-in-half": "acts on half the Without Qloo lineups or more",
-  "average-changed": "acts Qloo changes per town, on average (one decimal)",
+  "average-changed": "acts Qloo changes per town, on average (two decimals)",
+  "shared-acts": "acts the two lineups share, across the towns",
+  "towns-sharing-an-act": "towns whose two lineups share an act",
 };
 const RUN_WORDS: Record<Extract<Computation, { kind: "run" }>["of"], string> = {
   "model-calls": "model calls",
@@ -967,8 +971,12 @@ export function evaluate(
         case "named-in-half":
           return m.inHalfOrMoreWithout;
         case "average-changed":
-          // As scripts/with-without-measures.ts writes it, to one decimal.
-          return Number(m.averageChanged.toFixed(1));
+          // As scripts/with-without-measures.ts writes it, to two decimals since 2026-10-22.
+          return Number(m.averageChanged.toFixed(2));
+        case "shared-acts":
+          return m.sharedActs;
+        case "towns-sharing-an-act":
+          return m.townsSharingAnAct;
       }
     }
     case "run": {
