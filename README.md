@@ -99,6 +99,7 @@ the trace panel lists every call with its parameters and result count.
 | `GET /v2/insights` with `filter.type=urn:entity:place` | List the festival city's places with that tag; the agent picks music rooms as anchor venues. |
 | `GET /v2/analysis/compare` | Find the taste tags the two headliners share; they rank the two tags each card shows. |
 | `GET /v2/insights` with `filter.type=urn:entity:artist` | Rank artists inside each fee band's popularity range (`filter.popularity.min/max`), first for the headliners alone, then for the headliners plus one anchor venue in `signal.interests.entities`. |
+| `GET /v2/insights` with `feature.explainability=true` | For each fee range of a saved build, the headliners and that range's venues together as the signal and the range's lineup acts as `filter.results.entities`: Qloo's own split of each act's match by input, one small line on its card. Made once per saved build by `scripts/attribution-warm.ts`; the page reads it from the cache only. |
 
 Artists have no location of their own in Qloo. Its location data for artists, tried three
 ways, gave a usable local reading for at most 7 of 10 acts, short of the bar of 8
