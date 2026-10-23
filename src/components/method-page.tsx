@@ -196,6 +196,13 @@ export function MethodPage({
 
         <WhoDoesWhat calls={story?.calls ?? 12} />
 
+        <p className="how-sub">
+          <Link href="/shortlist" className="link">
+            Check the acts you&apos;ve been pitched against a town&apos;s venue
+            fans
+          </Link>
+        </p>
+
         <section aria-label="What was tested" className="panel">
           <h2 className="panel-title">What was tested</h2>
           <Verdicts />

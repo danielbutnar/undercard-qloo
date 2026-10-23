@@ -10,11 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { ActCardPanel } from "@/components/act-card-panel";
-import {
-  FlyingActs,
-  landsAt,
-  type Flight,
-} from "@/components/chart/flights";
+import { FlyingActs, landsAt, type Flight } from "@/components/chart/flights";
 import type { Printing } from "@/components/chart/band-chart";
 import { billRows } from "@/components/chart/chart-rows";
 import { ImageCredit } from "@/components/chart/image-credit";
@@ -1340,12 +1336,17 @@ export function FestivalScreen({
             </>
           )}
           {!custom && (
-            <Link href="/your-festival" className="tool poster-own">
-              Draft your own festival
-              <svg viewBox="0 0 16 16" aria-hidden>
-                <path d="M2 8 H13 M9 4 L13 8 L9 12" />
-              </svg>
-            </Link>
+            <>
+              <Link href="/your-festival" className="tool poster-own">
+                Draft your own festival
+                <svg viewBox="0 0 16 16" aria-hidden>
+                  <path d="M2 8 H13 M9 4 L13 8 L9 12" />
+                </svg>
+              </Link>
+              <Link href="/shortlist" className="tool">
+                Check the acts you&apos;ve been pitched
+              </Link>
+            </>
           )}
         </PosterActions>
       )}
