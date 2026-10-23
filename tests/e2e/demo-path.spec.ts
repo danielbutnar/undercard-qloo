@@ -427,6 +427,26 @@ test.describe("demo path", () => {
     expect(sent).toEqual([]);
   });
 
+  // WS8: hovering the key's switches fades nothing; after a venue is switched off from the key,
+  // the acts left are at full opacity with the mouse still on its switch.
+  test("the venue switch: with the mouse on the key, the acts left aren't faded", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const key = bill(page).getByRole("group", {
+      name: "Venue fans used for this draft",
+    });
+    const on = key.getByRole("button", { name: /'s fans: on, [1-9]/ }).first();
+    await expect(on).toBeEnabled({ timeout: 15_000 });
+    await on.hover();
+    await on.click();
+    await expect(bill(page).getByText(/^What if /)).toBeVisible();
+    const acts = bill(page).locator(".poster-act");
+    expect(await acts.count()).toBeGreaterThan(0);
+    for (const act of await acts.all())
+      await expect(act).toHaveCSS("opacity", "1");
+  });
+
   // WS8: a room that alone fills a tier, switched off from the poster's key, empties that tier:
   // Denver's synthetic build credits all six openers to Larimer Hall, as Boise's credits its
   // openers to Venue 418. The mid-size tier keeps its other room's act.

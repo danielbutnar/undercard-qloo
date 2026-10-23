@@ -566,7 +566,6 @@ export function FestivalScreen({
   const [openId, setOpenId] = useState<string | null>(null);
   // The venue picked from its sign in the town, or from the poster's key.
   const [pickedVenue, setPickedVenue] = useState<string | null>(null);
-  const [hoverVenue, setHoverVenue] = useState<string | null>(null);
   const [picks, setPicks] = useState<Record<string, number>>({});
   const [printing, setPrinting] = useState<Printing>(null);
   const board = useRef<HTMLElement>(null);
@@ -916,8 +915,8 @@ export function FestivalScreen({
     const flight = flights.find((entry) => entry.act.entityId === act.entityId);
     return flight ? landsAt(flight.order) : undefined;
   };
-  // A picked venue (or one hovered on the key) fades the other venues' acts.
-  const focusVenue = !watching && !without ? (pickedVenue ?? hoverVenue) : null;
+  // Hovering the key's switches fades nothing (WS8): only a venue picked does.
+  const focusVenue = !watching && !without ? pickedVenue : null;
   const dimmed = focusVenue
     ? (act: Act) => act.anchorVenue.entityId !== focusVenue
     : undefined;
@@ -1186,7 +1185,6 @@ export function FestivalScreen({
           setOpenId(null);
           switcher.toggle(id);
         }}
-        onHover={setHoverVenue}
         quiet={watching}
       />
       {!allOpen && (
