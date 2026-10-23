@@ -1,5 +1,7 @@
 # The daily smoke test (plan.md item 2): tests/e2e/smoke.spec.ts against production, once a day
-# and on demand, through the judging window. It makes no live Qloo build and needs no secret.
+# and on demand, through the judging window. It makes no live Qloo build. Its one secret,
+# HEALTH_TOKEN, is optional: with it, the deep health check also makes one Qloo search and one
+# one-token Claude call a day.
 # A failed scheduled run emails whoever last changed this schedule (GitHub's default for
 # scheduled workflows) and opens an issue, so a failure is seen.
 name: smoke
@@ -28,6 +30,16 @@ jobs:
       - run: pnpm e2e tests/e2e/smoke.spec.ts --workers=1
         env:
           E2E_BASE_URL: https://undercard-daniel-51ed.vercel.app
+      # GET /api/health/deep once (src/server/health.ts): one Qloo search and one one-token Claude
+      # call. It runs even when the smoke test failed, and fails the run unless both answer ok;
+      # without the HEALTH_TOKEN secret, or once today's checks are used (429), it passes with a
+      # notice.
+      - name: Deep health check
+        if: ${{ !cancelled() }}
+        run: node scripts/deep-health.mjs
+        env:
+          E2E_BASE_URL: https://undercard-daniel-51ed.vercel.app
+          HEALTH_TOKEN: ${{ secrets.HEALTH_TOKEN }}
       - name: Open an issue when the smoke test fails
         if: failure()
         uses: actions/github-script@v7

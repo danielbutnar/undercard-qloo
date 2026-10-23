@@ -2,7 +2,8 @@
 // synthetic server (playwright.config.ts) or a deployment (E2E_BASE_URL). The first screen and
 // the replay come from the server's latest saved build. On a deployment the refill (step 4)
 // calls Qloo, and Without Qloo (step 5) calls Claude the first time; on the synthetic server,
-// which has no Qloo client, the refill is answered in the browser.
+// which has no Qloo client, the refill is answered in the browser. WS9: the same steps on the
+// first screen "Your town prints your poster": the poster is the draft bill, the town beside it.
 import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
 import { LIVE_QLOO, QLOO_SKIP_REASON, SYNTHETIC } from "./env";
@@ -54,14 +55,16 @@ test.describe("demo path", () => {
         .getByRole("list", { name: "Booked headliners" })
         .getByRole("listitem"),
     ).toHaveText(["Khruangbin", "Japanese Breakfast"]);
-    await expect(bill(page).getByText("Draft, not announced")).toBeVisible();
-    // Daniel's brief of 2026-10-22, item 3: Undercard drafts from Qloo's numbers; the AI agent
-    // plans the calls. The footer keeps the build's saved date.
     await expect(
-      bill(page).getByText(
-        "The headliners, two bands, are already booked · Undercard drafted the rest of the lineup (the bill) from Qloo's numbers",
-      ),
+      bill(page).getByText("Fictional festival · demo draft"),
     ).toBeVisible();
+    // Daniel's brief of 2026-10-22, item 3: Undercard drafts from Qloo's numbers; the AI agent
+    // plans the calls. WS9: booked by you over the headliners, drafted by Undercard from the
+    // venues' fans over the rest; the poster keeps the build's saved date.
+    await expect(
+      bill(page).getByText("Booked by you: two bands"),
+    ).toBeVisible();
+    await expect(bill(page).getByText("Drafted by Undercard")).toBeVisible();
     await expect(
       page.getByText(
         /^Drafted from \d+ Qloo calls the AI agent planned · saved [A-Z][a-z]{2} \d{1,2}, \d\d:\d\d UTC$/,
@@ -73,69 +76,69 @@ test.describe("demo path", () => {
     await expect(band(page, /^Opening acts/).getByRole("article")).toHaveCount(
       6,
     );
-    // The fee range is a scale on each band; its words are one tap away (the "?").
+    // Each band says its Qloo popularity range, our stand-in for fee; How an act gets on, under
+    // the poster, says each fee range in words.
     await expect(
-      band(page, /^Mid/).getByText("80th–92nd", { exact: true }),
-    ).toBeVisible();
-    await band(page, /^Mid/)
-      .getByRole("button", {
-        name: "What the fee range for mid-size acts means",
-      })
-      .click();
-    await expect(
-      page.getByText(
-        "4 slots · fee range (Mid): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (80th–92nd percentile)",
+      band(page, /^Mid/).getByText(
+        "· Qloo popularity 80–92, our stand-in for fee",
       ),
     ).toBeVisible();
-    await band(page, /^Opening acts/)
-      .getByRole("button", {
-        name: "What the fee range for opening acts means",
-      })
-      .click();
     await expect(
-      page.getByText(
-        "6 slots · fee range (Opener): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (55th–80th percentile)",
-      ),
+      band(page, /^Opening acts/).getByText("· Qloo popularity 55–80"),
     ).toBeVisible();
+    const rule = page.getByRole("region", { name: "How an act gets on" });
+    await expect(rule).toContainText(
+      "4 slots · fee range (Mid): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (80th–92nd percentile)",
+    );
+    await expect(rule).toContainText(
+      "6 slots · fee range (Opener): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (55th–80th percentile)",
+    );
     for (const act of await bill(page).getByRole("article").all()) {
       await expect(act).toContainText(MARK);
       await expect(act.getByRole("button")).toHaveCount(1);
     }
 
-    // Each row's big number is its climb (M10a), with the ladder from the old place to the new
-    // one, and each band's key says what it counts. Qloo is explained once, beside Watch; then
-    // the venues behind the lineup.
-    await expect(bill(page).getByRole("article").first()).toContainText(
-      /\d+(st|nd|rd|th)\s*\d+(st|nd|rd|th)|outside the top 50/,
-    );
+    // Each act's climb beside its name (M10a), the poster's key saying what it counts, and the
+    // first act's climb as a sentence. Qloo is explained where it's first named, in the top bar;
+    // then the venues behind the lineup, in the town and under the poster.
+    await expect(
+      bill(page).getByRole("article").first().locator(".poster-climb"),
+    ).toHaveText(/^(↑\d+|NEW)$/);
     await expect(
       bill(page).getByText(
-        "places it climbed in Qloo's ranking with its venue's fans added",
+        "↑ = places it rose in Qloo's ranking with that venue's fans (5+ to qualify); the strongest Qloo match takes each slot",
       ),
-    ).toHaveCount(2);
-    await expect(
-      page.getByRole("region", { name: "What Undercard does" }),
-    ).toContainText(
-      "Qloo is a taste-data service: it maps what fans of one artist, venue or film also like.",
+    ).toHaveCount(1);
+    await expect(bill(page).locator(".poster-example")).toContainText(
+      /in Qloo's ranking once .+'s fans joined the headliners' fans\.|entered Qloo's top 50 at \d+(st|nd|rd|th) once/,
     );
+    await expect(page.getByRole("banner")).toContainText(
+      "built on Qloo, a taste-data service that maps what fans of one artist, venue or film also like.",
+    );
+    await expect(
+      page
+        .getByRole("region", { name: "Your town" })
+        .getByRole("button", { name: /\. Show this venue$/ })
+        .first(),
+    ).toBeVisible();
     await expect(rooms(page)).toContainText(
       "These venues stand for the town's taste: the acts won't necessarily play there.",
     );
     expect(await liftedTotal(page)).toBe(10);
 
     await expect(
-      page.getByRole("button", { name: "Watch how it picked these acts" }),
+      page.getByRole("button", { name: "Watch the AI agent build it" }),
     ).toBeVisible();
     await expect(page.getByRole("img", { name: /Presale/ })).toHaveCount(0);
     await expect(page.locator('input[type="password"]')).toHaveCount(0);
   });
 
-  test("step 2: Watch how it picked these acts streams every Qloo call, then the lineup reprints", async ({
+  test("step 2: Watch the AI agent build it streams every Qloo call, then the lineup reprints", async ({
     page,
   }) => {
     await page.goto("/");
     await page
-      .getByRole("button", { name: "Watch how it picked these acts" })
+      .getByRole("button", { name: "Watch the AI agent build it" })
       .click();
 
     const trace = page.getByRole("list", { name: "Qloo calls" });
@@ -150,22 +153,18 @@ test.describe("demo path", () => {
     const callCount = await traceRows(page).count();
     expect(callCount).toBeGreaterThanOrEqual(9);
 
-    // M9a: on a deployment the replay rebuilds the climb from the Qloo cache. The venues'
-    // lists re-sort with real moves; Skip goes straight to the lineup.
+    // M9a: on a deployment the replay rebuilds the climb from the Qloo cache. Each venue's
+    // acts land on the poster as it's read; Skip (Watch's own button) goes straight to the lineup.
     if (!SYNTHETIC) {
-      await expect(
-        bill(page)
-          .getByText(/^\+ .+'s fans$/)
-          .first(),
-      ).toBeVisible({ timeout: REPLAY_TIMEOUT });
+      await expect(page.getByText(/^\+ .+'s fans$/).first()).toBeVisible({
+        timeout: REPLAY_TIMEOUT,
+      });
       await expect(
         bill(page)
           .getByText(/^With .+'s fans added$/)
           .first(),
       ).toBeVisible();
-      await bill(page)
-        .getByRole("button", { name: "Skip to the lineup" })
-        .click();
+      await page.getByRole("button", { name: "Skip to the lineup" }).click();
     }
     expect(callCount).toBeLessThanOrEqual(12);
     await expect(trace.getByLabel(/^\d+ results$/)).toHaveCount(callCount);
@@ -306,18 +305,34 @@ test.describe("demo path", () => {
     const model = page.getByRole("region", {
       name: "Without Qloo: an AI model's picks alone",
     });
-    await expect(model.getByText("No Qloo data")).toBeVisible();
+    await expect(
+      model.getByText("Picked by Claude Sonnet 5.5 alone"),
+    ).toBeVisible();
     const picks = model.getByRole("article");
     await expect(picks.first()).toBeVisible({ timeout: 60_000 });
+    // One list with the model's own count, never sorted into slots.
+    await expect(model.getByText(/^The model's \d+ picks?$/)).toBeVisible();
     for (const pick of await picks.all()) {
-      // Prompt-4: how Qloo's cached data places the pick, or why it can't.
+      // Prompt-4: each pick's tag and line, how Qloo's cached data places it or why it can't.
+      await expect(pick).toContainText(
+        /(\d+(st|nd|rd|th) · (above|below) both ranges|\d+(st|nd|rd|th) · in the (mid-size|opening) range|not on Qloo|not checked on Qloo)/,
+      );
       await expect(pick).toContainText(
         /Picked without Qloo; (on Qloo: popularity \d+|not found on Qloo|not checked on Qloo)/,
       );
       await expect(pick).not.toContainText(/affinity/);
-      // Daniel's brief of 2026-10-22, item 5: a drawn cover, not an empty grey box.
-      await expect(pick.locator("svg.sleeve")).toBeVisible();
     }
+    // Each pick opens the model's own reason.
+    const first = picks.first();
+    const pickName = (await first.getAttribute("aria-label"))!;
+    await first.getByRole("button", { name: pickName, exact: true }).click();
+    await expect(
+      page.getByRole("region", { name: "The model's pick" }),
+    ).toContainText("The model's reason: ");
+    // The town says the model can't see its venues.
+    await expect(
+      page.getByRole("note", { name: "Without Qloo" }),
+    ).toContainText("Without Qloo, the model can't see Boise's venues.");
     await expect(model.locator(".sleeve-blank")).toHaveCount(0);
     await expect(page.locator("main")).not.toContainText(/\d+\s*\/\s*\d+/);
     await expect(bill(page)).toHaveCount(0);

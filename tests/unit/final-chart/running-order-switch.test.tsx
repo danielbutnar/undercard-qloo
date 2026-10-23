@@ -8,7 +8,6 @@ import {
   render,
   screen,
   waitFor,
-  within,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FestivalScreen } from "@/components/festival-screen";
@@ -75,15 +74,12 @@ describe("While a venue is off", () => {
         }}
       />,
     );
-    fireEvent.click(
-      within(screen.getByRole("region", { name: "Undercard draft" })).getByRole(
-        "button",
-        { name: "Running order" },
-      ),
-    );
+    // WS9: the tools sit below the poster, past the fold.
+    fireEvent.click(screen.getByRole("button", { name: "Running order" }));
     await screen.findByRole("region", { name: "Running order" });
 
-    const HINT = /keep it or mark it unavailable/;
+    // WS9: the poster's example line says what a name and a venue's switch do.
+    const HINT = /Pick a name for why, or switch a venue off above\./;
     expect(screen.getByText(HINT)).toBeTruthy();
     const venue = data!.venues[0];
     const toggle = screen.getByRole("button", {

@@ -1,10 +1,21 @@
 import { MIN_LIFT } from "@/lib/assemble-lineup";
+import type { FeeBand } from "@/lib/fee-bands";
+import { feeRangeWords, PLAIN_BAND } from "./words";
 
 /**
  * How an act gets on: the booking rule (src/lib/assemble-lineup.ts) as three pictures that add
- * up, instead of a paragraph. Qloo supplies every number; the app's own rule books the act.
+ * up, instead of a paragraph. Qloo supplies every number; the app's own rule books the act. On
+ * the first screen (WS9) it also says each band's fee range in words, and what Undercard is.
  */
-export function RuleKey() {
+export function RuleKey({
+  bands,
+  positioning = false,
+}: {
+  /** The festival's bands, each fee range said in words under the rule's second picture. */
+  bands?: readonly FeeBand[];
+  /** Daniel's positioning (plan.md item 7) under the rule. */
+  positioning?: boolean;
+} = {}) {
   return (
     <section aria-labelledby="rule-title" className="panel">
       <h2 id="rule-title" className="panel-title">
@@ -50,6 +61,15 @@ export function RuleKey() {
           It shares two genres with the headliners
         </li>
       </ul>
+      {bands && (
+        <ul aria-label="Fee ranges" className="rule-fees">
+          {bands.map((band) => (
+            <li key={band.id}>
+              <strong>{PLAIN_BAND[band.id]}:</strong> {feeRangeWords(band)}
+            </li>
+          ))}
+        </ul>
+      )}
       <p className="rule-sum">
         <span className="check" aria-hidden>
           <svg viewBox="0 0 20 20" width="16" height="16">
@@ -64,6 +84,12 @@ export function RuleKey() {
         On the lineup, strongest Qloo affinity first. Qloo decides, the model
         plans, the rule books.
       </p>
+      {positioning && (
+        <p className="rule-what">
+          Undercard is an AI agent: it drafts a shortlist with its evidence
+          attached; the buyer makes every call.
+        </p>
+      )}
     </section>
   );
 }

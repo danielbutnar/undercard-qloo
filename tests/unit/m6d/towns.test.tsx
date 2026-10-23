@@ -98,9 +98,9 @@ describe("a town's screen", () => {
   it("names the town wherever the chart named Boise", () => {
     render(<FestivalScreen festival={austin} firstBill={{ ...FIRST_BILL }} />);
     expect(
-      screen.getByText(
-        "A festival lineup, drafted from Austin's own music venues.",
-      ),
+      within(
+        screen.getByRole("region", { name: "What Undercard does" }),
+      ).getByText(/from what fans of Austin's music venues like\.$/),
     ).toBeTruthy();
     // The venue switch is a region named for the town, with "Switch a venue off" under it.
     const venues = screen.getByRole("region", {
@@ -132,7 +132,7 @@ describe("a town's screen", () => {
     vi.stubGlobal("fetch", fetch);
     render(<FestivalScreen festival={austin} firstBill={FIRST_BILL} />);
     fireEvent.click(
-      screen.getByRole("button", { name: "Watch how it picked these acts" }),
+      screen.getByRole("button", { name: "Watch the AI agent build it" }),
     );
     expect(fetch).toHaveBeenCalledWith(
       "/api/undercard",

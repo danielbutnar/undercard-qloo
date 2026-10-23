@@ -30,7 +30,7 @@ const ndjson = (events: unknown[]) =>
 const builds = (fetch: ReturnType<typeof vi.fn>) =>
   fetch.mock.calls.filter(([url]) => url === "/api/undercard").length;
 const SKIP = { name: "Skip to the lineup" };
-const WATCH = { name: "Watch how it picked these acts" };
+const WATCH = { name: "Watch the AI agent build it" };
 const under = () => document.querySelector(".watch-sub")?.textContent ?? "";
 
 describe("Watch on a judge's own run", () => {
@@ -68,13 +68,14 @@ describe("Watch on a judge's own run", () => {
 
     fireEvent.click(screen.getByRole("button", WATCH));
     await act(() => new Promise((resolve) => setTimeout(resolve, 300)));
-    // The run's own editions play again, and nothing was asked of the server.
-    expect(within(draft).getByRole("button", SKIP)).toBeTruthy();
+    // The run's own editions play again, and nothing was asked of the server. WS9: Watch's own
+    // button turns into Skip while the show plays.
+    expect(screen.getByRole("button", SKIP)).toBeTruthy();
     expect(document.querySelector(".edition-title")?.textContent).toMatch(
       /^Replaying the AI agent's build$|fans/,
     );
     expect(builds(fetch)).toBe(1);
-    fireEvent.click(within(draft).getByRole("button", SKIP));
+    fireEvent.click(screen.getByRole("button", SKIP));
     expect(within(draft).getAllByRole("article")).toHaveLength(10);
     expect(builds(fetch)).toBe(1);
   }, 15000);
@@ -108,7 +109,9 @@ describe("The line under Watch on a saved town", () => {
         }}
       />,
     );
-    expect(under()).toBe(`Replays its ${saved.trace.length} Qloo calls`);
+    expect(under()).toBe(
+      "Replays how the agent drafted Boise",
+    );
     fireEvent.click(
       screen.getAllByRole("button", { name: "Run the agent live instead" })[0],
     );

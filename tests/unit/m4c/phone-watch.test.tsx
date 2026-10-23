@@ -4,7 +4,6 @@ import {
   fireEvent,
   render,
   screen,
-  within,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FestivalScreen } from "@/components/festival-screen";
@@ -16,14 +15,12 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const WATCH = { name: "Watch how it picked these acts" };
+const WATCH = { name: "Watch the AI agent build it" };
 const open = () =>
   render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />);
-const lead = () => screen.getByRole("region", { name: "What Undercard does" });
-
-// The lead's button under the headline is the only one, at every width
+// The button after the lead is the only one, at every width
 // (tests/unit/m9d/watch-under-headliners.test.tsx checks where it sits).
-describe("Watch how it picked these acts in the lead", () => {
+describe("Watch the AI agent build it after the lead", () => {
   it("replays the saved build", () => {
     // The venue switch asks GET /api/venue-switch once on mount (a 404 is fine: it says it
     // isn't available); the build stream never answers.
@@ -35,21 +32,21 @@ describe("Watch how it picked these acts in the lead", () => {
     vi.stubGlobal("fetch", fetch);
     open();
     expect(screen.getAllByRole("button", WATCH)).toHaveLength(1);
-    fireEvent.click(within(lead()).getByRole("button", WATCH));
+    fireEvent.click(screen.getByRole("button", WATCH));
     expect(fetch).toHaveBeenCalledWith(
       "/api/undercard",
       expect.objectContaining({
         body: JSON.stringify({ fresh: false, festival: "sagebrush-sound" }),
       }),
     );
-    // Watch plays at once: the button says so and waits, and the edition banner opens.
+    // Watch plays at once: its button turns into Skip, and the caption opens.
     expect(
       (
-        within(lead()).getByRole("button", {
-          name: "Watching…",
+        screen.getByRole("button", {
+          name: "Skip to the lineup",
         }) as HTMLButtonElement
       ).disabled,
-    ).toBe(true);
+    ).toBe(false);
     expect(screen.getByText("Replaying the AI agent's build")).toBeTruthy();
   });
 });

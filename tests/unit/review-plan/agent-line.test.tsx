@@ -55,7 +55,7 @@ async function watchWith(transform: (events: Event[]) => Event[]) {
     />,
   );
   fireEvent.click(
-    screen.getByRole("button", { name: "Watch how it picked these acts" }),
+    screen.getByRole("button", { name: "Watch the AI agent build it" }),
   );
   const bill = screen.getByRole("region", { name: "Undercard draft" });
   await waitFor(
@@ -77,7 +77,11 @@ describe("the AI agent's line in Watch (plan.md item 3)", () => {
         ...plain.slice(at),
       ];
     });
-    expect(within(bill).getByText(`The AI agent: ${line}`)).toBeTruthy();
+    // WS2: the label reads "The AI agent's plan:", with the Anchors key under its first line.
+    expect(within(bill).getByText(`The AI agent's plan: ${line}`)).toBeTruthy();
+    expect(
+      within(bill).getByText("Anchors are the venues whose fans it reads."),
+    ).toBeTruthy();
     expect(within(bill).queryByText(FIXED)).toBeNull();
   }, 15000);
 
@@ -86,6 +90,6 @@ describe("the AI agent's line in Watch (plan.md item 3)", () => {
       events.filter((e) => !(e.type === "status" && e.planner)),
     );
     expect(within(bill).getByText(FIXED)).toBeTruthy();
-    expect(within(bill).queryByText(/^The AI agent: /)).toBeNull();
+    expect(within(bill).queryByText(/^The AI agent's plan: /)).toBeNull();
   }, 15000);
 });

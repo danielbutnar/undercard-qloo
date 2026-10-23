@@ -49,10 +49,11 @@ const follows = (a: HTMLElement, b: HTMLElement) =>
   Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
 
 describe("How it works, top to bottom (M10b)", () => {
-  it("runs the video, the picture, one act, try it, who does what, then what was tested", () => {
+  // WS2: the video's slot leads only once the video is published (tests/unit/method).
+  it("runs the picture, one act, try it, who does what, then what was tested", () => {
     page();
+    expect(screen.queryByRole("region", { name: "The demo video" })).toBeNull();
     const order = [
-      "The demo video",
       "The method in one picture",
       "Follow one act",
       "Try it",

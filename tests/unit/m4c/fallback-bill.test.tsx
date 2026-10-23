@@ -17,14 +17,15 @@ describe("the first screen with no saved build", () => {
     ).toHaveLength(2);
     expect(within(draft).getAllByText("Open slot")).toHaveLength(10);
     expect(within(draft).getByText("No undercard drafted yet.")).toBeTruthy();
-    // The button sits in the lead above the chart, not inside the draft, and is the only one.
+    // The button sits after the lead, ahead of the poster, not inside it, and is the only one.
     expect(
       screen.getAllByRole("button", { name: "Build undercard" }),
     ).toHaveLength(1);
+    const button = screen.getByRole("button", { name: "Build undercard" });
     expect(
-      within(
-        screen.getByRole("region", { name: "What Undercard does" }),
-      ).getByRole("button", { name: "Build undercard" }),
+      screen
+        .getByRole("region", { name: "What Undercard does" })
+        .compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     expect(
       within(draft).queryByRole("button", { name: "Build undercard" }),

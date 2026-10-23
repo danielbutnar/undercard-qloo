@@ -1,39 +1,87 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import { ActCardPanel } from "@/components/act-card-panel";
 import {
-  BandChart,
-  type ChartRowData,
-  type Printing,
-} from "@/components/chart/band-chart";
+  FlyingActs,
+  landsAt,
+  type Flight,
+} from "@/components/chart/flights";
+import type { Printing } from "@/components/chart/band-chart";
+import { billRows } from "@/components/chart/chart-rows";
 import { ImageCredit } from "@/components/chart/image-credit";
-import { WithoutQlooChecksLine } from "@/components/chart/with-without-line";
-import { billRows, editionRows } from "@/components/chart/chart-rows";
-import { RuleKey } from "@/components/chart/rule-key";
-import { Quilt } from "@/components/chart/sleeve";
-import { TopBar } from "@/components/chart/top-bar";
-import { VenueSwitch, type VenueLine } from "@/components/chart/venue-switch";
 import {
-  headlinersBooked,
-  headlinersNote,
+  HeadlinerList,
+  ModelPicks,
+  PicksRuler,
+  PosterActions,
+  PosterBand,
+  VenueKey,
+  type KeyVenue,
+} from "@/components/chart/poster";
+import {
+  climbMark,
+  exampleAct,
+  exampleHint,
+  bookedLabel,
+  footnote,
+  LEAD_TITLE,
+  leadLine,
+  legendLine,
+  MISSED_CUT,
+  oneActLine,
+  openBandLine,
+  openPosterLine,
+  regionCode,
+  RULE_LINE,
+  stampWords,
+  TAGLINE_LEAD,
+  TAGLINE_QLOO,
+  venueLine,
+  WATCH_AGENT,
+  watchSubLine,
+  withoutCounts,
+  withoutHeadline,
+  withoutNote,
+  withoutSummary,
+} from "@/components/chart/poster-words";
+import { RuleKey } from "@/components/chart/rule-key";
+import {
+  signName,
+  TownScene,
+  type SceneVenue,
+} from "@/components/chart/town-scene";
+import { VenueSwitch, type VenueLine } from "@/components/chart/venue-switch";
+import { WithoutQlooChecksLine } from "@/components/chart/with-without-line";
+import {
+  AGENT_DECIDES,
+  agentLine,
+  ANCHORS_KEY,
   factsLine,
-  headline,
-  QLOO_LINE,
+  saysAnchors,
   SKIP,
-  STAMP,
-  WATCH,
+  switchLine,
+  venueShort,
+  watchCallLine,
+  watchLine,
+  watchTicksLabel,
+  watchTitle,
 } from "@/components/chart/words";
-import { ModelBill } from "@/components/model-bill";
+import { formatSavedAt } from "@/components/model-bill";
 import { RunningOrderPanel } from "@/components/running-order-panel";
-import { TownSwitcher } from "@/components/town-switcher";
 import { TracePanel, type BuildRequest } from "@/components/trace-panel";
 import { useLlmOnly } from "@/components/use-llm-only";
 import { useUndercardBuild } from "@/components/use-undercard-build";
 import { useVenueSwitch } from "@/components/use-venue-switch";
 import { useWatch, type WatchPhase } from "@/components/use-watch";
-import { MIN_LIFT } from "@/lib/assemble-lineup";
 import type { TraceCall } from "@/lib/build-events";
 import { firstBoard } from "@/lib/build-state";
 import {
@@ -48,12 +96,13 @@ import type { FirstBill } from "@/lib/first-bill";
 import type { ClimbEvent } from "@/lib/lift-climb";
 import type { Act } from "@/lib/lineup";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
-import { townOf } from "@/lib/towns";
+import { TOWNS, townHref, townOf } from "@/lib/towns";
 import type { UnavailableReason } from "@/lib/unavailable";
 import { venueHues } from "@/lib/venue-colours";
 import type { Placed } from "@/lib/venue-switch";
 import type { YourBrief } from "@/lib/your-festival";
 import "./chart/chart.css";
+import "./chart/first-screen.css";
 
 type Mode = "qloo" | "llm";
 
@@ -75,25 +124,47 @@ function downloadText(filename: string, text: string, type: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function ModeSwitch({
+/** A laptop's width, where the town and the poster stand side by side (the screen's CSS grid). */
+const WIDE = "(min-width: 1100px)";
+function subscribeWide(change: () => void) {
+  const query = window.matchMedia?.(WIDE);
+  query?.addEventListener?.("change", change);
+  return () => query?.removeEventListener?.("change", change);
+}
+const wideNow = () => window.matchMedia?.(WIDE)?.matches === true;
+/** Whether the screen is laid out wide; false on the server and in a narrow window. */
+function useWide(): boolean {
+  return useSyncExternalStore(subscribeWide, wideNow, () => false);
+}
+
+/** The poster's With and Without Qloo tabs, each named for what it shows (label fix 3). */
+function ModeTabs({
   mode,
   onChange,
 }: {
   mode: Mode;
   onChange: (mode: Mode) => void;
 }) {
-  // Each side says what it shows (label fix 3).
-  const options: { value: Mode; label: string }[] = [
-    { value: "qloo", label: "With Qloo: the AI agent's lineup" },
-    { value: "llm", label: "Without Qloo: an AI model's picks alone" },
+  const options: { value: Mode; label: string; name: string }[] = [
+    {
+      value: "qloo",
+      label: "With Qloo",
+      name: "With Qloo: the AI agent's lineup",
+    },
+    {
+      value: "llm",
+      label: "Without Qloo",
+      name: "Without Qloo: an AI model's picks alone",
+    },
   ];
   return (
-    <div role="group" aria-label="Which bill" className="mode">
+    <div role="group" aria-label="Which bill" className="poster-tabs">
       {options.map((option) => (
         <button
           key={option.value}
           type="button"
           aria-pressed={mode === option.value}
+          aria-label={option.name}
           onClick={() => onChange(option.value)}
         >
           {option.label}
@@ -103,29 +174,12 @@ function ModeSwitch({
   );
 }
 
-function LlmOnlyNote({ city }: { city: string }) {
-  return (
-    <aside aria-label="The model alone" className="panel">
-      <h2 className="panel-title">The model alone</h2>
-      <p className="mt-2 text-label">
-        The same brief went to Claude Sonnet 5.5 with no tools: the festival,
-        its city, capacity and crowd, the headliners and the fee ranges. It
-        answers from what it already knows, so no pick comes from a {city}{" "}
-        venue&apos;s fans, and with no popularity data no fee range can be
-        checked.
-      </p>
-      <p className="mt-2 text-label text-muted">
-        With Qloo brings back the AI agent&apos;s lineup and its {city} venues.
-      </p>
-    </aside>
-  );
-}
-
 /** A typed town that can't be found or is too thin (M6n): the checked towns are the next step. */
 const THIN = new Set(["town-not-found", "too-few-rooms", "not-full"]);
-// A run that hit the day's cap or a busy Qloo can't be run again for now: its notice offers the
-// checked towns in the same country to replay, or Sagebrush Sound's (plan.md item 2).
-const REPLAY_INSTEAD = new Set(["limit", "qloo-busy"]);
+// A run that hit the day's cap, a busy Qloo or a failed planner call can't be run again for now:
+// its notice offers the checked towns in the same country to replay, or Sagebrush Sound's
+// (plan.md item 2).
+const REPLAY_INSTEAD = new Set(["limit", "qloo-busy", "planner-failed"]);
 
 /** Why a judge's own draft couldn't be finished, and the next step (M6f). */
 function RunNotice({
@@ -154,11 +208,11 @@ function RunNotice({
   const offerName = country
     ? `Towns Undercard has already read in ${country}`
     : "Towns Undercard has already read";
-  // Bring the notice into view once: on a phone it can sit below the chart, and in the lead it
-  // can sit above where the page was scrolled to when the run started.
-  // On a phone a run starts by gliding down to the chart (startShow), and the notice can mount
-  // before that glide has moved anything: there it is brought into view at once, which stops the
-  // glide; anywhere, once the page has stopped moving, it is brought back if it ended off screen.
+  // Bring the notice into view once: on a phone it can sit below the poster, and below the
+  // fold on a laptop. On a phone a run starts by gliding down to the poster (startShow), and the
+  // notice can mount before that glide has moved anything: there it is brought into view at once,
+  // which stops the glide; anywhere, once the page has stopped moving, it is brought back if it
+  // ended off screen.
   const notice = useRef<HTMLElement>(null);
   useEffect(() => {
     const offScreen = () => {
@@ -203,7 +257,9 @@ function RunNotice({
                   ? "Qloo couldn't find this town"
                   : code === "too-few-rooms"
                     ? "Too few venues in this town"
-                    : "This draft couldn't be finished"}
+                    : code === "planner-failed"
+                      ? "The AI agent couldn't plan"
+                      : "This draft couldn't be finished"}
       </h2>
       <p className="mt-2 text-label">{message}</p>
       {near && (
@@ -269,10 +325,11 @@ function stepCall(
 }
 
 /**
- * Watch's banner over the chart: whose fans this edition of the chart adds, the Qloo calls so
- * far as ticks, the AI agent's latest line, and Skip, which is always there.
+ * Watch's caption: whose fans this step adds, what they did, the Qloo call it came from, the
+ * Qloo calls so far as ticks, and the AI agent's latest line (src/components/chart/words.ts). It
+ * stands over the town on a laptop and inside the poster on a phone; Watch's own button skips.
  */
-function EditionBanner({
+function WatchCaption({
   phase,
   step,
   hue,
@@ -280,10 +337,13 @@ function EditionBanner({
   calls,
   total,
   note,
+  anchorsKey,
+  switched,
+  noFanData,
   lifted,
   headliners,
   replayed,
-  onSkip,
+  where,
 }: {
   phase: WatchPhase;
   step: ClimbEvent | null;
@@ -292,74 +352,147 @@ function EditionBanner({
   calls: number;
   total: number;
   note: string | null;
-  /** Acts on the lineup this edition's venue lifted; null until the lineup is in. */
+  /** The agent's line is its first that says "Anchors": the key goes under it. */
+  anchorsKey: boolean;
+  /** The planner's venue switch, in one sentence, where the saved trace shows it here. */
+  switched: string | null;
+  /** Qloo had no fan data for this step's venue (the saved build's, from the cache). */
+  noFanData: boolean;
+  /** Acts on the lineup this step's venue lifted; null until the lineup is in. */
   lifted: number | null;
   headliners: readonly string[];
   replayed: boolean;
-  onSkip: () => void;
+  where: "town" | "poster";
 }) {
   const first = phase === "calls" || !step;
-  // A live run sends its lineup after its last call: until then, the edition's own climbs.
-  const climbs =
-    step?.acts.filter((listed) => listed.move !== null).length ?? 0;
-  const title = first
-    ? replayed
-      ? "Replaying the AI agent's build"
-      : "The AI agent is planning its Qloo calls"
-    : step.venue
-      ? `+ ${step.venue.name}'s fans`
-      : `${headliners.join(" + ")} fans alone`;
-  const line = first
-    ? "First it finds the headliners and the town's music venues in Qloo."
-    : step.venue
-      ? lifted === null
-        ? climbs > 0
-          ? `Qloo's ranking re-sorts with this venue's fans added: ${climbs} of the top ${step.acts.length} ${climbs === 1 ? "climbs" : "climb"} ${MIN_LIFT} places or more.`
-          : `Qloo's ranking re-sorts with this venue's fans added: no act in view climbs ${MIN_LIFT} places.`
-        : lifted > 0
-          ? `Qloo's ranking re-sorts with this venue's fans added: ${lifted} ${lifted === 1 ? "act climbs" : "acts climb"} onto the lineup.`
-          : `Qloo's ranking re-sorts with this venue's fans added: no act climbs ${MIN_LIFT} places onto the lineup.`
-      : "Qloo ranks the artists the headliners' fans like: the chart before any venue.";
+  const title = watchTitle({ first, step, replayed, headliners });
+  const line = watchLine({ first, step, lifted, noFanData });
   const shown = Math.max(total, calls);
   return (
     <div
-      className={`edition ${hue !== null ? `venue-${hue} edition-venue` : "edition-plain"}`}
+      className={`edition watch-caption watch-caption-${where} ${hue !== null ? `venue-${hue} edition-venue` : "edition-plain"}`}
     >
       <div className="edition-main" aria-live="polite">
         <p className="edition-title">{title}</p>
         <p className="edition-line">{line}</p>
-        {call && (
-          <p className="edition-call">
-            Qloo call {call.n} of {shown}: {call.summary}
-            {call.resultCount !== null ? ` · ${call.resultCount} results` : ""}
-          </p>
-        )}
+        {call && <p className="edition-call">{watchCallLine(call, shown)}</p>}
         {note ? (
-          <p className="edition-note">The AI agent: {note}</p>
+          <p className="edition-note">{agentLine(note)}</p>
         ) : !first && step?.venue ? (
           // Where the saved trace holds no line of the agent's for this step, say what it
           // decides rather than invent a reason (plan.md item 3).
-          <p className="edition-note">
-            The AI agent chose which venues to read, and in what order;
-            Qloo&apos;s numbers and the rule pick the acts.
-          </p>
+          <p className="edition-note">{AGENT_DECIDES}</p>
         ) : null}
+        {note && anchorsKey && <p className="edition-note">{ANCHORS_KEY}</p>}
+        {switched && <p className="edition-note">{switched}</p>}
       </div>
-      <div className="edition-side">
+      <span
+        className="ticks"
+        role="img"
+        aria-label={watchTicksLabel(calls, shown)}
+      >
+        {Array.from({ length: shown }, (_, i) => (
+          <i key={i} className={i < calls ? "lit" : ""} />
+        ))}
+      </span>
+    </div>
+  );
+}
+
+/** A venue the town stands, picked from its sign: its acts on the poster and its switch. */
+function VenueCard({
+  venue,
+  hue,
+  lifted,
+  off,
+  acts,
+  read,
+  placesListed,
+  city,
+  kind,
+  switchable,
+  onToggle,
+  onAct,
+  onClose,
+}: {
+  venue: { entityId: string; name: string };
+  hue: number | null;
+  lifted: number;
+  off: boolean;
+  acts: readonly Act[];
+  /** The fee ranges its fans were read for. */
+  read: readonly string[];
+  placesListed: number | null;
+  city: string;
+  kind?: string;
+  switchable: boolean;
+  onToggle: () => void;
+  onAct: (act: Act) => void;
+  onClose: () => void;
+}) {
+  return (
+    <section aria-label={venue.name} className="scene-card venue-card">
+      <p className="venue-card-name">
         <span
-          className="ticks"
-          role="img"
-          aria-label={`${calls} of ${shown} Qloo calls in`}
-        >
-          {Array.from({ length: shown }, (_, i) => (
-            <i key={i} className={i < calls ? "lit" : ""} />
+          className={`venue-card-swatch ${hue !== null && !off && lifted > 0 ? `venue-${hue}` : ""}`}
+          aria-hidden
+        />
+        {signName(venue.name)}
+      </p>
+      <p className="venue-card-line">{venueLine(venue.name, lifted, off)}</p>
+      {kind && (
+        <p className="venue-card-note">
+          {venue.name} is {kind}, not a club.
+        </p>
+      )}
+      <p className="venue-card-note">
+        {placesListed !== null
+          ? `The AI agent chose it from the ${placesListed} live-music venues Qloo found in ${city}`
+          : "The AI agent chose it"}
+        {read.length > 0
+          ? `; its fans were read for ${read.join(" and ")}.`
+          : "."}
+      </p>
+      {acts.length > 0 && !off && (
+        <ul aria-label="Acts its fans lifted" className="venue-card-acts">
+          {acts.map((act) => (
+            <li key={act.entityId}>
+              <button
+                type="button"
+                className={`poster-act-mini ${hue !== null ? `venue-${hue}` : ""}`}
+                onClick={() => onAct(act)}
+              >
+                {act.name}
+                <span className="poster-climb" aria-hidden>
+                  {climbMark(act)}
+                </span>
+              </button>
+            </li>
           ))}
-        </span>
-        <button type="button" onClick={onSkip} className="edition-skip">
-          {SKIP}
+        </ul>
+      )}
+      <div className="scene-card-buttons">
+        {switchable && (
+          <button
+            type="button"
+            className="scene-switch"
+            aria-pressed={!off}
+            onClick={onToggle}
+          >
+            <span
+              className={`scene-switch-track ${off ? "" : "is-on"}`}
+              aria-hidden
+            >
+              <span />
+            </span>
+            {signName(venue.name)}&apos;s fans {off ? "off" : "on"}
+          </button>
+        )}
+        <button type="button" className="scene-close" onClick={onClose}>
+          Close
         </button>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -373,11 +506,11 @@ export function FestivalScreen({
   festival: Festival;
   /** The latest saved build, read on the server; null falls back to the empty board. */
   firstBill?: FirstBill | null;
-  /** Towns with a saved build of the same brief, for the switcher; Boise alone hides it. */
+  /** Towns with a saved build of the same brief, for the town picker; Boise alone hides it. */
   towns?: readonly string[];
   /**
    * A judge's own brief (M6f): the agent runs live for it as soon as the screen opens. There is
-   * no Without Qloo, refill, venue switch or town switcher, and nothing is saved.
+   * no Without Qloo, refill, venue switch or town picker, and nothing is saved.
    */
   custom?: {
     brief: YourBrief;
@@ -387,7 +520,7 @@ export function FestivalScreen({
   };
   /**
    * A checked town from Your festival (M6m): its saved build replays as soon as the screen
-   * opens, with the live run next to it; there's no town switcher, and a way back to the towns.
+   * opens, with the live run next to it; there's no town picker, and a way back to the towns.
    */
   checked?: { onBack: () => void };
 }) {
@@ -407,6 +540,7 @@ export function FestivalScreen({
   );
   const watch = useWatch(state);
   const llm = useLlmOnly(festival.id);
+  const wide = useWide();
   // The switch works from the saved build on screen, never a judge's own run (it isn't saved).
   // It follows a new build once the build has finished, so a live run's lineup is the one it
   // re-forms (on a preview, which saves nothing, the switch then says it isn't available).
@@ -434,11 +568,16 @@ export function FestivalScreen({
   // settles it; until then, what was asked for.
   const [replaying, setReplaying] = useState(true);
   const [openId, setOpenId] = useState<string | null>(null);
+  // The venue picked from its sign in the town, or from the poster's key.
+  const [pickedVenue, setPickedVenue] = useState<string | null>(null);
+  const [hoverVenue, setHoverVenue] = useState<string | null>(null);
+  const [picks, setPicks] = useState<Record<string, number>>({});
   const [printing, setPrinting] = useState<Printing>(null);
   const board = useRef<HTMLElement>(null);
 
   const watching = watch.phase === "calls" || watch.phase === "climbing";
   const whatIf = switcher.lineup !== null;
+  const without = mode === "llm";
 
   // The venues the build read, in its order: from the switch once it's in, else the saved build.
   const allVenues = useMemo(() => {
@@ -509,16 +648,62 @@ export function FestivalScreen({
   }));
   const slots = festival.feeBands.reduce((sum, band) => sum + band.slots, 0);
 
+  // The town stands its venues strongest first, the first in front: by the acts each lifted on
+  // the saved lineup, then in the order the agent read them (src/lib/venue-colours.ts's order).
+  const savedLifted = (id: string) =>
+    savedActs.filter((act) => act.anchorVenue.entityId === id).length;
+  const standing = allVenues
+    .map((venue, index) => ({
+      venue,
+      index,
+      lifted: savedLifted(venue.entityId),
+    }))
+    .sort((a, b) => b.lifted - a.lifted || a.index - b.index)
+    .map(({ venue }) => venue);
+  // The venues Watch has read so far, from the steps it has shown.
+  const read = new Set(
+    watch.seen.flatMap((step) => (step.venue ? [step.venue.entityId] : [])),
+  );
+  // A ring goes out from a venue each time Watch reads it and each time it's picked.
+  const pulses = useMemo(() => {
+    const counts: Record<string, number> = { ...picks };
+    for (const entry of watch.seen)
+      if (entry.venue)
+        counts[entry.venue.entityId] = (counts[entry.venue.entityId] ?? 0) + 1;
+    return counts;
+  }, [picks, watch.seen]);
+  const sceneVenues: SceneVenue[] = standing.map((venue) => {
+    const line = venueLines.find((entry) => entry.entityId === venue.entityId);
+    const lifted = watching ? savedLifted(venue.entityId) : (line?.lifted ?? 0);
+    const off = !watching && switcher.off.has(venue.entityId);
+    return {
+      entityId: venue.entityId,
+      name: venue.name,
+      hue: lifted > 0 && !off ? (hues.get(venue.entityId) ?? null) : null,
+      lifted,
+      off,
+      unread: watching && !read.has(venue.entityId),
+    };
+  });
+  const keyVenues: KeyVenue[] = sceneVenues.map((venue) => ({
+    entityId: venue.entityId,
+    name: venue.name,
+    hue: venue.hue,
+    lifted: venue.lifted,
+    off: venue.off,
+  }));
+
   function startShow(replay: boolean) {
-    // Watch shows the agent's build, so it brings the chart back from Without Qloo.
+    // Watch shows the agent's build, so it brings the poster back from Without Qloo.
     setMode("qloo");
     setOpenId(null);
+    setPickedVenue(null);
     switcher.reset();
-    // The lineup prints in down the chart once Watch hands it back (reduced motion: at once).
+    // The lineup prints in down the poster once Watch hands it back (reduced motion: at once).
     setPrinting(watch.reduced ? null : "replay");
     setReplaying(replay);
     watch.start();
-    // On a phone the chart sits under the lead: bring the show into view.
+    // On a phone the poster sits under the lead: bring the show into view.
     if (typeof window !== "undefined" && window.innerWidth < 1100)
       board.current?.scrollIntoView?.({
         block: "start",
@@ -552,7 +737,7 @@ export function FestivalScreen({
     state.status !== "building" &&
     (state.errorCode === "limit" || state.refusalCode === "limit");
   // Running a town Qloo can't find, or one with too few venues, again can't help: the notice
-  // and its checked towns take the run button's place in the lead.
+  // and its checked towns take the run button's place.
   const thinTown =
     custom !== undefined &&
     state.status !== "building" &&
@@ -575,16 +760,23 @@ export function FestivalScreen({
   // board's first build is: the store keeps a festival's first complete build as its latest.
   const liveOnly =
     state.build?.replayed === false && (custom !== undefined || savedSeen);
-  // Qloo's image of each act on the saved lineup, while ARTIST_IMAGES is on, on the lineup and in
-  // Watch's editions (whose rows carry the act's id as their key); the drawn covers otherwise.
+  // Qloo's image of each act on the saved lineup, while ARTIST_IMAGES is on: on its card.
   const images = firstBill?.images;
-  const pictured = (rows: ChartRowData[]) =>
-    images
-      ? rows.map((row) => {
-          const image = images[row.act?.entityId ?? row.key];
-          return image ? { ...row, image } : row;
-        })
-      : rows;
+  const headlinerIds = useMemo(
+    () =>
+      new Map(
+        (firstBill?.headliners ?? []).map((headliner) => [
+          headliner.name,
+          headliner.entityId,
+        ]),
+      ),
+    [firstBill],
+  );
+  // The credit goes wherever Qloo's photos show: the headliners', and the acts' on their cards.
+  const creditImages =
+    !without && images && Object.keys(images).length > 0
+      ? images
+      : firstBill?.headlinerImages;
 
   // A judge's own brief runs once, as soon as its screen opens; a checked town replays.
   const started = useRef(false);
@@ -603,6 +795,7 @@ export function FestivalScreen({
   function changeMode(next: Mode) {
     setMode(next);
     setOpenId(null);
+    setPickedVenue(null);
     if (
       next === "llm" &&
       (llm.state.status === "idle" || llm.state.status === "error")
@@ -618,14 +811,26 @@ export function FestivalScreen({
     );
   }
 
-  // Watch's current edition, and the call and the AI agent's line it came with.
+  function pickVenue(id: string | null) {
+    setOpenId(null);
+    setPickedVenue(id);
+    if (id)
+      setPicks((current) => ({ ...current, [id]: (current[id] ?? 0) + 1 }));
+  }
+
+  function openCard(act: Act) {
+    setPickedVenue(null);
+    setOpenId((current) => (current === act.entityId ? null : act.entityId));
+  }
+
+  // Watch's current step, and the call and the AI agent's line it came with.
   const step = watch.current;
   const call = step ? stepCall(step, state.calls, festival.feeBands) : null;
   const stepHue =
     step?.venue && watch.phase === "climbing"
       ? (hues.get(step.venue.entityId) ?? null)
       : null;
-  // The acts this edition's venue put on the lineup, once the lineup is in: a replay sends it
+  // The acts this step's venue put on the lineup, once the lineup is in: a replay sends it
   // early, a live run only after its last Qloo call.
   const liftedHere =
     step?.venue && state.acts.length > 0
@@ -636,386 +841,782 @@ export function FestivalScreen({
         ).length
       : null;
   // Only the planner's own lines are the agent's; a replay's status line isn't.
-  const note = call
-    ? (state.notes.filter((entry) => entry.at < call.n).at(-1)?.text ?? null)
-    : (state.notes.at(-1)?.text ?? null);
+  const noteAt = call
+    ? state.notes.findLastIndex((entry) => entry.at < call.n)
+    : state.notes.length - 1;
+  const note = state.notes[noteAt]?.text ?? null;
+  // The first of the agent's lines that says "Anchors" gets a one-line key under it.
+  const anchorsKey =
+    noteAt >= 0 &&
+    noteAt === state.notes.findIndex((entry) => saysAnchors(entry.text));
+  // From the saved build only (WS2): while Watch replays the saved build this page came with,
+  // the planner's venue switch, on the steps of the venue it switched to (before the first
+  // step, under the line that made the switch), and the venues Qloo had no fan data for.
+  const savedBuildOnScreen =
+    firstBill !== null &&
+    state.build?.replayed === true &&
+    state.build.id === firstBill.build.id;
+  const savedSwitches = savedBuildOnScreen
+    ? (firstBill.agentSwitches ?? [])
+    : [];
+  const savedNoFanData = savedBuildOnScreen ? (firstBill.noFanData ?? []) : [];
+  const noFanDataHere = Boolean(
+    step?.venue && savedNoFanData.includes(step.venue.entityId),
+  );
+  const switched =
+    savedSwitches.find((entry) =>
+      step?.venue
+        ? step.venue.entityId === entry.to.entityId
+        : !step && entry.note === noteAt,
+    ) ?? null;
+  const caption = (where: "town" | "poster") => (
+    <WatchCaption
+      phase={watch.phase}
+      step={step}
+      hue={stepHue}
+      call={call}
+      calls={state.calls.length}
+      total={calls ?? 12}
+      note={note}
+      anchorsKey={anchorsKey}
+      switched={switched ? switchLine(switched, savedNoFanData) : null}
+      noFanData={noFanDataHere}
+      lifted={liftedHere}
+      headliners={festival.headliners}
+      replayed={replaying || state.build?.replayed === true}
+      where={where}
+    />
+  );
 
-  const bandsView =
-    mode === "llm" ? (
-      <ModelBill
-        festival={festival}
-        state={llm.state}
-        onRetry={() => void llm.load()}
+  // While Watch plays, an act holds an open slot until its venue's fans are read, then lands in
+  // it at once (under reduced motion with no stamp, as nothing moves there).
+  const landedSteps = new Set(
+    watch.seen.flatMap((entry) =>
+      entry.venue ? [`${entry.band}|${entry.venue.entityId}`] : [],
+    ),
+  );
+  const landed = watching
+    ? (act: Act) => landedSteps.has(`${act.band}|${act.anchorVenue.entityId}`)
+    : undefined;
+  // On a laptop with motion on, the acts the venue being read put on the poster fly there from
+  // it as Watch reads it, each stamping into its slot as its card lands (the brief's play()).
+  const flights: Flight[] =
+    watching && wide && !watch.reduced && step?.venue
+      ? state.acts
+          .filter(
+            (act) =>
+              act.band === step.band &&
+              act.anchorVenue.entityId === step.venue!.entityId,
+          )
+          .map((act, order) => ({
+            key: `${watch.seen.length}-${act.entityId}`,
+            act,
+            hue: hues.get(act.anchorVenue.entityId) ?? null,
+            image: images?.[act.entityId],
+            order,
+          }))
+      : [];
+  const stampAt = (act: Act) => {
+    const flight = flights.find((entry) => entry.act.entityId === act.entityId);
+    return flight ? landsAt(flight.order) : undefined;
+  };
+  // A picked venue (or one hovered on the key) fades the other venues' acts.
+  const focusVenue = !watching && !without ? (pickedVenue ?? hoverVenue) : null;
+  const dimmed = focusVenue
+    ? (act: Act) => act.anchorVenue.entityId !== focusVenue
+    : undefined;
+
+  const openWords = whatIf
+    ? "No act from the venues left on clears the bar."
+    : state.acts.length === 0
+      ? state.status === "building"
+        ? "The AI agent is drafting this slot."
+        : state.status === "error"
+          ? "The AI agent couldn't draft this slot; the note says why."
+          : "Empty until the AI agent drafts the lineup."
+      : "No act the venues lifted clears the bar.";
+  const bandRows = festival.feeBands.map((band) => {
+    const open = whatIf
+      ? (switcher.lineup?.shortfall[band.id] ?? 0)
+      : Math.max(
+          0,
+          band.slots - shownActs.filter((act) => act.band === band.id).length,
+        );
+    return {
+      band,
+      rows: billRows(band, shownActs, placeOf, hues, open, openWords, "climb"),
+    };
+  });
+  const printedActs = bandRows.flatMap(({ rows }) =>
+    rows.flatMap((row) => (row.act ? [row.act] : [])),
+  );
+  const onVenues = allVenues
+    .filter((venue) => !switcher.off.has(venue.entityId))
+    .map((venue) => venue.name);
+  const allOpen = whatIf && shownActs.length === 0;
+
+  const card = (act: Act) => (
+    <ActCardPanel
+      act={act}
+      unavailable={!whatIf && state.unavailable.includes(act.entityId)}
+      disabled={state.refilling !== null || state.redrafting || !state.build}
+      onUnavailable={custom || whatIf ? undefined : refill}
+      kept={!whatIf && state.keeping.includes(act.entityId)}
+      onKeep={custom || whatIf ? undefined : toggleKeep}
+      onClose={() => setOpenId(null)}
+      place={placeOf[act.entityId]}
+      image={images?.[act.entityId]}
+      hue={hues.get(act.anchorVenue.entityId) ?? null}
+      band={festival.feeBands.find((entry) => entry.id === act.band)}
+      note={
+        whatIf ? "Turn every venue back on to keep or replace acts." : undefined
+      }
+    />
+  );
+  // On a laptop an act's card opens over the town, beside the poster; on a phone, in the poster.
+  const cardInTown = wide && !without && !watching;
+
+  // The poster's example line: the act opened, the venue picked, or the poster's first act.
+  const example: {
+    tag: string | null;
+    hue: number | null;
+    text: string;
+  } | null = (() => {
+    if (without || allOpen) return null;
+    if (watching)
+      return {
+        tag: null,
+        hue: null,
+        text: "Acts land on your poster as the agent reads each venue's fans.",
+      };
+    const switchable = !custom && switcher.status === "ready";
+    if (openAct) {
+      const line = oneActLine(openAct, placeOf[openAct.entityId]);
+      if (line)
+        return {
+          tag: `${venueShort(openAct.anchorVenue.name)} ${climbMark(openAct) ?? ""}`.trim(),
+          hue: hues.get(openAct.anchorVenue.entityId) ?? null,
+          text: line,
+        };
+    }
+    if (pickedVenue) {
+      const venue = sceneVenues.find((entry) => entry.entityId === pickedVenue);
+      if (venue)
+        return {
+          tag:
+            venue.lifted > 0 && !venue.off
+              ? `${venueShort(venue.name)} ${venue.lifted === 1 ? "1 act" : `${venue.lifted} acts`}`
+              : null,
+          hue: venue.hue,
+          text: venueLine(venue.name, venue.lifted, venue.off),
+        };
+    }
+    // With a venue off, an act the saved poster didn't book says why it's here now.
+    const newcomer = whatIf
+      ? exampleAct(
+          printedActs.filter(
+            (act) =>
+              !savedActs.some((saved) => saved.entityId === act.entityId),
+          ),
+          placeOf,
+        )
+      : null;
+    const first = newcomer ?? exampleAct(printedActs, placeOf);
+    if (!first) return null;
+    const line = oneActLine(first, placeOf[first.entityId]) ?? "";
+    return {
+      tag: `${venueShort(first.anchorVenue.name)} ${climbMark(first) ?? ""}`.trim(),
+      hue: hues.get(first.anchorVenue.entityId) ?? null,
+      text: newcomer
+        ? `${line} ${MISSED_CUT}`
+        : whatIf
+          ? line
+          : `${line} ${exampleHint(switchable)}`,
+    };
+  })();
+
+  // Without Qloo: the model's answer and what prompt 4's checks found for it.
+  const modelPicks = llm.state.lineup?.picks ?? [];
+  const counts =
+    llm.state.status === "ready"
+      ? withoutCounts(modelPicks, llm.state.checks, festival)
+      : null;
+  const lead = leadLine(festival, without, counts);
+  const legend = legendLine({
+    city: festival.city,
+    placesListed,
+    tested: allVenues.length,
+    lifting: sceneVenues.filter((venue) => venue.lifted > 0).length,
+    without,
+  });
+  const onShow = TOWNS.filter((town) => towns.includes(town.slug));
+  const current = townOf(festival).slug;
+  const anyNew = printedActs.some((act) => climbMark(act) === "NEW");
+
+  const picked = pickedVenue
+    ? allVenues.find((venue) => venue.entityId === pickedVenue)
+    : null;
+  const pickedScene = picked
+    ? sceneVenues.find((venue) => venue.entityId === picked.entityId)
+    : null;
+  const venueCard =
+    picked && pickedScene && !watching && !without ? (
+      <VenueCard
+        venue={picked}
+        hue={pickedScene.hue}
+        lifted={pickedScene.lifted}
+        off={pickedScene.off}
+        acts={bookedActs.filter(
+          (act) => act.anchorVenue.entityId === picked.entityId,
+        )}
+        read={festival.feeBands
+          .filter((band) =>
+            (onFirst ? (firstBill?.anchors[band.id] ?? []) : []).some(
+              (venue) => venue.entityId === picked.entityId,
+            ),
+          )
+          .map((band) =>
+            band.id === "mid" ? "mid-size acts" : "opening acts",
+          )}
+        placesListed={placesListed}
+        city={festival.city}
+        kind={
+          venueLines.find((line) => line.entityId === picked.entityId)?.kind
+        }
+        switchable={!custom && switcher.status === "ready" && !busy}
+        onToggle={() => switcher.toggle(picked.entityId)}
+        onAct={(act) => openCard(act)}
+        onClose={() => setPickedVenue(null)}
       />
-    ) : (
-      <div className="bands">
-        {festival.feeBands.map((band) => {
-          if (watching) {
-            const edition = watch.latest(band.id);
-            return (
-              <BandChart
-                key={band.id}
-                band={band}
-                current={!step || step.band === band.id}
-                rows={
-                  edition
-                    ? pictured(editionRows(edition, state.acts, placeOf, hues))
-                    : []
-                }
-                sortKey={edition ?? "calls"}
-                motion={!watch.reduced}
-                top={firstBill?.baselineTop[band.id]}
-                caption={
-                  edition
-                    ? edition.venue
-                      ? `With ${edition.venue.name}'s fans added`
-                      : "For the headliners' fans alone"
-                    : "Waiting for this band's first ranking…"
-                }
-              />
-            );
-          }
-          const open = whatIf
-            ? (switcher.lineup?.shortfall[band.id] ?? 0)
-            : Math.max(
-                0,
-                band.slots -
-                  state.acts.filter((act) => act.band === band.id).length,
-              );
-          return (
-            <BandChart
-              key={band.id}
-              band={band}
-              rows={pictured(
-                billRows(
-                  band,
-                  shownActs,
-                  placeOf,
-                  hues,
-                  open,
-                  whatIf
-                    ? "No act from the venues left on clears the bar."
-                    : state.acts.length === 0
-                      ? state.status === "building"
-                        ? "The AI agent is drafting this slot."
-                        : state.status === "error"
-                          ? "The AI agent couldn't draft this slot; the note says why."
-                          : "Empty until the AI agent drafts the lineup."
-                      : "No act the venues lifted clears the bar.",
-                  "climb",
-                ),
-              )}
-              numbers="climb"
-              column={festival.feeBands.indexOf(band)}
-              sortKey={whatIf ? [...switcher.off].sort().join() : "bill"}
-              motion={!watch.reduced}
-              top={firstBill?.baselineTop[band.id]}
-              openId={openAct?.entityId ?? null}
-              keeping={whatIf ? [] : state.keeping}
-              unavailable={whatIf ? [] : state.unavailable}
-              onOpen={(act) =>
-                setOpenId((current) =>
-                  current === act.entityId ? null : act.entityId,
-                )
-              }
-              printing={printing}
-            >
-              {(act) => (
-                <ActCardPanel
-                  act={act}
-                  unavailable={
-                    !whatIf && state.unavailable.includes(act.entityId)
-                  }
-                  disabled={
-                    state.refilling !== null || state.redrafting || !state.build
-                  }
-                  onUnavailable={custom || whatIf ? undefined : refill}
-                  kept={!whatIf && state.keeping.includes(act.entityId)}
-                  onKeep={custom || whatIf ? undefined : toggleKeep}
-                  onClose={() => setOpenId(null)}
-                  place={placeOf[act.entityId]}
-                  image={images?.[act.entityId]}
-                  hue={hues.get(act.anchorVenue.entityId) ?? null}
-                  band={festival.feeBands.find(
-                    (entry) => entry.id === act.band,
-                  )}
-                  note={
-                    whatIf
-                      ? "Turn every venue back on to keep or replace acts."
-                      : undefined
-                  }
-                />
-              )}
-            </BandChart>
-          );
-        })}
-      </div>
-    );
-  const bandsWithCredit = (
+    ) : null;
+
+  const withoutBox = without ? withoutNote(festival, counts) : null;
+  const sceneOverlay: ReactNode = (
     <>
-      {bandsView}
-      {mode !== "llm" && <ImageCredit images={images} />}
+      {watching && wide && (
+        <div className="scene-caption">{caption("town")}</div>
+      )}
+      {cardInTown && openAct && (
+        <div className="scene-panel">{card(openAct)}</div>
+      )}
+      {wide && !openAct && venueCard && (
+        <div className="scene-panel">{venueCard}</div>
+      )}
+      {withoutBox && (
+        <div className="scene-note" role="note" aria-label="Without Qloo">
+          <p className="scene-note-title">{withoutBox.title}</p>
+          <p className="scene-note-text">{withoutBox.text}</p>
+          <button
+            type="button"
+            className="poster-fix"
+            onClick={() => changeMode("qloo")}
+          >
+            Show it with Qloo
+          </button>
+        </div>
+      )}
     </>
   );
 
-  return (
-    <div className="chart-app stage-bg">
-      <TopBar>
-        {checked && (
-          <button type="button" onClick={checked.onBack}>
-            Pick another town
-          </button>
-        )}
-      </TopBar>
+  const watchButton = thinTown ? null : limited ? null : (
+    <div className="fs-watch">
+      <button
+        type="button"
+        onClick={() =>
+          watching
+            ? watch.skip()
+            : ownRun
+              ? startShow(true)
+              : runBuild(runAgain ? { fresh: true } : {})
+        }
+        disabled={!watching && busy}
+        className={`watch ${watching ? "is-skip" : ""}`}
+      >
+        <span className="watch-play" aria-hidden>
+          {watching ? (
+            <svg viewBox="0 0 20 20">
+              <path d="M2 3 L10 10 L2 17 Z M10 3 L18 10 L10 17 Z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 20 20">
+              <path d="M4 2v16l14-8z" />
+            </svg>
+          )}
+        </span>
+        {watching
+          ? SKIP
+          : state.status === "building"
+            ? "Building…"
+            : runAgain
+              ? "Run the agent again"
+              : state.build
+                ? WATCH_AGENT
+                : "Build undercard"}
+      </button>
+      <p className="watch-sub">
+        {custom
+          ? ownRun
+            ? `Replays its ${calls ?? state.calls.length} Qloo calls`
+            : runAgain
+              ? "Runs the AI agent again; its Qloo calls list below"
+              : "Runs the AI agent; its Qloo calls list below"
+          : watchSubLine({
+              city: festival.city,
+              live: !state.build,
+              onScreen: savedOnScreen || ownRun,
+            })}
+      </p>
+    </div>
+  );
 
-      <div className="layout">
-        <section aria-label="What Undercard does" className="lead lead-top">
-          <p className="lead-line">{headline(festival)}</p>
-          <p className="lead-what">
-            <strong>Undercard is an AI agent:</strong> it drafts a shortlist
-            with its evidence attached; the buyer makes every call.
-          </p>
-          <div>
-            {thinTown
-              ? notice
-              : !limited && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        ownRun
-                          ? startShow(true)
-                          : runBuild(runAgain ? { fresh: true } : {})
-                      }
-                      disabled={busy || watching}
-                      className="watch"
-                    >
-                      <span className="watch-play" aria-hidden>
-                        <svg viewBox="0 0 20 20">
-                          <path d="M4 2v16l14-8z" />
-                        </svg>
-                      </span>
-                      {watching
-                        ? "Watching…"
-                        : state.status === "building"
-                          ? "Building…"
-                          : runAgain
-                            ? "Run the agent again"
-                            : state.build
-                              ? WATCH
-                              : "Build undercard"}
-                    </button>
-                    <p className="watch-sub">
-                      <span className="ticks" aria-hidden>
-                        {Array.from(
-                          { length: Math.min(calls ?? 12, 12) },
-                          (_, i) => (
-                            <i key={i} />
-                          ),
-                        )}
-                      </span>
-                      {custom
-                        ? ownRun
-                          ? `Replays its ${calls ?? state.calls.length} Qloo calls`
-                          : runAgain
-                            ? "Runs the AI agent again; its Qloo calls list below"
-                            : "Runs the AI agent; its Qloo calls list below"
-                        : !state.build
-                          ? "Runs the AI agent; its Qloo calls list below"
-                          : savedOnScreen || ownRun
-                            ? `Replays its ${calls ?? 12} Qloo calls`
-                            : "Replays the saved build's Qloo calls"}
-                    </p>
-                  </>
-                )}
-            <p className="qloo-line">{QLOO_LINE}</p>
-          </div>
-        </section>
-
-        <main ref={board} className="board">
-          <section
-            {...(mode === "qloo"
-              ? { "aria-label": "Undercard draft" }
-              : { "aria-label": "The festival" })}
-            className={`draft ${watching ? "is-watching" : ""}`}
+  const withPoster = (
+    <>
+      <VenueKey
+        venues={keyVenues}
+        switchable={
+          !custom && switcher.status === "ready" && !watching && !busy
+        }
+        onToggle={(id) => {
+          setOpenId(null);
+          switcher.toggle(id);
+        }}
+        onHover={setHoverVenue}
+        quiet={watching}
+      />
+      {!allOpen && (
+        <p className={`poster-rule ${watching ? "is-quiet" : ""}`}>
+          {RULE_LINE}
+        </p>
+      )}
+      {watching && !wide && (
+        <div className="poster-caption">{caption("poster")}</div>
+      )}
+      {whatIf && !watching && (
+        <p className="whatif" role="status">
+          What if {switcher.off.size === 1 ? "that venue's" : "those venues'"}{" "}
+          fans weren&apos;t asked? The rule re-formed the lineup from the saved
+          build, with no new Qloo call.
+          <button
+            type="button"
+            className="switch-reset"
+            onClick={switcher.reset}
           >
-            <div className="masthead">
-              <div>
-                <h1>{festival.name}</h1>
-                <p className="facts">{factsLine(festival)}</p>
-              </div>
-              <p className="stamp">{STAMP}</p>
-            </div>
-            <ul aria-label="Booked headliners" className="headliners">
-              {festival.headliners.map((name) => (
-                <li key={name} className="headliner">
-                  <Quilt name={name} />
-                  <span className="headliner-name">{name}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="headliners-note">
-              {mode === "qloo"
-                ? headlinersNote(festival, state.acts.length > 0)
-                : headlinersBooked(festival)}
-              {mode === "qloo" &&
-                state.acts.length > 0 &&
-                !custom &&
-                !whatIf && (
-                  <span className="click-hint">
-                    {" "}
-                    Click an act to see why, keep it or mark it unavailable.
-                  </span>
-                )}
-            </p>
-            {watching && (
-              <EditionBanner
-                phase={watch.phase}
-                step={step}
-                hue={stepHue}
-                call={call}
-                calls={state.calls.length}
-                total={calls ?? 12}
-                note={note}
-                lifted={liftedHere}
-                headliners={festival.headliners}
-                replayed={replaying || state.build?.replayed === true}
-                onSkip={watch.skip}
-              />
-            )}
-            {whatIf && !watching && mode === "qloo" && (
-              <p className="whatif" role="status">
-                What if{" "}
-                {switcher.off.size === 1 ? "that venue's" : "those venues'"}{" "}
-                fans weren&apos;t asked? The rule re-formed the lineup from the
-                saved build, with no new Qloo call.
+            All venues on
+          </button>
+        </p>
+      )}
+      {allOpen ? (
+        <div role="status" className="poster-open">
+          <p>
+            <strong>{openPosterLine({ slots, on: onVenues }).head}</strong>{" "}
+            {openPosterLine({ slots, on: onVenues }).text}
+          </p>
+          <button type="button" className="poster-fix" onClick={switcher.reset}>
+            Switch every venue back on
+          </button>
+        </div>
+      ) : (
+        <div className="poster-bands">
+          {bandRows.map(({ band, rows }, column) => {
+            const edition = watching ? watch.latest(band.id) : null;
+            const empty =
+              whatIf &&
+              !watching &&
+              rows.every((row) => row.kind === "open") &&
+              rows.length > 0;
+            return (
+              <PosterBand
+                key={band.id}
+                band={band}
+                first={column === 0}
+                rows={rows}
+                top={firstBill?.baselineTop[band.id]}
+                openId={openAct?.entityId ?? null}
+                keeping={whatIf ? [] : state.keeping}
+                unavailable={whatIf ? [] : state.unavailable}
+                onOpen={watching ? undefined : openCard}
+                printing={printing}
+                column={column}
+                landed={landed}
+                stampAt={stampAt}
+                dimmed={dimmed}
+                caption={
+                  watching
+                    ? edition
+                      ? edition.venue
+                        ? `With ${edition.venue.name}'s fans added`
+                        : "For the headliners' fans alone"
+                      : "Waiting for this band's first ranking…"
+                    : undefined
+                }
+                message={
+                  empty
+                    ? {
+                        ...openBandLine({
+                          band,
+                          slots: band.slots,
+                          on: onVenues,
+                        }),
+                        fix: {
+                          label: "Switch the venues back on",
+                          onClick: switcher.reset,
+                        },
+                      }
+                    : undefined
+                }
+              >
+                {cardInTown ? undefined : card}
+              </PosterBand>
+            );
+          })}
+        </div>
+      )}
+      {!wide && venueCard}
+      {example && (
+        <p className="poster-example">
+          {example.tag && (
+            <span
+              className={`poster-example-tag ${example.hue !== null ? `venue-${example.hue}` : ""}`}
+            >
+              {example.tag}
+            </span>
+          )}
+          {example.text}
+        </p>
+      )}
+      {!watching && (
+        <PosterActions>
+          {bookedActs.length > 0 && (
+            <button
+              type="button"
+              className="tool poster-export"
+              onClick={exportCsv}
+            >
+              <svg viewBox="0 0 16 16" aria-hidden>
+                <path d="M8 2 V11 M4 7 L8 11 L12 7 M2 14 H14" />
+              </svg>
+              Export CSV
+            </button>
+          )}
+          {!custom && state.build && (
+            <>
+              <button
+                type="button"
+                className="tool"
+                onClick={() => {
+                  setOpenId(null);
+                  void runningOrder();
+                }}
+                disabled={busy || whatIf}
+              >
+                {state.ordering
+                  ? "Planning the running order…"
+                  : "Running order"}
+              </button>
+              {state.keeping.length > 0 && !whatIf && (
                 <button
                   type="button"
-                  className="switch-reset"
-                  onClick={switcher.reset}
+                  className="tool tool-strong"
+                  onClick={() => {
+                    setPrinting("refill");
+                    setOpenId(null);
+                    void redraft();
+                  }}
+                  disabled={busy}
                 >
-                  All venues on
+                  {state.redrafting ? "Redrafting…" : "Redraft the rest"}
                 </button>
-              </p>
-            )}
-            {bandsWithCredit}
-            {/* The running order is planned for the saved lineup: it steps aside while a venue is off. */}
-            {mode === "qloo" &&
-              !watching &&
-              !whatIf &&
-              state.order &&
-              !openAct && (
-                <RunningOrderPanel
-                  slots={state.order}
-                  headliners={festival.headliners}
-                  onClose={closeOrder}
-                  acts={state.acts}
-                />
               )}
-            {!watching && (
-              <div className="tools">
-                {!custom && <ModeSwitch mode={mode} onChange={changeMode} />}
-                {!custom && <WithoutQlooChecksLine />}
-                {mode === "qloo" && !custom && state.build && (
-                  <button
-                    type="button"
-                    className="tool"
-                    onClick={() => {
-                      setOpenId(null);
-                      void runningOrder();
-                    }}
-                    disabled={busy || whatIf}
-                  >
-                    {state.ordering
-                      ? "Planning the running order…"
-                      : "Running order"}
-                  </button>
-                )}
-                {mode === "qloo" &&
-                  !custom &&
-                  state.keeping.length > 0 &&
-                  !whatIf && (
-                    <button
-                      type="button"
-                      className="tool tool-strong"
-                      onClick={() => {
-                        setPrinting("refill");
-                        setOpenId(null);
-                        void redraft();
-                      }}
-                      disabled={busy}
-                    >
-                      {state.redrafting ? "Redrafting…" : "Redraft the rest"}
-                    </button>
-                  )}
-                {mode === "qloo" && bookedActs.length > 0 && (
-                  <button type="button" className="tool" onClick={exportCsv}>
-                    Export CSV
-                  </button>
-                )}
-                {!custom && (
-                  <Link
-                    className="tool"
-                    href={
-                      festival.id === SAGEBRUSH_SOUND.id
-                        ? "/compare"
-                        : `/compare?b=${encodeURIComponent(festival.id)}`
-                    }
-                  >
-                    Compare with another town
-                  </Link>
-                )}
-              </div>
-            )}
-            {mode === "qloo" &&
-              state.keeping.length > 0 &&
-              !whatIf &&
-              !watching && (
-                <p className="tools-note">
-                  Redraft the rest keeps {state.keeping.length}{" "}
-                  {state.keeping.length === 1 ? "act" : "acts"} and refills the
-                  other slots from the same venues, in at most 3 Qloo calls.
-                </p>
-              )}
-            {mode === "qloo" && (
-              <p className="drafted">
-                {calls && state.build?.createdAt
-                  ? liveOnly
-                    ? `Drafted from ${calls} Qloo calls the AI agent planned · run live ${savedAt.format(new Date(state.build.createdAt))} UTC, not saved for other visitors`
-                    : `Drafted from ${calls} Qloo calls the AI agent planned · saved ${savedAt.format(new Date(state.build.createdAt))} UTC`
-                  : state.status === "building"
-                    ? "The AI agent is drafting the undercard."
-                    : "No undercard drafted yet."}
-              </p>
-            )}
-          </section>
-        </main>
-
-        <div className="lead lead-side">
-          {!thinTown && notice}
-          {/* Without Qloo the model's picks stand alone: its note takes the venues' place. */}
-          {mode === "llm" && <LlmOnlyNote city={festival.city} />}
-          {/* While Watch plays the switch steps aside: the lineup it counts is being re-drawn. */}
-          {mode === "qloo" && !custom && !watching && allVenues.length > 0 && (
-            <VenueSwitch
-              city={festival.city}
-              venues={venueLines}
-              off={switcher.off}
-              status={switcher.status}
-              onToggle={(id) => {
-                setOpenId(null);
-                switcher.toggle(id);
-              }}
-              onReset={switcher.reset}
-              filled={bookedActs.length}
-              slots={slots}
-              placesListed={placesListed}
-              editable={!watching && !busy && mode === "qloo"}
-            />
+              <Link
+                className="tool"
+                href={
+                  festival.id === SAGEBRUSH_SOUND.id
+                    ? "/compare"
+                    : `/compare?b=${encodeURIComponent(festival.id)}`
+                }
+              >
+                Compare with another town
+              </Link>
+            </>
           )}
-          {mode === "qloo" && (
-            <>
-              <RuleKey />
+          {!custom && (
+            <Link href="/your-festival" className="tool poster-own">
+              Draft your own festival
+              <svg viewBox="0 0 16 16" aria-hidden>
+                <path d="M2 8 H13 M9 4 L13 8 L9 12" />
+              </svg>
+            </Link>
+          )}
+        </PosterActions>
+      )}
+      {!without && state.keeping.length > 0 && !whatIf && !watching && (
+        <p className="tools-note">
+          Redraft the rest keeps {state.keeping.length}{" "}
+          {state.keeping.length === 1 ? "act" : "acts"} and refills the other
+          slots from the same venues, in at most 3 Qloo calls.
+        </p>
+      )}
+      {/* The running order is planned for the saved lineup: it steps aside while a venue is off. */}
+      {!without && !watching && !whatIf && state.order && !openAct && (
+        <RunningOrderPanel
+          slots={state.order}
+          headliners={festival.headliners}
+          onClose={closeOrder}
+          acts={state.acts}
+        />
+      )}
+      <p className="drafted">
+        {calls && state.build?.createdAt
+          ? liveOnly
+            ? `Drafted from ${calls} Qloo calls the AI agent planned · run live ${savedAt.format(new Date(state.build.createdAt))} UTC, not saved for other visitors`
+            : `Drafted from ${calls} Qloo calls the AI agent planned · saved ${savedAt.format(new Date(state.build.createdAt))} UTC`
+          : state.status === "building"
+            ? "The AI agent is drafting the undercard."
+            : "No undercard drafted yet."}
+      </p>
+    </>
+  );
+
+  const withoutPoster = (
+    <section
+      aria-label="Without Qloo: an AI model's picks alone"
+      className="model"
+    >
+      <p className="poster-chip poster-chip-model">
+        Picked by Claude Sonnet 5.5 alone
+      </p>
+      {(llm.state.status === "loading" || llm.state.status === "idle") && (
+        <p className="model-wait" role="status">
+          Asking the model, without Qloo…
+        </p>
+      )}
+      {llm.state.status === "error" && (
+        <div className="model-wait">
+          <p role="alert" className="alert">
+            {llm.state.error}
+          </p>
+          <button
+            type="button"
+            onClick={() => void llm.load()}
+            className="tool mt-2"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+      {counts && withoutHeadline(counts) && (
+        <p className="model-headline">{withoutHeadline(counts)}</p>
+      )}
+      {counts && llm.state.checks && llm.state.checks.length > 0 && (
+        <PicksRuler
+          festival={festival}
+          checks={llm.state.checks}
+          counts={counts}
+        />
+      )}
+      {llm.state.lineup && (
+        <ModelPicks
+          festival={festival}
+          picks={modelPicks}
+          checks={llm.state.checks}
+        />
+      )}
+      {counts && withoutSummary(festival, counts) && (
+        <p className="model-summary">{withoutSummary(festival, counts)}</p>
+      )}
+      <p className="drafted">
+        {llm.state.lineup
+          ? `Answered by the model alone, with no tools · saved ${formatSavedAt(llm.state.lineup.createdAt)} UTC`
+          : "The model alone, with no tools."}
+      </p>
+    </section>
+  );
+
+  return (
+    <div className={`chart-app stage-bg fs ${without ? "is-without" : ""}`}>
+      <header className="topbar fs-top">
+        <Link
+          href="/"
+          className="logo fs-word"
+          aria-label="Undercard, back to Sagebrush Sound"
+        >
+          Undercard
+        </Link>
+        <p className="fs-tagline">
+          {TAGLINE_LEAD} {TAGLINE_QLOO}
+        </p>
+        <nav aria-label="Other screens" className="nav">
+          {checked && (
+            <button type="button" onClick={checked.onBack}>
+              Pick another town
+            </button>
+          )}
+          <Link href="/method">How it works</Link>
+          <Link href="/your-festival">Your festival</Link>
+        </nav>
+      </header>
+
+      <main ref={board} className="fs-main">
+        <div
+          className={`fs-grid ${
+            wide && ((cardInTown && openAct) || (venueCard && !openAct))
+              ? "has-panel"
+              : ""
+          }`}
+        >
+          <section aria-label="What Undercard does" className="fs-lead">
+            <p className="fs-title">{LEAD_TITLE}</p>
+            <p className="fs-line">
+              <mark>{lead.mark}</mark> {lead.rest}
+            </p>
+            {!custom && !checked && onShow.length >= 2 && (
+              <nav aria-label="Same brief, other towns" className="fs-towns">
+                <span className="fs-towns-label">Pick a town</span>
+                <ul>
+                  {onShow.map((town) => {
+                    const code = regionCode(town.festival.region);
+                    return (
+                      <li key={town.slug}>
+                        <Link
+                          href={townHref(town.slug)}
+                          aria-current={
+                            town.slug === current ? "page" : undefined
+                          }
+                          className="fs-town-chip"
+                        >
+                          {town.festival.city}
+                          {code && (
+                            <span className="fs-town-code" aria-hidden>
+                              {" "}
+                              {code}
+                            </span>
+                          )}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <Link
+                  href="/your-festival"
+                  className="fs-town-chip fs-town-yours"
+                >
+                  Your town
+                  <svg viewBox="0 0 16 16" aria-hidden>
+                    <path d="M2 8 H13 M9 4 L13 8 L9 12" />
+                  </svg>
+                </Link>
+              </nav>
+            )}
+            {/* A town Qloo can't find, or too thin to read: running it again can't help, so its
+                notice and the checked towns take the run button's place, under what happened. */}
+            {thinTown && notice}
+          </section>
+
+          {!thinTown && watchButton}
+
+          <section
+            aria-label={without ? "The festival" : "Undercard draft"}
+            className={`fs-poster ${watching ? "is-watching" : ""}`}
+          >
+            {!custom && <ModeTabs mode={mode} onChange={changeMode} />}
+            <div className="poster-sheet">
+              <p className="poster-stamp">
+                <span className="stamp-long">
+                  {stampWords(custom !== undefined)}
+                </span>
+                <span className="stamp-short">
+                  {stampWords(custom !== undefined, true)}
+                </span>
+              </p>
+              <h1 className="poster-name">{festival.name}</h1>
+              <p className="facts">{factsLine(festival)}</p>
+              <span className="poster-rule-line" aria-hidden />
+              <p className="poster-booked">{bookedLabel(festival)}</p>
+              <HeadlinerList
+                headliners={festival.headliners}
+                images={firstBill?.headlinerImages}
+                ids={headlinerIds}
+              />
+              <span className="poster-rule-line" aria-hidden />
+              {without ? withoutPoster : withPoster}
+              {/* Prompt 4's count of each check, on both sides of the tabs. */}
+              {!custom && <WithoutQlooChecksLine />}
+              <ImageCredit images={creditImages} />
+              <p className="poster-foot">
+                {footnote(festival, anyNew && !without)}
+              </p>
+            </div>
+          </section>
+
+          <section aria-label="Your town" className="fs-town">
+            <p className="fs-legend">
+              <strong>{legend.title}.</strong> {legend.text}
+            </p>
+            <TownScene
+              seedKey={festival.id}
+              venues={sceneVenues}
+              selected={
+                !watching && !without
+                  ? (openAct?.anchorVenue.entityId ?? pickedVenue)
+                  : null
+              }
+              focusOn={
+                watching
+                  ? watch.phase === "climbing"
+                    ? (step?.venue?.entityId ?? null)
+                    : null
+                  : without
+                    ? null
+                    : cardInTown && openAct
+                      ? openAct.anchorVenue.entityId
+                      : wide
+                        ? pickedVenue
+                        : null
+              }
+              onPick={pickVenue}
+              without={without}
+              dim={watching}
+              pulses={pulses}
+              overlay={sceneOverlay}
+              reserve={
+                wide
+                  ? {
+                      corner: { w: 420, h: 104 },
+                      ...(watching ? { top: 150 } : {}),
+                      ...((cardInTown && openAct) || (venueCard && !openAct)
+                        ? { right: 404 }
+                        : {}),
+                    }
+                  : {}
+              }
+            />
+          </section>
+          <FlyingActs flights={flights} />
+        </div>
+
+        <div className="fs-below">
+          {!thinTown && notice}
+          <div className="fs-panels">
+            {/* While Watch plays the switch steps aside: the lineup it counts is being re-drawn. */}
+            {!without && !custom && !watching && allVenues.length > 0 && (
+              <VenueSwitch
+                city={festival.city}
+                venues={venueLines}
+                off={switcher.off}
+                status={switcher.status}
+                onToggle={(id) => {
+                  setOpenId(null);
+                  switcher.toggle(id);
+                }}
+                onReset={switcher.reset}
+                filled={bookedActs.length}
+                slots={slots}
+                placesListed={placesListed}
+                editable={!watching && !busy && !without}
+              />
+            )}
+            {!without && <RuleKey bands={festival.feeBands} positioning />}
+            {!without && (
               <TracePanel
                 state={state}
                 savedCalls={firstBill?.calls}
@@ -1023,13 +1624,10 @@ export function FestivalScreen({
                 onBuild={runBuild}
                 button={false}
               />
-            </>
-          )}
-          {!custom && !checked && (
-            <TownSwitcher current={townOf(festival).slug} onShow={towns} />
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

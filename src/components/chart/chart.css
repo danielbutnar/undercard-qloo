@@ -2591,6 +2591,60 @@
   font-weight: 600;
 }
 
+/* The demo video (WS2): a YouTube video's thumbnail and a play button until the press, then
+   its player in the same 16:9 box. */
+.chart-app .video-box {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 960px;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-ink);
+  overflow: hidden;
+}
+.chart-app .video-box img,
+.chart-app .video-box iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.chart-app .video-box img {
+  object-fit: cover;
+}
+.chart-app .video-play {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 16px 6px 6px;
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: var(--text-body);
+  font-weight: 800;
+  line-height: 1.1;
+  box-shadow: 6px 6px 0 var(--color-ink);
+  transition:
+    box-shadow 0.12s ease,
+    translate 0.12s ease;
+}
+.chart-app .video-facade:hover .video-play {
+  translate: 2px 2px;
+  box-shadow: 4px 4px 0 var(--color-ink);
+}
+.chart-app .video-facade:focus-visible {
+  outline: 4px solid var(--color-ink);
+  outline-offset: 3px;
+}
+
 /* The method in one picture: four cards, a plus, then two arrows. */
 .chart-app .how-picture {
   display: grid;
@@ -3089,6 +3143,12 @@
   .chart-app .numbers-climb .row,
   .chart-app .how-row .row {
     grid-template-columns: 70px 36px minmax(0, 1fr) 30px;
+  }
+  /* The followed row on How it works keeps three named areas above; here, four columns. */
+  .chart-app .how-row .row {
+    grid-template-areas:
+      "place sleeve who venue"
+      "place sleeve climb venue";
   }
   .chart-app .row-listed {
     grid-template-columns: 40px 28px minmax(0, 1fr) 24px;

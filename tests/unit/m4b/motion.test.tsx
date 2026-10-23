@@ -63,7 +63,7 @@ const delayOf = (article: Element) =>
 // play, so the lineup comes back as soon as the build is in.
 async function watch() {
   fireEvent.click(
-    screen.getByRole("button", { name: "Watch how it picked these acts" }),
+    screen.getByRole("button", { name: "Watch the AI agent build it" }),
   );
   await waitFor(() => expect(acts()).toHaveLength(10));
 }

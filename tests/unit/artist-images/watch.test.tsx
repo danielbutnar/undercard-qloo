@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-// Artist images in Watch (Daniel's brief of 2026-10-21, item A): an act on the lineup keeps its
-// picture in Watch's editions, as on the lineup; every other act there keeps its drawn cover,
-// since images are read for the lineup's acts only. Invented image URLs.
+// Artist images in Watch (Daniel's brief of 2026-10-21, item A, on WS9's first screen): while
+// Watch plays, the headliners keep their Qloo photos on the poster and no picture is ever an
+// empty grey box; each act lands in its slot as the poster sets it. Invented image URLs.
 import {
   cleanup,
   fireEvent,
@@ -12,7 +12,6 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FestivalScreen } from "@/components/festival-screen";
-import type { ClimbEvent } from "@/lib/lift-climb";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { readEvents, syntheticServer } from "../m3/scripted";
 
@@ -24,13 +23,17 @@ afterEach(() => {
 const image = (n: number) => `https://images.qloo.com/i/synthetic-${n}.jpg`;
 
 describe("artist images in Watch", () => {
-  it("shows each lineup act's picture in the editions, and the drawn cover for the rest", async () => {
+  it("keeps the headliners' photos while the venues' acts land, with no empty box", async () => {
     const server = syntheticServer();
     const events = await readEvents(server.build({ fresh: true }));
     const saved = (await server.store.latest(SAGEBRUSH_SOUND.id))!;
     const images = Object.fromEntries(
       saved.lineup.acts.map((act, n) => [act.entityId, image(n)]),
     );
+    const headliners = saved.context.headliners.map(({ entityId, name }) => ({
+      entityId,
+      name,
+    }));
     vi.stubGlobal(
       "fetch",
       vi.fn(async (url: string) =>
@@ -56,11 +59,18 @@ describe("artist images in Watch", () => {
           anchors: {},
           baselineTop: {},
           images,
+          headliners,
+          headlinerImages: Object.fromEntries(
+            headliners.map((headliner, n) => [
+              headliner.entityId,
+              image(90 + n),
+            ]),
+          ),
         }}
       />,
     );
     fireEvent.click(
-      screen.getByRole("button", { name: "Watch how it picked these acts" }),
+      screen.getByRole("button", { name: "Watch the AI agent build it" }),
     );
     const bill = screen.getByRole("region", { name: "Undercard draft" });
     const mid = within(bill).getByRole("region", { name: "Mid-size acts" });
@@ -71,28 +81,15 @@ describe("artist images in Watch", () => {
         ).toBeTruthy(),
       { timeout: 8000 },
     );
-    const edition = events
-      .filter((e): e is ClimbEvent => e.type === "climb")
-      .find(
-        (step) =>
-          step.band === "mid" && step.venue?.name === "The Lantern Room",
-      )!;
-    const onLineup = edition.acts.filter((listed) => images[listed.entityId]);
-    const offLineup = edition.acts.filter((listed) => !images[listed.entityId]);
-    expect(onLineup.length).toBeGreaterThan(0);
-    expect(offLineup.length).toBeGreaterThan(0);
-    for (const listed of onLineup) {
-      const row = within(mid).getByText(listed.name).closest("li")!;
-      expect(row.querySelector("img.cover-photo")?.getAttribute("src")).toBe(
-        images[listed.entityId],
-      );
-    }
+    expect(
+      [
+        ...within(bill)
+          .getByRole("list", { name: "Booked headliners" })
+          .querySelectorAll("img.cover-photo"),
+      ].map((photo) => photo.getAttribute("src")),
+    ).toEqual([image(90), image(91)]);
+    expect(within(mid).getAllByRole("article").length).toBeGreaterThan(0);
     // Daniel's brief of 2026-10-22, item 5: the drawn cover, never an empty grey box.
-    for (const listed of offLineup) {
-      const row = within(mid).getByText(listed.name).closest("li")!;
-      expect(row.querySelector("img.cover-photo")).toBeNull();
-      expect(row.querySelector("svg.sleeve.row-sleeve")).not.toBeNull();
-      expect(row.querySelector(".sleeve-blank")).toBeNull();
-    }
+    expect(document.querySelector(".sleeve-blank")).toBeNull();
   }, 15000);
 });

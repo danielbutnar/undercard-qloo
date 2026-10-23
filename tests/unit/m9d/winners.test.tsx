@@ -16,7 +16,7 @@ import { editionRows } from "@/components/chart/chart-rows";
 import { FestivalScreen } from "@/components/festival-screen";
 import { MethodEvidencePage } from "@/components/method-evidence";
 import { wasPlace, type ClimbEvent } from "@/lib/lift-climb";
-import { liftOf, roomShortName } from "@/lib/marks";
+import { liftOf } from "@/lib/marks";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { acts, FIRST_BILL } from "../m4b/first-bill-fixture";
 
@@ -56,8 +56,10 @@ const edition = (
   })),
 });
 
-describe("the first screen's chart (M9d winner)", () => {
-  it("sets each act as a row: its name, the venue whose fans like it, its climb and a ladder as long as the climb", () => {
+// WS9: the first screen's chart is a poster now; each act keeps what M9d's winner gave it, its
+// venue (by colour, matching the town and the key) and its climb, and its card the full words.
+describe("the first screen's poster (after M9d's winner)", () => {
+  it("sets each act on the poster: its name in its venue's colour, its climb beside it, and its venue's fans in words", () => {
     const first = acts.find((act) => act.band === "mid")!;
     const lift = liftOf(first);
     expect(lift?.kind).toBe("up");
@@ -75,35 +77,22 @@ describe("the first screen's chart (M9d winner)", () => {
     expect(within(mid).getAllByRole("article")).toHaveLength(4);
     const row = within(mid).getByRole("article", { name: first.name });
     expect(within(row).getByRole("button", { name: first.name })).toBeTruthy();
-    // The venue whose fans lift it: its mark, and its fans in words, on the row...
-    expect(
-      within(row).getByText(roomShortName(first.anchorVenue.name)),
-    ).toBeTruthy();
+    // The venue whose fans lift it: its colour, the same as its venue's switch on the poster's
+    // key, and its fans in words...
+    const hue = /\bvenue-(\d)\b/.exec(row.className)![1];
+    const key = within(
+      screen.getByRole("group", { name: "Venue fans used for this draft" }),
+    ).getByLabelText(new RegExp(`^${first.anchorVenue.name}'s fans: `));
+    expect(key.querySelector(".poster-ink-swatch")!.className).toContain(
+      `venue-${hue}`,
+    );
     expect(
       within(row).getByText(
         `With ${first.anchorVenue.name}'s fans added: up ${move} places in Qloo's ranking`,
       ),
     ).toBeTruthy();
-    // ...the climb as the big number (M10a), and under the name the ladder from the place it
-    // came from up to the place now...
-    expect(row.querySelector(".row-place")!.textContent).toBe(String(move));
-    expect(row.querySelector(".ladder")!.textContent).toMatch(
-      new RegExp(`^${move + 1}(st|nd|rd|th)1st$`),
-    );
-    // ...with an arrow as long as the climb: 50 places fill it, a short climb keeps a stub.
-    expect(row.querySelector(".ladder")!.getAttribute("aria-hidden")).toBe(
-      "true",
-    );
-    for (const article of within(mid).getAllByRole("article")) {
-      // A row whose places the build doesn't give reads "up N places", with no arrow.
-      const arrow = article.querySelector<HTMLElement>(".ladder-arrow");
-      if (!arrow) continue;
-      const climb = Number(article.querySelector(".row-place")!.textContent);
-      expect(arrow.style.getPropertyValue("--share")).toBe(
-        String(Math.min(1, Math.max(0.18, climb / 50))),
-      );
-    }
-    expect(row.querySelector(".ladder-arrow")).not.toBeNull();
+    // ...and its climb beside its name (M10a), in the body face (Anton draws ↑ too small).
+    expect(row.querySelector(".poster-climb")!.textContent).toBe(`↑${move}`);
     // The card says in full whose fans lift it.
     fireEvent.click(within(row).getByRole("button", { name: first.name }));
     expect(
