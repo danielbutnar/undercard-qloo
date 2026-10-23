@@ -139,11 +139,25 @@ describe("what a shortlist row says (WS4, step 3)", () => {
   });
 
   it("says what each venue's fans did, and which venue Qloo had no fan data for", () => {
-    expect(VENUES.map((venue) => venueWords(venue, 14))).toEqual([
+    // 14 calls: one ranking for the headliners alone, one per venue, one search per act.
+    const check = { cap: 14, pasted: 10, venues: VENUES.length };
+    expect(VENUES.map((venue) => venueWords(venue, check))).toEqual([
       "The Lantern Room's fans lift 2 of your acts",
       "Fort Street Ballroom's fans lift none of your acts",
       "Qloo had no fan data for Cottonwood Social Hall",
-      "Linden Street Annex: not read, the check's 14 Qloo calls ran out",
+      "Linden Street Annex: not read. Undercard checks 9 acts per paste; paste the other one to check it.",
     ]);
+  });
+
+  // Daniel, 2026-10-24: a venue left unread says what the visitor can do next, never that calls
+  // ran out.
+  it("tells a visitor how many acts a paste checks, and to paste the rest", () => {
+    const unread = VENUES[3];
+    expect(venueWords(unread, { cap: 14, pasted: 10, venues: 6 })).toBe(
+      "Linden Street Annex: not read. Undercard checks 7 acts per paste; paste the other 3 to check them.",
+    );
+    expect(venueWords(unread, { cap: 14, pasted: 10, venues: 6 })).not.toMatch(
+      /ran out|call budget/,
+    );
   });
 });

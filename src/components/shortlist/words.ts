@@ -68,10 +68,27 @@ export function missingWords(act: Missing): string {
   return "One of your headliners, so not ranked";
 }
 
-/** What a venue's fans did for the shortlist, or that Qloo had no fan data for it. */
-export function venueWords(venue: ShortlistVenue, cap: number): string {
-  if (!venue.read)
-    return `${venue.name}: not read, the check's ${cap} Qloo calls ran out`;
+/**
+ * What a venue's fans did for the shortlist, or that Qloo had no fan data for it. A venue left
+ * unread says what the visitor can do next (Daniel, 2026-10-24): the check's calls cover one
+ * ranking for the headliners alone, one per venue and one search per act, so a paste of at most
+ * `cap - 1 - venues` acts reads every venue.
+ */
+export function venueWords(
+  venue: ShortlistVenue,
+  check: { cap: number; pasted: number; venues: number },
+): string {
+  if (!venue.read) {
+    const perPaste = Math.max(1, check.cap - 1 - check.venues);
+    const rest = check.pasted - perPaste;
+    const next =
+      rest > 1
+        ? `paste the other ${rest} to check them`
+        : rest === 1
+          ? "paste the other one to check it"
+          : "paste fewer acts to read it";
+    return `${venue.name}: not read. Undercard checks ${perPaste} acts per paste; ${next}.`;
+  }
   if (venue.noFanData) return `Qloo had no fan data for ${venue.name}`;
   return venue.lifts === 0
     ? `${venue.name}'s fans lift none of your acts`

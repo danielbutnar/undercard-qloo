@@ -194,7 +194,11 @@ export function ShortlistResults({
               >
                 <span className="swatch" aria-hidden />
                 <span className="venue-name">
-                  {venueWords(venue, shortlist.cap)}
+                  {venueWords(venue, {
+                    cap: shortlist.cap,
+                    pasted: shortlist.acts.length,
+                    venues: shortlist.venues.length,
+                  })}
                 </span>
               </li>
             ))}
