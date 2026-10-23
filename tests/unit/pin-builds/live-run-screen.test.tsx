@@ -28,7 +28,7 @@ afterEach(() => {
 });
 
 const SKIP = { name: "Skip to the lineup" };
-const WATCH = { name: "Watch how it picked these acts" };
+const WATCH = { name: "Watch the AI agent build it" };
 const RUN_LIVE = { name: "Run the agent live instead" };
 const drafted = () => document.querySelector(".drafted")?.textContent ?? "";
 const under = () => document.querySelector(".watch-sub")?.textContent ?? "";
@@ -127,13 +127,12 @@ describe("a live run on the first screen", () => {
 
     fireEvent.click(screen.getAllByRole("button", RUN_LIVE)[0]);
     const draft = screen.getByRole("region", { name: "Undercard draft" });
-    fireEvent.click(
-      await within(draft).findByRole("button", SKIP, { timeout: 8000 }),
-    );
+    fireEvent.click(await screen.findByRole("button", SKIP, { timeout: 8000 }));
     await waitFor(() => expect(screen.getByRole("button", WATCH)).toBeTruthy());
     const run = boise.builds[0];
     expect(run.fresh).toBe(true);
-    const kept = (await boise.server.store.byId(run.id))!;
+    // The run is kept under its own id.
+    expect((await boise.server.store.byId(run.id))?.id).toBe(run.id);
     // The run's lineup, not the saved one, and the venue switch works from the run's own id.
     expect(within(draft).getAllByRole("article")).toHaveLength(10);
     expect(drafted()).not.toContain("Oct 17, 12:13");
@@ -144,9 +143,9 @@ describe("a live run on the first screen", () => {
     );
 
     // Watch replays the run on screen: no request, so the saved build can't take its place.
-    expect(under()).toBe(`Replays its ${kept.trace.length} Qloo calls`);
+    expect(under()).toBe("Replays how the agent drafted Boise");
     fireEvent.click(screen.getByRole("button", WATCH));
-    fireEvent.click(await within(draft).findByRole("button", SKIP));
+    fireEvent.click(await screen.findByRole("button", SKIP));
     await waitFor(() => expect(screen.getByRole("button", WATCH)).toBeTruthy());
     expect(boise.builds).toHaveLength(1);
     expect(within(draft).getAllByRole("article")).toHaveLength(10);
@@ -164,10 +163,7 @@ describe("where a live run finishes", () => {
     const boise = await boiseWithSaved({ saved: false });
     render(await boise.firstScreen());
     fireEvent.click(screen.getByRole("button", { name: "Build undercard" }));
-    const draft = screen.getByRole("region", { name: "Undercard draft" });
-    fireEvent.click(
-      await within(draft).findByRole("button", SKIP, { timeout: 8000 }),
-    );
+    fireEvent.click(await screen.findByRole("button", SKIP, { timeout: 8000 }));
     await waitFor(() => expect(screen.getByRole("button", WATCH)).toBeTruthy());
     expect((await boise.server.store.latest(SAGEBRUSH_SOUND.id))?.id).toBe(
       boise.builds[0].id,
@@ -190,10 +186,7 @@ describe("where a live run finishes", () => {
         custom={{ brief, onEdit: () => {} }}
       />,
     );
-    const draft = screen.getByRole("region", { name: "Undercard draft" });
-    fireEvent.click(
-      await within(draft).findByRole("button", SKIP, { timeout: 8000 }),
-    );
+    fireEvent.click(await screen.findByRole("button", SKIP, { timeout: 8000 }));
     await waitFor(() =>
       expect(drafted()).toContain("not saved for other visitors"),
     );

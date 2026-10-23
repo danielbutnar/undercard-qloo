@@ -48,7 +48,7 @@ describe("a replay in flight", () => {
     const { rerender } = render(screenIn("visible"));
     // Watch sits in the lead beside the chart, not inside the draft.
     fireEvent.click(
-      screen.getByRole("button", { name: "Watch how it picked these acts" }),
+      screen.getByRole("button", { name: "Watch the AI agent build it" }),
     );
     rerender(screenIn("hidden"));
     rerender(screenIn("visible"));
@@ -63,7 +63,7 @@ describe("a replay in flight", () => {
     );
     // Watch is ready to play again: the screen isn't stuck on "Building…" or "Watching…".
     expect(
-      screen.getByRole("button", { name: "Watch how it picked these acts" }),
+      screen.getByRole("button", { name: "Watch the AI agent build it" }),
     ).toHaveProperty("disabled", false);
   });
 });

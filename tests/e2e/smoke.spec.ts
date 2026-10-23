@@ -37,7 +37,7 @@ test("the home page still opens on the build saved Oct 17, 12:13 UTC", async ({
 test("Watch reaches its last call within 30 seconds", async ({ page }) => {
   await page.goto("/");
   await page
-    .getByRole("button", { name: "Watch how it picked these acts" })
+    .getByRole("button", { name: "Watch the AI agent build it" })
     .click();
   await expect(page.getByText(/^Replayed the build saved/)).toBeVisible({
     timeout: 30_000,

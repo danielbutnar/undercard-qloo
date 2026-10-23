@@ -129,7 +129,7 @@ describe("Watch", () => {
     answer(syntheticReplayStream(saved));
     render(<FestivalScreen festival={festival} firstBill={first} />);
     fireEvent.click(
-      screen.getByRole("button", { name: "Watch how it picked these acts" }),
+      screen.getByRole("button", { name: "Watch the AI agent build it" }),
     );
     return screen.getByRole("region", { name: "Undercard draft" });
   }

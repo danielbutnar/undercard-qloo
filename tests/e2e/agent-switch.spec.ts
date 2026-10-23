@@ -31,9 +31,10 @@ async function watch(page: Page, path: string, build: SavedBuild) {
   );
   await page.goto(path);
   await page
-    .getByRole("button", { name: "Watch how it picked these acts" })
+    .getByRole("button", { name: "Watch the AI agent build it" })
     .click();
-  return page.getByRole("region", { name: "Undercard draft" });
+  // WS9: Watch's caption stands over the town on a laptop, in the poster on a phone.
+  return page.getByRole("main");
 }
 
 test.describe("the agent's switch, from the saved trace", () => {

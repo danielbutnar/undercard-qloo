@@ -3,6 +3,14 @@
 import { useState } from "react";
 import { ClimbArrow } from "@/components/chart/band-chart";
 import { Cover } from "@/components/chart/cover";
+import {
+  cardBand,
+  CARD_CHECKS,
+  cardClimbRule,
+  cardGenresLine,
+  cardPopularityLine,
+  CARD_STRONGEST,
+} from "@/components/chart/poster-words";
 import { whySentence } from "@/components/chart/why";
 import { ordinal, venueShort } from "@/components/chart/words";
 import type { FeeBand } from "@/lib/fee-bands";
@@ -20,10 +28,22 @@ import {
 } from "@/lib/unavailable";
 import type { Placed } from "@/lib/venue-switch";
 
+/** A check the act passed, ticked in its venue's colour (WS9: inline SVG, no emoji). */
+function Tick() {
+  return (
+    <svg viewBox="0 0 18 18" className="card-tick" aria-hidden>
+      <rect x="1" y="1" width="16" height="16" className="card-tick-box" />
+      <path d="M4.5 9.2 L7.6 12.2 L13.5 5.8" className="card-tick-mark" />
+    </svg>
+  );
+}
+
 /**
- * An act's card, opened under its row on the chart: the climb drawn large with the venue whose
- * fans lifted it, the words behind the row's marks (Why it's here), Qloo's affinity and popularity,
- * the two genres it shares with the headliners, then Keep and Unavailable.
+ * An act's card (WS9, the layout brief's card): its photo, name and slot, the venue whose fans
+ * lifted it, then "Why it's on your poster" as the three checks every act on the poster passed:
+ * the climb drawn large with its places and the words behind the act's mark (Why it's here), the
+ * fee range with Qloo's affinity and popularity, and the two genres it shares with the
+ * headliners; then the rule that fills a slot, Keep and Unavailable.
  */
 export function ActCard({
   act,
@@ -83,6 +103,7 @@ export function ActCard({
         <div className="min-w-0">
           {unavailable && <p className="row-flag row-gone">Unavailable</p>}
           <h4 className="card-name">{act.name}</h4>
+          {band && <p className="card-band">{cardBand(band)}</p>}
           <p className="card-venue">
             <span className="card-swatch" aria-hidden />
             {short !== act.anchorVenue.name && (
@@ -106,75 +127,107 @@ export function ActCard({
           </button>
         )}
       </div>
-      <p className="card-climb-title">Its place in Qloo&apos;s ranking</p>
-      <div className="card-climb" aria-hidden>
-        <span className="card-place">
-          {place?.was
-            ? ordinal(place.was)
-            : lift?.kind === "new"
-              ? "outside"
-              : "–"}
-          <small>
-            {lift?.kind === "new" ? "the top 50" : "headliners' fans alone"}
-          </small>
-        </span>
-        <ClimbArrow
-          move={lift?.kind === "up" ? lift.places : null}
-          fresh={lift?.kind === "new"}
-          was={null}
-        />
-        <span className="card-place">
-          {place
-            ? ordinal(place.now)
-            : lift?.kind === "new"
-              ? ordinal(lift.top)
-              : "–"}
-          <small>with {act.anchorVenue.name}&apos;s fans</small>
-        </span>
-      </div>
-      <p className="card-why">
-        <strong>Why it&apos;s here: </strong>
-        {whySentence(act, place)}
-      </p>
+      <p className="card-checks-title">{CARD_CHECKS}</p>
+      <ul aria-label="The three checks it passed" className="card-checks">
+        <li className="card-check">
+          <Tick />
+          <div className="card-check-body">
+            <p className="card-climb-title">Its place in Qloo&apos;s ranking</p>
+            <div className="card-climb" aria-hidden>
+              <span className="card-place">
+                {place?.was
+                  ? ordinal(place.was)
+                  : lift?.kind === "new"
+                    ? "outside"
+                    : "–"}
+                <small>
+                  {lift?.kind === "new"
+                    ? "the top 50"
+                    : "headliners' fans alone"}
+                </small>
+              </span>
+              <ClimbArrow
+                move={lift?.kind === "up" ? lift.places : null}
+                fresh={lift?.kind === "new"}
+                was={null}
+              />
+              <span className="card-place">
+                {place
+                  ? ordinal(place.now)
+                  : lift?.kind === "new"
+                    ? ordinal(lift.top)
+                    : "–"}
+                <small>with {act.anchorVenue.name}&apos;s fans</small>
+              </span>
+            </div>
+            <p className="card-why">
+              <strong>Why it&apos;s here: </strong>
+              {whySentence(act, place)}
+            </p>
+            <p className="card-check-rule">{cardClimbRule()}</p>
+          </div>
+        </li>
+        <li className="card-check">
+          <Tick />
+          <div className="card-check-body">
+            <p className="card-check-text">{cardPopularityLine(band)}</p>
+            <dl className="card-figures">
+              <div>
+                <dt>Qloo affinity</dt>
+                <dd>{formatAffinity(act.affinity)}</dd>
+              </div>
+              <div>
+                <dt>Popularity</dt>
+                <dd>{formatPercentile(act.popularity)}</dd>
+              </div>
+              <div className="card-pop" aria-hidden>
+                <span className="fee-track card-track">
+                  {band && (
+                    <span
+                      className="fee-lit"
+                      style={{
+                        left: `${band.minPopularity * 100}%`,
+                        width: `${(band.maxPopularity - band.minPopularity) * 100}%`,
+                      }}
+                    />
+                  )}
+                  <span
+                    className="card-pop-dot"
+                    style={{ left: `${popularity}%` }}
+                  />
+                </span>
+                <span className="card-pop-words">
+                  {band
+                    ? `popularity on Qloo, inside the ${band.id === "mid" ? "mid-size" : "opening"} fee range (${formatBandRange(band)})`
+                    : "percentile on Qloo: it stands in for the fee"}
+                </span>
+              </div>
+            </dl>
+          </div>
+        </li>
+        <li className="card-check">
+          <Tick />
+          <div className="card-check-body">
+            <p className="card-check-text">
+              {cardGenresLine(act.sharedTags.length)}
+            </p>
+            <ul
+              aria-label="Tags shared with the headliners"
+              className="card-tags"
+            >
+              {act.sharedTags.map((tag) => (
+                <li key={tag.id}>{tag.name}</li>
+              ))}
+            </ul>
+          </div>
+        </li>
+      </ul>
+      <p className="card-strongest">{CARD_STRONGEST}</p>
       {act.anchorVenue.kind && (
         <p className="card-kind">
           {act.anchorVenue.name} is {act.anchorVenue.kind}, not a club.
         </p>
       )}
-      <dl className="card-figures">
-        <div>
-          <dt>Qloo affinity</dt>
-          <dd>{formatAffinity(act.affinity)}</dd>
-        </div>
-        <div>
-          <dt>Popularity</dt>
-          <dd>{formatPercentile(act.popularity)}</dd>
-        </div>
-        <div className="card-pop" aria-hidden>
-          <span className="fee-track card-track">
-            {band && (
-              <span
-                className="fee-lit"
-                style={{
-                  left: `${band.minPopularity * 100}%`,
-                  width: `${(band.maxPopularity - band.minPopularity) * 100}%`,
-                }}
-              />
-            )}
-            <span className="card-pop-dot" style={{ left: `${popularity}%` }} />
-          </span>
-          <span className="card-pop-words">
-            {band
-              ? `popularity on Qloo, inside the ${band.id === "mid" ? "mid-size" : "opening"} fee range (${formatBandRange(band)})`
-              : "percentile on Qloo: it stands in for the fee"}
-          </span>
-        </div>
-      </dl>
-      <ul aria-label="Tags shared with the headliners" className="card-tags">
-        {act.sharedTags.map((tag) => (
-          <li key={tag.id}>{tag.name}</li>
-        ))}
-      </ul>
       {note && <p className="card-note">{note}</p>}
       <div className="card-actions">
         {onKeep && !unavailable && !asking && (

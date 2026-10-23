@@ -62,11 +62,8 @@ test.describe("Your festival", () => {
       name: "Same brief, other towns",
     });
     test.skip((await towns.count()) === 0, "no other town is on show here yet");
-    await towns
-      .getByRole("link", {
-        name: "Or draft one for your own town and headliners",
-      })
-      .click();
+    // WS9: the town picker ends with Your town.
+    await towns.getByRole("link", { name: "Your town" }).click();
     await expect(page).toHaveURL(/\/your-festival$/);
 
     await fill(page, "Duluth", "Khruangbin", "Japanese Breakfast");

@@ -109,7 +109,7 @@ describe("the venue switch beside the lineup", () => {
     );
     expect(screen.getByRole("region", { name: REGION })).toBeTruthy();
     fireEvent.click(
-      screen.getByRole("button", { name: "Watch how it picked these acts" }),
+      screen.getByRole("button", { name: "Watch the AI agent build it" }),
     );
     expect(screen.queryByRole("region", { name: REGION })).toBeNull();
     expect(

@@ -40,58 +40,49 @@ const withoutSrOnly = (node: Node) => {
 const visibleText = () => withoutSrOnly(document.body);
 
 describe("plain words, round 2 (M6r)", () => {
+  // WS9: the top bar's tagline is the first line: an AI agent, built on Qloo, and in the same
+  // sentence what Qloo is.
   it("opens on an AI agent, and says what Qloo is where it's first named", async () => {
     await firstScreen();
-    const lead = screen.getByRole("region", { name: "What Undercard does" });
-    const lines = [...lead.querySelectorAll("p")].map((p) => p.textContent!);
-    expect(lines[1].startsWith("Undercard is an AI agent")).toBe(true);
+    const tagline = within(screen.getByRole("banner")).getByText(
+      /^An AI agent/,
+    );
     // The first "agent" on the page is the AI agent.
     const text = visibleText();
     const agent = text.search(/\bagent\b/);
     expect(text.slice(agent - 3, agent)).toBe("AI ");
-    // The first "Qloo" on the page is in the lead...
-    const leadText = withoutSrOnly(lead);
-    expect(text.indexOf("Qloo")).toBe(
-      text.indexOf(leadText) + leadText.indexOf("Qloo"),
-    );
-    // ...and the line that names it is followed at once by the one saying what it is.
-    const naming = lines.findIndex((line) => line.includes("Qloo"));
-    const saying = lines.findIndex((line) =>
-      line.startsWith("Qloo is a taste-data service"),
-    );
-    expect(saying).toBeGreaterThanOrEqual(naming);
-    expect(saying - naming).toBeLessThanOrEqual(1);
-    expect(lines[saying]).toMatch(
-      /^Qloo is a taste-data service: it maps what fans of one artist, venue or film also like\.$/,
+    // The first "Qloo" on the page is in the tagline...
+    const line = withoutSrOnly(tagline);
+    expect(text.indexOf("Qloo")).toBe(text.indexOf(line) + line.indexOf("Qloo"));
+    // ...which says at once, in the same sentence, what it is.
+    expect(line).toBe(
+      "An AI agent for festival bookers, built on Qloo, a taste-data service that maps what fans of one artist, venue or film also like.",
     );
   });
 
+  // WS9: the poster says each band's Qloo popularity range, "our stand-in for fee"; How an act
+  // gets on, below it, says each fee range in words.
   it("says fee range, never fee band", async () => {
     await firstScreen();
-    // Each band's fee range is explained behind its "?": open both so their words are on the page.
-    for (const band of ["mid-size acts", "opening acts"])
-      fireEvent.click(
-        screen.getByRole("button", {
-          name: `What the fee range for ${band} means`,
-        }),
-      );
     const text = visibleText();
     expect(text).not.toMatch(/fee band/i);
-    expect(text).toMatch(/Fee range/);
+    expect(text).toMatch(/fee range/);
+    expect(
+      within(
+        screen.getByRole("region", { name: "Mid-size acts" }),
+      ).getByText("· Qloo popularity 80–92, our stand-in for fee"),
+    ).toBeTruthy();
     // The plain word first, the buyer's term once in brackets.
     for (const band of SAGEBRUSH_SOUND.feeBands)
       expect(text).toContain(`fee range (${band.label})`);
   });
 
-  // M6r: the plain word first, the buyer's word once in brackets. The weekly chart's headline
-  // says "lineup" on its own; the buyer's word comes once, under the headliners, before any
-  // bare "bill".
-  it("names the buyer's word once, in brackets after the plain one, with no bare bill before it", async () => {
+  // M6r: the plain word first, the buyer's word once in brackets. WS9's first screen says
+  // poster, lineup and slots, and never the buyer's "bill" on its own.
+  it("never says a bare bill", async () => {
     await firstScreen();
-    const text = visibleText();
-    const at = text.indexOf("lineup (the bill)");
-    expect(at).toBeGreaterThan(-1);
-    expect(text.slice(0, at)).not.toMatch(/\bbill\b/);
+    const text = visibleText().replace("lineup (the bill)", "");
+    expect(text).not.toMatch(/\bbill\b/i);
   });
 
   it("puts what each climb counts next to it, in words", async () => {
@@ -100,24 +91,25 @@ describe("plain words, round 2 (M6r)", () => {
     const rows = within(bill).getAllByRole("article");
     expect(rows).toHaveLength(10);
     for (const row of rows) {
-      // Seen: the climb as the big number, with the ladder it sums up under the name, "49" with
-      // "50th → 1st" (M10a).
-      const climb = Number(row.querySelector(".row-place")!.textContent);
-      const [, was, now] = /^(\d+)(?:st|nd|rd|th)(\d+)(?:st|nd|rd|th)$/.exec(
-        row.querySelector(".ladder")!.textContent!,
-      )!;
-      expect(Number(was) - Number(now)).toBe(climb);
+      // Seen: the climb beside the name, "↑14" (M10a, WS9).
+      const climb = Number(
+        /^↑(\d+)$/.exec(row.querySelector(".poster-climb")!.textContent!)![1],
+      );
       // Heard: the venue whose fans were added and how many places the act climbed.
       expect(row.querySelector(".sr-only")!.textContent).toMatch(
-        /^With .+'s fans added: up \d+ places in Qloo's ranking$/,
+        new RegExp(`^With .+'s fans added: up ${climb} places in Qloo's ranking$`),
       );
     }
-    // Each band's key says in words what the climb counts.
+    // The poster's key says in words what the climb counts, once.
     expect(
       within(bill).getAllByText(
-        "places it climbed in Qloo's ranking with its venue's fans added",
+        "↑ = places it rose in Qloo's ranking with that venue's fans (5+ to qualify); the strongest Qloo match takes each slot",
       ),
-    ).toHaveLength(2);
+    ).toHaveLength(1);
+    // The example line says one act's climb as a sentence, from its places.
+    expect(bill.querySelector(".poster-example")!.textContent).toMatch(
+      /.+ climbed from \d+(st|nd|rd|th) to \d+(st|nd|rd|th) in Qloo's ranking once .+'s fans joined the headliners' fans\./,
+    );
     // The card says it as a sentence (plan.md item 5): the venue's fans' place, the headliners'
     // fans' place and the climb.
     const first = rows[0].querySelector("button")!;
@@ -135,11 +127,8 @@ describe("plain words, round 2 (M6r)", () => {
     const fresh = fixtureActs.find((act) => liftOf(act)?.kind === "new")!;
     const bill = screen.getByRole("region", { name: "Undercard draft" });
     const row = within(bill).getByRole("article", { name: fresh.name });
-    // Seen: NEW, its ladder from outside the top 50. Heard: the same, with the venue's fans.
-    expect(row.querySelector(".row-place")!.textContent).toBe("NEW");
-    expect(row.querySelector(".ladder")!.textContent).toMatch(
-      /^outside the top 50\d+(st|nd|rd|th)$/,
-    );
+    // Seen: NEW beside its name. Heard: new in Qloo's ranking, with the venue's fans.
+    expect(row.querySelector(".poster-climb")!.textContent).toBe("NEW");
     expect(row.querySelector(".sr-only")!.textContent).toBe(
       `With ${fresh.anchorVenue.name}'s fans added: new in Qloo's ranking, from outside the headliners-only top 50`,
     );

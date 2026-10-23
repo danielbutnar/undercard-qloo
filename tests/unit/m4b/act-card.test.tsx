@@ -44,9 +44,9 @@ const midNames = () =>
     .getAllByRole("article")
     .map((article) => article.getAttribute("aria-label"));
 
-// The chart's stylesheet as selector and declaration pairs. jsdom doesn't load it, so what a
-// stylesheet does for the act's name (the pointer, the underline) is read from the file.
-const CHART_CSS = readFileSync("src/components/chart/chart.css", "utf8");
+// The first screen's stylesheet as selector and declaration pairs. jsdom doesn't load it, so
+// what a stylesheet does for the act's name (the pointer, the underline) is read from the file.
+const CHART_CSS = readFileSync("src/components/chart/first-screen.css", "utf8");
 const rules = [
   ...CHART_CSS.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(
     /([^{}]+)\{([^{}]*)\}/g,
@@ -68,10 +68,13 @@ describe("an act on the bill", () => {
       const button = actButton(act.name);
       expect(button.getAttribute("aria-expanded")).toBe("false");
       expect(button.getAttribute("aria-controls")).toBeNull();
-      expect(button.closest("h3")).not.toBeNull();
+      // WS9: the act's name on the poster, in its own article.
+      expect(button.closest("article")?.getAttribute("aria-label")).toBe(
+        act.name,
+      );
       expect(button.className).not.toMatch(/scale/);
     }
-    const name = ".chart-app .row-name button";
+    const name = ".chart-app.fs .poster-act > button";
     expect(declares(name, "cursor: pointer")).toBe(true);
     expect(declares(`${name}:hover`, "text-decoration: underline")).toBe(true);
     expect(
@@ -87,13 +90,12 @@ describe("an act on the bill", () => {
     ).toBe(false);
   });
 
+  // WS9: the poster's example line ends with what a name does (and the venue switch, once it's
+  // ready: here the switch isn't, so the line doesn't offer it).
   it("says what a click does", () => {
     open();
-    expect(
-      screen.getByText(
-        /Click an act to see why, keep it or mark it unavailable\./,
-      ),
-    ).toBeTruthy();
+    expect(screen.getByText(/Pick a name for why\.$/)).toBeTruthy();
+    expect(screen.queryByText(/switch a venue off above/)).toBeNull();
   });
 
   it("opens its card under its row: the Why line, Qloo's numbers, the shared tags and Unavailable", () => {

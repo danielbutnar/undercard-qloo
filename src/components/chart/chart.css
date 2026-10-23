@@ -3144,6 +3144,12 @@
   .chart-app .how-row .row {
     grid-template-columns: 70px 36px minmax(0, 1fr) 30px;
   }
+  /* The followed row on How it works keeps three named areas above; here, four columns. */
+  .chart-app .how-row .row {
+    grid-template-areas:
+      "place sleeve who venue"
+      "place sleeve climb venue";
+  }
   .chart-app .row-listed {
     grid-template-columns: 40px 28px minmax(0, 1fr) 24px;
   }

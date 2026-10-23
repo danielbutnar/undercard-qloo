@@ -27,6 +27,10 @@ function toFirstBill(saved: SavedBuild): FirstBill {
     anchors: saved.context.anchors,
     baselineTop,
     places: billPlaces(saved.lineup.acts, saved.context.baselines),
+    headliners: saved.context.headliners.map(({ entityId, name }) => ({
+      entityId,
+      name,
+    })),
     ...(switches.length > 0 ? { agentSwitches: switches } : {}),
   };
 }
