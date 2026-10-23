@@ -57,14 +57,16 @@ const venueInk = (hue: number) => ({
   color: C[`on-venue-${hue % 6}` as keyof typeof C],
 });
 
+/**
+ * A "·"-separated line in the parts it wraps between. Each part is set with no-break spaces and
+ * the dots are drawn, not set: satori spaces Geist's "·" and a part's words unevenly where a
+ * line wraps.
+ */
+export const lineParts = (line: string) =>
+  line.split(" · ").map((part) => part.replaceAll(" ", NO_BREAK_SPACE));
 const NO_BREAK_SPACE = String.fromCharCode(0xa0);
-
-/** A "·"-separated line that wraps only after a "·": each part stays on one line. */
-export const keepTogether = (line: string) =>
-  line
-    .split(" · ")
-    .map((part) => part.replaceAll(" ", NO_BREAK_SPACE))
-    .join(`${NO_BREAK_SPACE}· `);
+// A drawn dot between two parts: its width and the space on each side.
+const DOT = { size: 4, space: 7 };
 
 // The poster's heavy names, drawn in the one weight next/og's font has.
 const heavy = (size: number, color: string) => ({
@@ -256,9 +258,11 @@ export function posterLayout(
 ): PosterLayout {
   const facts =
     rowCount(
-      keepTogether(card.facts)
-        .split("· ")
-        .map((part) => textWidth(`${part}· `, FACTS_TEXT)),
+      lineParts(card.facts).map(
+        (part, index, parts) =>
+          textWidth(part, FACTS_TEXT) +
+          (index < parts.length - 1 ? DOT.size + 2 * DOT.space : 0),
+      ),
       LEFT_W,
       0,
     ) *
@@ -630,13 +634,30 @@ function Poster({ card }: { card: Extract<ShareCard, { kind: "poster" }> }) {
           <div
             style={{
               display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
               marginTop: 10,
               fontSize: FACTS_TEXT,
               lineHeight: 1.3,
-              textAlign: "center",
             }}
           >
-            {keepTogether(card.facts)}
+            {lineParts(card.facts).map((part, index, parts) => (
+              <div key={part} style={{ display: "flex", alignItems: "center" }}>
+                <span>{part}</span>
+                {index < parts.length - 1 && (
+                  <div
+                    style={{
+                      display: "flex",
+                      width: DOT.size,
+                      height: DOT.size,
+                      margin: `0 ${DOT.space}px`,
+                      borderRadius: DOT.size / 2,
+                      backgroundColor: C.ink,
+                    }}
+                  />
+                )}
+              </div>
+            ))}
           </div>
           <div
             style={{

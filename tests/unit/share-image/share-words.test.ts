@@ -13,7 +13,8 @@ import { venueHues } from "@/lib/venue-colours";
 import { readFirstBill } from "@/server/first-bill";
 import { syntheticSavedBuild } from "../../e2e/synthetic-build";
 
-const NBSP = String.fromCharCode(0xa0);
+const unbroken = (part: string) =>
+  part.replaceAll(" ", String.fromCharCode(0xa0));
 
 const firstBill = async () =>
   (await readFirstBill(
@@ -92,8 +93,9 @@ describe("the link preview's text on a saved build", () => {
       "An AI agent for festival bookers, built on Qloo",
       "Fictional festival · demo draft",
       "SAGEBRUSH SOUND",
-      // The facts wrap only after a "·": no-break spaces inside each part.
-      `Boise,${NBSP}Idaho${NBSP}· 3,000${NBSP}capacity${NBSP}· crowd${NBSP}aged${NBSP}25–34`,
+      // The facts' three parts, each kept on one line by no-break spaces; the dots between
+      // them are drawn.
+      ...["Boise, Idaho", "3,000 capacity", "crowd aged 25–34"].map(unbroken),
       "Booked by you: two bands",
       "KHRUANGBIN",
       "JAPANESE BREAKFAST",
