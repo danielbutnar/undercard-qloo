@@ -116,13 +116,14 @@ the trace panel lists every call with its parameters and result count.
 
 Artists have no location of their own in Qloo. Its location data for artists, tried three
 ways, gave a usable local reading for at most 7 of 10 acts, short of the bar of 8
-([docs/evidence.md](docs/evidence.md), section 6), so local taste enters only through the
+([docs/evidence.md](docs/evidence.md), section 6, 17 October 2026), so local taste enters only through the
 city's venues as signals. An act makes the board when an anchor venue lifts it at least five
 places above the headliners-only ranking; its "Why Boise" line says by how much. Affinity,
 popularity percentile, fee band, anchor venue and shared tags on every card come from those
 responses.
 
-The spike ([docs/qloo-spike.md](docs/qloo-spike.md)) checked that a venue is a real signal.
+The spike of 15 October 2026 ([docs/qloo-spike.md](docs/qloo-spike.md), which keeps only its
+counts) checked that a venue is a real signal.
 Adding Venue 227 to the headliners moved N–29 artists per fee band up five or more places,
 and 22–23 of them share at least two genre tags with the headliners. The Visual Arts
 Collective moved N–31 (21–23 with shared tags). Venue 166 Boise changed nothing, which
