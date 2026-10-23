@@ -389,9 +389,35 @@ test.describe("demo path", () => {
     await expect(bill(page).getByText(/^What if /)).toBeVisible();
     const reformed = await names();
     expect(reformed).not.toEqual(saved);
-    // A slot nothing qualifies for stays open rather than padded.
-    if (reformed.length < 10)
-      await expect(bill(page).getByText("Open slot").first()).toBeVisible();
+    // A slot nothing qualifies for stays open rather than padded (WS8): a band prints its acts,
+    // then an open slot for each slot left; a band with no act left says why its slots stay open
+    // instead, with the way back (the v6 board's laptop-09: Boise with V418 off).
+    for (const [name, slots, words] of [
+      [/^Mid/, 4, "mid-size"],
+      [/^Opening/, 6, "opening"],
+    ] as const) {
+      const region = band(page, name);
+      const acts = await region.getByRole("article").count();
+      const open = region.locator(".poster-slot");
+      if (acts > 0) {
+        await expect(open).toHaveCount(slots - acts);
+        continue;
+      }
+      await expect(open).toHaveCount(0);
+      await expect(region.getByRole("status")).toContainText(
+        `The ${slots} ${words} slots stay open.`,
+      );
+      await expect(
+        region.getByRole("button", { name: "Switch the venues back on" }),
+      ).toBeVisible();
+    }
+    if (SYNTHETIC) {
+      // The Lantern Room off: Fort Street Ballroom's mid-size act and two openers stay, and the
+      // other seven slots stay open.
+      expect(venue).toBe("The Lantern Room");
+      expect(reformed).toHaveLength(3);
+      await expect(bill(page).locator(".poster-slot")).toHaveCount(7);
+    }
 
     await switcher.getByRole("button", { name: "All venues on" }).click();
     await expect.poll(names).toEqual(saved);

@@ -140,6 +140,45 @@ describe("the poster", () => {
     );
   });
 
+  it("keeps a band's acts and says why the other band's slots stay open when its venue is off (WS8)", async () => {
+    // As Boise with V418 off: the mid-size acts stay, and no opener clears the bar.
+    const data = syntheticVenueSwitch();
+    const mid = Object.keys(data.entries).filter(
+      (key) => data.entries[key].act.band === "mid",
+    );
+    data.lineups["011"] = { keys: mid, shortfall: { mid: 0, opener: 6 } };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json(data)),
+    );
+    open();
+    const key = within(poster()).getByRole("group", {
+      name: "Venue fans used for this draft",
+    });
+    fireEvent.click(
+      await within(key).findByRole("button", {
+        name: /^The Lantern Room's fans: on/,
+      }),
+    );
+    const band = (name: string) =>
+      within(poster()).getByRole("region", { name });
+    expect(within(band("Mid-size acts")).getAllByRole("article")).toHaveLength(
+      4,
+    );
+    const openers = band("Opening acts");
+    expect(within(openers).queryAllByRole("article")).toHaveLength(0);
+    expect(openers.querySelectorAll(".poster-slot")).toHaveLength(0);
+    expect(within(openers).getByRole("status").textContent).toContain(
+      "The 6 opening slots stay open.",
+    );
+    fireEvent.click(
+      within(openers).getByRole("button", {
+        name: "Switch the venues back on",
+      }),
+    );
+    expect(within(poster()).getAllByRole("article")).toHaveLength(10);
+  });
+
   it("says why every slot stays open with every venue switched off, and brings them back", async () => {
     withSwitch();
     open();
