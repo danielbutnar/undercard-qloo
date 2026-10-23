@@ -53,7 +53,9 @@ describe("plain words, round 2 (M6r)", () => {
     expect(text.slice(agent - 3, agent)).toBe("AI ");
     // The first "Qloo" on the page is in the tagline...
     const line = withoutSrOnly(tagline);
-    expect(text.indexOf("Qloo")).toBe(text.indexOf(line) + line.indexOf("Qloo"));
+    expect(text.indexOf("Qloo")).toBe(
+      text.indexOf(line) + line.indexOf("Qloo"),
+    );
     // ...which says at once, in the same sentence, what it is.
     expect(line).toBe(
       "An AI agent for festival bookers, built on Qloo, a taste-data service that maps what fans of one artist, venue or film also like.",
@@ -68,9 +70,9 @@ describe("plain words, round 2 (M6r)", () => {
     expect(text).not.toMatch(/fee band/i);
     expect(text).toMatch(/fee range/);
     expect(
-      within(
-        screen.getByRole("region", { name: "Mid-size acts" }),
-      ).getByText("· Qloo popularity 80–92, our stand-in for fee"),
+      within(screen.getByRole("region", { name: "Mid-size acts" })).getByText(
+        "· Qloo popularity 80–92, our stand-in for fee",
+      ),
     ).toBeTruthy();
     // The plain word first, the buyer's term once in brackets.
     for (const band of SAGEBRUSH_SOUND.feeBands)
@@ -93,11 +95,16 @@ describe("plain words, round 2 (M6r)", () => {
     for (const row of rows) {
       // Seen: the climb beside the name, "↑14" (M10a, WS9).
       const climb = Number(
-        /^↑(\d+)$/.exec(row.querySelector(".poster-climb")!.textContent!)![1],
+        // WS8: the act's rank sits over its climb ("5th ↑14").
+        /^(?:\d+(?:st|nd|rd|th) )?↑(\d+)$/.exec(
+          row.querySelector(".poster-climb")!.textContent!,
+        )![1],
       );
       // Heard: the venue whose fans were added and how many places the act climbed.
       expect(row.querySelector(".sr-only")!.textContent).toMatch(
-        new RegExp(`^With .+'s fans added: up ${climb} places in Qloo's ranking$`),
+        new RegExp(
+          `^With .+'s fans added: up ${climb} places in Qloo's ranking$`,
+        ),
       );
     }
     // The poster's key says in words what the climb counts, once.
@@ -116,7 +123,7 @@ describe("plain words, round 2 (M6r)", () => {
     fireEvent.click(first);
     const card = screen.getByRole("region", { name: "Act card" });
     expect(card.textContent).toMatch(
-      /Why it's here: Fans of .+ rank .+ \d+(st|nd|rd|th); fans of the headliners alone rank them \d+(st|nd|rd|th)\. That climb of \d+ is why .+ is here\./,
+      /Why it's here: With .+'s fans added to the headliners', Qloo ranks .+ \d+(st|nd|rd|th); for the headliners' fans alone, \d+(st|nd|rd|th)\. That climb of \d+ is why .+ is here\./,
     );
   });
 
@@ -128,7 +135,9 @@ describe("plain words, round 2 (M6r)", () => {
     const bill = screen.getByRole("region", { name: "Undercard draft" });
     const row = within(bill).getByRole("article", { name: fresh.name });
     // Seen: NEW beside its name. Heard: new in Qloo's ranking, with the venue's fans.
-    expect(row.querySelector(".poster-climb")!.textContent).toBe("NEW");
+    expect(row.querySelector(".poster-climb")!.textContent).toMatch(
+      /^(\d+(st|nd|rd|th) )?NEW$/,
+    );
     expect(row.querySelector(".sr-only")!.textContent).toBe(
       `With ${fresh.anchorVenue.name}'s fans added: new in Qloo's ranking, from outside the headliners-only top 50`,
     );
@@ -137,7 +146,7 @@ describe("plain words, round 2 (M6r)", () => {
     expect(
       screen.getByRole("region", { name: "Act card" }).textContent,
     ).toMatch(
-      /Why it's here: Fans of .+ rank .+ \d+(st|nd|rd|th); fans of the headliners alone don't rank them in their top 50\. That climb into the top 50 is why .+ is here\./,
+      /Why it's here: With .+'s fans added to the headliners', Qloo ranks .+ \d+(st|nd|rd|th); for the headliners' fans alone, it isn't in the top 50\. That climb into the top 50 is why .+ is here\./,
     );
   });
 

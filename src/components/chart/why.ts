@@ -15,8 +15,9 @@ export function whySentence(
   const lift = liftOf(act);
   const venue = act.anchorVenue.name;
   if (lift?.kind === "up" && place?.was)
-    return `Fans of ${venue} rank ${act.name} ${ordinal(place.now)}; fans of the headliners alone rank them ${ordinal(place.was)}. That climb of ${lift.places} is why ${act.name} is here.`;
+    // The ranking is the headliners' fans with the venue's added, not the venue's fans alone (WS8).
+    return `With ${venue}'s fans added to the headliners', Qloo ranks ${act.name} ${ordinal(place.now)}; for the headliners' fans alone, ${ordinal(place.was)}. That climb of ${lift.places} is why ${act.name} is here.`;
   if (lift?.kind === "new")
-    return `Fans of ${venue} rank ${act.name} ${ordinal(place?.now ?? lift.top)}; fans of the headliners alone don't rank them in their top 50. That climb into the top 50 is why ${act.name} is here.`;
+    return `With ${venue}'s fans added to the headliners', Qloo ranks ${act.name} ${ordinal(place?.now ?? lift.top)}; for the headliners' fans alone, it isn't in the top 50. That climb into the top 50 is why ${act.name} is here.`;
   return act.reason;
 }

@@ -94,10 +94,10 @@ describe("Watch's banner, in words", () => {
       summary: "Mid-band artists for the headliners and The Lantern Room",
     };
     expect(watchCallLine({ ...call, resultCount: 50 }, 12)).toBe(
-      "Qloo call 8 of 12: Mid-band artists for the headliners and The Lantern Room · 50 results",
+      "Qloo call 8 of 12: Mid-tier artists for the headliners and The Lantern Room · 50 results",
     );
     expect(watchCallLine({ ...call, resultCount: null }, 12)).toBe(
-      "Qloo call 8 of 12: Mid-band artists for the headliners and The Lantern Room",
+      "Qloo call 8 of 12: Mid-tier artists for the headliners and The Lantern Room",
     );
     expect(watchTicksLabel(3, 12)).toBe("3 of 12 Qloo calls in");
     // WS2 (b): the label became "The AI agent's plan:".

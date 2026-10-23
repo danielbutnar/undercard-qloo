@@ -19,7 +19,7 @@ import {
   rulerTitle,
   type WithoutCounts,
 } from "./poster-words";
-import { PLAIN_BAND, pickCheckLine } from "./words";
+import { ordinal, PLAIN_BAND, pickCheckLine } from "./words";
 import { signName } from "./town-scene";
 import { Quilt } from "./sleeve";
 
@@ -177,7 +177,16 @@ function PosterAct({
 }) {
   // Decided when the act mounts, so the acts already on the poster never print again.
   const [print] = useState(printDelay);
-  const mark = climbMark(row.act);
+  // The act's place in its venue's ranking over its climb (WS8): "5th ↑14".
+  const climb = climbMark(row.act);
+  const mark = climb && (
+    <>
+      {row.place !== null && (
+        <span className="poster-rank">{ordinal(row.place)} </span>
+      )}
+      {climb}
+    </>
+  );
   return (
     <article
       aria-label={row.name}
@@ -487,6 +496,8 @@ export function ModelPicks({
         ? "is-in"
         : "is-out";
   const openPick = picks.find((pick) => pick.name === open);
+  // The model's own reason under each pick's name, when its answer gave one for every pick (WS8).
+  const reasons = picks.every((pick) => pick.note?.trim());
   return (
     <>
       <div className="picks-head">
@@ -511,6 +522,7 @@ export function ModelPicks({
                 >
                   {pick.name}
                 </button>
+                {reasons && <p className="model-pick-reason">{pick.note}</p>}
                 <span
                   className={`model-pick-tag ${tone(check)} ${index % 2 ? "tilt-right" : "tilt-left"}`}
                 >

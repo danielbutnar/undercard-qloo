@@ -21,6 +21,7 @@ import {
   modelPicksTitle,
   oneActLine,
   openBandLine,
+  venueReadLine,
   openPosterLine,
   pickTag,
   regionCode,
@@ -30,7 +31,6 @@ import {
   venueLine,
   watchSubLine,
   withoutCounts,
-  withoutHeadline,
   withoutNote,
   withoutSummary,
 } from "@/components/chart/poster-words";
@@ -150,27 +150,91 @@ describe("the poster's marks and lines", () => {
     expect(venueLine("Cottonwood Social Hall", 0, false)).toBe(
       "Cottonwood Social Hall's fans lifted no act onto your poster.",
     );
+    // WS8: a venue Qloo had no fan data for.
+    expect(venueLine("Cottonwood Social Hall", 0, false, true)).toBe(
+      "Qloo had no fan data for Cottonwood Social Hall, so it lifted no act onto your poster.",
+    );
+    // WS8: what the agent read each venue for, never the count it chose from.
+    expect(venueReadLine(["mid-size acts"], false)).toBe(
+      "The AI agent read its fans for mid-size acts.",
+    );
+    expect(venueReadLine(["mid-size acts", "opening acts"], false)).toBe(
+      "The AI agent read its fans for both slot sizes.",
+    );
+    expect(venueReadLine(["mid-size acts"], true)).toBe(
+      "The AI agent tried it for mid-size acts.",
+    );
     expect(venueLine("The Lantern Room", 7, true)).toBe(
       "The Lantern Room's fans are off, so its acts left your poster.",
     );
   });
 
-  it("says why a band's slots stay open, and every slot", () => {
+  // WS8 (the brief's item 12): what the draft read for those slots, which of those venues Qloo
+  // had no fan data for, and which venues are off; never a climb the screen can't show.
+  it("says why a band's slots stay open: the venues read, the ones without fan data, the ones off", () => {
     const [mid, opener] = SAGEBRUSH_SOUND.feeBands;
+    // One venue off.
     expect(
-      openBandLine({ band: opener, slots: 6, on: ["Cottonwood Social Hall"] }),
+      openBandLine({
+        band: opener,
+        slots: 6,
+        read: ["Venue 418", "Venue 166"],
+        noFanData: ["Venue 166"],
+        off: ["V418"],
+      }),
     ).toEqual({
       head: "The 6 opening slots stay open.",
-      text: "No venue whose fans are on lifts an opening act 5 places.",
+      text: "For opening acts this draft read Venue 418's and Venue 166's fans, and Qloo had no fan data for Venue 166. With V418 off, no act passes the rule for these slots.",
+      fix: "Switch V418 back on",
     });
-    expect(openBandLine({ band: mid, slots: 4, on: [] }).text).toBe(
-      "Every venue's fans are off, so no act rises 5 places.",
+    // Two off.
+    expect(
+      openBandLine({
+        band: opener,
+        slots: 6,
+        read: ["Venue 418", "Venue 166"],
+        noFanData: ["Venue 166"],
+        off: ["V418", "Venue 227"],
+      }),
+    ).toEqual({
+      head: "The 6 opening slots stay open.",
+      text: "For opening acts this draft read Venue 418's and Venue 166's fans, and Qloo had no fan data for Venue 166. With V418 and Venue 227 off, no act passes the rule for these slots.",
+      fix: "Switch the venues back on",
+    });
+    // A band read by one venue, which had fan data: the clause drops.
+    expect(
+      openBandLine({
+        band: mid,
+        slots: 4,
+        read: ["The Lantern Room"],
+        noFanData: [],
+        off: ["The Lantern Room"],
+      }),
+    ).toEqual({
+      head: "The 4 mid-size slots stay open.",
+      text: "For mid-size acts this draft read The Lantern Room's fans. With The Lantern Room off, no act passes the rule for these slots.",
+      fix: "Switch The Lantern Room back on",
+    });
+    // Three read, none without fan data.
+    expect(
+      openBandLine({
+        band: mid,
+        slots: 4,
+        read: ["A Hall", "B Room", "C Club"],
+        noFanData: [],
+        off: ["A Hall", "B Room", "C Club"],
+      }).text,
+    ).toBe(
+      "For mid-size acts this draft read A Hall's, B Room's and C Club's fans. With A Hall, B Room and C Club off, no act passes the rule for these slots.",
     );
+  });
+
+  it("says why every slot stays open", () => {
     expect(
       openPosterLine({ slots: 10, on: ["Cottonwood Social Hall"] }),
     ).toEqual({
       head: "All 10 slots stay open.",
-      text: "Only Cottonwood Social Hall's fans are on, and they lift no act 5 places.",
+      text: "Only Cottonwood Social Hall's fans are on, and no act passes the rule.",
     });
   });
 
@@ -183,9 +247,9 @@ describe("the poster's marks and lines", () => {
 
   it("says over the demo's headliners that they're two bands, and only over the demo's", () => {
     expect(bookedLabel(SAGEBRUSH_SOUND)).toBe("Booked by you: two bands");
-    expect(
-      bookedLabel({ headliners: ["Mitski", "Khruangbin"] }),
-    ).toBe("Booked by you");
+    expect(bookedLabel({ headliners: ["Mitski", "Khruangbin"] })).toBe(
+      "Booked by you",
+    );
   });
 
   it("stamps the demo's festival as fictional and a judge's own as a draft, shorter on a phone", () => {
@@ -223,9 +287,9 @@ describe("the poster's marks and lines", () => {
       "Runs the AI agent; its Qloo calls list below",
     );
     // Once a live run replaced the saved build on screen, Watch still replays the saved one.
-    expect(
-      watchSubLine({ city: "Boise", live: false, onScreen: false }),
-    ).toBe("Replays the saved build's Qloo calls");
+    expect(watchSubLine({ city: "Boise", live: false, onScreen: false })).toBe(
+      "Replays the saved build's Qloo calls",
+    );
   });
 });
 
@@ -237,18 +301,12 @@ describe("the lead and the town", () => {
     });
   });
 
-  it("says Without Qloo picks bigger names only when most found picks sit above the ranges", () => {
-    const most = { ...counted(), found: 8, above: 6 };
-    expect(leadLine({ city: "Boise" }, true, most)).toEqual({
-      mark: "Without Qloo, an AI picks bigger names",
-      rest: "and it can't see Boise's venues.",
+  // WS8: the headline never grades the model on a number it never saw.
+  it("says Without Qloo the AI picks without seeing the town's venues", () => {
+    expect(leadLine({ city: "Boise" }, true)).toEqual({
+      mark: "Without Qloo, an AI picks",
+      rest: "without seeing Boise's venues.",
     });
-    expect(leadLine({ city: "Boise" }, true, { ...most, above: 4 }).mark).toBe(
-      "Without Qloo, an AI picks from what it already knows",
-    );
-    expect(leadLine({ city: "Boise" }, true, null).mark).toBe(
-      "Without Qloo, an AI picks from what it already knows",
-    );
   });
 
   it("explains the coloured and grey venues, with the places Qloo listed", () => {
@@ -256,13 +314,24 @@ describe("the lead and the town", () => {
       legendLine({ city: "Boise", placesListed: 8, tested: 3, lifting: 2 }),
     ).toEqual({
       title: "Venues the agent tested",
-      text: "Qloo found 8 live-music venues in Boise; the AI agent tested these 3. Coloured: their fans lifted acts onto your poster. Grey: none did.",
+      text: "Qloo listed 8 live-music places in Boise. The AI agent tested these 3 venues. Coloured: their fans lifted acts onto your poster. Grey: none of their acts are on your poster.",
     });
     expect(
       legendLine({ city: "Boise", placesListed: null, tested: 2, lifting: 2 })
         .text,
     ).toBe(
-      "The AI agent chose these venues to test. Coloured: their fans lifted acts onto your poster.",
+      "The AI agent tested these 2 venues. Coloured: their fans lifted acts onto your poster.",
+    );
+    // WS8: the search's cap of 20 is "at least 20"; one place and one venue in the singular.
+    expect(
+      legendLine({ city: "Boise", placesListed: 20, tested: 3, lifting: 3 })
+        .text,
+    ).toMatch(/^Qloo listed at least 20 live-music places in Boise\. /);
+    expect(
+      legendLine({ city: "Boise", placesListed: 1, tested: 1, lifting: 1 })
+        .text,
+    ).toMatch(
+      /^Qloo listed 1 live-music place in Boise\. The AI agent tested this venue\. /,
     );
     expect(
       legendLine({ city: "Boise", placesListed: 8, tested: 0, lifting: 0 })
@@ -286,6 +355,8 @@ describe("the lead and the town", () => {
     expect(signChip({ lifted: 7 })).toBe("7 acts");
     expect(signChip({ lifted: 1 })).toBe("1 act");
     expect(signChip({ lifted: 0 })).toBe("none");
+    // WS8: a venue Qloo had no fan data for says so.
+    expect(signChip({ lifted: 0, noFanData: true })).toBe("no fan data");
     expect(signChip({ lifted: 3, off: true })).toBe("Fans off");
     expect(signChip({ lifted: 3, unread: true })).toBe("not read yet");
   });
@@ -383,16 +454,6 @@ describe("Without Qloo: the model's picks, checked on Qloo afterwards", () => {
       notChecked: 1,
       climbers: ["Marigold Static"],
     });
-  });
-
-  it("heads the poster with the picks too big for these slots, and only then", () => {
-    expect(withoutHeadline(counted())).toBe(
-      "By Qloo popularity, 2 of its 7 picks are too big for these slots",
-    );
-    expect(withoutHeadline({ ...counted(), above: 1 })).toBe(
-      "By Qloo popularity, 1 of its 7 picks is too big for these slots",
-    );
-    expect(withoutHeadline({ ...counted(), above: 0 })).toBeNull();
   });
 
   it("says the model can't see the town's venues", () => {

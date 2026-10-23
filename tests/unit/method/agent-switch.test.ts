@@ -77,13 +77,13 @@ describe("the agent's switch in a saved trace", () => {
   it("says it in one sentence, with the acts that read put on the lineup", () => {
     const [found] = agentSwitches(boiseShaped());
     expect(switchLine(found)).toBe(
-      "Lamplight Hall Boise's fans moved no act onto the lineup, so the agent read Owyhee Room; 2 acts come from that read.",
+      "Lamplight Hall Boise's fans moved no act onto the lineup; the agent read Owyhee Room next. 2 acts come from that read.",
     );
     expect(switchLine({ ...found, acts: 1 })).toBe(
-      "Lamplight Hall Boise's fans moved no act onto the lineup, so the agent read Owyhee Room; 1 act comes from that read.",
+      "Lamplight Hall Boise's fans moved no act onto the lineup; the agent read Owyhee Room next. 1 act comes from that read.",
     );
     expect(switchLine({ ...found, acts: 0 })).toBe(
-      "Lamplight Hall Boise's fans moved no act onto the lineup, so the agent read Owyhee Room; no act comes from that read.",
+      "Lamplight Hall Boise's fans moved no act onto the lineup; the agent read Owyhee Room next. No act comes from that read.",
     );
   });
 
@@ -272,7 +272,7 @@ describe("the agent's switch in a saved trace", () => {
     const [found, ...more] = agentSwitches(of(syntheticSwitchBuild()));
     expect(more).toEqual([]);
     expect(switchLine(found)).toBe(
-      "Linden Street Annex's fans moved no act onto the lineup, so the agent read Fort Street Ballroom; 3 acts come from that read.",
+      "Linden Street Annex's fans moved no act onto the lineup; the agent read Fort Street Ballroom next. 3 acts come from that read.",
     );
   });
 });

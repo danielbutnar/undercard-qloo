@@ -27,7 +27,6 @@ import {
   climbMark,
   exampleAct,
   exampleHint,
-  bookedLabel,
   footnote,
   LEAD_TITLE,
   leadLine,
@@ -42,10 +41,10 @@ import {
   TAGLINE_LEAD,
   TAGLINE_QLOO,
   venueLine,
+  venueReadLine,
   WATCH_AGENT,
   watchSubLine,
   withoutCounts,
-  withoutHeadline,
   withoutNote,
   withoutSummary,
 } from "@/components/chart/poster-words";
@@ -62,6 +61,8 @@ import {
   agentLine,
   ANCHORS_KEY,
   factsLine,
+  headlinersBooked,
+  headlinersNote,
   saysAnchors,
   SKIP,
   switchLine,
@@ -77,6 +78,7 @@ import { TracePanel, type BuildRequest } from "@/components/trace-panel";
 import { useLlmOnly } from "@/components/use-llm-only";
 import { useUndercardBuild } from "@/components/use-undercard-build";
 import { useVenueSwitch } from "@/components/use-venue-switch";
+import { namesVenue } from "@/lib/venue-call";
 import { useWatch, type WatchPhase } from "@/components/use-watch";
 import type { TraceCall } from "@/lib/build-events";
 import { firstBoard } from "@/lib/build-state";
@@ -314,7 +316,7 @@ function stepCall(
         call.summary.startsWith(`${band.label}-band`) &&
         (step.venue
           ? call.tool === "venue_artists" &&
-            call.summary.includes(`headliners and ${step.venue.name}`)
+            namesVenue(call.summary, step.venue.name)
           : call.tool === "baseline_artists"),
     ) ?? null
   );
@@ -403,8 +405,7 @@ function VenueCard({
   off,
   acts,
   read,
-  placesListed,
-  city,
+  noFanData,
   kind,
   switchable,
   onToggle,
@@ -418,8 +419,8 @@ function VenueCard({
   acts: readonly Act[];
   /** The fee ranges its fans were read for. */
   read: readonly string[];
-  placesListed: number | null;
-  city: string;
+  /** Qloo had no fan data for it (WS8). */
+  noFanData: boolean;
   kind?: string;
   switchable: boolean;
   onToggle: () => void;
@@ -435,20 +436,15 @@ function VenueCard({
         />
         {signName(venue.name)}
       </p>
-      <p className="venue-card-line">{venueLine(venue.name, lifted, off)}</p>
+      <p className="venue-card-line">
+        {venueLine(venue.name, lifted, off, noFanData)}
+      </p>
       {kind && (
         <p className="venue-card-note">
           {venue.name} is {kind}, not a club.
         </p>
       )}
-      <p className="venue-card-note">
-        {placesListed !== null
-          ? `The AI agent chose it from the ${placesListed} live-music venues Qloo found in ${city}`
-          : "The AI agent chose it"}
-        {read.length > 0
-          ? `; its fans were read for ${read.join(" and ")}.`
-          : "."}
-      </p>
+      <p className="venue-card-note">{venueReadLine(read, noFanData)}</p>
       {acts.length > 0 && !off && (
         <ul aria-label="Acts its fans lifted" className="venue-card-acts">
           {acts.map((act) => (
@@ -566,7 +562,6 @@ export function FestivalScreen({
   const [openId, setOpenId] = useState<string | null>(null);
   // The venue picked from its sign in the town, or from the poster's key.
   const [pickedVenue, setPickedVenue] = useState<string | null>(null);
-  const [hoverVenue, setHoverVenue] = useState<string | null>(null);
   const [picks, setPicks] = useState<Record<string, number>>({});
   const [printing, setPrinting] = useState<Printing>(null);
   const board = useRef<HTMLElement>(null);
@@ -668,6 +663,8 @@ export function FestivalScreen({
         counts[entry.venue.entityId] = (counts[entry.venue.entityId] ?? 0) + 1;
     return counts;
   }, [picks, watch.seen]);
+  // The venues Qloo had no fan data for, from the saved build on screen (WS8).
+  const fanless = onFirst ? (firstBill?.noFanData ?? []) : [];
   const sceneVenues: SceneVenue[] = standing.map((venue) => {
     const line = venueLines.find((entry) => entry.entityId === venue.entityId);
     const lifted = watching ? savedLifted(venue.entityId) : (line?.lifted ?? 0);
@@ -679,6 +676,7 @@ export function FestivalScreen({
       lifted,
       off,
       unread: watching && !read.has(venue.entityId),
+      noFanData: fanless.includes(venue.entityId),
     };
   });
   const keyVenues: KeyVenue[] = sceneVenues.map((venue) => ({
@@ -916,8 +914,8 @@ export function FestivalScreen({
     const flight = flights.find((entry) => entry.act.entityId === act.entityId);
     return flight ? landsAt(flight.order) : undefined;
   };
-  // A picked venue (or one hovered on the key) fades the other venues' acts.
-  const focusVenue = !watching && !without ? (pickedVenue ?? hoverVenue) : null;
+  // Hovering the key's switches fades nothing (WS8): only a venue picked does.
+  const focusVenue = !watching && !without ? pickedVenue : null;
   const dimmed = focusVenue
     ? (act: Act) => act.anchorVenue.entityId !== focusVenue
     : undefined;
@@ -940,7 +938,21 @@ export function FestivalScreen({
         );
     return {
       band,
-      rows: billRows(band, shownActs, placeOf, hues, open, openWords, "climb"),
+      // In the rule's order (WS8): the strongest Qloo match first, then the bigger climb; the
+      // open slots after the acts.
+      rows: billRows(
+        band,
+        shownActs,
+        placeOf,
+        hues,
+        open,
+        openWords,
+        "climb",
+      ).sort(
+        (a, b) =>
+          (b.act?.affinity ?? -1) - (a.act?.affinity ?? -1) ||
+          (b.move ?? 0) - (a.move ?? 0),
+      ),
     };
   });
   const printedActs = bandRows.flatMap(({ rows }) =>
@@ -949,6 +961,9 @@ export function FestivalScreen({
   const onVenues = allVenues
     .filter((venue) => !switcher.off.has(venue.entityId))
     .map((venue) => venue.name);
+  const offVenues = allVenues
+    .filter((venue) => switcher.off.has(venue.entityId))
+    .map((venue) => venueShort(venue.name));
   const allOpen = whatIf && shownActs.length === 0;
 
   const card = (act: Act) => (
@@ -1044,7 +1059,7 @@ export function FestivalScreen({
     llm.state.status === "ready"
       ? withoutCounts(modelPicks, llm.state.checks, festival)
       : null;
-  const lead = leadLine(festival, without, counts);
+  const lead = leadLine(festival, without);
   const legend = legendLine({
     city: festival.city,
     placesListed,
@@ -1081,8 +1096,7 @@ export function FestivalScreen({
           .map((band) =>
             band.id === "mid" ? "mid-size acts" : "opening acts",
           )}
-        placesListed={placesListed}
-        city={festival.city}
+        noFanData={pickedScene.noFanData === true}
         kind={
           venueLines.find((line) => line.entityId === picked.entityId)?.kind
         }
@@ -1183,7 +1197,6 @@ export function FestivalScreen({
           setOpenId(null);
           switcher.toggle(id);
         }}
-        onHover={setHoverVenue}
         quiet={watching}
       />
       {!allOpen && (
@@ -1249,22 +1262,33 @@ export function FestivalScreen({
                       ? edition.venue
                         ? `With ${edition.venue.name}'s fans added`
                         : "For the headliners' fans alone"
-                      : "Waiting for this band's first ranking…"
+                      : "Waiting for this tier's first ranking…"
                     : undefined
                 }
                 message={
                   empty
-                    ? {
-                        ...openBandLine({
+                    ? (() => {
+                        // The venues the saved draft read for these slots (WS8, item 12).
+                        const read = onFirst
+                          ? (firstBill?.anchors[band.id] ?? [])
+                          : [];
+                        const line = openBandLine({
                           band,
                           slots: band.slots,
-                          on: onVenues,
-                        }),
-                        fix: {
-                          label: "Switch the venues back on",
-                          onClick: switcher.reset,
-                        },
-                      }
+                          read: read.map((venue) => signName(venue.name)),
+                          noFanData: read
+                            .filter((venue) =>
+                              savedNoFanData.includes(venue.entityId),
+                            )
+                            .map((venue) => signName(venue.name)),
+                          off: offVenues,
+                        });
+                        return {
+                          head: line.head,
+                          text: line.text,
+                          fix: { label: line.fix, onClick: switcher.reset },
+                        };
+                      })()
                     : undefined
                 }
               >
@@ -1414,9 +1438,6 @@ export function FestivalScreen({
           </button>
         </div>
       )}
-      {counts && withoutHeadline(counts) && (
-        <p className="model-headline">{withoutHeadline(counts)}</p>
-      )}
       {counts && llm.state.checks && llm.state.checks.length > 0 && (
         <PicksRuler
           festival={festival}
@@ -1479,54 +1500,57 @@ export function FestivalScreen({
             <p className="fs-line">
               <mark>{lead.mark}</mark> {lead.rest}
             </p>
-            {!custom && !checked && onShow.length >= 2 && (
-              <nav aria-label="Same brief, other towns" className="fs-towns">
-                <span className="fs-towns-label">Pick a town</span>
-                <ul>
-                  {onShow.map((town) => {
-                    const code = regionCode(town.festival.region);
-                    return (
-                      <li key={town.slug}>
-                        <Link
-                          href={townHref(town.slug)}
-                          aria-current={
-                            town.slug === current ? "page" : undefined
-                          }
-                          className="fs-town-chip"
-                        >
-                          {town.festival.city}
-                          {code && (
-                            <span className="fs-town-code" aria-hidden>
-                              {" "}
-                              {code}
-                            </span>
-                          )}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-                <Link
-                  href="/your-festival"
-                  className="fs-town-chip fs-town-yours"
-                >
-                  Your town
-                  <svg viewBox="0 0 16 16" aria-hidden>
-                    <path d="M2 8 H13 M9 4 L13 8 L9 12" />
-                  </svg>
-                </Link>
-              </nav>
-            )}
             {/* A town Qloo can't find, or too thin to read: running it again can't help, so its
                 notice and the checked towns take the run button's place, under what happened. */}
             {thinTown && notice}
           </section>
 
+          {/* The town picker: under the lead on a laptop; on a phone after the poster, so the first
+              act shows before any scroll with Watch (WS8, brief item 22). */}
+          {!custom && !checked && onShow.length >= 2 && (
+            <nav aria-label="Same brief, other towns" className="fs-towns">
+              <span className="fs-towns-label">Pick a town</span>
+              <ul>
+                {onShow.map((town) => {
+                  const code = regionCode(town.festival.region);
+                  return (
+                    <li key={town.slug}>
+                      <Link
+                        href={townHref(town.slug)}
+                        aria-current={
+                          town.slug === current ? "page" : undefined
+                        }
+                        className="fs-town-chip"
+                      >
+                        {town.festival.city}
+                        {code && (
+                          <span className="fs-town-code" aria-hidden>
+                            {" "}
+                            {code}
+                          </span>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+              <Link
+                href="/your-festival"
+                className="fs-town-chip fs-town-yours"
+              >
+                Your town
+                <svg viewBox="0 0 16 16" aria-hidden>
+                  <path d="M2 8 H13 M9 4 L13 8 L9 12" />
+                </svg>
+              </Link>
+            </nav>
+          )}
+
           {!thinTown && watchButton}
 
           <section
             aria-label={without ? "The festival" : "Undercard draft"}
-            className={`fs-poster ${watching ? "is-watching" : ""}`}
+            className={`fs-poster ${watching ? "is-watching" : ""} ${watch.phase === "reveal" ? "is-revealing" : ""}`}
           >
             {!custom && <ModeTabs mode={mode} onChange={changeMode} />}
             <div className="poster-sheet">
@@ -1541,12 +1565,18 @@ export function FestivalScreen({
               <h1 className="poster-name">{festival.name}</h1>
               <p className="facts">{factsLine(festival)}</p>
               <span className="poster-rule-line" aria-hidden />
-              <p className="poster-booked">{bookedLabel(festival)}</p>
               <HeadlinerList
                 headliners={festival.headliners}
                 images={firstBill?.headlinerImages}
                 ids={headlinerIds}
               />
+              {/* Under the headliners (WS8, item 12a): who they are, and that Undercard drafted
+                  the rest; Without Qloo, nothing below them is the agent's. */}
+              <p className="poster-headliners-note">
+                {without
+                  ? headlinersBooked(festival)
+                  : headlinersNote(festival, state.acts.length > 0)}
+              </p>
               <span className="poster-rule-line" aria-hidden />
               {without ? withoutPoster : withPoster}
               {/* Prompt 4's count of each check, on both sides of the tabs. */}
@@ -1611,7 +1641,10 @@ export function FestivalScreen({
             {!without && !custom && !watching && allVenues.length > 0 && (
               <VenueSwitch
                 city={festival.city}
-                venues={venueLines}
+                venues={venueLines.map((venue) => ({
+                  ...venue,
+                  noFanData: fanless.includes(venue.entityId),
+                }))}
                 off={switcher.off}
                 status={switcher.status}
                 onToggle={(id) => {

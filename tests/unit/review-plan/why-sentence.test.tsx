@@ -25,13 +25,13 @@ const fresh = {
 describe("an act's why, in one sentence (plan.md item 5)", () => {
   it("names the venue's place, the headliners' place and the climb", () => {
     expect(whySentence(climber, { now: 6, was: 21 })).toBe(
-      "Fans of The Lantern Room rank Synthetic Climber 6th; fans of the headliners alone rank them 21st. That climb of 15 is why Synthetic Climber is here.",
+      "With The Lantern Room's fans added to the headliners', Qloo ranks Synthetic Climber 6th; for the headliners' fans alone, 21st. That climb of 15 is why Synthetic Climber is here.",
     );
   });
 
   it("says a new entry wasn't in the headliners' top 50", () => {
     expect(whySentence(fresh, { now: 29, was: null })).toBe(
-      "Fans of Fort Street Hall rank Synthetic Newcomer 29th; fans of the headliners alone don't rank them in their top 50. That climb into the top 50 is why Synthetic Newcomer is here.",
+      "With Fort Street Hall's fans added to the headliners', Qloo ranks Synthetic Newcomer 29th; for the headliners' fans alone, it isn't in the top 50. That climb into the top 50 is why Synthetic Newcomer is here.",
     );
   });
 
@@ -44,7 +44,7 @@ describe("an act's why, in one sentence (plan.md item 5)", () => {
     const card = screen.getByRole("article", { name: "Synthetic Climber" });
     expect(within(card).getByText("Why it's here:")).toBeTruthy();
     expect(card.textContent).toContain(
-      "Fans of The Lantern Room rank Synthetic Climber 6th; fans of the headliners alone rank them 21st. That climb of 15 is why Synthetic Climber is here.",
+      "With The Lantern Room's fans added to the headliners', Qloo ranks Synthetic Climber 6th; for the headliners' fans alone, 21st. That climb of 15 is why Synthetic Climber is here.",
     );
   });
 });

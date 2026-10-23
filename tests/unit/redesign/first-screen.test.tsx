@@ -133,11 +133,96 @@ describe("the poster", () => {
       expect(example.textContent).toMatch(/switch a venue off above\.$/),
     );
     expect(example.textContent).toMatch(
-      /^THE LANTERN ROOM ↑26|^The Lantern Room ↑26/i,
+      /^THE LANTERN ROOM ↑11|^The Lantern Room ↑11/i,
     );
     expect(example.textContent).toContain(
-      "The Ditch Riders climbed from 33rd to 7th in Qloo's ranking once The Lantern Room's fans joined the headliners' fans.",
+      // The poster's first act in the rule's order (WS8).
+      "Hollow Pines climbed from 12th to 1st in Qloo's ranking once The Lantern Room's fans joined the headliners' fans.",
     );
+  });
+
+  // WS8 (item 12a): under the headliners, the note words.ts has (headlinersNote); no "Booked by
+  // you" chip over them.
+  it("says under the headliners that they're booked and Undercard drafted the rest (WS8)", () => {
+    open();
+    const heads = within(poster()).getByRole("list", {
+      name: "Booked headliners",
+    });
+    const note = heads.nextElementSibling;
+    expect(note?.textContent).toBe(
+      "The headliners, two bands, are already booked · Undercard drafted the rest of the lineup (the bill) from Qloo's numbers",
+    );
+    expect(within(poster()).queryByText(/Booked by you/)).toBeNull();
+  });
+
+  it("says Undercard will draft the rest before a draft exists (WS8)", () => {
+    render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={null} />);
+    expect(
+      within(poster()).getByText(
+        "The headliners, two bands, are already booked · Undercard will draft the rest of the lineup (the bill) from Qloo's numbers",
+      ),
+    ).toBeTruthy();
+  });
+
+  // WS8: each tier lists its acts in the rule's order (the strongest Qloo match first), each with
+  // its place in its venue's ranking beside the climb.
+  it("lists each tier in the rule's order, with the rank beside the climb (WS8)", async () => {
+    withSwitch();
+    open();
+    const mid = within(poster()).getByRole("region", { name: "Mid-size acts" });
+    const acts = within(mid).getAllByRole("article");
+    expect(acts.map((act) => act.getAttribute("aria-label"))).toEqual(
+      FIRST_BILL.acts
+        .filter((act) => act.band === "mid")
+        .sort((a, b) => b.affinity - a.affinity)
+        .map((act) => act.name),
+    );
+    for (const act of acts)
+      await waitFor(() =>
+        expect(act.querySelector(".poster-climb")?.textContent).toMatch(
+          /^\d+(st|nd|rd|th) (↑\d+|NEW)$/,
+        ),
+      );
+  });
+
+  it("keeps a band's acts and says why the other band's slots stay open when its venue is off (WS8)", async () => {
+    // As Boise with V418 off: the mid-size acts stay, and no opener clears the bar.
+    const data = syntheticVenueSwitch();
+    const mid = Object.keys(data.entries).filter(
+      (key) => data.entries[key].act.band === "mid",
+    );
+    data.lineups["011"] = { keys: mid, shortfall: { mid: 0, opener: 6 } };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json(data)),
+    );
+    open();
+    const key = within(poster()).getByRole("group", {
+      name: "Venue fans used for this draft",
+    });
+    fireEvent.click(
+      await within(key).findByRole("button", {
+        name: /^The Lantern Room's fans: on/,
+      }),
+    );
+    const band = (name: string) =>
+      within(poster()).getByRole("region", { name });
+    expect(within(band("Mid-size acts")).getAllByRole("article")).toHaveLength(
+      4,
+    );
+    const openers = band("Opening acts");
+    expect(within(openers).queryAllByRole("article")).toHaveLength(0);
+    expect(openers.querySelectorAll(".poster-slot")).toHaveLength(0);
+    // The venues the draft read for opening acts (the saved build's anchors), and the one off.
+    expect(within(openers).getByRole("status").textContent).toBe(
+      "The 6 opening slots stay open. For opening acts this draft read The Lantern Room's and Fort Street Ballroom's fans. With The Lantern Room off, no act passes the rule for these slots.Switch The Lantern Room back on",
+    );
+    fireEvent.click(
+      within(openers).getByRole("button", {
+        name: "Switch The Lantern Room back on",
+      }),
+    );
+    expect(within(poster()).getAllByRole("article")).toHaveLength(10);
   });
 
   it("says why every slot stays open with every venue switched off, and brings them back", async () => {
@@ -161,7 +246,7 @@ describe("the poster", () => {
       .getByText(/^All 10 slots stay open\./)
       .closest<HTMLElement>("[role=status]")!;
     expect(open10.textContent).toContain(
-      "All 10 slots stay open. Every venue's fans are off, so no act rises 5 places.",
+      "All 10 slots stay open. Every venue's fans are off, so no act passes the rule.",
     );
     fireEvent.click(
       within(open10).getByRole("button", {
@@ -178,7 +263,7 @@ describe("the town", () => {
     open();
     expect(
       within(town()).getByText(
-        /^Qloo found 8 live-music venues in Boise; the AI agent tested these 3\. Coloured: their fans lifted acts onto your poster\. Grey: none did\.$/,
+        /^Qloo listed 8 live-music places in Boise\. The AI agent tested these 3 venues\. Coloured: their fans lifted acts onto your poster\. Grey: none of their acts are on your poster\.$/,
       ),
     ).toBeTruthy();
     const signs = await within(town()).findAllByRole("button", {

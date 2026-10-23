@@ -12,6 +12,8 @@ export interface VenueLine {
   lifted: number;
   /** "an arena", "a festival"…, when it isn't a club (M6l). */
   kind?: string;
+  /** Qloo had no fan data for it (WS8): said as its sign says it. */
+  noFanData?: boolean;
 }
 
 /**
@@ -19,6 +21,9 @@ export interface VenueLine {
  * Switching one off re-forms the lineup by the same rule from the saved build (src/lib/
  * venue-switch.ts), with no Qloo or model call; switching it on brings the lineup back.
  */
+const unscored = (venue: VenueLine) =>
+  venue.noFanData === true && venue.lifted === 0;
+
 export function VenueSwitch({
   city,
   venues,
@@ -62,7 +67,7 @@ export function VenueSwitch({
                 disabled={!usable}
                 onClick={() => onToggle(venue.entityId)}
                 className={`venue-toggle venue-${venue.hue}`}
-                aria-label={`${venue.name}: ${on ? "on" : "off"}, ${liftedWords(venue.lifted)}`}
+                aria-label={`${venue.name}: ${on ? "on" : "off"}, ${unscored(venue) ? "no fan data" : liftedWords(venue.lifted)}`}
               >
                 <span className="swatch" aria-hidden />
                 <span className="venue-name">
@@ -80,7 +85,7 @@ export function VenueSwitch({
                       )}
                     </span>
                   )}
-                  {liftedWords(venue.lifted)}
+                  {unscored(venue) ? "no fan data" : liftedWords(venue.lifted)}
                 </span>
                 <span className="rocker" aria-hidden />
               </button>

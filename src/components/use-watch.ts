@@ -19,6 +19,10 @@ import type { ClimbEvent } from "@/lib/lift-climb";
 export const BASELINE_HOLD_MS = 800;
 export const VENUE_HOLD_MS = 1600;
 export const END_HOLD_MS = 1400;
+/** WS8: the steps before the first venue's hold this long, so the first act lands within 3 s. */
+export const LEAD_HOLD_MS = 300;
+/** WS8: the end's reveal, every lifting venue lit and the acts pulsing, before the overview. */
+export const REVEAL_MS = 1400;
 
 export const holdFor = (step: ClimbEvent) =>
   step.venue ? VENUE_HOLD_MS : BASELINE_HOLD_MS;
@@ -39,7 +43,7 @@ export function useReducedMotion(): boolean {
  * idle: the saved lineup. calls: Watch was pressed and the build's calls stream, before its
  * first ranking. climbing: an edition of the chart is on screen. done: the lineup is back.
  */
-export type WatchPhase = "idle" | "calls" | "climbing" | "done";
+export type WatchPhase = "idle" | "calls" | "climbing" | "reveal" | "done";
 
 /**
  * Paces the climb steps a build streams (src/lib/lift-climb.ts) so each edition can be read,
@@ -51,6 +55,8 @@ export function useWatch(state: BuildState) {
   const [watching, setWatching] = useState(false);
   const [shown, setShown] = useState(0);
   const [finished, setFinished] = useState(false);
+  // WS8: the reveal between the last edition and the overview; a skip goes straight there.
+  const [revealing, setRevealing] = useState(false);
   const steps = state.climbs;
   const streaming = state.status === "building";
 
@@ -58,6 +64,7 @@ export function useWatch(state: BuildState) {
     setWatching(true);
     setShown(0);
     setFinished(false);
+    setRevealing(false);
   }, []);
 
   const skip = useCallback(() => {
@@ -68,18 +75,30 @@ export function useWatch(state: BuildState) {
   useEffect(() => {
     if (!watching || finished) return;
     if (shown < steps.length) {
-      const hold = shown === 0 ? 0 : holdFor(steps[shown - 1]);
+      // Until the first venue's step, each step holds briefly (WS8).
+      const lead = !steps.slice(0, shown).some((step) => step.venue);
+      const hold =
+        shown === 0 ? 0 : lead ? LEAD_HOLD_MS : holdFor(steps[shown - 1]);
       const next = setTimeout(() => setShown((n) => n + 1), hold);
       return () => clearTimeout(next);
     }
     if (!streaming) {
       const end = setTimeout(
-        () => setFinished(true),
+        () => {
+          setFinished(true);
+          if (steps.length) setRevealing(true);
+        },
         steps.length ? END_HOLD_MS : 0,
       );
       return () => clearTimeout(end);
     }
   }, [watching, finished, streaming, shown, steps]);
+
+  useEffect(() => {
+    if (!revealing) return;
+    const end = setTimeout(() => setRevealing(false), REVEAL_MS);
+    return () => clearTimeout(end);
+  }, [revealing]);
 
   // A build that ends in an error stops the show; the error shows where the lineup was.
   const failed = watching && !streaming && state.status === "error";
@@ -88,7 +107,9 @@ export function useWatch(state: BuildState) {
   const phase: WatchPhase = !watching
     ? "idle"
     : ended
-      ? "done"
+      ? revealing && !failed
+        ? "reveal"
+        : "done"
       : count === 0
         ? "calls"
         : "climbing";

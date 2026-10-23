@@ -41,6 +41,8 @@ export interface SceneVenue {
   off: boolean;
   /** Watch hasn't read it yet. */
   unread: boolean;
+  /** Qloo had no fan data for it (WS8). */
+  noFanData?: boolean;
 }
 
 /** A venue's name on its sign: Qloo's listing without a bracketed note. */
@@ -435,9 +437,13 @@ export function TownScene({
             lifted: venue.lifted,
             off: venue.off,
             unread: venue.unread,
+            noFanData: venue.noFanData,
           });
           const w =
-            signName(venue.name).length * size * 0.5 + 24 + chip.length * 7.2 + 22;
+            signName(venue.name).length * size * 0.5 +
+            24 +
+            chip.length * 7.2 +
+            22;
           const h = size + 11 + 6 + 14;
           const covered =
             selected !== venue.entityId &&
@@ -530,6 +536,7 @@ export function TownScene({
             lifted: venue.lifted,
             off: venue.off,
             unread: venue.unread,
+            noFanData: venue.noFanData,
           });
           const name = signName(venue.name);
           return (

@@ -10,7 +10,7 @@ type Missing = Exclude<ShortlistAct, { status: "found" }>;
 
 /** The page's one sentence at the top (Daniel's words). */
 export const SHORTLIST_LEAD =
-  "Paste the acts you've been pitched; Undercard sorts them by how fans of this town's venues rank them. You make every call.";
+  "Paste the acts you've been pitched; Undercard sorts them by how Qloo ranks them with this town's venue fans added to the headliners'. You make every call.";
 
 export const SHORTLIST_TITLE = "Check a shortlist";
 export const CHECK_BUTTON = "Sort them on Qloo";

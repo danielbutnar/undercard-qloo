@@ -113,14 +113,14 @@ describe("an act on the bill", () => {
     expect(within(article).getByText("Why it's here:")).toBeTruthy();
     // Plan.md item 5: the why in one sentence, from the saved build's places and climb.
     expect(article.textContent).toMatch(
-      /Fans of Fort Street Ballroom rank Marisol Vey \d+(st|nd|rd|th); fans of the headliners alone rank them \d+(st|nd|rd|th)\. That climb of 7 is why Marisol Vey is here\./,
+      /With Fort Street Ballroom's fans added to the headliners', Qloo ranks Marisol Vey \d+(st|nd|rd|th); for the headliners' fans alone, \d+(st|nd|rd|th)\. That climb of 7 is why Marisol Vey is here\./,
     );
     expect(
       within(article).getByText("Qloo affinity").parentElement?.textContent,
     ).toBe("Qloo affinity0.91");
     expect(
       within(article).getByText("Popularity").parentElement?.textContent,
-    ).toBe("Popularity88th");
+    ).toBe("Popularity88");
     expect(
       within(article)
         .getByRole("list", { name: "Tags shared with the headliners" })
@@ -186,12 +186,12 @@ describe("an act on the bill", () => {
     );
     vi.stubGlobal("fetch", fetch);
     open();
-    // The band sorts by climb, biggest first (M10a).
+    // The tier lists its acts in the rule's order, the strongest Qloo match first (WS8).
     expect(midNames()).toEqual([
-      "The Ditch Riders",
       "Hollow Pines",
-      "Kestrel & Bloom",
       "Marisol Vey",
+      "The Ditch Riders",
+      "Kestrel & Bloom",
     ]);
     fireEvent.click(actButton("Hollow Pines"));
     fireEvent.click(
@@ -218,10 +218,10 @@ describe("an act on the bill", () => {
     await waitFor(() => expect(actButton("Sego Lily")).toBeTruthy());
     // The replacement's place isn't in the build, but its climb is (its reason says up 13).
     expect(midNames()).toEqual([
-      "The Ditch Riders",
-      "Sego Lily",
-      "Kestrel & Bloom",
       "Marisol Vey",
+      "The Ditch Riders",
+      "Kestrel & Bloom",
+      "Sego Lily",
     ]);
     expect(screen.queryByRole("region", { name: "Act card" })).toBeNull();
   });

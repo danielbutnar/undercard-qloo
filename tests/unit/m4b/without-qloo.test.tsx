@@ -131,6 +131,8 @@ describe("Without Qloo", () => {
       expect(
         within(pick).getByText("Picked without Qloo; not checked on Qloo"),
       ).toBeTruthy();
+      // WS8: every pick came with the model's reason, so each shows it under its name.
+      expect(within(pick).getByText(lineup.picks[index].note)).toBeTruthy();
       fireEvent.click(
         within(pick).getByRole("button", { name: lineup.picks[index].name }),
       );

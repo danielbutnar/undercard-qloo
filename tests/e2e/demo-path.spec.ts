@@ -62,7 +62,10 @@ test.describe("demo path", () => {
     // plans the calls. WS9: booked by you over the headliners, drafted by Undercard from the
     // venues' fans over the rest; the poster keeps the build's saved date.
     await expect(
-      bill(page).getByText("Booked by you: two bands"),
+      // WS8 (item 12a): the note under the headliners, no "Booked by you" chip.
+      bill(page).getByText(
+        "The headliners, two bands, are already booked · Undercard drafted the rest of the lineup (the bill) from Qloo's numbers",
+      ),
     ).toBeVisible();
     await expect(bill(page).getByText("Drafted by Undercard")).toBeVisible();
     await expect(
@@ -103,7 +106,7 @@ test.describe("demo path", () => {
     // then the venues behind the lineup, in the town and under the poster.
     await expect(
       bill(page).getByRole("article").first().locator(".poster-climb"),
-    ).toHaveText(/^(↑\d+|NEW)$/);
+    ).toHaveText(/^(\d+(st|nd|rd|th) )?(↑\d+|NEW)$/);
     await expect(
       bill(page).getByText(
         "↑ = places it rose in Qloo's ranking with that venue's fans (5+ to qualify); the strongest Qloo match takes each slot",
@@ -210,11 +213,11 @@ test.describe("demo path", () => {
       ).toBeVisible();
       // Card text runs together ("Qloo affinity0.94Popularity86th"), so no word boundaries.
       await expect(opened).toContainText(/affinity0\.\d\d/);
-      await expect(opened).toContainText(/Popularity\d{1,2}(st|nd|rd|th)/);
+      await expect(opened).toContainText(/Popularity\d{1,2}popularity on Qloo/);
       // Plan.md item 5: the why in one sentence from the saved places and climb; a build without
       // its places keeps its own line.
       await expect(opened).toContainText(
-        /Why it's here: (Fans of .+ rank .+ \d+(st|nd|rd|th); fans of the headliners alone (rank them \d+(st|nd|rd|th)\. That climb of \d+|don't rank them in their top 50\. That climb into the top 50) is why .+ is here\.|.+ fans move it (up \d+ places|into the top \d+)\.)/,
+        /Why it's here: (With .+'s fans added to the headliners', Qloo ranks .+ \d+(st|nd|rd|th); for the headliners' fans alone, (\d+(st|nd|rd|th)\. That climb of \d+|it isn't in the top 50\. That climb into the top 50) is why .+ is here\.|.+ fans move it (up \d+ places|into the top \d+)\.)/,
       );
       await expect(
         opened
@@ -276,7 +279,7 @@ test.describe("demo path", () => {
     expect(added).toBeLessThanOrEqual(3);
     await expect(page.getByText(/^[123] refill calls?$/)).toBeVisible();
     const refillRow = traceRows(page)
-      .filter({ hasText: "Refill (radius clause): Mid-band artists" })
+      .filter({ hasText: "Refill (radius clause): Mid-tier artists" })
       .last();
     await refillRow.getByRole("button", { name: "Parameters" }).click();
     await expect(refillRow).toContainText("filter.exclude.entities=");
@@ -389,13 +392,95 @@ test.describe("demo path", () => {
     await expect(bill(page).getByText(/^What if /)).toBeVisible();
     const reformed = await names();
     expect(reformed).not.toEqual(saved);
-    // A slot nothing qualifies for stays open rather than padded.
-    if (reformed.length < 10)
-      await expect(bill(page).getByText("Open slot").first()).toBeVisible();
+    // A slot nothing qualifies for stays open rather than padded (WS8): a band prints its acts,
+    // then an open slot for each slot left; a band with no act left says why its slots stay open
+    // instead, with the way back (the v6 board's laptop-09: Boise with V418 off).
+    for (const [name, slots, words] of [
+      [/^Mid/, 4, "mid-size"],
+      [/^Opening/, 6, "opening"],
+    ] as const) {
+      const region = band(page, name);
+      const acts = await region.getByRole("article").count();
+      const open = region.locator(".poster-slot");
+      if (acts > 0) {
+        await expect(open).toHaveCount(slots - acts);
+        continue;
+      }
+      await expect(open).toHaveCount(0);
+      // The venues read for these slots and the one off (WS8, the brief's item 12).
+      await expect(region.getByRole("status")).toContainText(
+        new RegExp(
+          `^The ${slots} ${words} slots stay open\\. (For ${words} acts this draft read .+'s fans(, and Qloo had no fan data for .+)?\\. )?With .+ off, no act passes the rule for these slots\\.`,
+        ),
+      );
+      await expect(
+        region.getByRole("button", { name: /^Switch .+ back on$/ }),
+      ).toBeVisible();
+    }
+    if (SYNTHETIC) {
+      // The Lantern Room off: Fort Street Ballroom's mid-size act and two openers stay, and the
+      // other seven slots stay open.
+      expect(venue).toBe("The Lantern Room");
+      expect(reformed).toHaveLength(3);
+      await expect(bill(page).locator(".poster-slot")).toHaveCount(7);
+    }
 
     await switcher.getByRole("button", { name: "All venues on" }).click();
     await expect.poll(names).toEqual(saved);
     expect(sent).toEqual([]);
+  });
+
+  // WS8: hovering the key's switches fades nothing; after a venue is switched off from the key,
+  // the acts left are at full opacity with the mouse still on its switch.
+  test("the venue switch: with the mouse on the key, the acts left aren't faded", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const key = bill(page).getByRole("group", {
+      name: "Venue fans used for this draft",
+    });
+    const on = key.getByRole("button", { name: /'s fans: on, [1-9]/ }).first();
+    await expect(on).toBeEnabled({ timeout: 15_000 });
+    await on.hover();
+    await on.click();
+    await expect(bill(page).getByText(/^What if /)).toBeVisible();
+    const acts = bill(page).locator(".poster-act");
+    expect(await acts.count()).toBeGreaterThan(0);
+    for (const act of await acts.all())
+      await expect(act).toHaveCSS("opacity", "1");
+  });
+
+  // WS8: a room that alone fills a tier, switched off from the poster's key, empties that tier:
+  // Denver's synthetic build credits all six openers to The Room, as Boise's credits its
+  // openers to Venue 418. The mid-size tier keeps its other room's act.
+  test("the venue switch: a room that fills a tier alone, switched off, empties it and says why", async ({
+    page,
+  }) => {
+    test.skip(SYNTHETIC !== "1", "reads Denver's synthetic build");
+    await page.goto("/towns/denver");
+    const key = bill(page).getByRole("group", {
+      name: "Venue fans used for this draft",
+    });
+    const larimer = key.getByRole("button", {
+      name: /^The Room's fans: on/,
+    });
+    await expect(larimer).toBeEnabled({ timeout: 15_000 });
+    await larimer.click();
+    await page.mouse.move(0, 0);
+
+    const mid = band(page, /^Mid/);
+    await expect(mid.getByRole("article")).toHaveCount(1);
+    await expect(mid.locator(".poster-slot")).toHaveCount(3);
+    const openers = band(page, /^Opening/);
+    await expect(openers.getByRole("article")).toHaveCount(0);
+    await expect(openers.locator(".poster-slot")).toHaveCount(0);
+    await expect(openers.getByRole("status")).toContainText(
+      "The 6 opening slots stay open. For opening acts this draft read The Room's fans. With The Room off, no act passes the rule for these slots.",
+    );
+    await openers
+      .getByRole("button", { name: "Switch The Room back on" })
+      .click();
+    await expect(bill(page).getByRole("article")).toHaveCount(10);
   });
 
   test("first paint: the server sends the whole bill, on screen in under 5 seconds with no click", async ({

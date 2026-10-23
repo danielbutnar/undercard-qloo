@@ -129,11 +129,18 @@ export function watchLine({
     : `Qloo's ranking re-sorts with this venue's fans added: no act climbs ${MIN_LIFT} places onto the lineup.`;
 }
 
+/**
+ * A saved call's line in today's words (WS8): a fee range is a tier, never a band ("Mid-tier
+ * artists for the headliners and …"); the saved line itself keeps its words, which the app parses.
+ */
+export const callWords = (summary: string) =>
+  summary.replace(/\b(Mid|Opener)-band\b/g, "$1-tier");
+
 export const watchCallLine = (
   call: Pick<TraceCall, "n" | "summary" | "resultCount">,
   shown: number,
 ) =>
-  `Qloo call ${call.n} of ${shown}: ${call.summary}${call.resultCount !== null ? ` · ${call.resultCount} results` : ""}`;
+  `Qloo call ${call.n} of ${shown}: ${callWords(call.summary)}${call.resultCount !== null ? ` · ${call.resultCount} results` : ""}`;
 
 export const watchTicksLabel = (calls: number, shown: number) =>
   `${calls} of ${shown} Qloo calls in`;
@@ -154,15 +161,16 @@ export function switchLine(
   { from, to, acts }: Pick<AgentSwitch, "from" | "to" | "acts">,
   noFanData: readonly string[] = [],
 ): string {
+  // The order, not a reason (WS8): the agent doesn't see Qloo's no-fan-data warning.
   const come =
     acts === 0
-      ? "no act comes"
+      ? "No act comes"
       : acts === 1
         ? "1 act comes"
         : `${acts} acts come`;
   return noFanData.includes(from.entityId)
-    ? `Qloo had no fan data for ${from.name}, so the agent read ${to.name}; ${come} from that read.`
-    : `${from.name}'s fans moved no act onto the lineup, so the agent read ${to.name}; ${come} from that read.`;
+    ? `Qloo had no fan data for ${from.name}; the agent read ${to.name} next. ${come} from that read.`
+    : `${from.name}'s fans moved no act onto the lineup; the agent read ${to.name} next. ${come} from that read.`;
 }
 
 /** How it works' line for the venues the agent read that Qloo had no fan data for (WS2). */

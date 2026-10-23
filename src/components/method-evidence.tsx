@@ -115,7 +115,7 @@ export function Verdicts() {
         <span>
           <strong>Partly shown:</strong> venue fans like the acts festivals
           book. At 40 real festivals, the acts each festival booked showed more
-          lift from the town&apos;s venues than band-matched random acts at 27:
+          lift from the town&apos;s venues than tier-matched random acts at 27:
           7 of 10 in the first round, one short of its bar of 8, and 20 of 30 in
           the second, the bar set beforehand. With another country&apos;s venues
           in place of the town&apos;s, they still did at 18 of those 30, so the
@@ -160,7 +160,7 @@ const ROWS: Row[] = [
   {
     to: "premise2",
     group: "idea",
-    what: "At 30 real festivals chosen before any run, did the acts they booked show more lift from the town's venues than band-matched random acts?",
+    what: "At 30 real festivals chosen before any run, did the acts they booked show more lift from the town's venues than tier-matched random acts?",
     also: "controls",
     result:
       "20 of 30, the bar set beforehand; 20 of the 22 that could be scored",
@@ -171,7 +171,7 @@ const ROWS: Row[] = [
   {
     to: "premise",
     group: "idea",
-    what: "At 10 real festivals, did the acts they booked show more lift from the town's venues than band-matched random acts?",
+    what: "At 10 real festivals, did the acts they booked show more lift from the town's venues than tier-matched random acts?",
     result: "7 of 10, one short of the bar of 8",
     limit:
       "Partial lineups from Wikipedia; small differences. The second round above used complete lineups because of this result.",
@@ -530,14 +530,14 @@ export function MethodEvidencePage() {
                 verdict="not"
               >
                 <p>
-                  Undercard measures that fans of the town&apos;s venues rank an
-                  act higher than fans of the headliners alone: its climb. A
-                  direct local measure was a no-go (
-                  <Ev to="local">evidence 6</Ev>); the ten-festival test fell
-                  one short of its bar (<Ev to="premise">evidence 18</Ev>) and
-                  the thirty-festival test met it exactly (
-                  <Ev to="premise2">evidence 26</Ev>). Both measure the
-                  venues&apos; fans, not the town&apos;s crowd.
+                  Undercard measures that Qloo ranks an act higher with a town
+                  venue&apos;s fans added to the headliners&apos; than for the
+                  headliners&apos; fans alone: its climb. A direct local measure
+                  was a no-go (<Ev to="local">evidence 6</Ev>); the ten-festival
+                  test fell one short of its bar (
+                  <Ev to="premise">evidence 18</Ev>) and the thirty-festival
+                  test met it exactly (<Ev to="premise2">evidence 26</Ev>). Both
+                  measure the venues&apos; fans, not the town&apos;s crowd.
                 </p>
               </Objection>
               <Objection

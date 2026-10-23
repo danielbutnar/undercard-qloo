@@ -18,7 +18,7 @@ afterEach(() => {
 });
 
 // Corrected 2026-10-22: Duluth's two lineups share one act (evidence 31), so the line says so.
-const LINE = `Across ${counts.towns} towns, the model alone and Qloo share one act, in one town, and ${counts.picksPassing} of the model's ${counts.picks} picks pass the tests every Qloo act passes.`;
+const LINE = `Across ${counts.towns} towns, the model alone and Qloo share one act, in one town, and ${counts.picksPassing} of the model's ${counts.picks} picks pass all three checks.`;
 const quiet = () =>
   vi.stubGlobal(
     "fetch",

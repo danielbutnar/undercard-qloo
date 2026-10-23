@@ -187,7 +187,7 @@ const SCENES: {
         .getByRole("button", { name: "Watch the AI agent build it" })
         .click();
       await page
-        .getByText("Waiting for this band's first ranking…")
+        .getByText("Waiting for this tier's first ranking…")
         .first()
         .waitFor();
     },

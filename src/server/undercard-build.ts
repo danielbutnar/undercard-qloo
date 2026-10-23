@@ -1,6 +1,7 @@
 import type { RankedArtist } from "@/lib/assemble-lineup";
 import { climbAfter, climbBaseline, type ClimbEvent } from "@/lib/lift-climb";
 import type { BuildEvent, TraceCall } from "@/lib/build-events";
+import { venueOfCall } from "@/lib/venue-call";
 import type { Festival } from "@/lib/festival";
 import { diagnoseRun } from "@/lib/your-festival";
 import { runUndercardAgent } from "./agent";
@@ -95,9 +96,7 @@ export async function replayClimbs(
     if (!band) return [];
     const venue =
       call.tool === "venue_artists"
-        ? (context.anchors[band.id] ?? []).find((anchor) =>
-            call.summary.includes(`headliners and ${anchor.name}`),
-          )
+        ? venueOfCall(call.summary, context.anchors[band.id] ?? [])
         : undefined;
     if (call.tool === "venue_artists" && !venue) return [];
     return [{ index, band, venue }];

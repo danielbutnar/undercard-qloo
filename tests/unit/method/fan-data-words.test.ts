@@ -25,17 +25,17 @@ describe("the switch sentence", () => {
 
   it("says Qloo had no fan data for venue A when it had none", () => {
     expect(switchLine(found, [HALL.entityId])).toBe(
-      "Qloo had no fan data for Lamplight Hall, so the agent read Owyhee Room; 2 acts come from that read.",
+      "Qloo had no fan data for Lamplight Hall; the agent read Owyhee Room next. 2 acts come from that read.",
     );
     expect(switchLine({ ...found, acts: 1 }, [HALL.entityId])).toBe(
-      "Qloo had no fan data for Lamplight Hall, so the agent read Owyhee Room; 1 act comes from that read.",
+      "Qloo had no fan data for Lamplight Hall; the agent read Owyhee Room next. 1 act comes from that read.",
     );
   });
 
   it("keeps its words where venue A's fans were read and moved nothing", () => {
     for (const noFanData of [undefined, [], [ROOM.entityId]])
       expect(switchLine(found, noFanData)).toBe(
-        "Lamplight Hall's fans moved no act onto the lineup, so the agent read Owyhee Room; 2 acts come from that read.",
+        "Lamplight Hall's fans moved no act onto the lineup; the agent read Owyhee Room next. 2 acts come from that read.",
       );
   });
 });

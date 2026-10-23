@@ -17,7 +17,7 @@ async function open(page: Page, path: string) {
   await page.evaluate(() => document.fonts.ready);
 }
 
-async function aboveTheFold(page: Page, town: string) {
+async function aboveTheFold(page: Page, town: string, withPicker = true) {
   const banner = page.getByRole("banner");
   await expect(banner.getByRole("link", { name: /^Undercard/ })).toBeInViewport(
     {
@@ -45,8 +45,10 @@ async function aboveTheFold(page: Page, town: string) {
   const picker = page.getByRole("navigation", {
     name: "Same brief, other towns",
   });
-  for (const link of await picker.getByRole("link").all())
-    await expect(link).toBeInViewport({ ratio: 1 });
+  // On a phone the picker follows the poster (WS8, brief item 22).
+  if (withPicker)
+    for (const link of await picker.getByRole("link").all())
+      await expect(link).toBeInViewport({ ratio: 1 });
   await expect(
     page.getByRole("button", { name: "Watch the AI agent build it" }),
   ).toBeInViewport({ ratio: 1 });
@@ -73,7 +75,7 @@ test.describe("the first screen above the fold", () => {
         await aboveTheFold(page, town);
         const scene = page.getByRole("region", { name: "Your town" });
         await expect(
-          scene.getByText(/Qloo found \d+ live-music venues in /),
+          scene.getByText(/Qloo listed (at least )?\d+ live-music places? in /),
         ).toBeInViewport({ ratio: 1 });
         const signs = scene.getByRole("button", {
           name: /\. Show this venue$/,
@@ -102,6 +104,59 @@ test.describe("the first screen above the fold", () => {
         ).not.toBeInViewport();
       });
   });
+
+  // WS8 (the brief's item 15): on a laptop an act's card over the town scrolls inside itself with
+  // its head and its actions pinned, so Close, Keep and Unavailable stay in view, in each tier.
+  test.describe("an act's card on a laptop, 1440x900", () => {
+    test.use({ viewport: { width: 1440, height: 900 } });
+
+    test("Keep, Unavailable and Close stay in view, for an act in each tier", async ({
+      page,
+    }) => {
+      await open(page, "/");
+      const poster = page.getByRole("region", { name: "Undercard draft" });
+      for (const tier of ["Mid-size acts", "Opening acts"]) {
+        const act = poster
+          .getByRole("region", { name: tier })
+          .getByRole("article")
+          .first();
+        const name = (await act.getAttribute("aria-label"))!;
+        await act.getByRole("button", { name, exact: true }).click();
+        const card = page.getByRole("region", { name: "Act card" });
+        for (const button of ["Keep", "Unavailable", "Close the card"])
+          await expect(
+            card.getByRole("button", { name: button, exact: true }),
+          ).toBeInViewport({ ratio: 1 });
+        await card.getByRole("button", { name: "Close the card" }).click();
+      }
+    });
+  });
+
+  // WS8: a maximized browser on the commonest small laptops shows Watch before any scroll, with
+  // the lead, the town picker and the top of the poster; the town is shorter there.
+  for (const [width, height] of [
+    [1366, 640],
+    [1280, 650],
+  ] as const)
+    test.describe(`on a short laptop, ${width}x${height}`, () => {
+      test.use({ viewport: { width, height } });
+
+      for (const { path, town } of PATHS)
+        test(`${path}: the lead, the town picker, Watch and the top of the poster`, async ({
+          page,
+        }) => {
+          await open(page, path);
+          await aboveTheFold(page, town);
+          await expect(
+            page.getByRole("region", { name: "Your town" }),
+          ).toBeInViewport();
+          expect(
+            await page.evaluate(
+              () => document.documentElement.scrollWidth - window.innerWidth,
+            ),
+          ).toBeLessThanOrEqual(0);
+        });
+    });
 
   // The poster's stamp sits in its corner beside the tabs; on a narrower phone it must not slide
   // under them (WS9's phone pass, at 375 px).
@@ -151,11 +206,16 @@ test.describe("the first screen above the fold", () => {
     test.use({ viewport: { width: 390, height: 664 } });
 
     for (const { path, town } of PATHS)
-      test(`${path}: the lead, the town picker, Watch and the top of the poster`, async ({
+      test(`${path}: the lead, Watch, the top of the poster and its first act`, async ({
         page,
       }) => {
         await open(page, path);
-        await aboveTheFold(page, town);
+        await aboveTheFold(page, town, false);
+        const first = page
+          .getByRole("region", { name: "Mid-size acts" })
+          .getByRole("article")
+          .first();
+        await expect(first.getByRole("button")).toBeInViewport({ ratio: 1 });
         // Nothing scrolls sideways.
         expect(
           await page.evaluate(

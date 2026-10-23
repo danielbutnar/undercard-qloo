@@ -48,7 +48,7 @@ function errorOf(body: unknown): string {
 
 /**
  * The buyer's shortlist (WS4): pick one of the checked towns, paste the acts you've been
- * pitched, and Undercard sorts them by how fans of that town's venues rank them, with each
+ * pitched, and Undercard sorts them by how Qloo ranks them with that town's venue fans added, with each
  * act's fee range and genre fit. It drafts nothing and books nothing; the page calls Qloo only
  * when the buyer presses the button.
  */

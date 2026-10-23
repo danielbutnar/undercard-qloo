@@ -33,6 +33,16 @@ export function formatPercentile(popularity: number): string {
   return ordinal(percentile(popularity));
 }
 
+/** A Qloo popularity (0 to 1) on the tier captions' 0-100 scale, such as "91" (WS8). */
+export function formatPopularity(popularity: number): string {
+  return String(percentile(popularity));
+}
+
+/** A tier's popularity range on the captions' scale, such as "80–92" (WS8). */
+export function formatPopularityRange(band: FeeBand): string {
+  return `${formatPopularity(band.minPopularity)}–${formatPopularity(band.maxPopularity)}`;
+}
+
 export function formatBandRange(band: FeeBand): string {
   return `${formatPercentile(band.minPopularity)}–${formatPercentile(band.maxPopularity)}`;
 }

@@ -92,7 +92,10 @@ describe("the first screen's poster (after M9d's winner)", () => {
       ),
     ).toBeTruthy();
     // ...and its climb beside its name (M10a), in the body face (Anton draws ↑ too small).
-    expect(row.querySelector(".poster-climb")!.textContent).toBe(`↑${move}`);
+    // WS8: the act's rank sits over its climb ("5th ↑14").
+    expect(row.querySelector(".poster-climb")!.textContent).toMatch(
+      new RegExp(`^(\\d+(st|nd|rd|th) )?↑${move}$`),
+    );
     // The card says in full whose fans lift it.
     fireEvent.click(within(row).getByRole("button", { name: first.name }));
     expect(

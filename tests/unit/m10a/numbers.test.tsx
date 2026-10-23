@@ -125,7 +125,8 @@ describe("variant (a)'s one-line key (added after round 1, evidence section 27)"
 });
 
 describe("what ships (variant (a): both variants passed, evidence section 27)", () => {
-  // WS9: the poster sets each act's climb beside its name, biggest first, with the poster's key.
+  // WS9: the poster sets each act's climb beside its name, with the poster's key; WS8: in the
+  // rule's order (the strongest Qloo match first), each climb after its place now.
   it("prints the climbs on the first screen's lineup, with the key", () => {
     render(
       <FestivalScreen
@@ -138,7 +139,7 @@ describe("what ships (variant (a): both variants passed, evidence section 27)", 
       within(mid)
         .getAllByRole("article")
         .map((act) => act.querySelector(".poster-climb")!.textContent),
-    ).toEqual(["↑26", "↑11", "↑9", "↑7"]);
+    ).toEqual(["3rd ↑11", "6th ↑7", "2nd ↑26", "9th ↑9"]);
     expect(
       screen.getByText(
         "↑ = places it rose in Qloo's ranking with that venue's fans (5+ to qualify); the strongest Qloo match takes each slot",

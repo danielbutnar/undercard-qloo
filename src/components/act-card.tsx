@@ -17,8 +17,8 @@ import type { SplitLine } from "@/lib/attribution-line";
 import type { FeeBand } from "@/lib/fee-bands";
 import {
   formatAffinity,
-  formatBandRange,
-  formatPercentile,
+  formatPopularity,
+  formatPopularityRange,
 } from "@/lib/format";
 import type { Act } from "@/lib/lineup";
 import { liftOf } from "@/lib/marks";
@@ -186,7 +186,7 @@ export function ActCard({
               </div>
               <div>
                 <dt>Popularity</dt>
-                <dd>{formatPercentile(act.popularity)}</dd>
+                <dd>{formatPopularity(act.popularity)}</dd>
               </div>
               <div className="card-pop" aria-hidden>
                 <span className="fee-track card-track">
@@ -206,7 +206,7 @@ export function ActCard({
                 </span>
                 <span className="card-pop-words">
                   {band
-                    ? `popularity on Qloo, inside the ${band.id === "mid" ? "mid-size" : "opening"} fee range (${formatBandRange(band)})`
+                    ? `popularity on Qloo, inside the ${band.id === "mid" ? "mid-size" : "opening"} fee range (${formatPopularityRange(band)})`
                     : "percentile on Qloo: it stands in for the fee"}
                 </span>
               </div>

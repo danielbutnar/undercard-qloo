@@ -17,7 +17,7 @@ import {
 
 const NDJSON = "application/x-ndjson; charset=utf-8";
 const SWITCH =
-  "Linden Street Annex's fans moved no act onto the lineup, so the agent read Fort Street Ballroom; 3 acts come from that read.";
+  "Linden Street Annex's fans moved no act onto the lineup; the agent read Fort Street Ballroom next. 3 acts come from that read.";
 const NO_FAN =
   "Qloo had no fan data for this venue, so its ranking stays the headliners' own.";
 
@@ -39,6 +39,27 @@ async function watch(page: Page, path: string, build: SavedBuild) {
 
 test.describe("the agent's switch, from the saved trace", () => {
   test.skip(SYNTHETIC !== "1", "reads the synthetic saved builds");
+
+  // WS8: a venue whose name starts another's gets its own call: Denver's synthetic build reads
+  // The Room East for mid-size acts before The Room, and The Room's step shows call 9, not 8.
+  test("Watch shows The Room its own call, not The Room East's", async ({
+    page,
+  }) => {
+    const denver = townBySlug("denver")!.festival.id;
+    const main = await watch(
+      page,
+      "/towns/denver",
+      syntheticTownBuild("denver", denver),
+    );
+    const caption = main
+      .locator(".watch-caption")
+      .filter({ hasText: "+ The Room's fans" })
+      .first();
+    await expect(caption.locator(".edition-call")).toHaveText(
+      /^Qloo call 9 of \d+: Mid-tier artists for the headliners and The Room · 50 results$/,
+      { timeout: 30_000 },
+    );
+  });
 
   test("Watch says why the agent read Fort Street Ballroom, on a trace whose planner switched", async ({
     page,
@@ -87,7 +108,7 @@ test.describe("the agent's switch, from the saved trace", () => {
     ).toBeVisible();
     await expect(bill.getByText(NO_FAN)).toBeVisible();
     await expect(bill.getByText(/no act climbs/)).toHaveCount(0);
-    await expect(bill.getByText(/so the agent read/)).toHaveCount(0);
+    await expect(bill.getByText(/the agent read .+ next/)).toHaveCount(0);
   });
 
   test("How it works adds no switch on a trace without one, and says Qloo had no fan data for Cottonwood Social Hall", async ({
@@ -102,6 +123,6 @@ test.describe("the agent's switch, from the saved trace", () => {
       "Cottonwood Social Hall: the agent read it too, but Qloo had no fan data for it.",
     );
     await expect(choices).not.toContainText("moved no act");
-    await expect(choices).not.toContainText("so the agent read");
+    await expect(choices).not.toContainText(/the agent read [^.]+ next./);
   });
 });

@@ -26,19 +26,16 @@ export const LEAD_TITLE = "You booked the headliners.";
 export function leadLine(
   festival: Pick<Festival, "city">,
   without: boolean,
-  counts?: WithoutCounts | null,
 ): { mark: string; rest: string } {
   if (!without)
     return {
       mark: "Undercard drafts the rest",
       rest: `from what fans of ${festival.city}'s music venues like.`,
     };
-  const bigger = counts && counts.found > 0 && counts.above * 2 > counts.found;
+  // The headline never grades the model on a number it never saw (WS8).
   return {
-    mark: bigger
-      ? "Without Qloo, an AI picks bigger names"
-      : "Without Qloo, an AI picks from what it already knows",
-    rest: `and it can't see ${festival.city}'s venues.`,
+    mark: "Without Qloo, an AI picks",
+    rest: `without seeing ${festival.city}'s venues.`,
   };
 }
 
@@ -69,16 +66,18 @@ export function legendLine({
       title: "No venues read yet",
       text: `Once the AI agent drafts the lineup, the ${city} venues whose fans it tested stand here.`,
     };
+  // WS8: Qloo's search lists places (its cap is 20); the agent tested venues among them.
+  const testedWords = `The AI agent tested ${tested === 1 ? "this venue" : `these ${tested} venues`}.`;
   const found =
     placesListed !== null
-      ? `Qloo found ${placesListed} live-music ${placesListed === 1 ? "venue" : "venues"} in ${city}; the AI agent tested ${tested === 1 ? "this one" : `these ${tested}`}.`
-      : `The AI agent chose ${tested === 1 ? "this venue" : "these venues"} to test.`;
+      ? `Qloo listed ${placesListed >= 20 ? "at least 20" : placesListed} live-music ${placesListed === 1 ? "place" : "places"} in ${city}. ${testedWords}`
+      : testedWords;
   const key =
     lifting === tested
       ? "Coloured: their fans lifted acts onto your poster."
       : lifting === 0
-        ? "Grey: their fans lifted no act onto your poster."
-        : "Coloured: their fans lifted acts onto your poster. Grey: none did.";
+        ? "Grey: none of their acts are on your poster."
+        : "Coloured: their fans lifted acts onto your poster. Grey: none of their acts are on your poster.";
   return { title: "Venues the agent tested", text: `${found} ${key}` };
 }
 
@@ -87,14 +86,17 @@ export function signChip({
   lifted,
   off = false,
   unread = false,
+  noFanData = false,
 }: {
   lifted: number;
   off?: boolean;
   unread?: boolean;
+  /** Qloo had no fan data for the venue (WS8). */
+  noFanData?: boolean;
 }): string {
   if (unread) return "not read yet";
   if (off) return "Fans off";
-  if (lifted === 0) return "none";
+  if (lifted === 0) return noFanData ? "no fan data" : "none";
   return lifted === 1 ? "1 act" : `${lifted} acts`;
 }
 
@@ -184,6 +186,19 @@ export const cardGenresLine = (genres: number) =>
 export const CARD_STRONGEST =
   "Of the acts that pass all three, the strongest Qloo match fills each slot first.";
 
+/**
+ * A venue card's second line (WS8): what the AI agent read the venue's fans for, or tried it for
+ * when Qloo had no fan data; never the count of venues it chose from.
+ */
+export function venueReadLine(
+  read: readonly string[],
+  noFanData: boolean,
+): string {
+  const did = noFanData ? "tried it" : "read its fans";
+  if (read.length === 0) return `The AI agent ${did}.`;
+  return `The AI agent ${did} for ${read.length > 1 ? "both slot sizes" : read[0]}.`;
+}
+
 /** The example line's hint: what to try next. */
 export const exampleHint = (switchable: boolean) =>
   switchable
@@ -191,9 +206,17 @@ export const exampleHint = (switchable: boolean) =>
     : "Pick a name for why.";
 
 /** A selected venue's line on the poster, in place of the example. */
-export function venueLine(venue: string, lifted: number, off: boolean): string {
+export function venueLine(
+  venue: string,
+  lifted: number,
+  off: boolean,
+  noFanData = false,
+): string {
   if (off) return `${venue}'s fans are off, so its acts left your poster.`;
-  if (lifted === 0) return `${venue}'s fans lifted no act onto your poster.`;
+  if (lifted === 0)
+    return noFanData
+      ? `Qloo had no fan data for ${venue}, so it lifted no act onto your poster.`
+      : `${venue}'s fans lifted no act onto your poster.`;
   return `${venue}'s fans lifted ${lifted === 1 ? "1 act" : `${lifted} acts`} onto your poster. Pick one for why.`;
 }
 
@@ -205,23 +228,44 @@ const RANGE_NAME: Record<FeeBandId, string> = {
 /** A band of slots in plain words: "mid-size", "opening". */
 export const rangeName = (band: Pick<FeeBand, "id">) => RANGE_NAME[band.id];
 
-/** Why a band's slots all stay open with venues switched off, and what brings them back. */
+/**
+ * Why a band's slots all stay open with venues switched off, and what brings them back (WS8, the
+ * brief's item 12): the venues the draft read for those slots, those of them Qloo had no fan data
+ * for, and the venues off. It says no act passes the rule, which is what the re-formed lineup
+ * shows; an act can climb 5 places and still miss the fee range or the genres.
+ */
 export function openBandLine({
   band,
   slots,
-  on,
+  read,
+  noFanData,
+  off,
 }: {
   band: Pick<FeeBand, "id">;
   slots: number;
-  /** The venues whose fans are on. */
-  on: readonly string[];
-}): { head: string; text: string } {
+  /** The venues this draft read for the band's slots, by their full names. */
+  read: readonly string[];
+  /** Those of them Qloo had no fan data for, by their full names. */
+  noFanData: readonly string[];
+  /** The venues switched off, by their short names. */
+  off: readonly string[];
+}): { head: string; text: string; fix: string } {
+  const size = RANGE_NAME[band.id];
+  const lacking = read.filter((name) => noFanData.includes(name));
+  const readWords = read.length
+    ? `For ${size} acts this draft read ${listNames(read.map((name) => `${name}'s`))} fans${
+        lacking.length
+          ? `, and Qloo had no fan data for ${listNames(lacking)}`
+          : ""
+      }. `
+    : "";
   return {
-    head: `The ${slots} ${RANGE_NAME[band.id]} slots stay open.`,
-    text:
-      on.length === 0
-        ? `Every venue's fans are off, so no act rises ${MIN_LIFT} places.`
-        : `No venue whose fans are on lifts ${band.id === "mid" ? "a mid-size" : "an opening"} act ${MIN_LIFT} places.`,
+    head: `The ${slots} ${size} slots stay open.`,
+    text: `${readWords}With ${listNames(off)} off, no act passes the rule for these slots.`,
+    fix:
+      off.length === 1
+        ? `Switch ${off[0]} back on`
+        : "Switch the venues back on",
   };
 }
 
@@ -237,8 +281,8 @@ export function openPosterLine({
     head: `All ${slots} slots stay open.`,
     text:
       on.length === 0
-        ? `Every venue's fans are off, so no act rises ${MIN_LIFT} places.`
-        : `Only ${listNames(on)}'s fans are on, and they lift no act ${MIN_LIFT} places.`,
+        ? "Every venue's fans are off, so no act passes the rule."
+        : `Only ${listNames(on)}'s fans are on, and no act passes the rule.`,
   };
 }
 
@@ -383,12 +427,6 @@ export function withoutCounts(
     }
   }
   return counts;
-}
-
-/** The Without Qloo poster's headline, while any pick sits above every range; null otherwise. */
-export function withoutHeadline(counts: WithoutCounts): string | null {
-  if (counts.above === 0) return null;
-  return `By Qloo popularity, ${counts.above} of its ${counts.picks} picks ${counts.above === 1 ? "is" : "are"} too big for these slots`;
 }
 
 /** The scene's note while Without Qloo is on: the model can't see the town's venues. */

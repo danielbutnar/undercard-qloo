@@ -1,6 +1,11 @@
 import type { Festival } from "@/lib/festival";
 import type { LlmOnlyLineup, PickCheck } from "@/lib/llm-only";
-import { foundOnQloo, pickTests } from "@/lib/pick-tests";
+import {
+  foldAccents,
+  foundOnQloo,
+  hasNonAscii,
+  pickTests,
+} from "@/lib/pick-tests";
 import { createBuildStore, type SavedBuild } from "./build-store";
 import { createQlooClient, QlooCacheMiss } from "./qloo";
 import { createQlooCache, type QlooCache } from "./qloo-cache";
@@ -40,15 +45,28 @@ export async function pickChecks({
   return Promise.all(
     answer.picks.map(async ({ name }): Promise<PickCheck> => {
       if (!input) return { name, status: "not-checked" };
-      let found;
+      let found = null;
+      let missed = false;
       try {
         found = foundOnQloo(name, (await qloo.search({ query: name })).data);
       } catch (error) {
-        if (error instanceof QlooCacheMiss)
-          return { name, status: "not-checked" };
-        throw error;
+        if (!(error instanceof QlooCacheMiss)) throw error;
+        missed = true;
       }
-      if (!found) return { name, status: "not-found" };
+      // A name with letters beyond ASCII Qloo's search didn't match is searched again with its
+      // accents folded ("Altın Gün" as "Altin Gun"), from the cache when it holds that (WS8).
+      if (!found && hasNonAscii(name))
+        try {
+          const folded = foldAccents(name);
+          found = foundOnQloo(
+            folded,
+            (await qloo.search({ query: folded })).data,
+          );
+          missed = false;
+        } catch (error) {
+          if (!(error instanceof QlooCacheMiss)) throw error;
+        }
+      if (!found) return { name, status: missed ? "not-checked" : "not-found" };
       const { range, genres, climb } = pickTests(input, found);
       return {
         name,
