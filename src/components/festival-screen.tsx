@@ -1550,7 +1550,7 @@ export function FestivalScreen({
 
           <section
             aria-label={without ? "The festival" : "Undercard draft"}
-            className={`fs-poster ${watching ? "is-watching" : ""}`}
+            className={`fs-poster ${watching ? "is-watching" : ""} ${watch.phase === "reveal" ? "is-revealing" : ""}`}
           >
             {!custom && <ModeTabs mode={mode} onChange={changeMode} />}
             <div className="poster-sheet">

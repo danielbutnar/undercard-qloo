@@ -1991,3 +1991,17 @@
     font-size: 14px;
   }
 }
+
+/* WS8 (item 13): Watch's end, before the overview: the acts pulse in their venues' colours.
+   Under reduced motion nothing moves; the colours and the lit signs are the reveal. */
+@media (prefers-reduced-motion: no-preference) {
+  .chart-app.fs .fs-poster.is-revealing .poster-act {
+    animation: reveal-pulse 0.7s ease-in-out 2;
+  }
+}
+@keyframes reveal-pulse {
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 0 4px var(--color-ink);
+  }
+}
