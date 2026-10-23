@@ -1,5 +1,7 @@
+import type { Metadata } from "next";
 import { cacheLife } from "next/cache";
 import { FestivalScreen } from "@/components/festival-screen";
+import { shareMetadata } from "@/components/share/share-words";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { withArtistImages } from "@/server/artist-images";
 import { serverBuildStore } from "@/server/deps";
@@ -27,6 +29,9 @@ async function firstBill() {
     SAGEBRUSH_SOUND,
   );
 }
+
+// The link preview's tags (WS10); the picture is ./opengraph-image.ts.
+export const metadata: Metadata = shareMetadata(SAGEBRUSH_SOUND);
 
 // The towns with a saved build of the same brief, for the switcher; cached the same way.
 async function towns() {

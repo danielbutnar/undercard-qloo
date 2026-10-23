@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import type { FirstBill } from "@/lib/first-bill";
@@ -9,6 +10,8 @@ import { venueHues } from "@/lib/venue-colours";
 import {
   bookedLabel,
   climbMark,
+  LEAD_TITLE,
+  leadLine,
   signChip,
   stampWords,
   TAGLINE_LEAD,
@@ -28,6 +31,26 @@ export const SHARE_DRAFTED = "Drafted by Undercard";
 /** Daniel's line for the preview (WS10 brief): whose fans drafted the acts. */
 export const draftedFrom = (city: string) =>
   `from what fans of ${city}'s music venues love`;
+
+/**
+ * A page's link-preview tags, in the first screen's words: its lead for the title, its tagline
+ * for the description, and Twitter's large-image card. The picture is the page's
+ * opengraph-image route, which Next.js adds to both.
+ */
+export function shareMetadata(festival: Festival) {
+  const lead = leadLine(festival, false);
+  const title = `${LEAD_TITLE} ${lead.mark} ${lead.rest}`;
+  const description = `${TAGLINE_LEAD} ${TAGLINE_QLOO}`;
+  return {
+    openGraph: {
+      title,
+      description,
+      siteName: SHARE_WORDMARK,
+      type: "website" as const,
+    },
+    twitter: { card: "summary_large_image" as const, title, description },
+  } satisfies Metadata;
+}
 
 /**
  * The picture's alt text. A route's alt text can't read its params, so the towns' route has one
