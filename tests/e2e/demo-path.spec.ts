@@ -404,11 +404,14 @@ test.describe("demo path", () => {
         continue;
       }
       await expect(open).toHaveCount(0);
+      // The venues read for these slots and the one off (WS8, the brief's item 12).
       await expect(region.getByRole("status")).toContainText(
-        `The ${slots} ${words} slots stay open.`,
+        new RegExp(
+          `^The ${slots} ${words} slots stay open\\. (For ${words} acts this draft read .+'s fans(, and Qloo had no fan data for .+)?\\. )?With .+ off, no act passes the rule for these slots\\.`,
+        ),
       );
       await expect(
-        region.getByRole("button", { name: "Switch the venues back on" }),
+        region.getByRole("button", { name: /^Switch .+ back on$/ }),
       ).toBeVisible();
     }
     if (SYNTHETIC) {
@@ -422,6 +425,39 @@ test.describe("demo path", () => {
     await switcher.getByRole("button", { name: "All venues on" }).click();
     await expect.poll(names).toEqual(saved);
     expect(sent).toEqual([]);
+  });
+
+  // WS8: a room that alone fills a tier, switched off from the poster's key, empties that tier:
+  // Denver's synthetic build credits all six openers to Larimer Hall, as Boise's credits its
+  // openers to Venue 418. The mid-size tier keeps its other room's act.
+  test("the venue switch: a room that fills a tier alone, switched off, empties it and says why", async ({
+    page,
+  }) => {
+    test.skip(SYNTHETIC !== "1", "reads Denver's synthetic build");
+    await page.goto("/towns/denver");
+    const key = bill(page).getByRole("group", {
+      name: "Venue fans used for this draft",
+    });
+    const larimer = key.getByRole("button", {
+      name: /^Larimer Hall's fans: on/,
+    });
+    await expect(larimer).toBeEnabled({ timeout: 15_000 });
+    await larimer.click();
+    await page.mouse.move(0, 0);
+
+    const mid = band(page, /^Mid/);
+    await expect(mid.getByRole("article")).toHaveCount(1);
+    await expect(mid.locator(".poster-slot")).toHaveCount(3);
+    const openers = band(page, /^Opening/);
+    await expect(openers.getByRole("article")).toHaveCount(0);
+    await expect(openers.locator(".poster-slot")).toHaveCount(0);
+    await expect(openers.getByRole("status")).toContainText(
+      "The 6 opening slots stay open. For opening acts this draft read Larimer Hall's fans. With Larimer Hall off, no act passes the rule for these slots.",
+    );
+    await openers
+      .getByRole("button", { name: "Switch Larimer Hall back on" })
+      .click();
+    await expect(bill(page).getByRole("article")).toHaveCount(10);
   });
 
   test("first paint: the server sends the whole bill, on screen in under 5 seconds with no click", async ({

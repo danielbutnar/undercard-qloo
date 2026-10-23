@@ -262,16 +262,82 @@ export function syntheticSwitchBuild(): SavedBuild {
   };
 }
 
+// Denver's rooms (WS8): Larimer Hall's fans lift three mid-size acts and all six openers,
+// Ironworks Annex's the fourth mid-size act, and Cottonwood Social Hall is read for mid-size acts
+// and lifts none. Larimer Hall alone fills the opening slots, so with it switched off the opening
+// tier empties while the mid-size tier keeps one act and three open slots.
+const LARIMER = { entityId: id(205), name: "Larimer Hall" };
+const IRONWORKS = { entityId: id(206), name: "Ironworks Annex" };
+
+/** Boise's bill re-credited to Denver's rooms: Fort Street Ballroom's mid-size act to Ironworks. */
+function denverActs(): SavedBuild["lineup"]["acts"] {
+  return (lineup.acts as SavedBuild["lineup"]["acts"]).map((act) => {
+    const room =
+      act.band === "mid" && act.anchorVenue.entityId === FORT.entityId
+        ? IRONWORKS
+        : LARIMER;
+    return {
+      ...act,
+      anchorVenue: room,
+      reason: act.reason.replace(/^.+? fans /, `${room.name} fans `),
+    };
+  });
+}
+
+/**
+ * Denver's synthetic saved build (WS8): Boise's acts, each credited to one of Denver's rooms, so
+ * a room switched off can empty a whole tier (as Venue 418 does Boise's openers).
+ */
+export function syntheticDenverBuild(): SavedBuild {
+  const base = syntheticSavedBuild();
+  return {
+    ...base,
+    id: "synthetic-tier-build",
+    trace: [
+      ...calls.slice(0, 7),
+      artistsCall(8, "Mid", IRONWORKS.name),
+      artistsCall(9, "Mid", LARIMER.name),
+      artistsCall(10, "Opener", LARIMER.name),
+      artistsCall(11, "Mid", COTTONWOOD.name),
+    ],
+    lineup: { ...base.lineup, acts: denverActs() },
+    context: {
+      ...base.context,
+      anchors: { mid: [LARIMER, IRONWORKS, COTTONWOOD], opener: [LARIMER] },
+    },
+    notes: [
+      {
+        at: 0,
+        text: "Search both headliners and find the tag Qloo puts on live music venues.",
+      },
+      {
+        at: 3,
+        text: "List the town's places with that tag, and compare what the two headliners' fans share.",
+      },
+      {
+        at: 5,
+        text: "Rank each band for the headliners alone, then add Ironworks Annex and Larimer Hall for Mid and Larimer Hall for openers.",
+      },
+      { at: 10, text: "Try Cottonwood Social Hall for Mid as a third room." },
+    ],
+  };
+}
+
 /**
  * Each other town's synthetic saved build (src/server/synthetic-seed.ts): Boise's bill under the
- * town's own id, and for Nashville the build whose planner switches venue.
+ * town's own id, for Nashville the build whose planner switches venue, and for Denver Boise's acts
+ * from Denver's rooms.
  */
 export function syntheticTownBuild(
   slug: string,
   festivalId: string,
 ): SavedBuild {
   const build =
-    slug === "nashville" ? syntheticSwitchBuild() : syntheticSavedBuild();
+    slug === "nashville"
+      ? syntheticSwitchBuild()
+      : slug === "denver"
+        ? syntheticDenverBuild()
+        : syntheticSavedBuild();
   return {
     ...build,
     id: `${build.id}-${slug}`,
@@ -303,8 +369,8 @@ function syntheticClimbs(build: SavedBuild) {
     const inBand = acts.filter((act) => act.band === band);
     const venue =
       call.tool === "venue_artists"
-        ? ([LANTERN, FORT, COTTONWOOD, LINDEN].find((room) =>
-            call.summary.endsWith(`headliners and ${room.name}`),
+        ? ([LANTERN, FORT, COTTONWOOD, LINDEN, LARIMER, IRONWORKS].find(
+            (room) => call.summary.endsWith(`headliners and ${room.name}`),
           ) ?? null)
         : null;
     const lifted = venue
@@ -779,9 +845,15 @@ export function syntheticRedraftStream(
  * its three rooms, where a room switched off takes its acts with it and their slots stay open.
  * A real build's switch reruns the booking rule on its Qloo results (src/server/venue-switch.ts).
  */
-export function syntheticVenueSwitch(): VenueSwitchData {
-  const venues = [LANTERN, FORT, COTTONWOOD];
-  const acts = lineup.acts as SavedBuild["lineup"]["acts"];
+export function syntheticVenueSwitch(festivalId?: string): VenueSwitchData {
+  // Denver's build credits Boise's acts to its own rooms (WS8); every other town's is Boise's.
+  const denver = festivalId === "sagebrush-sound-denver";
+  const venues = denver
+    ? [IRONWORKS, LARIMER, COTTONWOOD]
+    : [LANTERN, FORT, COTTONWOOD];
+  const acts = denver
+    ? denverActs()
+    : (lineup.acts as SavedBuild["lineup"]["acts"]);
   const ranking = { mid: baseline("mid"), opener: baseline("opener") };
   const entries: VenueSwitchData["entries"] = {};
   for (const act of acts) {

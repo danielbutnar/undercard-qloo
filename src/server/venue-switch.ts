@@ -150,7 +150,7 @@ export async function venueSwitchFor(
   if (syntheticMode()) {
     const { syntheticVenueSwitch } =
       await import("../../tests/e2e/synthetic-build");
-    return syntheticVenueSwitch();
+    return syntheticVenueSwitch(festival.id);
   }
   return readVenueSwitch({
     store: serverBuildStore(),

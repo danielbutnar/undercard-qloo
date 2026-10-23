@@ -168,12 +168,13 @@ describe("the poster", () => {
     const openers = band("Opening acts");
     expect(within(openers).queryAllByRole("article")).toHaveLength(0);
     expect(openers.querySelectorAll(".poster-slot")).toHaveLength(0);
-    expect(within(openers).getByRole("status").textContent).toContain(
-      "The 6 opening slots stay open.",
+    // The venues the draft read for opening acts (the saved build's anchors), and the one off.
+    expect(within(openers).getByRole("status").textContent).toBe(
+      "The 6 opening slots stay open. For opening acts this draft read The Lantern Room's and Fort Street Ballroom's fans. With The Lantern Room off, no act passes the rule for these slots.Switch The Lantern Room back on",
     );
     fireEvent.click(
       within(openers).getByRole("button", {
-        name: "Switch the venues back on",
+        name: "Switch The Lantern Room back on",
       }),
     );
     expect(within(poster()).getAllByRole("article")).toHaveLength(10);

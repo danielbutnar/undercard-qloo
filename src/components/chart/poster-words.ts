@@ -205,23 +205,44 @@ const RANGE_NAME: Record<FeeBandId, string> = {
 /** A band of slots in plain words: "mid-size", "opening". */
 export const rangeName = (band: Pick<FeeBand, "id">) => RANGE_NAME[band.id];
 
-/** Why a band's slots all stay open with venues switched off, and what brings them back. */
+/**
+ * Why a band's slots all stay open with venues switched off, and what brings them back (WS8, the
+ * brief's item 12): the venues the draft read for those slots, those of them Qloo had no fan data
+ * for, and the venues off. It says no act passes the rule, which is what the re-formed lineup
+ * shows; an act can climb 5 places and still miss the fee range or the genres.
+ */
 export function openBandLine({
   band,
   slots,
-  on,
+  read,
+  noFanData,
+  off,
 }: {
   band: Pick<FeeBand, "id">;
   slots: number;
-  /** The venues whose fans are on. */
-  on: readonly string[];
-}): { head: string; text: string } {
+  /** The venues this draft read for the band's slots, by their full names. */
+  read: readonly string[];
+  /** Those of them Qloo had no fan data for, by their full names. */
+  noFanData: readonly string[];
+  /** The venues switched off, by their short names. */
+  off: readonly string[];
+}): { head: string; text: string; fix: string } {
+  const size = RANGE_NAME[band.id];
+  const lacking = read.filter((name) => noFanData.includes(name));
+  const readWords = read.length
+    ? `For ${size} acts this draft read ${listNames(read.map((name) => `${name}'s`))} fans${
+        lacking.length
+          ? `, and Qloo had no fan data for ${listNames(lacking)}`
+          : ""
+      }. `
+    : "";
   return {
-    head: `The ${slots} ${RANGE_NAME[band.id]} slots stay open.`,
-    text:
-      on.length === 0
-        ? `Every venue's fans are off, so no act rises ${MIN_LIFT} places.`
-        : `No venue whose fans are on lifts ${band.id === "mid" ? "a mid-size" : "an opening"} act ${MIN_LIFT} places.`,
+    head: `The ${slots} ${size} slots stay open.`,
+    text: `${readWords}With ${listNames(off)} off, no act passes the rule for these slots.`,
+    fix:
+      off.length === 1
+        ? `Switch ${off[0]} back on`
+        : "Switch the venues back on",
   };
 }
 

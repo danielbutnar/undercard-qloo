@@ -155,17 +155,67 @@ describe("the poster's marks and lines", () => {
     );
   });
 
-  it("says why a band's slots stay open, and every slot", () => {
+  // WS8 (the brief's item 12): what the draft read for those slots, which of those venues Qloo
+  // had no fan data for, and which venues are off; never a climb the screen can't show.
+  it("says why a band's slots stay open: the venues read, the ones without fan data, the ones off", () => {
     const [mid, opener] = SAGEBRUSH_SOUND.feeBands;
+    // One venue off.
     expect(
-      openBandLine({ band: opener, slots: 6, on: ["Cottonwood Social Hall"] }),
+      openBandLine({
+        band: opener,
+        slots: 6,
+        read: ["Venue 418", "Venue 166"],
+        noFanData: ["Venue 166"],
+        off: ["V418"],
+      }),
     ).toEqual({
       head: "The 6 opening slots stay open.",
-      text: "No venue whose fans are on lifts an opening act 5 places.",
+      text: "For opening acts this draft read Venue 418's and Venue 166's fans, and Qloo had no fan data for Venue 166. With V418 off, no act passes the rule for these slots.",
+      fix: "Switch V418 back on",
     });
-    expect(openBandLine({ band: mid, slots: 4, on: [] }).text).toBe(
-      "Every venue's fans are off, so no act rises 5 places.",
+    // Two off.
+    expect(
+      openBandLine({
+        band: opener,
+        slots: 6,
+        read: ["Venue 418", "Venue 166"],
+        noFanData: ["Venue 166"],
+        off: ["V418", "Venue 227"],
+      }),
+    ).toEqual({
+      head: "The 6 opening slots stay open.",
+      text: "For opening acts this draft read Venue 418's and Venue 166's fans, and Qloo had no fan data for Venue 166. With V418 and Venue 227 off, no act passes the rule for these slots.",
+      fix: "Switch the venues back on",
+    });
+    // A band read by one venue, which had fan data: the clause drops.
+    expect(
+      openBandLine({
+        band: mid,
+        slots: 4,
+        read: ["The Lantern Room"],
+        noFanData: [],
+        off: ["The Lantern Room"],
+      }),
+    ).toEqual({
+      head: "The 4 mid-size slots stay open.",
+      text: "For mid-size acts this draft read The Lantern Room's fans. With The Lantern Room off, no act passes the rule for these slots.",
+      fix: "Switch The Lantern Room back on",
+    });
+    // Three read, none without fan data.
+    expect(
+      openBandLine({
+        band: mid,
+        slots: 4,
+        read: ["A Hall", "B Room", "C Club"],
+        noFanData: [],
+        off: ["A Hall", "B Room", "C Club"],
+      }).text,
+    ).toBe(
+      "For mid-size acts this draft read A Hall's, B Room's and C Club's fans. With A Hall, B Room and C Club off, no act passes the rule for these slots.",
     );
+  });
+
+  it("says why every slot stays open", () => {
     expect(
       openPosterLine({ slots: 10, on: ["Cottonwood Social Hall"] }),
     ).toEqual({
@@ -183,9 +233,9 @@ describe("the poster's marks and lines", () => {
 
   it("says over the demo's headliners that they're two bands, and only over the demo's", () => {
     expect(bookedLabel(SAGEBRUSH_SOUND)).toBe("Booked by you: two bands");
-    expect(
-      bookedLabel({ headliners: ["Mitski", "Khruangbin"] }),
-    ).toBe("Booked by you");
+    expect(bookedLabel({ headliners: ["Mitski", "Khruangbin"] })).toBe(
+      "Booked by you",
+    );
   });
 
   it("stamps the demo's festival as fictional and a judge's own as a draft, shorter on a phone", () => {
@@ -223,9 +273,9 @@ describe("the poster's marks and lines", () => {
       "Runs the AI agent; its Qloo calls list below",
     );
     // Once a live run replaced the saved build on screen, Watch still replays the saved one.
-    expect(
-      watchSubLine({ city: "Boise", live: false, onScreen: false }),
-    ).toBe("Replays the saved build's Qloo calls");
+    expect(watchSubLine({ city: "Boise", live: false, onScreen: false })).toBe(
+      "Replays the saved build's Qloo calls",
+    );
   });
 });
 

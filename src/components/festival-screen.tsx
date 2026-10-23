@@ -949,6 +949,9 @@ export function FestivalScreen({
   const onVenues = allVenues
     .filter((venue) => !switcher.off.has(venue.entityId))
     .map((venue) => venue.name);
+  const offVenues = allVenues
+    .filter((venue) => switcher.off.has(venue.entityId))
+    .map((venue) => venueShort(venue.name));
   const allOpen = whatIf && shownActs.length === 0;
 
   const card = (act: Act) => (
@@ -1254,17 +1257,28 @@ export function FestivalScreen({
                 }
                 message={
                   empty
-                    ? {
-                        ...openBandLine({
+                    ? (() => {
+                        // The venues the saved draft read for these slots (WS8, item 12).
+                        const read = onFirst
+                          ? (firstBill?.anchors[band.id] ?? [])
+                          : [];
+                        const line = openBandLine({
                           band,
                           slots: band.slots,
-                          on: onVenues,
-                        }),
-                        fix: {
-                          label: "Switch the venues back on",
-                          onClick: switcher.reset,
-                        },
-                      }
+                          read: read.map((venue) => signName(venue.name)),
+                          noFanData: read
+                            .filter((venue) =>
+                              savedNoFanData.includes(venue.entityId),
+                            )
+                            .map((venue) => signName(venue.name)),
+                          off: offVenues,
+                        });
+                        return {
+                          head: line.head,
+                          text: line.text,
+                          fix: { label: line.fix, onClick: switcher.reset },
+                        };
+                      })()
                     : undefined
                 }
               >
