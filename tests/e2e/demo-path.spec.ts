@@ -24,7 +24,7 @@ const rooms = (page: Page) =>
   });
 // Each act's mark, read out in words (the + and the room's initials are hidden from it).
 const MARK =
-  /With .+'s fans added: (up \d+ places in Qloo's ranking|new in Qloo's ranking, from outside)/;
+  /With .+'s fans added: (\d+(st|nd|rd|th) in Qloo's ranking, (up \d+ places|new from outside)|up \d+ places in Qloo's ranking|new in Qloo's ranking, from outside)/;
 
 /** The acts each room lifted, from the rail: their sum is the acts on the bill. */
 async function liftedTotal(page: Page): Promise<number> {

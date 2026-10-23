@@ -92,8 +92,12 @@ describe("the claims", () => {
     expect(new Set(story.map((claim) => townsOf(claim.equals)[0]))).toEqual(
       new Set(["Austin", "Denver", "Nashville"]),
     );
-    expect(story.map((claim) => claim.phrase)).toContain(
-      "Venue 213 Austin lifted {8} acts",
+    // The story's line names the production builds the town pages replay (WS6 item 7).
+    expect(story.map((claim) => claim.phrase)).toEqual(
+      expect.arrayContaining([
+        "Venue 213 Austin lifted all {10} acts",
+        "Venue 420 and Venue 316 {0}",
+      ]),
     );
   });
 });

@@ -100,10 +100,11 @@ describe("plain words, round 2 (M6r)", () => {
           row.querySelector(".poster-climb")!.textContent!,
         )![1],
       );
-      // Heard: the venue whose fans were added and how many places the act climbed.
+      // Heard: the venue whose fans were added, the act's rank first when the poster shows one
+      // (Daniel, 2026-10-24), and how many places it climbed.
       expect(row.querySelector(".sr-only")!.textContent).toMatch(
         new RegExp(
-          `^With .+'s fans added: up ${climb} places in Qloo's ranking$`,
+          `^With .+'s fans added: (?:\\d+(?:st|nd|rd|th) in Qloo's ranking, up ${climb} places|up ${climb} places in Qloo's ranking)$`,
         ),
       );
     }
@@ -138,8 +139,10 @@ describe("plain words, round 2 (M6r)", () => {
     expect(row.querySelector(".poster-climb")!.textContent).toMatch(
       /^(\d+(st|nd|rd|th) )?NEW$/,
     );
-    expect(row.querySelector(".sr-only")!.textContent).toBe(
-      `With ${fresh.anchorVenue.name}'s fans added: new in Qloo's ranking, from outside the headliners-only top 50`,
+    expect(row.querySelector(".sr-only")!.textContent).toMatch(
+      new RegExp(
+        `^With ${fresh.anchorVenue.name}'s fans added: \\d+(?:st|nd|rd|th) in Qloo's ranking, new from outside the headliners-only top 50$`,
+      ),
     );
     // The card says it as a sentence.
     fireEvent.click(within(row).getByRole("button", { name: fresh.name }));

@@ -88,7 +88,9 @@ describe("the first screen's poster (after M9d's winner)", () => {
     );
     expect(
       within(row).getByText(
-        `With ${first.anchorVenue.name}'s fans added: up ${move} places in Qloo's ranking`,
+        new RegExp(
+          `^With ${first.anchorVenue.name}'s fans added: \\d+(?:st|nd|rd|th) in Qloo's ranking, up ${move} places$`,
+        ),
       ),
     ).toBeTruthy();
     // ...and its climb beside its name (M10a), in the body face (Anton draws ↑ too small).
