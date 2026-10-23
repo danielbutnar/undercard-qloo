@@ -14,6 +14,8 @@ export function lineupMeasures(towns: readonly TownLineups[]) {
   const changed = towns.map(
     (town) => town.with.filter((act) => !town.without.includes(act)).length,
   );
+  // Exact, so no rounding can hide one shared act (Duluth's, corrected 2026-10-22).
+  const shared = towns.map((town, i) => town.with.length - changed[i]);
   const distinct = (side: "with" | "without") =>
     new Set(towns.flatMap((town) => [...new Set(town[side])])).size;
   const timesNamed = new Map<string, number>();
@@ -27,6 +29,8 @@ export function lineupMeasures(towns: readonly TownLineups[]) {
     changed,
     averageChanged:
       changed.reduce((sum, count) => sum + count, 0) / (changed.length || 1),
+    sharedActs: shared.reduce((sum, count) => sum + count, 0),
+    townsSharingAnAct: shared.filter((count) => count > 0).length,
     townsChangedSeven,
     distinctWith,
     distinctWithout,

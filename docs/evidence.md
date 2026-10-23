@@ -132,6 +132,8 @@ The production build of 17 October 2026 matched Boise's row above: Venue 418 8, 
 
 **Not tested:** real concurrent load. No load test was run against the real key.
 
+**The deep health check (added 2026-10-22).** GET /api/health/deep (src/server/health.ts) tells the daily smoke workflow whether Qloo and Claude both answer. It makes two calls, together: one Qloo /search for "Khruangbin" (artists, five results: the agent's own first call) through src/lib/qloo with the settings above but past the server's Qloo cache, so nothing is read from it or written to it, and one Claude Sonnet 5.5 call through src/server/ai.ts with a one-character prompt and max_tokens 1 (20 seconds a try, with the Anthropic SDK's usual two retries). It returns only ok or fail for each, and the time; nothing from either answer is logged or stored. Qloo counts as ok only when it finds the artist. The route needs a bearer token equal to HEALTH_TOKEN (404 while that is unset, 401 when the token is missing or wrong) and allows 3 checks per IP and 3 for everyone per UTC day. **How often:** once a day, from the smoke workflow at 06:17 UTC, which fails unless both say ok and passes with a notice when the HEALTH_TOKEN secret isn't set or the day's checks are used; more only by hand, within the 3. **Cost:** one Qloo call a day against the shared key's rate and monthly limits (Qloo states no price), and one Claude request of about ten input tokens and one output token: about $0.00003 at Sonnet 5.5's $2 and $10 per million input and output tokens, about a cent a year. The token count is an estimate; the check has not yet been run against the real services. **Tested** (tests/unit/health, both services stubbed): a missing, wrong or unset token, Qloo answering 401, Qloo answering 429 until the retries run out, Anthropic failing, both fine, and the limit.
+
 ## 9. Town check for the second outreach wave (Step 1)
 
 **The method.** On 2026-10-17, after M6g, `scripts/town-check.ts` ran the venue lookup a build makes for each town (Qloo's live-music-venue tag, then places with the plain city name as the location query, up to 20), one town at a time. Each place's geocode and address were read to check it is in that town. Every town with at least five places in the town itself then had one `scripts/pilot.ts` run on the demo's brief (Sagebrush Sound's headliners, crowd and fee bands), one at a time, with no build saved. Counts only; the places, rooms and drafts stay in `.design/`.
@@ -679,11 +681,11 @@ A pick is found on Qloo when one of the top five artists Qloo's search returns f
 **The review's measures, written before they are counted (plan.md item 8, 2026-10-21).** Three more counts from the same 29 pairs of lineups, with no model or Qloo call: (i) in each town, how many of the Qloo lineup's 10 acts the model's picks don't have; (ii) how many distinct acts the 29 Without Qloo lineups name between them, and how many the 29 With Qloo lineups do; (iii) how many acts appear in half or more of the Without Qloo lineups (15 or more of the 29). An act is the same act in two lineups when Qloo resolved both to one entity; a model pick Qloo didn't find counts by its normalised name. **The bar** (the review's, section 9b.1): Qloo changes at least 7 of the 10 acts in at least 24 of the 29 towns, and the With Qloo lineups hold at least twice as many distinct acts as the Without Qloo lineups. Measure (iii) has no bar and is reported as a count. **Seen before this bar:** one number bears on measure (ii): the run above made 110 distinct Qloo searches for the model's 290 picks, the rest served from the cache, because the model named some acts in several towns. No count of distinct acts or of shared acts was made, but measure (ii) is partly exploratory for that reason.
 
 **Results of the review's measures, 2026-10-21: the bar isn't met.** Counted from the saved builds, the saved answers and the cached searches, with no model or Qloo call (scripts/with-without-measures.ts):
-- (i) Qloo changes all 10 acts in every one of the 29 towns: no town's two lineups share an act. The first half of the bar, at least 7 of 10 in at least 24 towns, is met, 29 of 29.
+- (i) Qloo changes all 10 acts in 28 of the 29 towns; in Duluth the two lineups share one act, so there Qloo changes 9 of the 10. The first half of the bar, at least 7 of 10 in at least 24 towns, is met, 29 of 29. Corrected on 2026-10-22: `pnpm evidence:check` found the shared act, in the store and in the run's own per-town counts in .design/with-without-qloo/measures.json; the average, 9.97, had been written rounded to 10, and this bullet, the evidence page and How it works had said no town's two lineups share an act.
 - (ii) The 29 With Qloo lineups hold 85 distinct acts between them; the 29 Without Qloo lineups hold 110. The second half of the bar, twice as many with Qloo, isn't met: the model's lineups are the more varied.
 - (iii) 3 acts appear in half or more of the Without Qloo lineups.
 
-So the record says that Qloo and the model alone pick entirely different acts in every town, not that Qloo's lineups answer more to the town than the model's do: the review's guess that a model with no town data names the same acts everywhere doesn't hold here, and the same two headliners give Qloo's lineups much of their overlap (an inference, not measured). Per-town counts stay in .design/with-without-qloo/measures.json.
+So the record says that Qloo and the model alone pick different acts in every town, all ten of them in 28 of the 29, not that Qloo's lineups answer more to the town than the model's do: the review's guess that a model with no town data names the same acts everywhere doesn't hold here, and the same two headliners give Qloo's lineups much of their overlap (an inference, not measured). Per-town counts stay in .design/with-without-qloo/measures.json.
 
 ## 32. The test with real people, written before it runs
 
@@ -713,6 +715,115 @@ Written on 2026-10-21 (plan.md item 9, the review's section 9b.3), before any of
 
 **How.** The runs go through the agent offline with a memory cache (scripts/cheap-tests.ts): nothing is written to Redis and no saved build changes; afterwards Boise and the four towns are checked to replay the same ten acts. About 56 to 68 Qloo calls in all, one build at a time, plus the planner's model turns. Counts only in this file; names stay in .design/cheap-tests/.
 
+## 34. Two controls for the premise test, written before any call
+
+Written on 2026-10-22, before any of its calls (Daniel's brief of that evening). The bars don't change after the results are in. Counts and lifts only in this file; names stay in .design/m8f/controls/.
+
+**The question.** At 20 of the 22 festivals section 26 could score, the acts the buyers booked gained more Qloo affinity from the town's venues than band- and taste-matched random acts did. That leaves two readings open: that any venues' fans would give the booked acts the same edge, not their own town's, and that Qloo's own location signal would do as well as the venues.
+
+**The festivals, the acts and the measure.** Section 26's 22 scored festivals, with the same headliners, booked acts and random acts it used (.design/m8f/result.json), and section 26's measure unchanged: an act's lift is its largest gain in Qloo affinity from adding one input to the headliners, in calls with filter.type=urn:entity:artist and filter.results.entities set to the festival's booked and random acts. A festival's advantage is its booked acts' mean lift minus its random acts' mean lift. The own-town advantage is section 26's, computed from the lifts it saved on 2026-10-21.
+
+**Control A, another town's venues.** Each festival again, with its own town's anchor venues replaced by those of the next of the 29 checked towns in alphabetical order that is in another country, wrapping round from Wrexham to Aarhus, using as many venues as the festival's own town has (1 or 2), in the order section 26's code reads them from that town's saved build. Where that town has fewer anchor venues than the festival needs, the next town in another country that has enough is used (this rule is added here, before any call, for four festivals). Worked out from the saved builds before any call: Aarhus's festival reads Asheville's venues; Austin's, Berlin's; Berlin's, Boise's; Boise's, Bucharest's; Bucharest's, Calgary's (Burlington has one anchor venue); Calgary's, Chicago's; Hamburg's two, Kansas City's; Montreal's two, Oslo's (Nashville has one); Nashville's, Oslo's; Oslo's, Paris's; Paris's, Raleigh's; Raleigh's, Reykjavík's; Reykjavík's, Rotterdam's; Rotterdam's, Seattle's; Seattle's, Tallinn's; Tallinn's, Utrecht's (Toronto has one); Toronto's two, Utrecht's; Utrecht's, Vienna's; Wrexham's, Aarhus's.
+
+**Control B, Qloo's location signal.** Each festival again, with the venues replaced by signal.location.query set to the festival's town, written with its region as the checked towns list has it ("Boise, Idaho", "Hamburg, Germany"): an act's lift is its gain in affinity from adding the location signal to the headliners. The town is the one whose venues section 26 used, also for the three festivals held just outside it (Boise Music Festival, Old Settler's and Summer Well). A festival whose town Qloo can't place is unscored under Control B.
+
+**What the record lacks, and what the run costs.** Section 26 saved each act's name, fee range and lift, not Qloo's entity ids or the headliners-only affinities. So the run first finds the same acts again: the headliners and the booked acts by section 26's own search (the first of Qloo's top five that matches after its normalising), and the random acts from the same pool calls (the headliners as the signal, the fee range's popularity, Qloo's top 50), matched by name, with a search for any that is no longer in its pool. An act keeps the fee range section 26 gave it. An act that doesn't resolve again, or is missing from an answer, has no lift, as in section 26's code. Then one call with the headliners alone per festival, Control A's venue calls and Control B's location call. Estimate: 44 headliner searches, 130 booked-act searches, 41 pool calls, 22 headliners-only calls, 39 venue calls and 22 location calls, 298 in all, plus one search for each random act missing from its pool (at most 130 more). Calls go one at a time, and every attempt is counted, so a retry shows. Past 250 calls the run waits for Daniel's approval of the count.
+
+**Step 0, with no call.** The question: at how many of the 22 do the booked acts' mean headliners-only affinity sit below the random acts'? An act that starts lower has more room to gain, so if the booked acts start lower at most festivals, part of their larger lift could be room to climb rather than the town. .design/m8f/result.json can't answer it: it holds each act's lift, not its affinity with the headliners alone, and no entity ids. On their own the values would take 237 calls (the 215 that find the acts again and the 22 headliners-only calls); in this run they come free, from its headliners-only calls, and the count is reported with the controls.
+
+**Bar A, the town.** The town matters if the booked acts' advantage is larger with their own town's venues than with the other town's at 16 or more of the 22 festivals (16 or more of 22 happens by chance about 2.6% of the time). A tie, or a festival Control A can't score, doesn't count towards it.
+
+**Bar B, venues or the location signal.** The venues beat the location signal if the advantage is larger with the venues at 16 or more of the 22; the signal beats the venues if it is larger with the signal at 16 or more; otherwise neither. A tie, or a festival Control B can't score, counts for neither side.
+
+**Counted, with no bar.** How many of the 30 festivals support the premise by section 26's rule under each control (booked mean lift above random mean lift; the 8 that section 26 couldn't score count against it), beside section 26's 20 of 30; and step 0's count.
+
+**What each outcome means for the site, written now.**
+- Bar A met: the edge is the town's own. The evidence page can say, beside the 20 of 30, that the booked acts' advantage was larger with their own town's venues than with another country's at N of 22 festivals.
+- Bar A not met: the 20 of 30 shows that venue fans like the acts festivals book more than matched random acts, not that the town's own venues do. The premise test's row on the evidence page and "What these numbers don't establish" say so, and any wording that ties the test's edge to the town goes. The first screen and How it works describe how a lineup is built, not this test, so they don't change.
+- Bar B, the venues beat the signal: "Why venues?" on the evidence page gains a second reason beside section 6: on these festivals the venues told booked acts from random ones better than Qloo's location signal did.
+- Bar B, the signal beats the venues: "Why venues?" can't cite this test. The evidence page says that by this measure Qloo's location signal did better, the limits list it, and building on the signal goes to "What's next", not into the app before the freeze.
+- Bar B, neither: no claim either way; "Why venues?" keeps section 6's reason alone.
+- Step 0: if the booked acts start lower at most of the 22, the evidence page names it as a limit of sections 18 and 26, and bar A says whether it explains their edge (another town's venues would give it to them as well).
+
+The copy changes a result calls for are drafted after the run and applied only with Daniel's yes. A limit known now: the own-town lifts were measured on 2026-10-21 and the controls on the day of the run, so any change in Qloo's data in between falls into bar A's comparison; each lift is a gain over the same day's headliners-only call, which takes out a shift common to both.
+
+**Results, 2026-10-22 (16:26 to 16:34 UTC, 19:26 to 19:34 Bucharest): bar A not met, 15 of 22 (the bar was 16); bar B, neither (the signal 11, the venues 4, with 15 of the 22 scored); step 0, 22 of 22.** 298 Qloo calls, one at a time, from scripts/premise-controls.ts; the attempts equal the plan, so no call was retried. All 44 headliners and 130 booked acts were found again by section 26's search, and all 130 random acts were in their pools by name, so no extra search was needed. A festival's advantage is its booked acts' mean lift minus its random acts' mean lift, in Qloo affinity; "own venues" is section 26's, from its saved lifts:
+
+| Festival | Control town | Own venues | Another town's venues | Location signal | Booked acts start lower | Acts answered with the location signal |
+|---|---|---|---|---|---|---|
+| Boise Music Festival 2024, Boise | Bucharest | +0.007 | +0.040 | not scored | yes | 3 of 6 |
+| Bumbershoot 2026, Seattle | Tallinn | +0.036 | +0.028 | +0.087 | yes | 6 of 14 |
+| Calgary Folk Music Festival 2026, Calgary | Chicago | +0.013 | +0.025 | not scored | yes | 5 of 16 |
+| MS Dockville 2024, Hamburg | Kansas City | +0.032 | −0.004 | +0.026 | yes | 15 of 24 |
+| FOCUS Wales 2026, Wrexham | Aarhus | +0.042 | +0.026 | not scored | yes | 0 of 4 |
+| Hopscotch Music Festival 2025, Raleigh | Reykjavík | +0.028 | +0.016 | +0.084 | yes | 3 of 16 |
+| Iceland Airwaves 2025, Reykjavík | Rotterdam | +0.007 | +0.030 | +0.089 | yes | 6 of 14 |
+| ÎleSoniq 2026, Montreal | Oslo | −0.006 | −0.003 | +0.009 | yes | 7 of 14 |
+| NN North Sea Jazz Festival 2026, Rotterdam | Seattle | +0.050 | +0.044 | not scored | yes | 1 of 6 |
+| NorthSide 2024, Aarhus | Asheville | −0.013 | −0.004 | +0.029 | yes | 7 of 12 |
+| Old Settler's Music Festival 2026, Austin | Berlin | +0.019 | +0.025 | −0.004 | yes | 2 of 6 |
+| Osheaga 2026, Montreal | Oslo | +0.009 | −0.003 | +0.067 | yes | 4 of 12 |
+| Øyafestivalen 2026, Oslo | Paris | +0.055 | +0.037 | +0.098 | yes | 3 of 14 |
+| Pop-Kultur Festival 2026, Berlin | Boise | +0.028 | +0.015 | +0.021 | yes | 3 of 6 |
+| Prepare The Ground 2024, Toronto | Utrecht | +0.009 | +0.005 | +0.051 | yes | 5 of 24 |
+| Reeperbahn Festival 2026, Hamburg | Kansas City | +0.048 | +0.005 | +0.104 | yes | 6 of 14 |
+| Soenda Festival 2026, Utrecht | Vienna | +0.035 | +0.002 | not scored | yes | 3 of 6 |
+| Solidays 2025, Paris | Raleigh | +0.019 | +0.008 | +0.060 | yes | 7 of 16 |
+| Summer Well 2026, Bucharest | Calgary | +0.004 | +0.002 | +0.055 | yes | 10 of 14 |
+| Tallinn Music Week 2026, Tallinn | Utrecht | +0.059 | +0.033 | not scored | yes | 1 of 4 |
+| Tomato Art Fest 2026, Nashville | Oslo | +0.003 | +0.020 | not scored | yes | 1 of 8 |
+| Toronto Jazz Festival 2026, Toronto | Utrecht | +0.027 | +0.021 | +0.018 | yes | 4 of 10 |
+
+**What it says.**
+- **Control A.** At 15 of the 22, the booked acts' advantage was larger with their own town's venues than with a town's in another country: more often than not, one short of the bar. With the other town's venues, the booked acts still out-lift the random acts at 18 of the 30 festivals, against section 26's 20 of 30. So the test doesn't show that the edge is the town's own: fans of venues in another country like the acts these festivals booked more than matched random acts nearly as often.
+- **Step 0.** At all 22, the booked acts' mean affinity with the headliners alone is below the random acts'. An inference from section 26's code, not measured: the random acts are drawn from Qloo's top 50 for the headliners, so they start near the top of the headliners' ranking, while the booked acts are whatever the festival booked; an act that starts lower has more room to gain from any added input. So part of the booked acts' larger lift, in section 18 and section 26 alike, may come from where they start, which fits Control A's result.
+- **Control B.** With signal.location.query added, Qloo's answers left out most of the asked acts: an affinity came back for 102 of the 260, and 7 festivals couldn't be scored because one side had no lift. Where they could, the signal's advantage was larger than the venues' at 11 of 15, the venues' at 4; neither reaches 16 of 22. The signal's lifts rest on the acts Qloo still answered with it, a different set from the venues', so this comparison is weaker than Control A's. Under the signal, the booked acts out-lift the random acts at 14 of the 30.
+
+So, by the outcomes written above: bar A not met, so the premise test shows that venue fans like the acts festivals book more than matched random acts, not that the town's own venues do; step 0 names a limit of sections 18 and 26; bar B, neither, so "Why venues?" keeps section 6's reason alone. The copy changes are drafted and wait for Daniel's yes. Names stay in .design/m8f/controls/.
+
+## 35. Qloo's own attribution, written before the call
+
+Written on 2026-10-22, before the call. The bar doesn't change after the answers are in. Raw answers only in .design/explainability/ (git-ignored); counts only in this file.
+
+**The question.** Each act's card says which venue's fans lifted it, from the app's own arithmetic: the act's place for the headliners' fans against its place with one venue's fans added. Can Qloo say the same in its own terms, how much of an act's result comes from each input?
+
+**The calls.** Two, one per fee range, for Boise's saved build (17 October, 12:13 UTC): the headliners and that range's anchor venues as the signal (signal.interests.entities; a range's anchor venues are the ones the build ran for it, three for the mid-size range and two for the opening range, as the saved build records them), filter.type=urn:entity:artist, filter.results.entities set to that range's lineup acts (4 and 6), the crowd-age signal as the build sends it (signal.demographics.age=25_to_29,30_to_34) and feature.explainability=true. The entity ids, the headliners' included, come from the saved build, read from the store with no write, so no search is needed. One call at a time, and every attempt is counted.
+
+**The bar.** Go if a per-input contribution comes back for at least 8 of the 10 acts: for an act, Qloo's answer attributes a numeric part of its result to individual inputs of the call, the act's own anchor venue among them, not one score for all of them together. Otherwise no-go, recorded in this section as tried, not shipped.
+
+**What each outcome means for the site.** A no-go changes nothing. A go ships nothing by itself: a line on each act card built on it waits for Daniel's yes, and then needs the other 28 builds' answers, in a second window of at most 56 calls, with the line read from the cache only.
+
+**Result, 2026-10-22 (16:24 UTC, 19:24 Bucharest): go, 10 of 10 (the bar was 8).** 2 calls, one per range, no retry. Every act's answer carries query.explainability with a score for individual inputs of the call (an entity id and a score each), its own anchor venue among them, and each act's scores add up to 1 (to within 0.NN). Qloo scores no contribution from the venue the build ran that lifted no lineup act (Venue 166 Boise) in either range: 4 of the 5 inputs get a score in the mid-size range, 3 of the 4 in the opening range. The headliners take the largest share for every act: for none of the 10 is its own venue the largest contributor. In the mid-size range, where two lineup venues are inputs, 2 of the 4 acts get a larger share from the venue the lineup credits than from the other; the other 2 lean to the other venue. So a card line built on it could say how much of a pick Qloo puts on a venue's fans, but not that the venue the card credits is always the one Qloo leans on most. Raw answers in .design/explainability/.
+
+**What the answers' warnings add, 2026-10-22 (corrected the same evening).** The unscored venue isn't scored at zero: each answer carries a warning of type not_found naming one input, the same id in both, Venue 166 Boise. Qloo reports the venue as not found and leaves it out of the split, so "scores no contribution from" above means it couldn't use the venue at all. In the opening range that leaves one venue in Qloo's split.
+
+**The same thing in the saved builds, 2026-10-22, from the cache with no call.** If Qloo can't find a venue, adding it to the headliners leaves their ranking as it was. Across the 29 saved builds' 125 venue runs, 29 return exactly the headliners-only ranking of their fee range, the same acts in the same order, Boise's two Venue 166 Boise runs among them; the other 96 differ. For Venue 166 Boise the not_found warning above says why; for the other 28 it's an inference, since the cached answers keep only the ranked lists, not Qloo's warnings. So where a page says a venue's fans "moved no act onto the lineup", the likelier reading for these runs is that Qloo had no fan data for that venue to use. The 29 runs, by town and venue, are in .design/explainability/identical-runs-2026-10-22.txt. None of the 17 venues is mixed: each one's runs are unchanged in every fee range it was run in. With Daniel's yes, How it works and Watch now say so (branch method, WS2): Boise's box reads "Qloo had no fan data for Venue 166 Boise, so the agent read Venue 227; 2 acts come from that read."
+
+**The second window (WS7).** scripts/attribution-warm.ts makes the other 28 builds' two calls each, 56, through the app's cached client, after Boise's two entries are written from this section's saved answers (SEED_BOISE=1, no Qloo call). Its dry run of 2026-10-22: 29 builds, each the pinned one; 58 calls, none cached; Boise's two saved answers carry exactly the parameters the app sends, so 56 after seeding.
+
+**The second window's result, 2026-10-22 (19:47 to 19:51 UTC, 22:47 to 22:51 Bucharest, in the window Daniel named).** The dry run said 58; Boise's two entries were written from this section's saved answers with no Qloo call; then 56 calls for the other 28 builds, one at a time, with no retry, all 56 stored and read back. Every one of the 280 acts asked came back with a per-input split. In 22 of the 56 calls Qloo left at least one venue unscored, 27 venue inputs in 11 of the 28 towns; with Boise's 2, 29 in 12 towns. Compared by town, venue and fee range, from the cache with no call, these 29 are exactly the 29 venue runs above whose ranking equals the headliners-only one. So the unchanged rankings and the unscored inputs are the same venues; the not_found warning itself was seen for Venue 166 Boise only, since the cache keeps the parsed split, not Qloo's warnings. The 29 latest pointers matched afterwards (19:52 UTC).
+
+**The card line, 2026-10-23 (WS7).** Each act card on the first screen and the town pages carries one line on Qloo's split, read from the cache only, for the saved lineup with every venue on. Across the 29 saved builds, 290 of 290 acts have one; 186 say the fee range's venues were together (two or more in Qloo's split), 104 don't (one); for 44 the venue the card credits isn't the largest venue share, which the line shows by its order alone; the parts add to 99, 100 or 101 (28, 237 and 25 lines). Daniel approved the wording on 2026-10-23: "Qloo traces N% of this act's match to fans of …", with "With this fee range's venues together," in front when two or more venues are in Qloo's split.
+
+**The same answer, score for score, 2026-10-23 (WS4), from the cache with no call.** Of the 29 saved builds' 125 venue runs, the 29 whose ranking equals the headliners-only ranking also carry exactly the headliners-only scores, act for act, and no run has the headliners' order with different scores (WS4's read; the orchestrator re-checked the order, not the scores). So the shortlist says "Qloo had no fan data for <venue>" when a venue's answer is the headliners' own, score for score; a short list of ten acts or fewer can keep its order with fan data, so order alone isn't enough there. For the shortlist's own calls this is an inference: none has been checked against a not_found warning. A venue whose scores change but whose order doesn't moved none of the shortlist's acts, and the page says so.
+
+## 36. The 30-second test, round 2, written before it runs
+
+Written on 2026-10-22, before the new first screen is built and before anyone sees it. The protocol and the bar don't change after the answers are in.
+
+**The people.** Five who haven't seen Undercard in either version.
+
+**The protocol.** The first screen of a local production build, on a laptop at 1440×900 or the nearest size, top of the page, 30 seconds, no scrolling, no clicking, no help. Then the screen is hidden and Daniel asks, in this order, "What does this do?", "Why is Act 84 on it?" and "What would a festival booker do with it?", writing the answers down word for word.
+
+**The bar, per question.**
+1. Passes for a person who says it picks or drafts acts for a festival lineup and mentions local venues, their fans or the town's taste.
+2. Passes for one who names Venue 227, a venue or the climb.
+3. Passes for one who says shortlist, research or fill slots, not book automatically.
+
+The round passes if each question passes for at least 4 of 5 people (3 of 4; all 3 of 3, as in section 32). With fewer than three people it doesn't count. The counts per question are reported either way.
+
+**What goes public.** The counts and the wording changes that followed; no tester is quoted without permission.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
@@ -729,7 +840,7 @@ A description of the code, not a measurement, so the method page can point to it
 - That a town's crowd knows the undercard acts: section 6 found no usable measure of it.
 - That every room behind a bill is a club: a festival park or an arena can still draft one (section 10).
 - That a room's crowd predicts a festival's bookings. Section 2's check against Treefort was a no-go; its counts (0 to 2 of 50) are too small to show the signal either way.
-- That a town's venues pick out what its festivals book. Section 18's test on ten real festivals fell one short of its bar (7 of 10 against 8); section 26's, on 30 more with complete lineups, met its bar with no margin (20 of 30 against 20). In both the differences are small, and they show that the venues' fans like the booked acts more than matched random ones, not that the buyers used those venues.
+- That a town's venues pick out what its festivals book. Section 18's test on ten real festivals fell one short of its bar (7 of 10 against 8); section 26's, on 30 more with complete lineups, met its bar with no margin (20 of 30 against 20). In both the differences are small, and they show that the venues' fans like the booked acts more than matched random ones, not that the buyers used those venues. Section 34's controls add that it isn't shown to be the town's own: another country's venues gave the booked acts the edge at 18 of the 30, and at all 22 scored festivals the booked acts start lower in the headliners' ranking than the random acts, so part of their lift may be room to climb.
 - Stability beyond the runs in section 5: five in Boise and three in each other town, all on one day, with one pair of headliners.
 
 ## Sources

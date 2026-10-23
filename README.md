@@ -64,7 +64,7 @@ Beyond the demo path, one click from the bill:
   among them as anchors, gets the taste the headliners share, then asks for each band's
   artists for the headliners alone, then once more for each anchor venue. It
   runs independent calls in parallel and stops at 12. In live builds it has changed course
-  mid-build: when one anchor venue lifted no acts, it spent its last call on another room.
+  mid-build: when Qloo had no fan data for one anchor venue, it spent its last call on another room.
 - **The app books the acts.** [src/lib/assemble-lineup.ts](src/lib/assemble-lineup.ts) takes
   an act when an anchor venue lifts it at least five places above the headliners-only
   ranking, its popularity sits inside the band, and it shares two genre tags with the
@@ -99,6 +99,7 @@ the trace panel lists every call with its parameters and result count.
 | `GET /v2/insights` with `filter.type=urn:entity:place` | List the festival city's places with that tag; the agent picks music rooms as anchor venues. |
 | `GET /v2/analysis/compare` | Find the taste tags the two headliners share; they rank the two tags each card shows. |
 | `GET /v2/insights` with `filter.type=urn:entity:artist` | Rank artists inside each fee band's popularity range (`filter.popularity.min/max`), first for the headliners alone, then for the headliners plus one anchor venue in `signal.interests.entities`. |
+| `GET /v2/insights` with `feature.explainability=true` | For each fee range of a saved build, the headliners and that range's venues together as the signal and the range's lineup acts as `filter.results.entities`: Qloo's own split of each act's match by input, one small line on its card. Made once per saved build by `scripts/attribution-warm.ts`; the page reads it from the cache only. |
 
 Artists have no location of their own in Qloo. Its location data for artists, tried three
 ways, gave a usable local reading for at most 7 of 10 acts, short of the bar of 8
@@ -160,7 +161,9 @@ returned, as counts only.
   make, which venues to anchor on and when to try another, but doesn't choose acts or write
   numbers; the app books the acts from Qloo's responses. It also answers the Without Qloo
   baseline, from its own knowledge with no tools; those picks are stamped "No Qloo data".
-  Refills don't use the model.
+  Refills don't use the model. Once a day the smoke workflow's deep health check also sends it
+  a one-character prompt with max_tokens 1, to see that it answers; nothing from the answer is
+  kept.
 - The festival, its presale numbers, and the acts and venues in the test fixture are invented.
   The two headliners are real artists, named so the agent can look them up on Qloo.
 - M4c: Claude (Opus 5.5) shipped M4b, then fixed what fresh cold readers (Claude subagents)
@@ -219,6 +222,23 @@ returned, as counts only.
   a festival's first complete build stays the one every visitor opens on, a live run is kept for
   whoever ran it (Watch replays it from the screen, and the lineup says it isn't saved for other
   visitors), and the daily smoke test checks the first screen's saved line.
+- 22 October, evening: Claude (Opus 5.5) added the deep health check to the daily smoke workflow
+  (`GET /api/health/deep`, behind a bearer token: one Qloo search past the cache and a one-token
+  Claude call, 3 a day), and made a planner call that fails or refuses end a live run the way a
+  busy Qloo does, offering the country's checked towns instead of blaming the town.
+- 22 October: Claude (Opus 5.5) moved Watch's captions into one file for the first-screen
+  redesign; gave How it works' video slot a click-to-play YouTube facade that loads no player
+  until it's pressed, and no slot at all until the video is published; had How it works and
+  Watch say, from the saved trace only, when the agent switched venue, and, from the Qloo cache,
+  when Qloo had no fan data for a venue (its ranking came back as the headliners' own); and
+  labelled the agent's line in Watch as its plan, with a one-line key for anchors.
+- 22 October: Claude (Opus 5.5) wrote `pnpm evidence:check`, which re-derives the site's numbers
+  from the saved builds and the store; its first run found that the With and Without Qloo
+  lineups share one act, in Duluth, where the record had said none, and the record, the
+  evidence page and How it works were corrected. Claude also wrote and ran, in windows Daniel
+  named, the premise test's two controls (evidence 34) and Qloo's own attribution of each act
+  (evidence 35), wrote the protocol for the second 30-second test (evidence 36), and upgraded
+  Next.js to 16.4.1 for two security advisories.
 - Kept current as each milestone lands.
 
 ## Built on
@@ -272,6 +292,8 @@ run writes the same bytes.
 Checks:
 
 - `pnpm gate`: typecheck, lint, every unit test and the design-ban scan. GitHub Actions runs it on every push to main and on pull requests (`.github/workflows/gate.yml`, no secrets).
+- `.github/workflows/smoke.yml`: once a day, `tests/e2e/smoke.spec.ts` against production, then `node scripts/deep-health.mjs`, one `GET /api/health/deep` with the `HEALTH_TOKEN` repository secret. The run fails unless Qloo and Anthropic both answer ok, and passes with a notice when the secret isn't set or the day's 3 checks are used.
+- `pnpm evidence:check`: re-derives the numbers in this README, docs/devpost-story.md, docs/evidence.md and the copy constants (claims in `scripts/evidence-claims.ts`) from production's saved builds, through replay-only requests that make no Qloo or model call, and from the store read-only, then prints one table and exits 1 on any mismatch; `--base <url>` replays another server. Not part of `pnpm gate`.
 - `pnpm e2e`: the Playwright specs in `tests/e2e`. Run `pnpm exec playwright install chromium`
   once first. Playwright starts its own dev server on port 3100 in synthetic mode
   (`UNDERCARD_E2E_SYNTHETIC=1`): the server serves the synthetic saved build and model answer
@@ -295,8 +317,8 @@ Checks:
 
 The app runs on Vercel with no login and no key from the visitor. Link the repository in
 Vercel and set these server environment variables: `QLOO_API_KEY`, `QLOO_BASE_URL`,
-`ANTHROPIC_API_KEY`, `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. None of them is
-exposed to the browser. The judge URL is the production domain,
+`ANTHROPIC_API_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` and, for the deep
+health check, `HEALTH_TOKEN`. None of them is exposed to the browser. The judge URL is the production domain,
 https://undercard-daniel-51ed.vercel.app, which always serves the latest production deploy;
 Vercel puts preview deployments behind a login.
 
@@ -308,6 +330,7 @@ everyone, and answer with a friendly message at the limit:
 | Fresh build (runs the agent: Qloo and Claude) | 5 | 60 |
 | Refill (up to 3 Qloo calls) | 25 | 500 |
 | LLM only (asks Claude) | 10 | 100 |
+| Deep health check (`GET /api/health/deep` with the `HEALTH_TOKEN` bearer token: one Qloo search and a one-token Claude call) | 3 | 3 |
 
 Replaying the saved build and serving the saved LLM-only answer are never limited.
 

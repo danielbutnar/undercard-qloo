@@ -82,7 +82,10 @@ const total = (key: "picks" | "allThree") =>
 const aggregate = {
   computedAt: new Date().toISOString().slice(0, 10),
   towns: towns.length,
-  averageChanged: Number(m.averageChanged.toFixed(1)),
+  // Two decimals and the exact count: one decimal wrote 9.97 as 10 and hid Duluth's shared act.
+  averageChanged: Number(m.averageChanged.toFixed(2)),
+  sharedActs: m.sharedActs,
+  townsSharingAnAct: m.townsSharingAnAct,
   townsChangedSeven: m.townsChangedSeven,
   distinctWith: m.distinctWith,
   distinctWithout: m.distinctWithout,

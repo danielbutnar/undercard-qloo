@@ -4,6 +4,7 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FestivalScreen } from "@/components/festival-screen";
+import { sharedPhrase } from "@/components/chart/with-without-line";
 import { MethodPage } from "@/components/method-page";
 import counts from "@/data/with-without-qloo.json";
 import { methodStory } from "@/lib/method-story";
@@ -16,7 +17,8 @@ afterEach(() => {
   window.history.replaceState(null, "", "/");
 });
 
-const LINE = `Across ${counts.towns} towns, the model alone and Qloo share no act, and ${counts.picksPassing} of the model's ${counts.picks} picks pass the tests every Qloo act passes.`;
+// Corrected 2026-10-22: Duluth's two lineups share one act (evidence 31), so the line says so.
+const LINE = `Across ${counts.towns} towns, the model alone and Qloo share one act, in one town, and ${counts.picksPassing} of the model's ${counts.picks} picks pass the tests every Qloo act passes.`;
 const quiet = () =>
   vi.stubGlobal(
     "fetch",
@@ -53,7 +55,16 @@ describe("the With and Without Qloo line (plan.md item 8)", () => {
     ).toBeTruthy();
   });
 
-  it("only says the lineups share no act while the counts say all 10 differ", () => {
-    expect(counts.averageChanged).toBe(10);
+  it("reads the shared acts from the exact count, not the rounded average", () => {
+    expect(counts).toMatchObject({ sharedActs: 1, townsSharingAnAct: 1 });
+    expect(sharedPhrase({ sharedActs: 0, townsSharingAnAct: 0 })).toBe(
+      "the model alone and Qloo share no act",
+    );
+    expect(sharedPhrase({ sharedActs: 1, townsSharingAnAct: 1 })).toBe(
+      "the model alone and Qloo share one act, in one town",
+    );
+    expect(sharedPhrase({ sharedActs: 3, townsSharingAnAct: 2 })).toBe(
+      "the model alone and Qloo share 3 acts, in 2 towns",
+    );
   });
 });

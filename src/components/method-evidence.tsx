@@ -28,6 +28,7 @@ const S = {
   withQloo: "31. With and Without Qloo, as a number, written before any call",
   people: "32. The test with real people, written before it runs",
   cheap: "33. Two cheap tests, written before any run",
+  controls: "34. Two controls for the premise test, written before any call",
   climb:
     "19. The lift, visible (M9a), written before the spike and the readers",
   compare:
@@ -112,13 +113,17 @@ export function Verdicts() {
       <li>
         <VerdictMark verdict="partly" />
         <span>
-          <strong>Partly shown:</strong> a town&apos;s venues point to the acts
-          its festivals book. At 40 real festivals, the acts each festival
-          booked showed more lift from the town&apos;s venues than band-matched
-          random acts at 27: 7 of 10 in the first round, one short of its bar of
-          8, and 20 of 30 in the second, the bar set beforehand. About half
-          would be expected if the venues told us nothing. The differences are
-          small. Treefort 2026 used two of the three Boise venues tested.
+          <strong>Partly shown:</strong> venue fans like the acts festivals
+          book. At 40 real festivals, the acts each festival booked showed more
+          lift from the town&apos;s venues than band-matched random acts at 27:
+          7 of 10 in the first round, one short of its bar of 8, and 20 of 30 in
+          the second, the bar set beforehand. With another country&apos;s venues
+          in place of the town&apos;s, they still did at 18 of those 30, so the
+          test doesn&apos;t show the edge is the town&apos;s own, and the random
+          acts start higher in the headliners&apos; ranking, which leaves the
+          booked acts more room to climb (<Ev to="controls">evidence 34</Ev>).
+          The differences are small. Treefort 2026 used two of the three Boise
+          venues tested.
         </span>
       </li>
       <li>
@@ -156,11 +161,12 @@ const ROWS: Row[] = [
     to: "premise2",
     group: "idea",
     what: "At 30 real festivals chosen before any run, did the acts they booked show more lift from the town's venues than band-matched random acts?",
+    also: "controls",
     result:
       "20 of 30, the bar set beforehand; 20 of the 22 that could be scored",
     bar: 20,
     limit:
-      "No margin. The 8 festivals with fewer than two acts in the fee ranges couldn't be scored and count against the bar. The differences are small, 0.003 to 0.059 in affinity. Most lineups don't name their headliners first. Research subagents gathered the lineups; 28 of 30 were checked against their pages.",
+      "No margin, and not the town's own: with another country's venues the booked acts still led at 18 of 30, and at all 22 scored they start lower in the headliners' ranking than the random acts (evidence 34). The 8 festivals with fewer than two acts in the fee ranges couldn't be scored and count against the bar. The differences are small, 0.003 to 0.059 in affinity. Most lineups don't name their headliners first. Research subagents gathered the lineups; 28 of 30 were checked against their pages.",
   },
   {
     to: "premise",
@@ -176,7 +182,7 @@ const ROWS: Row[] = [
     what: "Without Qloo, do the model's own picks pass the tests every Qloo act passes?",
     result: "10 of 290 model picks pass all three; every Qloo act does",
     limit:
-      "Qloo's own measures, which the model can't see. The two lineups share no act in any of the 29 towns.",
+      "Qloo's own measures, which the model can't see. The two lineups share no act in 28 of the 29 towns, and one in the other.",
   },
   {
     to: "boise",
