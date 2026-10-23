@@ -2,7 +2,7 @@ import { cacheLife } from "next/cache";
 import { notFound } from "next/navigation";
 import { SHARE_SIZE } from "@/components/share/share-image";
 import { shareAlt } from "@/components/share/share-words";
-import { townBySlug } from "@/lib/towns";
+import { TOWNS, townBySlug } from "@/lib/towns";
 import { serverBuildStore } from "@/server/deps";
 import { shareCardFor, shareResponse } from "@/server/share-image";
 
@@ -12,6 +12,11 @@ import { shareCardFor, shareResponse } from "@/server/share-image";
 export const alt = shareAlt(null);
 export const size = SHARE_SIZE;
 export const contentType = "image/png";
+
+// Prerendered for each town on show, as the town's page is; any other slug is rendered on demand.
+export function generateStaticParams() {
+  return TOWNS.slice(1).map((town) => ({ town: town.slug }));
+}
 
 async function card(slug: string) {
   "use cache";
