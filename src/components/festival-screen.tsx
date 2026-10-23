@@ -1107,7 +1107,7 @@ export function FestivalScreen({
       />
     ) : null;
 
-  const withoutBox = without ? withoutNote(festival, counts) : null;
+  const withoutBox = without ? withoutNote(festival) : null;
   const sceneOverlay: ReactNode = (
     <>
       {watching && wide && (

@@ -297,13 +297,7 @@ export function listNames(names: readonly string[]): string {
  * sets the short form.
  */
 export const stampWords = (own: boolean, short = false) =>
-  own
-    ? short
-      ? "Draft"
-      : "Draft, not announced"
-    : short
-      ? "Fictional demo"
-      : "Fictional festival · demo draft";
+  own ? "Draft" : short ? "Fictional demo" : "Fictional festival · demo draft";
 
 /**
  * The label over the headliners: booked by the buyer, and for the demo's two, that they're
@@ -429,18 +423,18 @@ export function withoutCounts(
   return counts;
 }
 
-/** The scene's note while Without Qloo is on: the model can't see the town's venues. */
-export function withoutNote(
-  festival: Pick<Festival, "city">,
-  counts: WithoutCounts | null,
-): { title: string; text: string } {
-  const bigger =
-    counts && counts.above > 0
-      ? `, and by Qloo popularity ${counts.above} of its ${counts.picks} picks ${counts.above === 1 ? "is" : "are"} too big for these slots`
-      : "";
+/**
+ * The scene's note while Without Qloo is on: the model can't see the town's venues. Like the
+ * headline (item 10), it never grades the model on Qloo's popularity, a number it never saw;
+ * the ruler and the stamps show that.
+ */
+export function withoutNote(festival: Pick<Festival, "city">): {
+  title: string;
+  text: string;
+} {
   return {
     title: `Without Qloo, the model can't see ${festival.city}'s venues.`,
-    text: `Same model as the agent (Claude Sonnet 5.5), same brief, no Qloo: it picks without reading any venue's fans${bigger}.`,
+    text: "Same model as the agent (Claude Sonnet 5.5), same brief, no Qloo: it picks without reading any venue's fans.",
   };
 }
 

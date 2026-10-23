@@ -254,7 +254,8 @@ describe("the poster's marks and lines", () => {
 
   it("stamps the demo's festival as fictional and a judge's own as a draft, shorter on a phone", () => {
     expect(stampWords(false)).toBe("Fictional festival · demo draft");
-    expect(stampWords(true)).toBe("Draft, not announced");
+    // A judge's own festival: "Draft" (Daniel's WS9 brief, item 6; confirmed 2026-10-24).
+    expect(stampWords(true)).toBe("Draft");
     expect(stampWords(false, true)).toBe("Fictional demo");
     expect(stampWords(true, true)).toBe("Draft");
   });
@@ -456,12 +457,14 @@ describe("Without Qloo: the model's picks, checked on Qloo afterwards", () => {
     });
   });
 
-  it("says the model can't see the town's venues", () => {
-    expect(withoutNote({ city: "Boise" }, counted())).toEqual({
+  // Daniel, 2026-10-24: like the headline (item 10), the note never grades the model on Qloo's
+  // popularity, a number it never saw.
+  it("says the model can't see the town's venues, and grades none of its picks", () => {
+    expect(withoutNote({ city: "Boise" })).toEqual({
       title: "Without Qloo, the model can't see Boise's venues.",
-      text: "Same model as the agent (Claude Sonnet 5.5), same brief, no Qloo: it picks without reading any venue's fans, and by Qloo popularity 2 of its 7 picks are too big for these slots.",
+      text: "Same model as the agent (Claude Sonnet 5.5), same brief, no Qloo: it picks without reading any venue's fans.",
     });
-    expect(withoutNote({ city: "Boise" }, null).text).toBe(
+    expect(withoutNote({ city: "Boise" }).text).toBe(
       "Same model as the agent (Claude Sonnet 5.5), same brief, no Qloo: it picks without reading any venue's fans.",
     );
   });
