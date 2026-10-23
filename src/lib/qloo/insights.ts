@@ -73,6 +73,36 @@ export function artistsEndpoint(get: QlooGet) {
   };
 }
 
+/** GET /v2/insights limited to given acts, for several signal entities (the shortlist, WS4). */
+export function rankAmongEndpoint(get: QlooGet) {
+  /**
+   * GET /v2/insights for artists, with the results limited to the given acts: every act is
+   * scored inside the same call, so their places can be compared (Qloo normalises scores per
+   * query). The signal is the headliners, with one venue's fans or none, and the crowd's age.
+   */
+  return function rankAmong({
+    signalEntityIds,
+    amongIds,
+    ages = [],
+  }: {
+    signalEntityIds: string[];
+    amongIds: string[];
+    /** Qloo age buckets for signal.demographics.age, such as 25_to_29. */
+    ages?: readonly string[];
+  }) {
+    const params: Record<string, string | number> = {
+      "filter.type": "urn:entity:artist",
+      "signal.interests.entities": signalEntityIds.join(","),
+      "filter.results.entities": amongIds.join(","),
+    };
+    if (ages.length) params["signal.demographics.age"] = ages.join(",");
+    params.take = amongIds.length;
+    return get("/v2/insights", params, (body) =>
+      InsightsBody.parse(body).results.entities.map(toEntity),
+    );
+  };
+}
+
 /** GET /v2/insights limited to given acts: how much two acts share an audience (M8a). */
 export function audienceEndpoint(get: QlooGet) {
   /**

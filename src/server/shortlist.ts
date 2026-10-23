@@ -1,5 +1,15 @@
+import { FEE_BAND_IDS } from "@/lib/fee-bands";
 import { foundOnQloo } from "@/lib/pick-tests";
-import { distinctNames, type Repeat } from "@/lib/shortlist";
+import {
+  climbOf,
+  distinctNames,
+  placesIn,
+  sameAnswer,
+  type Climb,
+  type Repeat,
+  type VenuePlaces,
+} from "@/lib/shortlist";
+import type { BuildContext, SavedBuild } from "./build-store";
 import {
   QlooCacheMiss,
   type QlooCall,
@@ -95,5 +105,114 @@ export async function resolveNames({
     acts,
     repeats: typed.repeats,
     calls: results.flatMap((result) => (result ? [result.call] : [])),
+  };
+}
+
+/** A venue the build read, as the shortlist names it. */
+export interface AnchorVenue {
+  entityId: string;
+  name: string;
+}
+
+/** A saved build's anchor venues, each once, in the order it lists them: Mid's, then Opener's. */
+export function anchorVenues(context: BuildContext): AnchorVenue[] {
+  const venues = new Map<string, AnchorVenue>();
+  for (const band of FEE_BAND_IDS)
+    for (const { entityId, name } of context.anchors[band] ?? [])
+      if (!venues.has(entityId)) venues.set(entityId, { entityId, name });
+  return [...venues.values()];
+}
+
+/** A venue's part in a check: read or not, whether Qloo had fan data for it, the acts it lifts. */
+export interface RankedVenue {
+  venue: AnchorVenue;
+  /** Its call answered, from Qloo or the cache. */
+  read: boolean;
+  /** Its answer was the headliners' own, act for act and score for score. */
+  noFanData: boolean;
+  /** The acts whose best place comes with this venue's fans, above their place alone. */
+  lifts: number;
+}
+
+/**
+ * Step 2: from the town's saved build (its headliners, anchor venues and crowd age), one
+ * /v2/insights call for the headliners alone and one per anchor venue, the headliners plus that
+ * venue, each limited to the shortlist (filter.results.entities) so every act is scored inside
+ * the same call. Places are read within each call; a venue whose answer is the headliners' own
+ * is one Qloo had no fan data for, and lifts nobody.
+ */
+export async function rankShortlist({
+  build,
+  artists,
+  budget,
+}: {
+  build: Pick<SavedBuild, "context">;
+  /** The acts found on Qloo, in the buyer's order. */
+  artists: readonly Pick<QlooEntity, "entityId">[];
+  budget: CallBudget;
+}): Promise<{
+  /** The headliners-alone call answered. */
+  ranked: boolean;
+  climbs: Map<string, Climb>;
+  venues: RankedVenue[];
+  calls: QlooCall[];
+}> {
+  const { context } = build;
+  const headliners = context.headliners.map((headliner) => headliner.entityId);
+  // Sorted, so the same acts pasted in any order share one cached answer.
+  const among = [...new Set(artists.map((artist) => artist.entityId))].sort();
+  const venues = anchorVenues(context);
+  if (among.length === 0)
+    return {
+      ranked: false,
+      climbs: new Map(),
+      venues: venues.map((venue) => ({
+        venue,
+        read: false,
+        noFanData: false,
+        lifts: 0,
+      })),
+      calls: [],
+    };
+  const ask = (venueId?: string) => (qloo: QlooClient) =>
+    qloo.rankAmong({
+      signalEntityIds: venueId ? [...headliners, venueId] : headliners,
+      amongIds: among,
+      ages: context.ages ?? [],
+    });
+  const [alone, ...withVenue] = await budget.run([
+    ask(),
+    ...venues.map((venue) => ask(venue.entityId)),
+  ]);
+  const noFanData = withVenue.map((answer) =>
+    Boolean(alone && answer && sameAnswer(alone.data, answer.data)),
+  );
+  const usable: VenuePlaces[] = venues.flatMap((venue, index) => {
+    const answer = withVenue[index];
+    return answer && !noFanData[index]
+      ? [{ venueId: venue.entityId, places: placesIn(answer.data) }]
+      : [];
+  });
+  const alonePlaces = alone ? placesIn(alone.data) : new Map<string, number>();
+  const climbs = new Map(
+    among.map((entityId) => [entityId, climbOf(entityId, alonePlaces, usable)]),
+  );
+  const lifted = (venueId: string) =>
+    [...climbs.values()].filter(
+      ({ best, climb }) =>
+        climb !== null && climb > 0 && best?.venueId === venueId,
+    ).length;
+  return {
+    ranked: alone !== null,
+    climbs,
+    venues: venues.map((venue, index) => ({
+      venue,
+      read: withVenue[index] !== null,
+      noFanData: noFanData[index],
+      lifts: lifted(venue.entityId),
+    })),
+    calls: [alone, ...withVenue].flatMap((answer) =>
+      answer ? [answer.call] : [],
+    ),
   };
 }

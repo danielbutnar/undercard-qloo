@@ -6,6 +6,8 @@ import { createMemoryCache, type QlooCache } from "@/server/qloo-cache";
 import { createQlooClient } from "@/server/qloo";
 import {
   fakeFetch,
+  insightsBody,
+  insightsEntity,
   params,
   searchEntity,
   syntheticId as id,
@@ -158,6 +160,59 @@ export function searchOnly(url: URL): unknown {
   if (url.pathname === "/search")
     return { results: SEARCHES[params(url).query] ?? [] };
   return new Response("{}", { status: 404 });
+}
+
+/**
+ * Invented Qloo scores for each act: for the headliners alone and with each venue's fans added.
+ * Qloo normalises each answer, so The Lantern Room's scores sit lower across the board, yet
+ * Marigold Static rises from 6th to 1st in it. Cottonwood Social Hall's answer is the
+ * headliners' own (a venue Qloo has no fan data for).
+ */
+export const SCORES: Record<
+  number,
+  { alone: number; lantern: number; fort: number }
+> = {
+  301: { alone: 0.95, lantern: 0.74, fort: 0.93 },
+  302: { alone: 0.91, lantern: 0.68, fort: 0.89 },
+  303: { alone: 0.85, lantern: 0.8, fort: 0.84 },
+  304: { alone: 0.87, lantern: 0.62, fort: 0.91 },
+  305: { alone: 0.89, lantern: 0.66, fort: 0.96 },
+  306: { alone: 0.93, lantern: 0.7, fort: 0.92 },
+  307: { alone: 0.81, lantern: 0.72, fort: 0.82 },
+  308: { alone: 0.83, lantern: 0.6, fort: 0.86 },
+};
+
+/** Searches from SEARCHES, and insights limited to the listed acts, scored from `scores`. */
+export function shortlistQloo(scores = SCORES) {
+  return (url: URL): unknown => {
+    if (url.pathname === "/search") return searchOnly(url);
+    if (url.pathname !== "/v2/insights")
+      return new Response("{}", { status: 404 });
+    const p = params(url);
+    const venue = (p["signal.interests.entities"] ?? "").split(",")[2];
+    const column =
+      venue === LANTERN.entityId
+        ? "lantern"
+        : venue === FORT.entityId
+          ? "fort"
+          : "alone";
+    const entities = (p["filter.results.entities"] ?? "")
+      .split(",")
+      .map((entityId) => Number(entityId.slice(-12)))
+      .filter((n) => scores[n] && ARTISTS[n])
+      .map((n) =>
+        insightsEntity(
+          n,
+          ARTISTS[n].name,
+          ARTISTS[n].popularity,
+          scores[n][column],
+          ARTISTS[n].genres,
+        ),
+      )
+      // Qloo answers strongest first.
+      .sort((a, b) => b.query.affinity - a.query.affinity);
+    return insightsBody(entities);
+  };
 }
 
 export { id, params };
