@@ -22,9 +22,17 @@ test.beforeEach(async ({ page }, info) => {
 });
 
 async function check(page: Page, names: string[]) {
-  await page
-    .getByRole("textbox", { name: /acts you've been pitched/i })
-    .fill(names.join("\n"));
+  const box = page.getByRole("textbox", { name: /acts you've been pitched/i });
+  // The box is React-controlled and opens on the example's names: fill it only once React has
+  // hydrated it, or a slow hydration puts the example back (seen once under the full suite).
+  await expect
+    .poll(() =>
+      box.evaluate((el) =>
+        Object.keys(el).some((key) => key.startsWith("__reactProps")),
+      ),
+    )
+    .toBe(true);
+  await box.fill(names.join("\n"));
   await page.getByRole("button", { name: "Sort them on Qloo" }).click();
   return page.getByRole("region", { name: "Sorted for Boise's venues" });
 }
