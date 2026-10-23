@@ -12,12 +12,16 @@ import {
   SHORTLIST_MAX_NAMES,
   ShortlistSchema,
   type Shortlist,
+  type ShortlistExample,
 } from "@/lib/shortlist";
 import { checkedFestival } from "@/lib/towns";
 import { ShortlistCalls } from "./shortlist-calls";
 import { ShortlistResults } from "./shortlist-results";
 import {
   CHECK_BUTTON,
+  exampleNote,
+  examplePending,
+  exampleTitle,
   namesProblem,
   SHORTLIST_LEAD,
   SHORTLIST_TITLE,
@@ -48,15 +52,32 @@ function errorOf(body: unknown): string {
  * act's fee range and genre fit. It drafts nothing and books nothing; the page calls Qloo only
  * when the buyer presses the button.
  */
-export function ShortlistScreen() {
-  const [festivalId, setFestivalId] = useState(SAGEBRUSH_SOUND.id);
-  const [text, setText] = useState("");
+export function ShortlistScreen({
+  example = null,
+}: {
+  /**
+   * Boise's example (step 5), read on the server from the Qloo cache alone: the model's own
+   * picks fill the form, and their rows show until the buyer's first check.
+   */
+  example?: ShortlistExample | null;
+} = {}) {
+  const [festivalId, setFestivalId] = useState(
+    example?.festivalId ?? SAGEBRUSH_SOUND.id,
+  );
+  const [text, setText] = useState(example ? example.names.join("\n") : "");
   const [status, setStatus] = useState<Status>({ kind: "idle" });
-  const [result, setResult] = useState<Shortlist | null>(null);
-  // Each answered check brings its rows into view (a phone shows them under the form).
+  const [result, setResult] = useState<Shortlist | null>(
+    example?.shortlist ?? null,
+  );
+  // Each answered check brings its rows into view (a phone shows them under the form); until
+  // the first, the rows on show are the example's.
   const [answered, setAnswered] = useState(0);
   const town = TOWNS.find((entry) => entry.festival.id === festivalId);
   const checking = status.kind === "checking";
+  const showingExample = answered === 0 && result !== null && example !== null;
+  const exampleCity =
+    TOWNS.find((entry) => entry.festival.id === example?.festivalId)?.festival
+      .city ?? "";
 
   async function check(event: FormEvent) {
     event.preventDefault();
@@ -176,7 +197,16 @@ export function ShortlistScreen() {
                 )}
                 <ShortlistResults
                   shortlist={result}
-                  title={`Sorted for ${result.city}'s venues`}
+                  title={
+                    showingExample
+                      ? exampleTitle(result.city)
+                      : `Sorted for ${result.city}'s venues`
+                  }
+                  note={
+                    showingExample
+                      ? exampleNote(example.names.length, result.city)
+                      : undefined
+                  }
                   focusKey={answered}
                 />
               </>
@@ -188,9 +218,9 @@ export function ShortlistScreen() {
                 >
                   <h2 className="panel-title">Your sorted shortlist</h2>
                   <p className="panel-sub">
-                    Paste the names and press {CHECK_BUTTON}: each act&apos;s
-                    climb with {town?.festival.city ?? "the town"}&apos;s venue
-                    fans, its fee range and its genre fit print here.
+                    {example && example.festivalId === festivalId
+                      ? examplePending(example.names.length, exampleCity)
+                      : `Paste the names and press ${CHECK_BUTTON}: each act's climb with ${town?.festival.city ?? "the town"}'s venue fans, its fee range and its genre fit print here.`}
                   </p>
                 </section>
               )

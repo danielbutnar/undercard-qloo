@@ -94,6 +94,15 @@ export type ShortlistAct = z.infer<typeof ShortlistActSchema>;
 export type ShortlistVenue = z.infer<typeof ShortlistVenueSchema>;
 export type Shortlist = z.infer<typeof ShortlistSchema>;
 
+/** Boise's example (step 5): the model's own picks, and their check read from the cache. */
+export interface ShortlistExample {
+  festivalId: string;
+  /** The model's picks in its order, from its saved Without Qloo answer. */
+  names: string[];
+  /** Their check, from the Qloo cache only; null while the cache doesn't hold it. */
+  shortlist: Shortlist | null;
+}
+
 const GROUP: Record<ShortlistAct["status"], number> = {
   found: 0,
   headliner: 2,

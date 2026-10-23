@@ -143,10 +143,13 @@ function MissingRow({ act }: { act: Exclude<ShortlistAct, Found> }) {
 export function ShortlistResults({
   shortlist,
   title,
+  note,
   focusKey = 0,
 }: {
   shortlist: Shortlist;
   title: string;
+  /** A line under the title: what these names are (Boise's example). */
+  note?: string;
   /** Bumped by each check the buyer runs: the answer's heading takes focus and comes into view. */
   focusKey?: number;
 }) {
@@ -173,6 +176,7 @@ export function ShortlistResults({
         >
           {title}
         </h2>
+        {note && <p className="shortlist-intro">{note}</p>}
         <p className="panel-sub">
           {shortlist.ranked
             ? `Qloo ranks your acts for ${heads}'s fans, then again with each ${shortlist.city} venue's fans added.`

@@ -215,4 +215,4 @@ export function shortlistQloo(scores = SCORES) {
   };
 }
 
-export { id, params };
+export { fakeFetch, id, params };

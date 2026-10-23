@@ -48,6 +48,70 @@ describe("the shortlist page (WS4, step 3)", () => {
     ).toBeTruthy();
   });
 
+  it("opens Boise's page on the model's own picks and their example rows (step 5)", async () => {
+    const names = [
+      "Velvet Coyote",
+      "Marigold Static",
+      "Lowland Choir",
+      "Nobody Knows Us",
+      "Silver Mesa",
+    ];
+    render(
+      <ShortlistScreen
+        example={{
+          festivalId: SAGEBRUSH_SOUND.id,
+          names,
+          shortlist: await shortlist(),
+        }}
+      />,
+    );
+
+    expect(
+      (
+        screen.getByRole("textbox", {
+          name: /acts you've been pitched/i,
+        }) as HTMLTextAreaElement
+      ).value,
+    ).toBe(names.join("\n"));
+    const example = screen.getByRole("region", {
+      name: "Example: the model's own picks for Boise",
+    });
+    expect(
+      within(example)
+        .getAllByRole("article")
+        .map((row) => row.getAttribute("aria-label")),
+    ).toEqual([
+      "Marigold Static",
+      "Silver Mesa",
+      "Lowland Choir",
+      "Velvet Coyote",
+      "Nobody Knows Us",
+    ]);
+    expect(
+      within(example).getByText(
+        "Without Qloo, the model alone picked these 5 acts for Boise. Here Qloo sorts them by Boise's venue fans. Paste your own to check them.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("before the example is computed, opens on the picks with a way to sort them", () => {
+    render(
+      <ShortlistScreen
+        example={{
+          festivalId: SAGEBRUSH_SOUND.id,
+          names: ["Velvet Coyote", "Marigold Static"],
+          shortlist: null,
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        "The model alone picked these 2 acts for Boise, without Qloo. Press Sort them on Qloo to sort them by Boise's venue fans.",
+      ),
+    ).toBeTruthy();
+  });
+
   it("prints the rows by climb, each with its venue, fee range and genre fit", async () => {
     render(
       <ShortlistResults

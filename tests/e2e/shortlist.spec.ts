@@ -1,9 +1,11 @@
-// WS4, the buyer's shortlist (/shortlist): the page calls no Qloo on load; a check sorts the
-// pasted acts by climb, says a name Qloo doesn't know is not found, and lists its Qloo calls; the
-// limit's friendly message; a phone width. A check runs on the synthetic server only: its names
-// are invented, answered from tests/e2e/synthetic-build.ts with no network.
+// WS4, the buyer's shortlist (/shortlist): the page calls no Qloo on load and opens on Boise's
+// example, the model's own ten picks sorted from the cache; a check sorts the pasted acts by
+// climb, says a name Qloo doesn't know is not found, and lists its Qloo calls; the limit's
+// friendly message; a phone width. A check runs on the synthetic server only: its names are
+// invented, answered from tests/e2e/synthetic-build.ts with no network.
 import { expect, test, type Page } from "@playwright/test";
 import { SYNTHETIC } from "./env";
+import { SYNTHETIC_UNCHECKED_PICK, syntheticLlmOnly } from "./synthetic-build";
 
 const LEAD =
   "Paste the acts you've been pitched; Undercard sorts them by how fans of this town's venues rank them. You make every call.";
@@ -43,6 +45,47 @@ test("opens on its sentence and the form, and calls Qloo for nothing on load", a
   await expect(
     page.getByRole("button", { name: "Sort them on Qloo" }),
   ).toBeEnabled();
+  await page.waitForLoadState("networkidle");
+  expect(checks).toEqual([]);
+});
+
+test("opens Boise's page on the model's own ten picks, sorted from the cache, with no check", async ({
+  page,
+}) => {
+  test.skip(SYNTHETIC !== "1", "the synthetic server's seeded example");
+  const checks: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/api/shortlist")) checks.push(request.url());
+  });
+  await page.goto("/shortlist");
+
+  await expect(
+    page.getByRole("textbox", { name: /acts you've been pitched/i }),
+  ).toHaveValue(
+    syntheticLlmOnly()
+      .lineup.picks.map((pick) => pick.name)
+      .join("\n"),
+  );
+  const example = page.getByRole("region", {
+    name: "Example: the model's own picks for Boise",
+  });
+  const rows = example
+    .getByRole("list", { name: "Your acts, by climb" })
+    .getByRole("article");
+  await expect(rows).toHaveCount(10);
+  await expect(rows.first()).toHaveAccessibleName("Marigold Static");
+  await expect(rows.first()).toContainText(
+    "The Lantern Room's fans lift it 5 places, 6th to 1st",
+  );
+  await expect(
+    example.getByRole("article", { name: SYNTHETIC_UNCHECKED_PICK }),
+  ).toContainText("Not checked on Qloo");
+  await expect(
+    example.getByRole("article", { name: "Fern & Fable" }),
+  ).toContainText("Not found on Qloo");
+  // Read from the cache: every call listed is marked cached, and none was made.
+  const calls = page.getByRole("complementary", { name: "Qloo calls" });
+  await expect(calls.getByText("0 of 14")).toBeVisible();
   await page.waitForLoadState("networkidle");
   expect(checks).toEqual([]);
 });

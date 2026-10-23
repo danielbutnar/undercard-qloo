@@ -5,6 +5,7 @@ import {
   syntheticLlmOnly,
   syntheticPickQloo,
   syntheticSavedBuild,
+  syntheticShortlistQloo,
   syntheticSwitchBuild,
   syntheticTownBuild,
 } from "../../tests/e2e/synthetic-build";
@@ -13,6 +14,7 @@ import { handleLlmOnly } from "./llm-only";
 import { createQlooClient } from "./qloo";
 import type { QlooCache } from "./qloo-cache";
 import { createMemoryLimiter } from "./rate-limit";
+import { writeShortlistExample } from "./shortlist";
 import { assemblyFromSaved } from "./venue-switch";
 
 /**
@@ -22,7 +24,8 @@ import { assemblyFromSaved } from "./venue-switch";
  * With the build come the Qloo answers its Without Qloo checks read (prompt-4): its venue
  * lists and every pick's search but one, cached by a client whose fetch answers from the
  * invented data, never the network. The venue lists also carry WS2's no-fan-data case, and
- * Nashville's switch build's venue. Loaded only in synthetic mode.
+ * Nashville's switch build's venue; then the shortlist's Boise example (WS4). Loaded only in
+ * synthetic mode.
  */
 export async function seedSynthetic(
   cache: QlooCache,
@@ -57,5 +60,14 @@ export async function seedSynthetic(
     for (const pick of picks)
       if (pick.name !== SYNTHETIC_UNCHECKED_PICK)
         await qloo.search({ query: pick.name });
+    // The shortlist's Boise example (WS4), computed as scripts/shortlist-example.ts computes it
+    // on a real cache: the picks' searches from the cache, the rankings from invented answers.
+    await writeShortlistExample({
+      festival: SAGEBRUSH_SOUND,
+      cache,
+      apiKey: "synthetic",
+      fetch: async (input) =>
+        Response.json(syntheticShortlistQloo(new URL(String(input)))),
+    });
   }
 }

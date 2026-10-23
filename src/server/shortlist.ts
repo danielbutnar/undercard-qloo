@@ -20,12 +20,19 @@ import {
   type Repeat,
   type Shortlist,
   type ShortlistAct,
+  type ShortlistExample,
   type VenuePlaces,
 } from "@/lib/shortlist";
 import { festivalById } from "@/lib/towns";
 import { venueHues } from "@/lib/venue-colours";
-import type { BuildContext, BuildStore, SavedBuild } from "./build-store";
+import {
+  createBuildStore,
+  type BuildContext,
+  type BuildStore,
+  type SavedBuild,
+} from "./build-store";
 import { serverCachedQloo, serverQloo } from "./deps";
+import { savedLlmOnly } from "./llm-only";
 import {
   createQlooClient,
   QlooBusy,
@@ -528,4 +535,125 @@ export async function serverShortlistClients(): Promise<ShortlistClients | null>
   const live = serverQloo();
   const cached = serverCachedQloo();
   return live && cached ? { live, cached } : null;
+}
+
+/** The most insights calls computing Boise's example may make: the headliners and 3 venues. */
+export const EXAMPLE_INSIGHTS_CALLS = 4;
+
+/** A client that answers from the cache only; its fetch throws, so it can never call Qloo. */
+function cacheReader(cache: QlooCache): QlooClient {
+  return createQlooClient({
+    apiKey: "",
+    cache,
+    cacheOnly: true,
+    fetch: async () => {
+      throw new Error("The shortlist's example reads the Qloo cache only.");
+    },
+  });
+}
+
+/** The example's names: the model's own picks from the festival's saved Without Qloo answer. */
+async function examplePicks(festival: Festival, cache: QlooCache) {
+  const answer = await savedLlmOnly(festival, cache);
+  return answer ? answer.picks.map((pick) => pick.name) : null;
+}
+
+/**
+ * Step 5: the page's example, the model's own ten picks from the festival's saved Without Qloo
+ * answer, checked against its saved build from the Qloo cache alone: a cache-only client whose
+ * fetch throws, so the page never calls Qloo or the model. A pick whose search the cache doesn't
+ * hold reads "not checked". Until the cache holds the example's rankings, the picks come without
+ * rows; with no saved answer there is no example.
+ */
+export async function shortlistExample({
+  festival,
+  cache,
+  store = createBuildStore(cache),
+}: {
+  festival: Festival;
+  cache: QlooCache;
+  store?: Pick<BuildStore, "latest">;
+}): Promise<ShortlistExample | null> {
+  const names = await examplePicks(festival, cache);
+  if (!names) return null;
+  const build = await store.latest(festival.id);
+  if (!build || build.festivalId !== festival.id)
+    return { festivalId: festival.id, names, shortlist: null };
+  const reader = cacheReader(cache);
+  const shortlist = await checkShortlist({
+    festival,
+    build,
+    names,
+    budget: callBudget({
+      live: reader,
+      cached: reader,
+      cap: SHORTLIST_CALL_CAP,
+    }),
+  });
+  const found = shortlist.acts.some((act) => act.status === "found");
+  const complete =
+    !found ||
+    (shortlist.ranked && shortlist.venues.every((venue) => venue.read));
+  return {
+    festivalId: festival.id,
+    names,
+    shortlist: complete ? shortlist : null,
+  };
+}
+
+/**
+ * What scripts/shortlist-example.ts runs (and the synthetic server's seed, on invented answers):
+ * the example's check through the app's cached client on `cache`, so the page then reads it from
+ * the cache alone. The picks' searches come from the cache only (the client refuses to search);
+ * the insights calls (one for the headliners alone, one per anchor venue) may reach Qloo, at most
+ * `maxInsights` distinct ones, a retry of one being the same call. No model call.
+ */
+export async function writeShortlistExample({
+  festival,
+  cache,
+  store = createBuildStore(cache),
+  apiKey,
+  fetch,
+  maxInsights = EXAMPLE_INSIGHTS_CALLS,
+}: {
+  festival: Festival;
+  cache: QlooCache;
+  store?: Pick<BuildStore, "latest">;
+  apiKey: string;
+  fetch: typeof globalThis.fetch;
+  maxInsights?: number;
+}): Promise<{ shortlist: Shortlist; insightsCalls: number; attempts: number }> {
+  const names = await examplePicks(festival, cache);
+  if (!names)
+    throw new Error(`${festival.city} has no saved Without Qloo answer.`);
+  const build = await store.latest(festival.id);
+  if (!build || build.festivalId !== festival.id)
+    throw new Error(`${festival.city} has no saved build.`);
+  const insights = new Set<string>();
+  let attempts = 0;
+  const live = createQlooClient({
+    apiKey,
+    cache,
+    fetch: async (input, init) => {
+      const url = new URL(String(input));
+      // The picks' searches are in the cache already; one that isn't stays "not checked".
+      if (url.pathname !== "/v2/insights") throw new QlooCacheMiss();
+      insights.add(url.toString());
+      if (insights.size > maxInsights)
+        throw new Error(`over the ${maxInsights} insights calls approved`);
+      attempts++;
+      return fetch(input, init);
+    },
+  });
+  const shortlist = await checkShortlist({
+    festival,
+    build,
+    names,
+    budget: callBudget({
+      live,
+      cached: cacheReader(cache),
+      cap: SHORTLIST_CALL_CAP,
+    }),
+  });
+  return { shortlist, insightsCalls: insights.size, attempts };
 }

@@ -97,6 +97,17 @@ export function namesProblem(count: number, max: number): string | null {
   return null;
 }
 
+/** Boise's example (step 5): the model's own picks, sorted on Qloo from the cache. */
+export const exampleTitle = (city: string) =>
+  `Example: the model's own picks for ${city}`;
+
+export const exampleNote = (picks: number, city: string) =>
+  `Without Qloo, the model alone picked these ${picks} acts for ${city}. Here Qloo sorts them by ${city}'s venue fans. Paste your own to check them.`;
+
+/** The example's picks before the cache holds their rows. */
+export const examplePending = (picks: number, city: string) =>
+  `The model alone picked these ${picks} acts for ${city}, without Qloo. Press ${CHECK_BUTTON} to sort them by ${city}'s venue fans.`;
+
 /** The climb's one-line key over the rows. */
 export const CLIMB_KEY =
   "places it climbs among your acts once a venue's fans join the headliners' fans";

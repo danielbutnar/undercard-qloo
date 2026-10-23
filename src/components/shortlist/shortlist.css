@@ -57,6 +57,11 @@
   flex-direction: column;
   gap: 14px;
 }
+.chart-app .shortlist-intro {
+  margin-top: 6px;
+  font-size: var(--text-label);
+  font-weight: 700;
+}
 /* Focused after a check so it comes into view; the outline shows only for keyboard focus. */
 .chart-app .shortlist-title:focus {
   outline: none;
