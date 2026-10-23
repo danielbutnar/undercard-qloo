@@ -1,14 +1,25 @@
-import { FEE_BAND_IDS } from "@/lib/fee-bands";
-import { foundOnQloo } from "@/lib/pick-tests";
+import {
+  headlinerTagWeights,
+  sharedTags,
+  type AssemblyInput,
+} from "@/lib/assemble-lineup";
+import type { TraceCall } from "@/lib/build-events";
+import { FEE_BAND_IDS, feeBandFor } from "@/lib/fee-bands";
+import type { Festival } from "@/lib/festival";
+import { foundOnQloo, pickTests } from "@/lib/pick-tests";
 import {
   climbOf,
   distinctNames,
   placesIn,
   sameAnswer,
+  sortShortlist,
   type Climb,
   type Repeat,
+  type Shortlist,
+  type ShortlistAct,
   type VenuePlaces,
 } from "@/lib/shortlist";
+import { venueHues } from "@/lib/venue-colours";
 import type { BuildContext, SavedBuild } from "./build-store";
 import {
   QlooCacheMiss,
@@ -30,6 +41,7 @@ export type ShortlistTask<T extends unknown[]> = (
  */
 export function callBudget({
   live,
+  cap,
 }: {
   /** Calls that may reach Qloo go here (cache first, as every client reads). */
   live: QlooClient;
@@ -40,6 +52,7 @@ export function callBudget({
 }) {
   let made = 0;
   return {
+    cap,
     async run<T extends unknown[]>(
       tasks: readonly ShortlistTask<T>[],
     ): Promise<(QlooResult<T> | null)[]> {
@@ -64,8 +77,10 @@ export type CallBudget = ReturnType<typeof callBudget>;
 
 /** A pasted name on Qloo: the act it found, or why there's none. */
 export type ResolvedName =
-  | { name: string; status: "found" | "headliner"; artist: QlooEntity }
-  | { name: string; status: "not-found" | "not-checked" };
+  | { name: string; status: "found"; artist: QlooEntity }
+  | { name: string; status: "headliner"; artist: QlooEntity }
+  | { name: string; status: "not-found" }
+  | { name: string; status: "not-checked" };
 
 /**
  * Step 1: each name once, searched on Qloo as an artist; its act is the first of search's top
@@ -155,7 +170,8 @@ export async function rankShortlist({
   ranked: boolean;
   climbs: Map<string, Climb>;
   venues: RankedVenue[];
-  calls: QlooCall[];
+  /** The calls answered, in order, each with its venue (null for the headliners alone). */
+  calls: { call: QlooCall; venue: AnchorVenue | null }[];
 }> {
   const { context } = build;
   const headliners = context.headliners.map((headliner) => headliner.entityId);
@@ -211,8 +227,147 @@ export async function rankShortlist({
       noFanData: noFanData[index],
       lifts: lifted(venue.entityId),
     })),
-    calls: [alone, ...withVenue].flatMap((answer) =>
-      answer ? [answer.call] : [],
+    calls: [alone, ...withVenue].flatMap((answer, index) =>
+      answer ? [{ call: answer.call, venue: venues[index - 1] ?? null }] : [],
     ),
+  };
+}
+
+/** A Qloo call as the trace lists it (src/components/trace-panel.tsx), entity ids as names. */
+function traceCall(
+  call: QlooCall,
+  n: number,
+  tool: string,
+  summary: string,
+  names: ReadonlyMap<string, string>,
+): TraceCall {
+  return {
+    n,
+    tool,
+    endpoint: call.path,
+    summary,
+    params: call.params.map(([key, value]) => ({
+      key,
+      value: value
+        .split(",")
+        .map((part) => names.get(part) ?? part)
+        .join(", "),
+    })),
+    resultCount: call.resultCount,
+    ms: call.ms,
+    cached: call.cached,
+    ...(call.retried ? { retried: call.retried } : {}),
+  };
+}
+
+const actsWord = (count: number) => (count === 1 ? "act" : "acts");
+
+/**
+ * Step 3: a check from start to end. The names are resolved (step 1) and ranked against the
+ * town's saved build (step 2); each found act gets its fee range and genre fit the way pickTests
+ * reads them, its rows sorted by climb, and every call is listed as the trace lists a build's.
+ */
+export async function checkShortlist({
+  festival,
+  build,
+  names,
+  budget,
+}: {
+  festival: Festival;
+  build: Pick<SavedBuild, "context" | "lineup">;
+  names: readonly string[];
+  budget: CallBudget;
+}): Promise<Shortlist> {
+  const { context } = build;
+  const resolved = await resolveNames({
+    names,
+    budget,
+    headlinerIds: new Set(context.headliners.map((h) => h.entityId)),
+  });
+  const found = resolved.acts.flatMap((act) =>
+    act.status === "found" ? [act.artist] : [],
+  );
+  const ranked = await rankShortlist({ build, artists: found, budget });
+
+  // The fee range and the genres, as the booking rule reads them (pickTests, sharedTags).
+  const input: AssemblyInput = {
+    bands: festival.feeBands,
+    headliners: context.headliners,
+    comparedTags: context.comparedTags,
+    baselines: {},
+    venueRuns: [],
+  };
+  const weights = headlinerTagWeights(input);
+  const acts = resolved.acts.map((act): ShortlistAct => {
+    if (act.status === "not-found" || act.status === "not-checked")
+      return { name: act.name, status: act.status };
+    if (act.status === "headliner")
+      return { name: act.name, status: "headliner", qlooName: act.artist.name };
+    const { artist } = act;
+    return {
+      name: act.name,
+      status: "found",
+      entityId: artist.entityId,
+      qlooName: artist.name,
+      popularity: artist.popularity,
+      range: pickTests(input, artist).range,
+      band: feeBandFor(artist.popularity, festival.feeBands)?.id ?? null,
+      genres: sharedTags(artist, weights).map((tag) => tag.name),
+      ...(ranked.climbs.get(artist.entityId) ?? {
+        alone: null,
+        best: null,
+        climb: null,
+      }),
+    };
+  });
+
+  const labels = new Map<string, string>([
+    ...context.headliners.map((h): [string, string] => [h.entityId, h.name]),
+    ...ranked.venues.map(({ venue }): [string, string] => [
+      venue.entityId,
+      venue.name,
+    ]),
+    ...found.map((artist): [string, string] => [artist.entityId, artist.name]),
+  ]);
+  const count = `Your ${found.length} ${actsWord(found.length)} ranked`;
+  const calls = [
+    ...resolved.calls.map((call) => ({
+      call,
+      tool: "shortlist_search",
+      summary: `Search for "${call.params.find(([key]) => key === "query")?.[1] ?? ""}"`,
+    })),
+    ...ranked.calls.map(({ call, venue }) => ({
+      call,
+      tool: "shortlist_rank",
+      summary: venue
+        ? `${count} with ${venue.name}'s fans added`
+        : `${count} for the headliners' fans alone`,
+    })),
+  ].map(({ call, tool, summary }, index) =>
+    traceCall(call, index + 1, tool, summary, labels),
+  );
+
+  const hues = venueHues(
+    ranked.venues.map(({ venue }) => venue),
+    build.lineup.acts,
+  );
+  return {
+    festivalId: festival.id,
+    city: festival.city,
+    headliners: context.headliners.map((headliner) => headliner.name),
+    ranked: ranked.ranked,
+    acts: sortShortlist(acts),
+    venues: ranked.venues.map(({ venue, read, noFanData, lifts }) => ({
+      entityId: venue.entityId,
+      name: venue.name,
+      hue: noFanData ? null : (hues.get(venue.entityId) ?? null),
+      read,
+      noFanData,
+      lifts,
+    })),
+    repeats: resolved.repeats,
+    calls,
+    made: budget.made(),
+    cap: budget.cap,
   };
 }

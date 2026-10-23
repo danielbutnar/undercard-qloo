@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { TraceCallSchema } from "./build-events";
+import { FEE_BAND_IDS } from "./fee-bands";
 import { normalise } from "./pick-tests";
 
 /**
@@ -27,6 +30,105 @@ export function pastedNames(text: string): string[] {
 export interface Repeat {
   name: string;
   sameAs: string;
+}
+
+/** One pasted name as a check answers it; only a found act has numbers. */
+export const ShortlistActSchema = z.discriminatedUnion("status", [
+  z.object({ name: z.string(), status: z.literal("not-found") }),
+  z.object({ name: z.string(), status: z.literal("not-checked") }),
+  z.object({
+    name: z.string(),
+    status: z.literal("headliner"),
+    qlooName: z.string(),
+  }),
+  z.object({
+    /** As the buyer typed it. */
+    name: z.string(),
+    status: z.literal("found"),
+    entityId: z.string(),
+    /** As Qloo lists it. */
+    qlooName: z.string(),
+    popularity: z.number(),
+    /** Against the fee ranges, as pickTests reads it. */
+    range: z.enum(["in", "above", "below"]),
+    /** The fee range it sits inside; null above or below them all. */
+    band: z.enum(FEE_BAND_IDS).nullable(),
+    /** The genres it shares with the headliners, strongest first; the rule books on two. */
+    genres: z.array(z.string()),
+    alone: z.number().int().positive().nullable(),
+    best: z
+      .object({ venueId: z.string(), place: z.number().int().positive() })
+      .nullable(),
+    climb: z.number().int().nullable(),
+  }),
+]);
+
+/** A venue the check read: its colour on the town's lineup, null when grey. */
+export const ShortlistVenueSchema = z.object({
+  entityId: z.string(),
+  name: z.string(),
+  hue: z.number().int().nonnegative().nullable(),
+  read: z.boolean(),
+  noFanData: z.boolean(),
+  lifts: z.number().int().nonnegative(),
+});
+
+/** A check's answer, as POST /api/shortlist sends it and the page prints it. */
+export const ShortlistSchema = z.object({
+  festivalId: z.string(),
+  city: z.string(),
+  headliners: z.array(z.string()),
+  /** The headliners-alone ranking answered, so the acts have places. */
+  ranked: z.boolean(),
+  acts: z.array(ShortlistActSchema),
+  venues: z.array(ShortlistVenueSchema),
+  repeats: z.array(z.object({ name: z.string(), sameAs: z.string() })),
+  /** Every Qloo call, in order; a call the cache answered is marked cached. */
+  calls: z.array(TraceCallSchema),
+  /** The calls that reached Qloo, against the check's cap. */
+  made: z.number().int().nonnegative(),
+  cap: z.number().int().positive(),
+});
+
+export type ShortlistAct = z.infer<typeof ShortlistActSchema>;
+export type ShortlistVenue = z.infer<typeof ShortlistVenueSchema>;
+export type Shortlist = z.infer<typeof ShortlistSchema>;
+
+const GROUP: Record<ShortlistAct["status"], number> = {
+  found: 0,
+  headliner: 2,
+  "not-checked": 3,
+  "not-found": 4,
+};
+const groupOf = (act: ShortlistAct) =>
+  act.status === "found" && act.climb === null ? 1 : GROUP[act.status];
+
+/**
+ * The rows, by climb (step 3): the biggest climb first, then the better place with the venue's
+ * fans and alone; then acts Qloo couldn't place, a headliner, and names not checked or not found,
+ * each group in the buyer's order.
+ */
+export function sortShortlist(acts: readonly ShortlistAct[]): ShortlistAct[] {
+  return acts
+    .map((act, order) => ({ act, order }))
+    .sort((a, b) => {
+      const group = groupOf(a.act) - groupOf(b.act);
+      if (group !== 0) return group;
+      if (
+        a.act.status === "found" &&
+        b.act.status === "found" &&
+        a.act.climb !== null &&
+        b.act.climb !== null
+      )
+        return (
+          b.act.climb - a.act.climb ||
+          (a.act.best?.place ?? 0) - (b.act.best?.place ?? 0) ||
+          (a.act.alone ?? 0) - (b.act.alone ?? 0) ||
+          a.order - b.order
+        );
+      return a.order - b.order;
+    })
+    .map(({ act }) => act);
 }
 
 /** An act in one Qloo answer: its id and Qloo's score (query.affinity) in that answer. */

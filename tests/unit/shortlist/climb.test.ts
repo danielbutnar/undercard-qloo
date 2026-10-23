@@ -72,9 +72,14 @@ describe("the shortlist's Qloo calls (WS4, step 2)", () => {
     expect(insights.every(({ url }) => url.pathname === "/v2/insights")).toBe(
       true,
     );
-    expect(result.calls.map((call) => call.path)).toEqual(
-      Array(4).fill("/v2/insights"),
-    );
+    expect(
+      result.calls.map(({ call, venue }) => [call.path, venue?.name ?? null]),
+    ).toEqual([
+      ["/v2/insights", null],
+      ["/v2/insights", LANTERN.name],
+      ["/v2/insights", FORT.name],
+      ["/v2/insights", COTTONWOOD.name],
+    ]);
   });
 
   it("climbs by places within each call, never by raw scores across calls", async () => {

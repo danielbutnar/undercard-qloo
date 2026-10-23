@@ -1,0 +1,101 @@
+/*
+ * The buyer's shortlist (WS4): the form and the venues on white panels, the acts in the lineup's
+ * rows (chart.css: .row, .numbers-climb, .ladder, the venue colours) on the red stage. Plain CSS
+ * scoped under .chart-app .shortlist (a *.module.css gives no class map here); tokens only.
+ */
+
+.chart-app .shortlist {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 1328px;
+}
+.chart-app .shortlist-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+@media (min-width: 1100px) {
+  .chart-app .shortlist-layout {
+    grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+    gap: 24px 32px;
+  }
+}
+.chart-app .shortlist-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.chart-app .shortlist-names {
+  min-height: 15rem;
+  resize: vertical;
+  line-height: 1.4;
+}
+.chart-app .shortlist-out {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.chart-app .shortlist-status {
+  font-size: var(--text-body);
+  font-weight: 700;
+}
+.chart-app .shortlist-results {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* The venues read: each in its colour on the town's lineup, grey where Qloo had no fan data. */
+.chart-app .shortlist .shortlist-venue {
+  grid-template-columns: 36px minmax(0, 1fr);
+}
+.chart-app .shortlist .shortlist-venue.is-grey {
+  --venue: var(--color-quiet);
+  border-style: dashed;
+}
+
+/* A row: the climb, the sleeve, the name and the ladder, then its three lines under them. */
+.chart-app .shortlist .row.shortlist-row {
+  grid-template-areas:
+    "place who venue"
+    "place climb venue"
+    "place lines venue";
+  row-gap: 2px;
+}
+@media (min-width: 560px) {
+  .chart-app .shortlist .row.shortlist-row {
+    grid-template-areas:
+      "place sleeve who venue"
+      "place sleeve climb venue"
+      "place sleeve lines venue";
+  }
+}
+.chart-app .shortlist-lines {
+  grid-area: lines;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  padding-bottom: 4px;
+}
+.chart-app .shortlist-climb {
+  font-size: var(--text-label);
+  font-weight: 800;
+  line-height: 1.3;
+}
+.chart-app .shortlist .row-sleeve {
+  align-self: center;
+}
+.chart-app .shortlist-row.is-missing .row-name {
+  color: var(--color-muted);
+}
+.chart-app .shortlist-row.is-missing .row-place {
+  color: var(--color-muted);
+}
+.chart-app .shortlist-note {
+  font-size: var(--text-label);
+  font-weight: 700;
+}
