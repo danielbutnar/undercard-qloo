@@ -698,3 +698,20 @@ Done means: WS1, WS2, WS9, WS10 and WS11 merged into branch integration (WS4 if 
   - [x] On a2baf58: gate 921 unit tests in 179 files and the design scan; synthetic e2e 133 passed, 21 skipped, 0 failed (Austin's share-image 500 didn't recur); :3300 rebuilt from it: deployment-mode e2e 112 passed, 41 skipped, 1 failed (the unknown town's first 200 on a cold next start; production answers 404); the act card's pinned actions checked by eye at 1440x900 and 1366x768 (.design/shots/merge-2026-10-24/); pointers 29 of 29 at 23:36:52 UTC
   - [x] Pushed c556b1a..a2baf58 at 09:10:52 UTC on 24 October (Daniel: round 2 hadn't started; a first try at 00:04 UTC failed on DNS and pushed nothing); Vercel success at 09:11:37 UTC. Production e2e (one worker): 113 passed, 41 skipped, 0 failed; E2E_LIVE_QLOO=1 on the demo path, redraft and running order: 10 passed, 1 skipped; no new Qloo cache key in either (every request already cached). First screen: Watch in view at every laptop size, with the town's signs below the fold at 1280x720, 1366x640 and 1280x650; all 10 acts at 1440x780 and 1366x768; the first act and Watch at 390x664; no sideways scroll. Share images 1200x630 PNG; /towns/paris 404; pointers 29 of 29 at 09:18:21 UTC; smoke run 40081384998 success, its deep check "Qloo ok, Anthropic ok in 889 ms"
   - [x] Evidence: round 2's dated note amended to a2baf58 before any answer (ee5a830); a dated line under sections 18 and 26 on their pre-registered "band" (bec4a6f). Section 31's 268 stays as recorded; WS16 recounts with Altın Gün found
+
+# TASKS: Plan to 9 (Daniel, Friday 23 October, evening; .design/orchestrator/plan-to-9.md)
+
+Binding until 05:45 Bucharest on Saturday 31 October (03:45 UTC). Until Wednesday's reset (28 October, 02:00 UTC), PREP only, stopping at 95% weekly usage.
+
+- [x] WS8 finished and deployed (a2baf58, 24 October)
+- [x] PREP: WS13's brief drafted (.design/orchestrator/ws13-brief.md), with four decisions for Daniel: the call cap, the control rule, the local-lift bar, credit and split
+- [x] PREP: WS13.4's API check (.design/orchestrator/ws13-4-api-check.md): the crowd's age is already a signal; signal.location is documented for artists; no per-act trend data (bias.trends only); no published rate or quota numbers
+- [x] PREP: WS12's brief drafted (.design/orchestrator/ws12-brief.md), the approval step first
+- [x] PREP: WS14's brief and drafts of sections 37 and 38 (.design/orchestrator/ws14-brief.md); into docs/evidence.md after Daniel's check and his bar, before any call
+- [x] SPEC: WS12 to WS17 as milestones with their Done means
+- [ ] Daniel checks the three briefs and sets the bar, the cap and the control rule
+- [ ] WS14.1: sections 37 and 38 committed to docs/evidence.md, before any call
+- [ ] After the reset: WS13 and WS12 in parallel; WS14.2 when WS13.3 lands; then WS15 and WS16
+- [ ] Deploy on Daniel's yes; his panel re-run; its defects as WS18
+- [ ] The freeze, WS17 and the submission (Thursday 29 October), improved until the deadline
+- [ ] Round 2: counts into evidence 36 when the notes arrive; its Qloo calls counted against .design/orchestrator/qloo-cache-keys-round2-start.txt
