@@ -850,6 +850,10 @@ Written on 2026-10-24, before any of its calls (Daniel's plan of 23 October, sec
 
 **What each outcome means for the site.** Met: the evidence page's SHOWN stamp gives the share at 5 places. Not met: PARTLY SHOWN gives both shares, and "What these numbers don't establish" says that for most 1.0 acts the town's own part of the climb was under 5 places. Either way the product's bar follows the rule above.
 
+**Added on 2026-10-24, before any call and any data (Daniel's answers of that day).**
+- **The drift, described, not a bar.** On the run's day the run also reads each tier's headliners-only ranking for each town (2 calls a town, 58 in all) and reports how many of the 290 acts still climb at least 5 places with their town venue that day, so Qloo's drift since 17 October shows beside the result. The count is a description: it changes neither the bar nor the product's rule. With it the run costs about 380 Qloo calls, still one window.
+- **The saved builds' cache stays as it is.** No answer the run receives is written to the server's Qloo cache, whose entries the saved 1.0 builds' replays and venue switch are rebuilt from: the run's client keeps its own memory cache, reading nothing from the server's cache and writing nothing to it, and its raw answers go to .design/ only. Before the window the 29 latest pointers and Boise's What-if lineups (GET /api/venue-switch for Sagebrush Sound) are recorded; after it both are checked unchanged, and any change is reported before anything else.
+
 ## 38. An outside yardstick at real festivals, written before any call
 
 Written on 2026-10-24, before any of its calls (Daniel's plan of 23 October, section WS14, and his answers of 24 October). The bars don't change after the results are in. Counts only in this file; names stay in .design/.
@@ -872,6 +876,8 @@ Written on 2026-10-24, before any of its calls (Daniel's plan of 23 October, sec
 **The order.** After section 37 has set the bar and WS13.3 has built it, and after the 29 towns' re-runs: this test runs last, with Undercard 2.0 as built.
 
 **What each outcome means for the site.** Both bars met: a SHOWN stamp, with the hits. One met: PARTLY SHOWN, saying which. Neither: NOT SHOWN, said plainly, with the hits.
+
+**Added on 2026-10-24, before any call and any data (Daniel's answers of that day).** As in section 37, no answer this test receives overwrites the server's Qloo cache entries the saved 1.0 builds read: its runs use their own key prefix or write nothing, and keep raw answers in .design/ only. After each window the 29 latest pointers and Boise's What-if lineups are checked unchanged.
 
 ## 22. Who decides what, and what a thin town gets
 
