@@ -329,6 +329,8 @@ Written on 2026-10-18, before any of these calls. The rule doesn't change after 
 
 **The question.** Do the acts real buyers booked show more lift from their own town's venues than band-matched random acts do?
 
+*Note of 2026-10-24: "band" here means the popularity tier; it was written before the glossary.*
+
 **The festivals.** Ten real festivals in towns where Undercard has a saved build, each with the lineup of one edition as published: Treefort Music Fest 2026 (Boise; the festival's lineup page, Wayback capture of 17 April 2026, 562 names), Levitation 2025 (Austin), Live on the Green 2022 (Nashville), Lollapalooza Chicago 2025, Rock the Garden 2022 (Minneapolis), Sled Island 2026 (Calgary), Pop Montreal 2024, Le Guess Who? 2014 (Utrecht; the latest year the article lists), Pitchfork Music Festival Paris 2025, and Electric Castle 2026 (Bonțida, 30 km from Cluj-Napoca). The nine non-Treefort lineups are the acts named in each edition's section of its English Wikipedia article, read 2026-10-18. Wikipedia names only some acts for most editions, and the better-known ones, so these are partial lineups.
 
 **The venues.** Each town's venues are the anchor venues of its saved Undercard build (the venues whose fans lifted its acts), fixed before this measurement.
@@ -478,6 +480,8 @@ Written on 2026-10-18, before the candidate is shown to a judge. M9d's first-scr
 Written on 2026-10-18, before any festival is chosen and before any Qloo call. The rule doesn't change after the results are in. It runs from Wednesday 21 October, outside the protected windows.
 
 **The question.** Section 18's, on new festivals: do the acts real buyers booked show more lift from their own town's venues than band-matched random acts do?
+
+*Note of 2026-10-24: "band" here means the popularity tier; it was written before the glossary.*
 
 **The festivals.** 30 real festivals, none of section 18's ten, each in a town where Undercard has a saved build (the 29 towns Your festival lists). A town may have more than one. Each comes with the complete lineup of one edition from the festival's own site: its lineup page, live or as a Wayback Machine capture of that edition, every act it lists across all days, not Wikipedia. The 30 are listed with their pages and capture dates in .design/m8f/ before the first Qloo call. A festival is replaced only before that call, and only if its site shows no complete lineup; each replacement is recorded with its reason.
 
