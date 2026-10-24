@@ -850,6 +850,29 @@ Written on 2026-10-24, before any of its calls (Daniel's plan of 23 October, sec
 
 **What each outcome means for the site.** Met: the evidence page's SHOWN stamp gives the share at 5 places. Not met: PARTLY SHOWN gives both shares, and "What these numbers don't establish" says that for most 1.0 acts the town's own part of the climb was under 5 places. Either way the product's bar follows the rule above.
 
+## 38. An outside yardstick at real festivals, written before any call
+
+Written on 2026-10-24, before any of its calls (Daniel's plan of 23 October, section WS14, and his answers of 24 October). The bars don't change after the results are in. Counts only in this file; names stay in .design/.
+
+**The question.** Do a real festival's booked undercard acts show up more in Undercard 2.0's shortlist than in the model's alone, or than in Undercard's with foreign venues in place of the town's?
+
+**The festivals.** The 40 that sections 18 and 26 used (10 and 30), each with the headliners, town, booked undercard acts and two tiers' popularity ranges its record holds.
+
+**The three shortlists.** For each festival, each of the same size N, the number of its booked undercard acts in the record:
+- (A) Undercard 2.0 with the festival town's venues, section 37's control rule and the bar section 37's rule sets, within the cap of 28 Qloo calls: the N strongest acts that pass the rule across both tiers, in the rule's order (fewer if fewer pass).
+- (B) The model alone, with the same brief: its first N picks, not filtered by tier (its saved answer where one exists, otherwise one model call).
+- (C) Undercard 2.0 as in A, with the control town's venues in place of the town's.
+
+**Neutrality.** A hit is any of the festival's booked undercard acts in a shortlist, inside the tiers or not, and B's picks aren't filtered by tier, so no method is graded on a number it can't see. Every name is matched by its Qloo entity id, found by section 26's own search rule (the answers section 34 already holds are reused).
+
+**The bars.** A beats B if A has more hits than B at enough of the festivals where the two differ for a one-sided sign test at p ≤ 0.05; a tie doesn't count. A beats C by the same test. Reported either way: the hits per festival for A, B and C, and the totals.
+
+**The cost.** Up to 28 Qloo calls for each of A and C per festival, plus B's searches and a model call where no answer is saved: up to about 2,400 Qloo calls for the 40, fewer with the cache, in windows of at most 600 calls that Daniel names one at a time, stopping at the first rate-limit or quota answer.
+
+**The order.** After section 37 has set the bar and WS13.3 has built it, and after the 29 towns' re-runs: this test runs last, with Undercard 2.0 as built.
+
+**What each outcome means for the site.** Both bars met: a SHOWN stamp, with the hits. One met: PARTLY SHOWN, saying which. Neither: NOT SHOWN, said plainly, with the hits.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
