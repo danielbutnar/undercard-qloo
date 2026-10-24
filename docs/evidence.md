@@ -830,6 +830,26 @@ The round passes if each question passes for at least 4 of 5 people (3 of 4; all
 
 **Note of 2026-10-23, written before any answer.** The round runs remotely on the live site, not on a local build: each person opens https://undercard-daniel-51ed.vercel.app (main at a2baf58, deployed at 09:11 UTC on 24 October) on their own laptop or desktop with the browser maximized, keeps to the top of the page for 30 seconds with no scrolling, no clicking and no help, then leaves the page and answers the three questions in order, in writing, adding their screen size and whether the browser was maximized. The bar doesn't change. Watch's button on this build says "Watch the AI agent build it", with "Replays how the agent drafted Boise" under it; round 1 (section 32) saw the earlier first screen, whose button said "Watch how it picked these acts". On this build a maximized browser on a common small laptop (1366×640 or 1280×650 of page) shows the lead, Watch and 4 of the 10 acts, Act 84 among them, with the town's venue signs below the fold; 1280×720 shows 8 of the 10 with the signs below the fold, 1536×730 shows 8 of the 10 with the signs, and 1366×768 and larger all 10. Amended on 2026-10-24, still before any answer: no tester had opened the link, so the round moved from c556b1a to a2baf58 (WS8's fixes), and the sizes above are a2baf58's on production.
 
+## 37. The control test across the 29 towns, written before any call
+
+Written on 2026-10-24, before any of its calls (Daniel's plan of 23 October, section WS14, and his answers of 24 October). The bar, the measure and the rule that sets the product's bar don't change after the results are in. Counts only in this file; names stay in .design/.
+
+**The question.** How much of a 1.0 booking is the town's own? Each of the 290 acts the 29 saved builds booked climbed at least 5 places in Qloo's ranking when one of its town's venues' fans joined the headliners'. If a venue abroad of the same kind and popularity lifts it nearly as far, most of that climb isn't the town's.
+
+**Why on the 1.0 builds.** Undercard 2.0 will book only acts whose local lift reaches its bar, so its own lineups would pass by construction. The 1.0 builds' acts were booked without the test, so they show how often the town's part of a climb reaches the bar on its own.
+
+**The matched control.** For each venue a build read, in each tier it read that venue for: the control town is section 34's Control A town for the festival's town (the next of the 29 checked towns in alphabetical order that is in another country, wrapping round from Wrexham to Aarhus); the control venue is that town's music room (the live-music-venue tag the agent's find_venues uses) whose Qloo popularity is closest to the town venue's, ties by name. A control Qloo has no fan data for (its answer carries Qloo's warning that the venue wasn't scored) is skipped for the next closest; if no music room in the control town has fan data, the act has no local lift and counts as not reaching the bar.
+
+**The measure.** An act's local lift is its climb with the town's venue minus its climb with the matched control, in its tier's popularity range, against the same headliners-only ranking. The headliners' place cancels, so it equals the act's place with the control's fans added minus its place with the town venue's fans added. A place outside the top 50 a call returns counts as 51st. Both rankings are measured on the run's day, with a fresh memory cache, so a change in Qloo's data between 17 October and the run doesn't enter the comparison.
+
+**The bar.** The premise holds for 1.0's bookings if at least half of the 290 acts (145 or more) have a local lift of at least 5 places. Reported with it: the share at 3 places, both shares by town and by tier, and how many controls were skipped for no fan data.
+
+**The product's bar, set by this test (Daniel's rule of 24 October, written now).** Undercard 2.0 books an act only if its local lift is at least 5 places when this test's bar is met, and at least 3 places when it isn't. In both cases the act must still climb at least 5 places with the town's venue, as in 1.0. The bar is one constant in the code (WS13.3), set from this result before the 29 towns are re-run.
+
+**The cost.** For each town: one find_venues in its control town, then one call for the town's venue and one for its control per venue read per tier, plus any next-closest control after a skip: about 320 Qloo calls for the 29, in one window Daniel names, stopping at the first rate-limit or quota answer.
+
+**What each outcome means for the site.** Met: the evidence page's SHOWN stamp gives the share at 5 places. Not met: PARTLY SHOWN gives both shares, and "What these numbers don't establish" says that for most 1.0 acts the town's own part of the climb was under 5 places. Either way the product's bar follows the rule above.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
