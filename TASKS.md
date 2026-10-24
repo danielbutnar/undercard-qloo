@@ -709,9 +709,10 @@ Binding until 05:45 Bucharest on Saturday 31 October (03:45 UTC). Until Wednesda
 - [x] PREP: WS12's brief drafted (.design/orchestrator/ws12-brief.md), the approval step first
 - [x] PREP: WS14's brief and drafts of sections 37 and 38 (.design/orchestrator/ws14-brief.md); into docs/evidence.md after Daniel's check and his bar, before any call
 - [x] SPEC: WS12 to WS17 as milestones with their Done means
-- [ ] Daniel checks the three briefs and sets the bar, the cap and the control rule
-- [ ] WS14.1: sections 37 and 38 committed to docs/evidence.md, before any call
-- [ ] After the reset: WS13 and WS12 in parallel; WS14.2 when WS13.3 lands; then WS15 and WS16
+- [x] Daniel checked the three briefs (24 October): cap 28 calls a live run, 10 live builds per IP and 50 a day; the control rule with a skip for a control without fan data; the bar set by section 37's rule (5 places if half the 290 1.0 acts reach it, otherwise 3); no "rising" mark; Narrator by hand; the printable poster at a size next/og renders reliably; his answers are in each brief
+- [x] WS14.1: sections 37 (9f2a6b2, with the rule that sets 2.0's bar) and 38 (dede98e) committed to docs/evidence.md, before any call
+- [ ] Before WS13's deploy: remind Daniel to set LIVE_BUILDS_GLOBAL_PER_DAY=50 in Vercel Production
+- [ ] After the reset: WS13 and WS12 in parallel (WS12 sends step 0's screenshots first); section 37 first (one window Daniel names), then the bar, then WS13.3 and the re-runs, then section 38 (windows of at most 600 calls); then WS15 and WS16
 - [ ] Deploy on Daniel's yes; his panel re-run; its defects as WS18
 - [ ] The freeze, WS17 and the submission (Thursday 29 October), improved until the deadline
 - [ ] Round 2: counts into evidence 36 when the notes arrive; its Qloo calls counted against .design/orchestrator/qloo-cache-keys-round2-start.txt
