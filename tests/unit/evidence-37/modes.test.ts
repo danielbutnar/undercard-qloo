@@ -74,6 +74,7 @@ describe("settingsFrom", () => {
       maxCalls: null,
       resume: false,
       spacingMs: 1200,
+      side: false,
     });
     expect(settingsFrom({ DRY: "1" }).mode).toBe("dry");
     expect(() => settingsFrom({ LIVE: "1" })).toThrow(/MAX_CALLS/);
@@ -93,7 +94,13 @@ describe("settingsFrom", () => {
         RESUME: "1",
         SPACING_MS: "0",
       }),
-    ).toEqual({ mode: "live", maxCalls: 400, resume: true, spacingMs: 0 });
+    ).toEqual({
+      mode: "live",
+      maxCalls: 400,
+      resume: true,
+      spacingMs: 0,
+      side: false,
+    });
     expect(() =>
       settingsFrom({ LIVE: "1", MAX_CALLS: "5", SPACING_MS: "-1" }),
     ).toThrow(/SPACING_MS/);

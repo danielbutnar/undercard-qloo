@@ -13,6 +13,7 @@ import {
 import {
   callKey,
   controlFestivalFor,
+  entitiesParams,
   placesParams,
   popularitiesOf,
   rankingOf,
@@ -46,7 +47,19 @@ export interface Settings {
   /** Carry on from the record's answers. */
   resume: boolean;
   spacingMs: number;
+  /** The side check (section 37's reading 5), its own phase after the main run. */
+  side?: boolean;
 }
+
+/**
+ * Section 37's reading 5, a side check that isn't part of the bar: for these towns, each venue's
+ * control is also read in section 34's control town, by the same room rule.
+ */
+export const SECTION_34_CONTROL_TOWNS: Readonly<Record<string, string>> = {
+  Bucharest: "Calgary",
+  Montreal: "Oslo",
+  Tallinn: "Utrecht",
+};
 
 export function settingsFrom(
   env: Partial<Record<string, string | undefined>>,
@@ -67,6 +80,7 @@ export function settingsFrom(
     maxCalls: live ? Number(raw) : null,
     resume: env.RESUME === "1",
     spacingMs: spacing === undefined ? SPACING_MS : Number(spacing),
+    side: env.SIDE === "1",
   };
 }
 
@@ -111,12 +125,72 @@ export function planCalls(
   festivals: readonly FestivalInput[],
   towns: readonly CheckedTown[],
 ): PlanRow[] {
+  return planWith(festivals, festivals, new Set(), (own) =>
+    controlFestivalFor(festivals, towns, own),
+  );
+}
+
+/**
+ * The side check's calls, once the main run's are made: only those the main run doesn't make,
+ * which leaves the side controls (at most one per venue run, before any skip).
+ */
+export function planSide(
+  festivals: readonly FestivalInput[],
+  towns: readonly CheckedTown[],
+  sideControls: Readonly<Record<string, string>> = SECTION_34_CONTROL_TOWNS,
+): PlanRow[] {
   const planned = new Set<string>();
+  planWith(festivals, festivals, planned, (own) =>
+    controlFestivalFor(festivals, towns, own),
+  );
+  return planWith(
+    festivals,
+    sideFestivals(festivals, sideControls),
+    planned,
+    (own) => sideControlFor(festivals, sideControls, own),
+  );
+}
+
+const sideFestivals = (
+  festivals: readonly FestivalInput[],
+  sideControls: Readonly<Record<string, string>>,
+) => festivals.filter((entry) => entry.town.city in sideControls);
+
+function sideControlFor(
+  festivals: readonly FestivalInput[],
+  sideControls: Readonly<Record<string, string>>,
+  own: FestivalInput,
+): FestivalInput {
+  const found = festivals.find(
+    (entry) => entry.town.city === sideControls[own.town.city],
+  );
+  if (!found) throw new Error(`No side control town for ${own.town.city}.`);
+  return found;
+}
+
+function planWith(
+  all: readonly FestivalInput[],
+  festivals: readonly FestivalInput[],
+  planned: Set<string>,
+  controlOf: (own: FestivalInput) => FestivalInput,
+): PlanRow[] {
   const fresh = (key: string) => !planned.has(key) && !!planned.add(key);
-  return festivals.map((own, index) => {
-    const control = controlFestivalFor(festivals, towns, own);
-    const entities = index === 0 ? 1 : 0;
+  return festivals.map((own) => {
+    const control = controlOf(own);
     const { build, festival } = own;
+    // The run's first festival checks its venues on /entities (one call, planned once).
+    const entities =
+      all.indexOf(own) === 0 &&
+      fresh(
+        callKey(
+          "/entities",
+          entitiesParams([
+            ...new Set(venueRunsOf(build).map((run) => run.venue.entityId)),
+          ]),
+        ),
+      )
+        ? 1
+        : 0;
     const headliners = build.context.headliners.map((entry) => entry.entityId);
     const ages = ageBuckets(
       festival.crowdAge.min,
@@ -458,6 +532,8 @@ export async function runControlTest37({
   template,
   now = Date.now,
   sleep,
+  mainRecord,
+  sideControls = SECTION_34_CONTROL_TOWNS,
 }: {
   settings: Settings;
   /** The server's cache: only the build store reads it, read-only. */
@@ -475,8 +551,26 @@ export async function runControlTest37({
   template?: string;
   now?: () => number;
   sleep?: (ms: number) => Promise<void>;
+  /** The side check: the main run's record, read only, so its answers aren't asked again. */
+  mainRecord?: RunRecord;
+  sideControls?: Readonly<Record<string, string>>;
 }): Promise<{ code: 0 | 2; summary?: Summary }> {
   const festivals = await readFestivals({ serverCache, towns, pinned });
+  if (settings.side)
+    return runSide({
+      settings,
+      festivals,
+      towns,
+      record,
+      mainRecord,
+      sideControls,
+      fetch,
+      apiKey,
+      log,
+      write,
+      now,
+      sleep,
+    });
   const plan = planCalls(festivals, towns);
   log({ checks: checksOf(festivals) });
   for (const row of plan)
@@ -623,4 +717,227 @@ export async function runControlTest37({
   }
   log({ summary, checks: firstChecks(record.answers()) });
   return { code: 0, summary };
+}
+
+const lift = (value: number | null) =>
+  value === null ? "none" : String(value);
+
+/**
+ * The side check (section 37's reading 5, not part of the bar): for the towns in sideControls,
+ * each venue's control is read in section 34's control town as well, by the same room rule, and
+ * each act's local lift is reported both ways. Its own phase, run after the main run: its own
+ * record (side-answers.ndjson), MAX_CALLS and RESUME, with the main run's answers read, never
+ * asked again. The page carries counts and lifts, no names.
+ */
+async function runSide({
+  settings,
+  festivals,
+  towns,
+  record,
+  mainRecord,
+  sideControls,
+  fetch,
+  apiKey,
+  log,
+  write,
+  now,
+  sleep,
+}: {
+  settings: Settings;
+  festivals: readonly FestivalInput[];
+  towns: readonly CheckedTown[];
+  record: RunRecord;
+  mainRecord: RunRecord | undefined;
+  sideControls: Readonly<Record<string, string>>;
+  fetch: typeof globalThis.fetch;
+  apiKey: string | undefined;
+  log: (line: unknown) => void;
+  write: (name: string, text: string) => void;
+  now: () => number;
+  sleep?: (ms: number) => Promise<void>;
+}): Promise<{ code: 0 | 2 }> {
+  const plan = planSide(festivals, towns, sideControls);
+  for (const row of plan)
+    log({
+      side: true,
+      town: row.city,
+      control: controlFestivalFor(
+        festivals,
+        towns,
+        festivals.find((entry) => entry.festival.id === row.festivalId)!,
+      ).town.city,
+      sideControl: row.controlCity,
+      venueRuns: row.venueRuns,
+      acts: row.acts,
+      plan: row.calls,
+    });
+  const total = plan.reduce((sum, row) => sum + row.calls.total, 0);
+  const saved = record.answers().length;
+  const known = mainRecord?.answers() ?? [];
+  if (settings.mode === "dry") {
+    log({
+      dry: true,
+      side: true,
+      towns: plan.length,
+      controlsAtMost: plan.reduce(
+        (sum, row) => sum + row.calls.controlsAtMost,
+        0,
+      ),
+      total,
+      plus: "one call per control skipped for no fan data; any of the main run's calls its record lacks",
+      mainAnswers: known.length,
+      savedAnswers: saved,
+      calls: 0,
+    });
+    return { code: 0 };
+  }
+  if (saved > 0 && !settings.resume)
+    throw new Error(
+      `The side record holds ${saved} answers from an earlier side run: RESUME=1 carries on from them; move them aside to start afresh.`,
+    );
+  if (!apiKey) throw new Error("QLOO_API_KEY is not set.");
+  log({
+    live: true,
+    side: true,
+    maxCalls: settings.maxCalls,
+    total,
+    mainAnswers: known.length,
+  });
+
+  const client = createRunClient({
+    apiKey,
+    fetch,
+    record,
+    maxCalls: settings.maxCalls!,
+    spacingMs: settings.spacingMs,
+    resume: settings.resume,
+    known,
+    now,
+    ...(sleep ? { sleep } : {}),
+  });
+  const done: { main: FestivalResult; side: FestivalResult }[] = [];
+  let stopped: StopInfo | null = null;
+  for (const own of sideFestivals(festivals, sideControls)) {
+    // The same /entities lookups as the main run made for this festival, so they're its answers.
+    const options = { probeEntities: festivals.indexOf(own) === 0 };
+    try {
+      const main = await runFestival(
+        client.ask,
+        own,
+        controlFestivalFor(festivals, towns, own),
+        options,
+      );
+      const side = await runFestival(
+        client.ask,
+        own,
+        sideControlFor(festivals, sideControls, own),
+        options,
+      );
+      done.push({ main, side });
+      const [a] = summarise([main], { towns: 1 }).byTown;
+      const [b] = summarise([side], { towns: 1 }).byTown;
+      log({
+        side: true,
+        town: own.town.city,
+        control: main.controlCity,
+        sideControl: side.controlCity,
+        acts: a.acts,
+        atBar: [a.atBar, b.atBar],
+        atFallback: [a.atFallback, b.atFallback],
+      });
+    } catch (error) {
+      if (!(error instanceof RunStopped || error instanceof UnreadableAnswer))
+        throw error;
+      stopped = {
+        reason: error instanceof RunStopped ? error.reason : "unreadable",
+        detail: error instanceof RunStopped ? error.detail : error.message,
+        festival: own.festival.id,
+        town: own.town.city,
+      };
+      break;
+    }
+  }
+
+  const acts = done.flatMap(({ main, side }) =>
+    main.acts.map((act, index) => ({
+      town: main.city,
+      festivalId: main.festivalId,
+      entityId: act.entityId,
+      name: act.name,
+      band: act.band,
+      venue: act.venue,
+      control: main.controlCity,
+      sideControl: side.controlCity,
+      main: act.localLift,
+      side: side.acts[index].localLift,
+      venueNoFanData: act.venueNoFanData,
+    })),
+  );
+  const towns37 = done.map(({ main, side }) => {
+    const [a] = summarise([main], { towns: 1 }).byTown;
+    const [b] = summarise([side], { towns: 1 }).byTown;
+    return {
+      town: main.city,
+      control: main.controlCity,
+      sideControl: side.controlCity,
+      acts: a.acts,
+      atBar: { main: a.atBar, side: b.atBar },
+      atFallback: { main: a.atFallback, side: b.atFallback },
+    };
+  });
+  write(
+    "side-result.json",
+    `${JSON.stringify(
+      {
+        ranAt: new Date(now()).toISOString(),
+        complete: done.length === plan.length,
+        stopped,
+        requests: {
+          thisRun: client.counts().attempts,
+          all: record.attempts().length,
+        },
+        towns: towns37,
+        acts,
+      },
+      null,
+      1,
+    )}\n`,
+  );
+  const tier = (band: FeeBandId) =>
+    band === "mid" ? "Mid-size range" : "Opening range";
+  write(
+    "side-result.md",
+    [
+      `**Side check (section 37's reading 5), not part of the bar.** For ${towns37.length} of ${plan.length} towns, each venue's control was read in section 34's control town as well as section 37's, by the same room rule. ${record.attempts().length} Qloo requests of its own, the main run's answers read, not asked again${stopped ? `; it stopped (${stopped.reason}) at ${stopped.town}, and RESUME=1 carries on` : ""}.`,
+      "",
+      "| Town | Control town (section 37) | Control town (section 34) | Acts | Local lift ≥ 5, section 37's | Local lift ≥ 5, section 34's | Local lift ≥ 3, section 37's | Local lift ≥ 3, section 34's |",
+      "|---|---|---|---|---|---|---|---|",
+      ...towns37.map(
+        (town) =>
+          `| ${town.town} | ${town.control} | ${town.sideControl} | ${town.acts} | ${town.atBar.main} | ${town.atBar.side} | ${town.atFallback.main} | ${town.atFallback.side} |`,
+      ),
+      "",
+      "| Town | Fee range | Local lift, section 37's control | Local lift, section 34's control |",
+      "|---|---|---|---|",
+      ...acts.map(
+        (act) =>
+          `| ${act.town} | ${tier(act.band)} | ${lift(act.main)} | ${lift(act.side)}${act.venueNoFanData ? " (town venue without fan data that day)" : ""} |`,
+      ),
+      "",
+    ].join("\n"),
+  );
+  if (stopped) {
+    log({
+      stopped: stopped.reason,
+      side: true,
+      detail: stopped.detail,
+      town: stopped.town,
+      townsDone: done.length,
+      requestsThisRun: client.counts().attempts,
+      next: "RESUME=1 SIDE=1 with a new MAX_CALLS carries on without repeating a call",
+    });
+    return { code: 2 };
+  }
+  log({ side: true, done: true, towns: towns37 });
+  return { code: 0 };
 }

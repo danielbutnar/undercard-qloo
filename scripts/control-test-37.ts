@@ -16,6 +16,10 @@
 //                           answer it can't use, writing what it has and saying where it stopped.
 //   RESUME=1                with LIVE=1, carries on from .design/evidence-37/ without repeating a
 //                           call (a completed run, resumed, makes no call and rewrites the results).
+//   SIDE=1                  the side check (section 37's reading 5), its own phase after the main
+//                           run: with DRY=1 its plan, with LIVE=1 MAX_CALLS=<n> (and RESUME=1) its
+//                           calls, into side-answers.ndjson, side-result.json and side-result.md,
+//                           reading the main run's answers rather than asking them again.
 //
 // It loads <main folder>/.env.local in place (or ENV_FILE), printing nothing from it. From the
 // repository root or a worktree:
@@ -68,7 +72,8 @@ const { code } = await runControlTest37({
   serverCache: cache,
   pinned: JSON.parse(readFileSync(PINNED, "utf8")),
   towns: CHECKED_TOWNS,
-  record: fileRecord(OUT),
+  record: fileRecord(OUT, settings.side ? "side-" : ""),
+  mainRecord: fileRecord(OUT),
   fetch: globalThis.fetch,
   apiKey: process.env.QLOO_API_KEY,
   log: print,

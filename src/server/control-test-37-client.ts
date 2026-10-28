@@ -85,6 +85,7 @@ export function createRunClient({
   sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   now = Date.now,
   resume = false,
+  known = [],
 }: {
   apiKey: string;
   baseUrl?: string;
@@ -97,8 +98,11 @@ export function createRunClient({
   now?: () => number;
   /** Start from the record's answers, so none is asked again. */
   resume?: boolean;
+  /** Answers another phase of the same run received (the side check reads the main run's). */
+  known?: readonly SavedAnswer[];
 }) {
   const memory = new Map<string, unknown>();
+  for (const answer of known) memory.set(answer.key, answer.body);
   if (resume)
     for (const answer of record.answers()) memory.set(answer.key, answer.body);
   let number = record
@@ -256,9 +260,9 @@ function readLines<T>(file: string): T[] {
  * The record in a folder, one JSON line per answer (answers.ndjson) and per attempt
  * (attempts.ndjson), appended as they come so a stop or a crash loses nothing.
  */
-export function fileRecord(dir: string): RunRecord {
-  const answersFile = join(dir, "answers.ndjson");
-  const attemptsFile = join(dir, "attempts.ndjson");
+export function fileRecord(dir: string, prefix = ""): RunRecord {
+  const answersFile = join(dir, `${prefix}answers.ndjson`);
+  const attemptsFile = join(dir, `${prefix}attempts.ndjson`);
   const started = new Set<string>();
   const append = (file: string, value: unknown) => {
     mkdirSync(dir, { recursive: true });
