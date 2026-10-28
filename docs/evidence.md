@@ -865,6 +865,8 @@ The 29 builds share their headliners, crowd age and tiers, so the headliners-onl
 
 **Result, 2026-10-28 (06:55 to 07:08 UTC, 08:55 to 09:08 Bucharest): bar met, 244 of the 290 acts at a local lift of 5 places or more (the bar was 145); 253 at 3 or more. So, by section 37's rule, Undercard 2.0's bar is 5 places.** 246 Qloo requests from scripts/control-test-37.ts, one at a time, every one answered, none retried; the dry run planned 285 before any skip. Every ranking was read in this run by the script's own client, which read nothing from the server's Qloo cache and wrote nothing to it.
 
+**In one sentence (Daniel's wording, 2026-10-28).** 244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a matched music room abroad.
+
 | Town | Control town | Acts | Local lift ≥ 5 | Local lift ≥ 3 | Still climb ≥ 5 that day | No scored control |
 |---|---|---|---|---|---|---|
 | Boise | Bucharest | 10 | 6 | 7 | 10 | 0 |
@@ -989,6 +991,7 @@ A description of the code, not a measurement, so the method page can point to it
 
 ## What these numbers don't establish
 
+- These acts were chosen because they climbed with that venue, so a different venue lifting them less is partly built into the test. Whether a town's venues point to the acts its real festivals book is section 38's question. (Section 37, added 2026-10-28.)
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
 - That a town's crowd knows the undercard acts: section 6 found no usable measure of it.
 - That every room behind a bill is a club: a festival park or an arena can still draft one (section 10).
