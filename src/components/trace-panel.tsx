@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { TraceCall } from "@/lib/build-events";
 import type { BuildState } from "@/lib/build-state";
 import { callWords } from "@/components/chart/words";
+import { noFanDataCallLine } from "@/lib/agent-words";
 
 const CALL_CAP = 12;
 
@@ -94,6 +95,10 @@ export function CallRow({
         </ul>
       )}
       {call.error && <p className="alert">{call.error}</p>}
+      {/* WS13.1: Qloo's warning reached the agent, which skips the venue. */}
+      {call.noFanData && (
+        <p className="trace-note">{noFanDataCallLine(call.noFanData)}</p>
+      )}
       {after.map((text, index) => (
         <PlannerLine key={index} text={text} />
       ))}

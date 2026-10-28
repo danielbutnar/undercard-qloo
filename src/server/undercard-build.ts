@@ -9,6 +9,7 @@ import type { AgentModel } from "./ai";
 import type { BuildStore, SavedBuild } from "./build-store";
 import { QlooCacheMiss, type QlooClient } from "./qloo";
 import type { LimitResult, RateLimiter } from "./rate-limit";
+import { readerFor, savedRanking } from "./saved-reads";
 
 type Emit = (event: BuildEvent) => void;
 
@@ -85,6 +86,7 @@ export async function replayClimbs(
 ): Promise<Map<number, ClimbEvent>> {
   const out = new Map<number, ClimbEvent>();
   if (!qloo) return out;
+  const reader = readerFor(saved, qloo);
   const { context } = saved;
   const pair = context.headliners.map((headliner) => headliner.entityId);
   const lists = saved.trace.flatMap((call, index) => {
@@ -105,14 +107,18 @@ export async function replayClimbs(
   const answers = await Promise.all(
     lists.map(async ({ band, venue }) => {
       try {
-        const { data } = await qloo.artists({
-          signalEntityIds: venue ? [...pair, venue.entityId] : pair,
-          popularityMin: band.minPopularity,
-          popularityMax: band.maxPopularity,
-          excludeEntityIds: pair,
-          ages: context.ages ?? [],
-        });
-        return data;
+        return await savedRanking(
+          saved,
+          reader,
+          {
+            signalEntityIds: venue ? [...pair, venue.entityId] : pair,
+            popularityMin: band.minPopularity,
+            popularityMax: band.maxPopularity,
+            excludeEntityIds: pair,
+            ages: context.ages ?? [],
+          },
+          venue !== undefined,
+        );
       } catch (error) {
         if (!(error instanceof QlooCacheMiss)) throw error;
         return null;
@@ -291,6 +297,9 @@ export async function handleUndercardBuild({
         lineup: result.lineup,
         context: result.context,
         notes,
+        // Agent 2.0 (WS13): its venue reads are scored reads, under the prefix its client used.
+        engine: 2,
+        cachePrefix: qlooClient.cachePrefix,
       });
     }
   });

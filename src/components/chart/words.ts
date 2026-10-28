@@ -158,16 +158,24 @@ export const ANCHORS_KEY = "Anchors are the venues whose fans it reads.";
  * Qloo had no fan data for that venue (`noFanData`, entity ids), the sentence says so instead.
  */
 export function switchLine(
-  { from, to, acts }: Pick<AgentSwitch, "from" | "to" | "acts">,
+  {
+    from,
+    to,
+    acts,
+    because,
+  }: Pick<AgentSwitch, "from" | "to" | "acts" | "because">,
   noFanData: readonly string[] = [],
 ): string {
-  // The order, not a reason (WS8): the agent doesn't see Qloo's no-fan-data warning.
   const come =
     acts === 0
       ? "No act comes"
       : acts === 1
         ? "1 act comes"
         : `${acts} acts come`;
+  // A 2.0 build (WS13.1): Qloo's warning reached the agent, so the reason is true.
+  if (because === "no-fan-data")
+    return `Qloo had no fan data for ${from.name}, so the agent read ${to.name}. ${come} from that read.`;
+  // The order, not a reason (WS8): a 1.0 agent didn't see Qloo's no-fan-data warning.
   return noFanData.includes(from.entityId)
     ? `Qloo had no fan data for ${from.name}; the agent read ${to.name} next. ${come} from that read.`
     : `${from.name}'s fans moved no act onto the lineup; the agent read ${to.name} next. ${come} from that read.`;

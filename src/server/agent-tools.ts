@@ -3,7 +3,8 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { liftsOver, MIN_LIFT } from "@/lib/assemble-lineup";
 import { ageBuckets } from "@/lib/ages";
-import type { BuildEvent } from "@/lib/build-events";
+import type { BuildEvent, TraceCall } from "@/lib/build-events";
+import { rankingUnchanged } from "@/lib/fan-data";
 import { FEE_BAND_IDS, type FeeBandId } from "@/lib/fee-bands";
 import { roomKind } from "@/lib/place-kinds";
 import {
@@ -20,6 +21,7 @@ import {
   type QlooEntity,
   type QlooResult,
   type QlooTag,
+  type ScoredArtists,
 } from "./qloo";
 
 /** The most Qloo calls one build may make (SPEC.md, M2). Cached answers count too. */
@@ -42,6 +44,8 @@ export interface AgentState {
     band: FeeBandId;
     artists: QlooEntity[];
   }[];
+  /** Venues Qloo had no fan data for (WS13.1), by entity id: never read again. */
+  noFanData: Set<string>;
   finished: { anchorVenueIds: string[]; summary: string } | null;
 }
 
@@ -196,6 +200,7 @@ export function createToolbox({
     comparedTags: [],
     baselines: {},
     venueRuns: [],
+    noFanData: new Set(),
     finished: null,
   };
   const names = new Map<string, string>();
@@ -230,6 +235,8 @@ export function createToolbox({
     request: () => Promise<QlooResult<T>>,
     /** A fuller line for the trace, once the answer is in (M6j's resolved place). */
     describe?: (data: T) => string,
+    /** What the answer adds to the call's trace line (WS13.1: Qloo had no fan data). */
+    mark?: (data: T) => Pick<TraceCall, "noFanData">,
   ) {
     if (used >= cap)
       throw new BudgetSpent(
@@ -241,7 +248,10 @@ export function createToolbox({
       const { data, call } = await request();
       emit({
         type: "call",
-        call: traceOf(n, tool, describe ? describe(data) : summary, call),
+        call: {
+          ...traceOf(n, tool, describe ? describe(data) : summary, call),
+          ...mark?.(data),
+        },
       });
       return data;
     } catch (error) {
@@ -433,16 +443,31 @@ export function createToolbox({
         throw new ToolMisuse(
           `Unknown venue ${venue_id}: pick an entity_id from find_venues.`,
         );
+      // WS13.1: Qloo's fan data is a venue's, not a tier's (evidence 35: every venue unscored in
+      // one fee range was unscored in all), so a venue without it is never read again.
+      if (state.noFanData.has(venue.entityId))
+        return {
+          band,
+          venue: venue.name,
+          fan_data: false,
+          note: `Qloo had no fan data for ${venue.name} on an earlier read, so no call was made. Read the next music room instead.`,
+        };
       // A park, arena or stadium is named on its line (M6l); booking doesn't read the label.
       const kind = roomKind(venue.tags, venue.keywords);
       const kindNote = kind ? ` (${kind})` : "";
       const range = festival.feeBands.find((entry) => entry.id === band)!;
-      const artists = await callQloo(
+      const baseline = state.baselines[band];
+      // Qloo's not_found warning names the venue; or, with no warning, its ranking is the
+      // headliners' own, score for score (section 35: exactly the venues Qloo left unscored).
+      const lacksFanData = (answer: ScoredArtists) =>
+        answer.unscored.includes(venue.entityId) ||
+        (baseline !== undefined && rankingUnchanged(baseline, answer.entities));
+      const answer = await callQloo(
         "venue_artists",
         "/v2/insights",
         `${bandLabel(band)}-band artists for the headliners and ${venue.name}${kindNote}${ageNote}`,
         () =>
-          qloo.artists({
+          qloo.scoredArtists({
             signalEntityIds: [
               ...pair.map((headliner) => headliner.entityId),
               venue.entityId,
@@ -452,20 +477,30 @@ export function createToolbox({
             excludeEntityIds: pair.map((headliner) => headliner.entityId),
             ages: crowd.buckets,
           }),
+        undefined,
+        (data) => (lacksFanData(data) ? { noFanData: venue.name } : {}),
       );
-      const climbBase = state.baselines[band];
-      if (climbBase)
-        emit(climbAfter(band, range, venue, climbBase, artists));
+      const artists = answer.entities;
+      const noFanData = lacksFanData(answer);
+      if (noFanData) state.noFanData.add(venue.entityId);
+      if (baseline) emit(climbAfter(band, range, venue, baseline, artists));
       state.venueRuns.push({
         venue: kind ? { ...venue, kind } : venue,
         band,
         artists,
       });
-      const baseline = state.baselines[band];
+      if (noFanData)
+        return {
+          band,
+          venue: venue.name,
+          fan_data: false,
+          note: `Qloo had no fan data for ${venue.name}: it left the venue out of the signal, so this ranking is the headliners' own and lifts no act. Skip ${venue.name} for every tier and read the next music room in its place.`,
+        };
       if (!baseline)
         return {
           band,
           venue: venue.name,
+          fan_data: true,
           count: artists.length,
           note: "Fetch this band's baseline to measure the lift.",
         };
@@ -475,6 +510,7 @@ export function createToolbox({
       return {
         band,
         venue: venue.name,
+        fan_data: true,
         count: artists.length,
         acts_lifted_5_or_more_places: lifted.length,
         top_lifted: lifted.slice(0, 6).map((entry) => entry.artist.name),

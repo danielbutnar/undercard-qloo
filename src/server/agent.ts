@@ -21,7 +21,7 @@ A build that works:
 1. search_artist for each booked headliner, and find_tag for the tag Qloo puts on live music venues (entity_type place). These don't depend on each other: call them together.
 2. find_venues with that tag. Choose two anchor venues that are music rooms: clubs, music halls, art spaces that book shows. Skip restaurants, cafes, breweries, theaters and arenas; their audiences say little about an undercard.
 3. compare_headliners, and baseline_artists for each fee band, together.
-4. venue_artists for each anchor venue and each fee band, together. If a venue lifts almost no acts in a band and calls remain, you may try one other music room for that band.
+4. venue_artists for each anchor venue and each fee band, together. If a result says Qloo had no fan data for a venue, skip that venue for every band and read the next music room from find_venues in its place. If a venue lifts almost no acts in a band and calls remain, you may try one other music room for that band.
 5. finish, naming the anchor venues and the plan in one sentence.
 
 Use only entity ids and tag ids that tools returned. Don't pick acts or invent numbers yourself: the app books the acts each venue lifts most, from Qloo's data.

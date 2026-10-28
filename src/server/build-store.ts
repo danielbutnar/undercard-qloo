@@ -50,6 +50,16 @@ export const SavedBuildSchema = z.object({
   notes: z
     .array(z.object({ at: z.number().int().nonnegative(), text: z.string() }))
     .optional(),
+  /**
+   * 2 for a build Agent 2.0 made (WS13): its venue reads keep Qloo's warnings (the scored read),
+   * so its replay and venue switch read them back that way. Absent on 1.0 builds.
+   */
+  engine: z.literal(2).optional(),
+  /**
+   * The Qloo cache prefix the build's answers sit under, which its replay and venue switch read
+   * (WS13, Daniel 2026-10-24). Absent on 1.0 builds, which read src/lib/qloo's QLOO_CACHE_PREFIX.
+   */
+  cachePrefix: z.string().optional(),
 });
 
 export type BuildContext = z.infer<typeof BuildContextSchema>;

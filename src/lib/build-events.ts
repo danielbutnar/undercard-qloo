@@ -16,6 +16,11 @@ export const TraceCallSchema = z.object({
   /** Busy answers (429, 5xx) the call was retried after; a retry isn't a new call. */
   retried: z.array(z.number().int()).optional(),
   error: z.string().optional(),
+  /**
+   * The venue this call read, when Qloo had no fan data for it (WS13.1): Qloo's not_found warning
+   * named it, or its ranking was the headliners' own, score for score. Absent on 1.0 builds.
+   */
+  noFanData: z.string().optional(),
 });
 
 /** The events POST /api/undercard streams, one JSON object per line. */

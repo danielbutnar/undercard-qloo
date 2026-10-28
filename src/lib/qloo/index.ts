@@ -2,7 +2,9 @@
 // endpoint, the shared GET in ./core.ts, the client assembled in ./client.ts.
 export { createQlooClient, type QlooClient } from "./client";
 export {
+  AGENT_CACHE_PREFIX,
   QLOO_BASE_URL,
+  QLOO_CACHE_PREFIX,
   QLOO_RETRY,
   QlooBusy,
   QlooCacheMiss,
@@ -15,3 +17,4 @@ export {
   type QlooTag,
 } from "./core";
 export type { ActShares, InputShare } from "./explain";
+export type { ArtistsQuery, ScoredArtists } from "./insights";

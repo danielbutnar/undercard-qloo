@@ -13,6 +13,7 @@ import type { BuildStore, SavedBuild } from "./build-store";
 import { serverBuildStore, serverCachedQloo } from "./deps";
 import { QlooCacheMiss, type QlooClient } from "./qloo";
 import { syntheticMode } from "./qloo-cache";
+import { readerFor, savedRanking } from "./saved-reads";
 
 // The labels a venue's trace line can carry after its name (M6l, M6o; src/lib/place-kinds.ts).
 const KINDS = [
@@ -42,6 +43,7 @@ export async function assemblyFromSaved(
   qloo: QlooClient,
 ): Promise<AssemblyInput | null> {
   const { context } = saved;
+  const reader = readerFor(saved, qloo);
   const pair = context.headliners.map((headliner) => headliner.entityId);
   const runs: { band: FeeBand; venue: VenueRef }[] = [];
   for (const call of saved.trace) {
@@ -70,15 +72,18 @@ export async function assemblyFromSaved(
       runs.map(async ({ band, venue }) => ({
         venue,
         band: band.id,
-        artists: (
-          await qloo.artists({
+        artists: await savedRanking(
+          saved,
+          reader,
+          {
             signalEntityIds: [...pair, venue.entityId],
             popularityMin: band.minPopularity,
             popularityMax: band.maxPopularity,
             excludeEntityIds: pair,
             ages: context.ages ?? [],
-          })
-        ).data,
+          },
+          true,
+        ),
       })),
     );
   } catch (error) {

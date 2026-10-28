@@ -6,8 +6,8 @@ import {
   serverBuildStore,
   serverLimiter,
   serverCachedQloo,
+  serverAgentQloo,
   serverModel,
-  serverQloo,
 } from "@/server/deps";
 import { clientIp } from "@/server/rate-limit";
 import { handleUndercardBuild, ndjsonResponse } from "@/server/undercard-build";
@@ -32,7 +32,7 @@ export async function POST(request: Request): Promise<Response> {
       });
     return handleUndercardBuild({
       festival: yourFestival(brief.data, `yours-${crypto.randomUUID().slice(0, 8)}`),
-      qloo: serverQloo,
+      qloo: serverAgentQloo,
       model: serverModel,
       store: serverBuildStore(),
       fresh: true,
@@ -50,7 +50,7 @@ export async function POST(request: Request): Promise<Response> {
   const body = Body.safeParse(raw);
   return handleUndercardBuild({
     festival,
-    qloo: serverQloo,
+    qloo: serverAgentQloo,
     model: serverModel,
     store: serverBuildStore(),
     fresh: body.success ? (body.data.fresh ?? false) : false,

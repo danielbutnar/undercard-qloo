@@ -96,6 +96,20 @@ export const VENUES = [
   { n: 203, name: "Sagebrush Diner", kind: "Restaurant" },
 ] as const;
 
+/**
+ * WS13 item 1: a music room Qloo has no fan data for. Its answers carry Qloo's not_found warning
+ * (the shape section 35's raw answers show) and rank the headliners' own list, score for score.
+ */
+export const NO_FAN_DATA_VENUE = {
+  n: 204,
+  name: "Larkspur Music Hall",
+  kind: "Live music venue",
+} as const;
+
+/** The invented town whose venue list holds it, second, between two rooms with fan data. */
+export const LARKSPUR = "Larkspur";
+const LARKSPUR_VENUES = [VENUES[0], NO_FAN_DATA_VENUE, VENUES[1], VENUES[2]];
+
 const BAND_SPECS = {
   mid: { min: 0.8, span: 0.12, base: 1000, label: "Mid" },
   opener: { min: 0.55, span: 0.24, base: 2000, label: "Opener" },
@@ -179,8 +193,10 @@ export function syntheticQloo(url: URL): unknown {
     url.pathname === "/v2/insights" &&
     p["filter.type"] === "urn:entity:place"
   ) {
+    const listed =
+      p["filter.location.query"] === LARKSPUR ? LARKSPUR_VENUES : VENUES;
     return insightsBody(
-      VENUES.map((venue) => ({
+      listed.map((venue) => ({
         name: venue.name,
         entity_id: syntheticId(venue.n),
         types: ["urn:entity:place"],
@@ -210,11 +226,23 @@ export function syntheticQloo(url: URL): unknown {
             venueN,
             baseline.map((row) => row.rank),
           );
-    return insightsBody(
+    const body = insightsBody(
       order.map((rank, position) =>
         baseline[rank].entity(0.95 - position * 0.001),
       ),
     );
+    // Qloo leaves a venue it has no fan data for out of the signal, and says so.
+    return venueN === NO_FAN_DATA_VENUE.n
+      ? {
+          ...body,
+          warnings: [
+            {
+              type: "not_found",
+              "signal.interests.entities": [syntheticId(NO_FAN_DATA_VENUE.n)],
+            },
+          ],
+        }
+      : body;
   }
   return new Response("{}", { status: 404 });
 }
