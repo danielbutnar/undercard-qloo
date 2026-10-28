@@ -1,6 +1,6 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { ageBuckets } from "@/lib/ages";
-import { stopOf, type StopLine } from "@/lib/agent-words";
+import { shortLine, stopOf, type StopLine } from "@/lib/agent-words";
 import { assembleLineup, type AssemblyInput } from "@/lib/assemble-lineup";
 import type { LocalPick } from "@/lib/local-pick";
 import type { BuildEvent } from "@/lib/build-events";
@@ -81,6 +81,8 @@ export interface AgentResult {
   localPicks?: LocalPick[];
   /** The planner's one sentence on its plan and why it stopped (WS13.7), saved with the build. */
   plan?: string;
+  /** The venues a failed call left unchecked, and the page's line (Daniel, 2026-10-28). */
+  short?: { venues: string[]; text: string };
 }
 
 /**
@@ -194,6 +196,13 @@ export async function runUndercardAgent({
   });
   const lineup = acts.length > 0 ? { festivalId: festival.id, acts } : null;
   emit({ type: "stopped", ...stopped });
+  // Daniel, 2026-10-28: a venue a failed call left unchecked is said, never passed over.
+  const unchecked = toolbox.state.unchecked;
+  const short =
+    unchecked.length > 0
+      ? { venues: [...unchecked], text: shortLine(unchecked) }
+      : undefined;
+  if (short) emit({ type: "short", ...short });
   if (lineup) emit({ type: "lineup", lineup });
   const localPicks = toolbox.state.localPicks;
   if (localPicks.length > 0) emit({ type: "local-pick", picks: localPicks });
@@ -217,6 +226,7 @@ export async function runUndercardAgent({
     ...(toolbox.state.finished?.summary.trim()
       ? { plan: toolbox.state.finished.summary.trim() }
       : {}),
+    ...(short ? { short } : {}),
   };
 }
 

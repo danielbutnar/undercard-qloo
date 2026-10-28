@@ -192,3 +192,17 @@ export const controlCallLine = ({
     : controlFor
       ? `The matched venue abroad for ${controlFor}: the room closest in Qloo popularity.`
       : null;
+
+/**
+ * The page's line when a failed Qloo call left venues unchecked (Daniel, 2026-10-28): the run
+ * tried each call twice, and these venues' acts couldn't be weighed, so the bill may be short.
+ */
+export function shortLine(venues: readonly string[]): string {
+  const names =
+    venues.length <= 1
+      ? venues.join("")
+      : `${venues.slice(0, -1).join(", ")} and ${venues[venues.length - 1]}`;
+  return venues.length === 1
+    ? `Qloo didn't answer for ${names}, so it wasn't checked: this bill may be short.`
+    : `Qloo didn't answer for ${names}, so they weren't checked: this bill may be short.`;
+}

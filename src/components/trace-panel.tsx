@@ -328,6 +328,12 @@ export function TracePanel({
         {state.stopped && state.calls.length > 0 && (
           <p className="trace-line">{state.stopped.text}</p>
         )}
+        {/* Daniel, 2026-10-28: a venue a failed call left unchecked, and the bill may be short. */}
+        {state.short && (
+          <p role="status" className="alert">
+            {state.short.text}
+          </p>
+        )}
       </div>
     </aside>
   );

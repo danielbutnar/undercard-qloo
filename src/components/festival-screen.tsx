@@ -1453,6 +1453,12 @@ export function FestivalScreen({
             ? "The AI agent is drafting the undercard."
             : "No undercard drafted yet."}
       </p>
+      {/* Daniel, 2026-10-28: a venue a failed Qloo call left unchecked; the bill may be short. */}
+      {state.short && !without && (
+        <p role="status" className="drafted">
+          {state.short.text}
+        </p>
+      )}
     </>
   );
 

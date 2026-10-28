@@ -77,6 +77,8 @@ export interface AgentState {
   noFanData: Set<string>;
   /** The AI's local picks Qloo's search found (WS13.5): for the buyer to check, never booked. */
   localPicks: LocalPick[];
+  /** Venues a call that failed twice left unchecked, in order (Daniel, 2026-10-28). */
+  unchecked: string[];
   finished: {
     anchorVenueIds: string[];
     summary: string;
@@ -306,6 +308,7 @@ export function createToolbox({
     venueRuns: [],
     noFanData: new Set(),
     localPicks: [],
+    unchecked: [],
     finished: null,
   };
   const names = new Map<string, string>();
@@ -323,7 +326,7 @@ export function createToolbox({
   const controlsWithout = new Set<string>();
   const controlRankings = new Map<string, Promise<ScoredArtists>>();
 
-  function roomsAbroad(): Promise<QlooEntity[]> {
+  function roomsAbroad(venue: string): Promise<QlooEntity[]> {
     if (!controlTown || !venueTag) return Promise.resolve([]);
     const tag = venueTag;
     const town = controlTown;
@@ -336,6 +339,9 @@ export function createToolbox({
         "/v2/insights",
         summary,
         () => qloo.places({ locationQuery: town.city, tagId: tag }),
+        undefined,
+        undefined,
+        { unchecked: venue, short: true },
       );
       if (!needsFullName(plain, town.region)) return plain;
       const fullName = `${town.city}, ${town.region}`;
@@ -344,6 +350,9 @@ export function createToolbox({
         "/v2/insights",
         `${summary}, asked again as “${fullName}”`,
         () => qloo.places({ locationQuery: fullName, tagId: tag }),
+        undefined,
+        undefined,
+        { unchecked: venue, short: true },
       );
       return placesInRegion([plain, full], town.region).places;
     })();
@@ -364,8 +373,15 @@ export function createToolbox({
     if (!controlTown) return null;
     let rooms: QlooEntity[];
     try {
-      rooms = await roomsAbroad();
-    } catch {
+      rooms = await roomsAbroad(venue.name);
+    } catch (error) {
+      if (error instanceof QlooBusy) throw error;
+      // The control town's search failed twice: this venue wasn't checked (Daniel, 14:10).
+      if (
+        !(error instanceof BudgetSpent) &&
+        !state.unchecked.includes(venue.name)
+      )
+        state.unchecked.push(venue.name);
       return null;
     }
     const range = festival.feeBands.find((entry) => entry.id === band)!;
@@ -401,11 +417,19 @@ export function createToolbox({
                   ? { noFanData: room.name }
                   : {}),
               }),
+              { unchecked: venue.name, short: true },
             ),
           );
         answer = await controlRankings.get(key)!;
-      } catch {
-        // The cap is spent or the call failed: no control, so this run books nothing.
+      } catch (error) {
+        if (error instanceof QlooBusy) throw error;
+        // The cap is spent: no control. A call that failed twice: this venue wasn't checked, and
+        // its line says so (Daniel, 2026-10-28), never a silent "no control".
+        if (
+          !(error instanceof BudgetSpent) &&
+          !state.unchecked.includes(venue.name)
+        )
+          state.unchecked.push(venue.name);
         return null;
       }
       if (
@@ -476,7 +500,12 @@ export function createToolbox({
     /** A fuller line for the trace, once the answer is in (M6j's resolved place). */
     describe?: (data: T) => string,
     /** What the answer adds to the call's trace line (Qloo had no fan data; the planner's line). */
-    mark?: (data: T) => Pick<TraceCall, "noFanData" | "why">,
+    mark?: (data: T) => Pick<TraceCall, "noFanData" | "why" | "controlFor">,
+    /**
+     * What the call leaves unchecked if it fails twice (Daniel, 2026-10-28): its trace line says
+     * so, and a venue among them makes the page say the bill may be short.
+     */
+    failure?: { unchecked: string; short: boolean },
   ) {
     if (used >= cap)
       throw new BudgetSpent(
@@ -484,36 +513,58 @@ export function createToolbox({
       );
     const n = ++used;
     const started = Date.now();
-    try {
-      const { data, call } = await request();
-      emit({
-        type: "call",
-        call: {
-          ...traceOf(n, tool, describe ? describe(data) : summary, call),
-          ...mark?.(data),
-        },
-      });
-      return data;
-    } catch (error) {
-      const message = describeFailure(error);
-      console.error(`[undercard] ${tool} (${endpoint}) failed: ${message}`);
-      emit({
-        type: "call",
-        call: {
+    // Daniel, 2026-10-28: a failed or busy call is tried once more before the run moves on; the
+    // retry rides on the call's own line, as the client's own retries do.
+    const retried: number[] = [];
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const { data, call } = await request();
+        const line = traceOf(
           n,
           tool,
-          endpoint,
-          summary,
-          params: [],
-          resultCount: null,
-          ms: Date.now() - started,
-          cached: false,
-          error: message,
-        },
-      });
-      // Qloo stayed busy past the build's budget: the whole build stops, not just this tool.
-      if (error instanceof QlooBusy) throw error;
-      throw new ToolMisuse(message);
+          describe ? describe(data) : summary,
+          call,
+        );
+        emit({
+          type: "call",
+          call: {
+            ...line,
+            ...(retried.length
+              ? { retried: [...retried, ...(line.retried ?? [])] }
+              : {}),
+            ...mark?.(data),
+          },
+        });
+        return data;
+      } catch (error) {
+        if (attempt === 0) {
+          retried.push(error instanceof QlooError ? error.status : 0);
+          continue;
+        }
+        const message = describeFailure(error);
+        console.error(`[undercard] ${tool} (${endpoint}) failed: ${message}`);
+        if (failure?.short && !state.unchecked.includes(failure.unchecked))
+          state.unchecked.push(failure.unchecked);
+        emit({
+          type: "call",
+          call: {
+            n,
+            tool,
+            endpoint,
+            summary,
+            params: [],
+            resultCount: null,
+            ms: Date.now() - started,
+            cached: false,
+            retried,
+            error: message,
+            ...(failure ? { unchecked: failure.unchecked } : {}),
+          },
+        });
+        // Qloo stayed busy past the build's budget: the whole build stops, not just this tool.
+        if (error instanceof QlooBusy) throw error;
+        throw new ToolMisuse(message);
+      }
     }
   }
 
@@ -727,6 +778,7 @@ export function createToolbox({
           ...(lacksFanData(data) ? { noFanData: venue.name } : {}),
           ...(why?.trim() ? { why: why.trim() } : {}),
         }),
+        { unchecked: venue.name, short: true },
       );
       const artists = answer.entities;
       const noFanData = lacksFanData(answer);
@@ -885,6 +937,12 @@ export function createToolbox({
               ages: crowd.buckets,
               ...(locationQuery ? { locationQuery } : {}),
             }),
+          undefined,
+          undefined,
+          {
+            unchecked: `the location reading for ${band.id === "mid" ? "mid-size" : "opening"} acts`,
+            short: false,
+          },
         );
       try {
         const [alone, located] = await Promise.all([ask(), ask(town)]);

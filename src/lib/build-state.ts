@@ -60,6 +60,8 @@ export interface BuildState {
   localPicks: LocalPick[];
   /** The local picks the buyer added to the bill, by entity id. */
   added: string[];
+  /** The venues a failed Qloo call left unchecked, and the page's line on it; null when none. */
+  short: { venues: string[]; text: string } | null;
 }
 
 export const IDLE_BUILD: BuildState = {
@@ -90,6 +92,7 @@ export const IDLE_BUILD: BuildState = {
   stopped: null,
   localPicks: [],
   added: [],
+  short: null,
 };
 
 /** The board the first screen opens on: the saved build's acts, ready to replay or refill. */
@@ -321,6 +324,11 @@ export function buildReducer(
           };
         case "local-pick":
           return { ...state, localPicks: event.picks };
+        case "short":
+          return {
+            ...state,
+            short: { venues: event.venues, text: event.text },
+          };
         case "status":
           return {
             ...state,
