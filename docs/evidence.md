@@ -981,6 +981,16 @@ Written on 2026-10-24, before any of its calls (Daniel's plan of 23 October, sec
 
 **Added on 2026-10-24, before any call and any data (Daniel's answers of that day).** As in section 37, no answer this test receives overwrites the server's Qloo cache entries the saved 1.0 builds read: its runs use their own key prefix or write nothing, and keep raw answers in .design/ only. After each window the 29 latest pointers and Boise's What-if lineups are checked unchanged.
 
+**Added on 2026-10-28, before any call (Daniel's answers of that day).** Four readings of the text above, settled before the script's first call:
+- **A hit** is any act on the festival's lineup except its headliners, matched by its Qloo entity id. The bars use this count; the narrower count, only the record's N booked undercard acts, is reported beside it.
+- **C runs the agent with the control town as the town**, so each of its venues is matched with its own control, never with itself.
+- **The same brief for all three.** A, B and C answer the same default brief (a crowd of 25 to 34, a capacity of 3,000, 4 mid-size and 6 opening slots, named "Your festival"), so the model alone never sees the real festival's name.
+- **N of 12.** For the four festivals whose record holds 12 booked undercard acts, all three shortlists are capped at 10, so the three stay the same size.
+
+The model calls (B's, and the planner's turns in A and C) go one at a time, with no SDK retries, and the run stops at the first rate-limit answer from the model as well as from Qloo. Before the probe, Daniel gets the expected model spend; the run stops for his word if the actual spend passes 1.5 times that.
+
+**A known limit.** From the headliners and the town, the model alone may recall a real lineup from its training. That would favour B, so it works against A, not for it.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
@@ -994,6 +1004,8 @@ A description of the code, not a measurement, so the method page can point to it
 ## What these numbers don't establish
 
 - These acts were chosen because they climbed with that venue, so a different venue lifting them less is partly built into the test. Whether a town's venues point to the acts its real festivals book is section 38's question. (Section 37, added 2026-10-28.)
+- The control room is matched on Qloo popularity alone, not on size or style: one small club's control was an arena, another venue's a pool bar. A control that draws a different crowd makes the bar easier to clear. (Section 37, added 2026-10-28.)
+- Every control is abroad, so a local lift can reflect the country as much as the town: one opening act clears the bar in all four US demo towns. (Section 37, added 2026-10-28.)
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
 - That a town's crowd knows the undercard acts: section 6 found no usable measure of it.
 - That every room behind a bill is a club: a festival park or an arena can still draft one (section 10).
