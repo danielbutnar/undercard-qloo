@@ -54,11 +54,11 @@ describe("the result page section 37 gets", () => {
       "2026-10-28 (10:00 to 10:00 UTC, 12:00 to 12:00 Bucharest)",
     );
     expect(page).toContain("| Alder | Birch | 3 | 1 | 2 | 3 | 0 |");
-    expect(page).toContain("| Birch | Cedar | 1 | 1 | 1 | 1 | 0 |");
+    expect(page).toContain("| Birch | Cedar | 1 | 0 | 0 | 1 | 1 |");
     expect(page).toContain("| Cedar | Birch | 1 | 0 | 0 | 0 | 0 |");
-    expect(page).toContain("| Mid-size range | 3 | 2 | 3 |");
+    expect(page).toContain("| Mid-size range | 3 | 1 | 2 |");
     expect(page).toContain("| Opening range | 2 | 0 | 0 |");
-    expect(page).toMatch(/17 Qloo requests/);
+    expect(page).toMatch(/18 Qloo requests/);
   });
 
   it("carries counts only: no act's or venue's name, no entity id", async () => {
@@ -89,6 +89,10 @@ const summary = (atBar: number, atFallback: number): Summary => ({
   },
   venueRuns: 125,
   controlsSkipped: 0,
+  controlsSkippedByWarning: 0,
+  controlsSkippedByEqualRanking: 0,
+  venueRunsWithoutControl: 0,
+  controlTownsWithoutFanData: 0,
   roomsSkipped: 0,
   noScoredControl: 0,
   noVenuePopularity: 0,
@@ -96,7 +100,6 @@ const summary = (atBar: number, atFallback: number): Summary => ({
   popularityFromEntities: 0,
   venuesUnscoredToday: 0,
   venuesLikeHeadliners: 0,
-  controlsLikeHeadliners: 0,
   barMet: atBar >= 145,
   productBar: atBar >= 145 ? 5 : 3,
 });

@@ -70,12 +70,12 @@ describe("section 37's run, on a synthetic world", () => {
         localLift: 2,
         climb: 14,
       },
-      // Birch Cellar's control is Cedar Yard.
+      // Neither of Cedar's rooms moves the mid range's ranking: no control, no local lift.
       m40: {
         headlinersOnly: 40,
         venue: 1,
-        control: 40,
-        localLift: 39,
+        control: null,
+        localLift: null,
         climb: 39,
       },
       // On the run's day Cedar Room's ranking no longer lists the act: 51st.
@@ -89,7 +89,7 @@ describe("section 37's run, on a synthetic world", () => {
     });
   });
 
-  it("matches each venue read, in each tier, to the closest scored room, skipping an unscored one", async () => {
+  it("matches each venue read, in each tier, to the closest room with fan data, skipping one Qloo warns about or whose ranking is the headliners' own", async () => {
     const { ask } = memoAsk();
     const runs = (await runAll(ask)).flatMap((result) =>
       result.venueRuns.map((run) => ({
@@ -99,7 +99,9 @@ describe("section 37's run, on a synthetic world", () => {
         popularity: run.venue.popularity,
         from: run.venue.popularityFrom,
         control: run.control?.entityId ?? null,
-        skipped: run.skipped.map((room) => room.entityId),
+        skipped: run.skipped.map(
+          (room) => `${room.entityId} (${room.because})`,
+        ),
       })),
     );
     expect(runs).toEqual([
@@ -110,7 +112,7 @@ describe("section 37's run, on a synthetic world", () => {
         popularity: 0.7,
         from: "find_venues",
         control: "v-b2",
-        skipped: ["v-b1"],
+        skipped: ["v-b1 (warning)"],
       },
       {
         town: "Alder",
@@ -128,7 +130,7 @@ describe("section 37's run, on a synthetic world", () => {
         popularity: 0.7,
         from: "find_venues",
         control: "v-b2",
-        skipped: ["v-b1"],
+        skipped: ["v-b1 (warning)"],
       },
       {
         town: "Birch",
@@ -136,8 +138,8 @@ describe("section 37's run, on a synthetic world", () => {
         venue: "v-b2",
         popularity: 0.72,
         from: "find_venues",
-        control: "v-c2",
-        skipped: [],
+        control: null,
+        skipped: ["v-c2 (equal ranking)", "v-c1 (equal ranking)"],
       },
       {
         town: "Cedar",
@@ -145,8 +147,8 @@ describe("section 37's run, on a synthetic world", () => {
         venue: "v-c1",
         popularity: 0.6,
         from: "find_venues",
-        control: "v-b4",
-        skipped: [],
+        control: "v-b2",
+        skipped: ["v-b4 (equal ranking)", "v-b1 (warning)"],
       },
     ]);
   });
@@ -180,7 +182,8 @@ describe("section 37's run, on a synthetic world", () => {
       // Birch: its own rooms and Birch Cellar's mid ranking were already read for Alder.
       "places Cedar",
       "mid v-c2",
-      // Cedar: everything but its venue and its control was already read.
+      "mid v-c1",
+      // Cedar: Birch Bar's and Birch Cellar's opening rankings were already read for Alder.
       "opener v-c1",
       "opener v-b4",
     ]);
@@ -227,7 +230,9 @@ describe("section 37's run, on a synthetic world", () => {
       ],
     );
     const summary = summarise(results, { towns: TOWNS.length });
-    expect(summary.noScoredControl).toBe(4);
+    // Alder's three acts and Cedar's have no room with fan data in Birch; Birch's act none in
+    // Cedar, whose rooms leave the ranking as it was.
+    expect(summary.noScoredControl).toBe(5);
     // Birch Cellar, Birch's own venue, is unscored too: its ranking is the headliners' own,
     // and its answer says so. Both are counted, so a run can tell whether warnings come back.
     expect(results[1].venueRuns[0]).toMatchObject({
@@ -236,9 +241,16 @@ describe("section 37's run, on a synthetic world", () => {
     });
     expect(summary.venuesUnscoredToday).toBe(1);
     expect(summary.venuesLikeHeadliners).toBe(1);
-    // Alder's three venue runs and Cedar's one tried all four of Birch's rooms with a popularity.
-    expect(summary.controlsSkipped).toBe(16);
-    expect(summary.roomsSkipped).toBe(4);
+    // Alder's three venue runs and Cedar's one tried all four of Birch's rooms with a popularity,
+    // each with a warning; Birch's tried both of Cedar's, each with an equal ranking.
+    expect(summary).toMatchObject({
+      controlsSkipped: 18,
+      controlsSkippedByWarning: 16,
+      controlsSkippedByEqualRanking: 2,
+      roomsSkipped: 6,
+      venueRunsWithoutControl: 5,
+      controlTownsWithoutFanData: 2,
+    });
   });
 
   it("counts the acts at a local lift of 5 and of 3, by town and by tier, the skips and the same day's climbs", async () => {
@@ -248,20 +260,23 @@ describe("section 37's run, on a synthetic world", () => {
       complete: true,
       towns: 3,
       acts: 5,
-      atBar: 2,
-      atFallback: 3,
-      noScoredControl: 0,
+      atBar: 1,
+      atFallback: 2,
+      noScoredControl: 1,
       noVenuePopularity: 0,
-      controlsSkipped: 2,
-      roomsSkipped: 1,
+      // Birch Bar warned twice for Alder and once for Cedar; Cedar Yard's and Cedar Room's mid
+      // rankings and Birch Loft's opening ranking are the headliners' own.
+      controlsSkipped: 6,
+      controlsSkippedByWarning: 3,
+      controlsSkippedByEqualRanking: 3,
+      roomsSkipped: 4,
+      venueRunsWithoutControl: 1,
+      controlTownsWithoutFanData: 1,
       stillClimb: 4,
       venueRuns: 5,
       popularityFromEntities: 1,
       venuesUnscoredToday: 0,
       venuesLikeHeadliners: 0,
-      // Cedar Yard's mid ranking and Birch Loft's opener ranking are the headliners' own,
-      // with no warning: a description, not a skip.
-      controlsLikeHeadliners: 2,
     });
     expect(summary.byTown).toEqual([
       {
@@ -277,10 +292,10 @@ describe("section 37's run, on a synthetic world", () => {
         city: "Birch",
         controlCity: "Cedar",
         acts: 1,
-        atBar: 1,
-        atFallback: 1,
+        atBar: 0,
+        atFallback: 0,
         stillClimb: 1,
-        noScoredControl: 0,
+        noScoredControl: 1,
       },
       {
         city: "Cedar",
@@ -293,7 +308,7 @@ describe("section 37's run, on a synthetic world", () => {
       },
     ]);
     expect(summary.byTier).toEqual({
-      mid: { acts: 3, atBar: 2, atFallback: 3 },
+      mid: { acts: 3, atBar: 1, atFallback: 2 },
       opener: { acts: 2, atBar: 0, atFallback: 0 },
     });
   });

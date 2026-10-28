@@ -1,8 +1,9 @@
 /**
  * The control rule (Daniel's of 24 October): how much of an act's climb is its town's own. A
  * venue's matched control is the music room in the control town whose Qloo popularity is
- * closest to the venue's, ties by name; a room Qloo reports unscored is skipped for the next
- * closest, and with none scored there is no control and no local lift. An act's local lift is
+ * closest to the venue's, ties by name; a room with no fan data (Qloo warns it wasn't scored, or
+ * its ranking is the headliners' own) is skipped for the next closest, and with none left there
+ * is no control and no local lift. An act's local lift is
  * its place with the control's fans added minus its place with the venue's fans added, a place
  * outside the top 50 counting as 51st.
  *
@@ -77,11 +78,42 @@ export async function matchControl<R extends Room>(
 
 type Ranking = readonly (string | { entityId: string })[];
 
+const idOf = (entry: string | { entityId: string }) =>
+  typeof entry === "string" ? entry : entry.entityId;
+
+/** Two rankings with the same acts in the same order; an empty one never matches. */
+export function sameRanking(a: Ranking, b: Ranking): boolean {
+  return (
+    a.length > 0 &&
+    a.length === b.length &&
+    a.every((entry, index) => idOf(entry) === idOf(b[index]))
+  );
+}
+
+/** Why Qloo used none of an input's fans. */
+export type NoFanData = "warning" | "equal ranking";
+
+/**
+ * Whether an input's answer shows no fan data: Qloo warned it wasn't scored, or, with no warning,
+ * the ranking is the one without the input, entity for entity and in order (the app's own rule,
+ * src/lib/fan-data.ts). Null when the input moved the ranking.
+ */
+export function noFanData({
+  warned,
+  ranking,
+  without,
+}: {
+  warned: boolean;
+  ranking: Ranking;
+  without: Ranking;
+}): NoFanData | null {
+  if (warned) return "warning";
+  return sameRanking(ranking, without) ? "equal ranking" : null;
+}
+
 /** An act's place in a ranking, from 1; outside the top 50, or missing, it is 51st. */
 export function placeIn(ranking: Ranking, actId: string): number {
-  const index = ranking.findIndex(
-    (entry) => (typeof entry === "string" ? entry : entry.entityId) === actId,
-  );
+  const index = ranking.findIndex((entry) => idOf(entry) === actId);
   return index < 0 || index >= RANKED_PLACES ? OUTSIDE_PLACE : index + 1;
 }
 

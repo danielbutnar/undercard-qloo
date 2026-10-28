@@ -4,6 +4,7 @@ import {
   controlCandidates,
   localLift,
   matchControl,
+  noFanData,
   OUTSIDE_PLACE,
   placeIn,
 } from "@/lib/control-venue";
@@ -139,5 +140,39 @@ describe("climb and localLift", () => {
 
   it("local lift: none without a scored control", () => {
     expect(localLift("f", withVenue, null)).toBeNull();
+  });
+});
+
+describe("noFanData", () => {
+  const without = ["a", "b", "c"];
+
+  it("is a warning when Qloo says it didn't score the input", () => {
+    expect(noFanData({ warned: true, ranking: ["c", "a"], without })).toBe(
+      "warning",
+    );
+  });
+
+  it("with no warning, is an equal ranking when adding the input changed nothing, entity for entity and in order", () => {
+    expect(
+      noFanData({ warned: false, ranking: ["a", "b", "c"], without }),
+    ).toBe("equal ranking");
+    expect(
+      noFanData({
+        warned: false,
+        ranking: [{ entityId: "a" }, { entityId: "b" }, { entityId: "c" }],
+        without,
+      }),
+    ).toBe("equal ranking");
+  });
+
+  it("is none when the ranking moved, or when there is nothing to compare", () => {
+    expect(
+      noFanData({ warned: false, ranking: ["b", "a", "c"], without }),
+    ).toBeNull();
+    expect(
+      noFanData({ warned: false, ranking: ["a", "b"], without }),
+    ).toBeNull();
+    // As src/lib/fan-data.ts: an empty ranking never counts.
+    expect(noFanData({ warned: false, ranking: [], without: [] })).toBeNull();
   });
 });

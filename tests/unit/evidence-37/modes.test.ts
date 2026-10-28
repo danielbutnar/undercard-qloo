@@ -193,26 +193,26 @@ describe("LIVE: at most MAX_CALLS, stopping at the first 429, and RESUME", () =>
     const world = worldFetch();
     const outcome = await run({ fetch: world.fetch });
     expect(outcome.code).toBe(0);
-    expect(world.requests).toHaveLength(17);
-    expect(outcome.record.answers()).toHaveLength(17);
+    expect(world.requests).toHaveLength(18);
+    expect(outcome.record.answers()).toHaveLength(18);
     expect(outcome.summary).toMatchObject({
       complete: true,
       acts: 5,
-      atBar: 2,
-      atFallback: 3,
-      controlsSkipped: 2,
+      atBar: 1,
+      atFallback: 2,
+      controlsSkipped: 6,
       stillClimb: 4,
     });
     const result = JSON.parse(outcome.files.get("result.json")!);
     expect(result).toMatchObject({
       complete: true,
       stopped: null,
-      requests: { thisRun: 17, all: 17 },
+      requests: { thisRun: 18, all: 18 },
       window: {
         first: "2026-10-28T10:00:00.000Z",
         last: "2026-10-28T10:00:00.000Z",
       },
-      summary: { atBar: 2, atFallback: 3 },
+      summary: { atBar: 1, atFallback: 2 },
     });
     expect(result.festivals).toHaveLength(3);
     // The console gets counts, never an act's or venue's name.
@@ -272,18 +272,18 @@ describe("LIVE: at most MAX_CALLS, stopping at the first 429, and RESUME", () =>
       record,
     });
     expect(second.code).toBe(0);
-    expect(later.requests).toHaveLength(3);
+    expect(later.requests).toHaveLength(4);
     const firstKeys = new Set(busy.requests.slice(0, 14).map(String));
     expect(later.requests.some((url) => firstKeys.has(String(url)))).toBe(
       false,
     );
-    expect(record.answers()).toHaveLength(17);
-    expect(record.attempts()).toHaveLength(18);
+    expect(record.answers()).toHaveLength(18);
+    expect(record.attempts()).toHaveLength(19);
 
     const straight = await run();
     expect(second.summary).toEqual(straight.summary);
     expect(JSON.parse(second.files.get("result.json")!)).toMatchObject({
-      requests: { thisRun: 3, all: 18 },
+      requests: { thisRun: 4, all: 19 },
     });
   });
 

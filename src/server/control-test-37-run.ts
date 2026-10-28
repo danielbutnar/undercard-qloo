@@ -324,13 +324,16 @@ export function resultValues({
     stillClimb: summary.stillClimb,
     noScoredControl: summary.noScoredControl,
     controlsSkipped: summary.controlsSkipped,
+    controlsSkippedByWarning: summary.controlsSkippedByWarning,
+    controlsSkippedByEqualRanking: summary.controlsSkippedByEqualRanking,
+    controlTownsWithoutFanData: summary.controlTownsWithoutFanData,
+    venueRunsWithoutControl: summary.venueRunsWithoutControl,
     roomsSkipped: summary.roomsSkipped,
     venueRuns: summary.venueRuns,
     popularityFromEntities: summary.popularityFromEntities,
     noVenuePopularity: summary.noVenuePopularity,
     venuesUnscoredToday: summary.venuesUnscoredToday,
     venuesLikeHeadliners: summary.venuesLikeHeadliners,
-    controlsLikeHeadliners: summary.controlsLikeHeadliners,
     townRows: summary.byTown
       .map(
         (town) =>

@@ -7,7 +7,10 @@ import {
   controlCandidates,
   localLift,
   matchControl,
+  noFanData,
   placeIn,
+  sameRanking,
+  type NoFanData,
   RANKED_PLACES,
   type Room,
 } from "@/lib/control-venue";
@@ -302,10 +305,10 @@ export interface VenueRunResult {
     /** Where the venue's popularity came from: its town's find_venues, or /entities. */
     popularityFrom: "find_venues" | "entities" | null;
   };
-  /** The matched control: the closest scored room in the control town; null when none. */
+  /** The matched control: the closest room with fan data in the control town; null when none. */
   control: RoomRef | null;
-  /** Closer rooms Qloo reported unscored, skipped for the next. */
-  skipped: RoomRef[];
+  /** Closer rooms with no fan data, skipped for the next, each with why. */
+  skipped: (RoomRef & { because: NoFanData })[];
   /** The rooms the rule could try: the control town's rooms with a popularity. */
   candidates: number;
   /** The venue's own answer that day reported it not found. */
@@ -316,8 +319,6 @@ export interface VenueRunResult {
    * it on its explainability calls only).
    */
   venueLikeHeadliners: boolean;
-  /** The matched control's ranking is the headliners' own, act for act, with no warning. */
-  controlLikeHeadliners: boolean;
   withVenue: string[];
   withControl: string[] | null;
 }
@@ -354,9 +355,6 @@ const refOf = (room: TownRoom): RoomRef => ({
   name: room.name,
   popularity: room.popularity,
 });
-
-const sameRanking = (a: readonly string[], b: readonly string[]) =>
-  a.length === b.length && a.every((id, index) => id === b[index]);
 
 /**
  * One festival: the control town's rooms, the town's own (for each venue's popularity, from
@@ -430,12 +428,19 @@ export async function runFestival(
       ? controlCandidates(controlRooms, known.value)
       : [];
     const rankings = new Map<string, string[]>();
+    const reasons = new Map<string, NoFanData>();
     const { control: matched, skipped } = await matchControl(
       candidates,
       async (room) => {
         const answer = await rank(band, room.entityId);
         rankings.set(room.entityId, answer.ids);
-        return !answer.unscored.includes(room.entityId);
+        const reason = noFanData({
+          warned: answer.unscored.includes(room.entityId),
+          ranking: answer.ids,
+          without: headlinersOnly.get(band) ?? [],
+        });
+        if (reason) reasons.set(room.entityId, reason);
+        return reason === null;
       },
     );
     const withControl = matched ? rankings.get(matched.entityId)! : null;
@@ -448,16 +453,16 @@ export async function runFestival(
         popularityFrom: known?.from ?? null,
       },
       control: matched ? refOf(matched) : null,
-      skipped: skipped.map(refOf),
+      skipped: skipped.map((room) => ({
+        ...refOf(room),
+        because: reasons.get(room.entityId)!,
+      })),
       candidates: candidates.length,
       venueUnscored: withVenue.unscored.includes(venue.entityId),
       venueLikeHeadliners: sameRanking(
         withVenue.ids,
         headlinersOnly.get(band) ?? [],
       ),
-      controlLikeHeadliners:
-        withControl !== null &&
-        sameRanking(withControl, headlinersOnly.get(band) ?? []),
       withVenue: withVenue.ids,
       withControl,
     });
@@ -526,6 +531,13 @@ export interface Summary extends Counts {
   venueRuns: number;
   /** Rooms skipped for no fan data, once per venue run and tier that skipped one. */
   controlsSkipped: number;
+  /** Of them, those Qloo warned weren't scored, and those whose ranking was the headliners' own. */
+  controlsSkippedByWarning: number;
+  controlsSkippedByEqualRanking: number;
+  /** Venue runs that found no room with fan data in their control town. */
+  venueRunsWithoutControl: number;
+  /** The control towns where a venue run found no room with fan data. */
+  controlTownsWithoutFanData: number;
   /** The different rooms among them. */
   roomsSkipped: number;
   noScoredControl: number;
@@ -535,7 +547,6 @@ export interface Summary extends Counts {
   popularityFromEntities: number;
   venuesUnscoredToday: number;
   venuesLikeHeadliners: number;
-  controlsLikeHeadliners: number;
   barMet: boolean | null;
   productBar: 5 | 3 | null;
 }
@@ -565,6 +576,12 @@ export function summarise(
   const runs = results.flatMap((result) => result.venueRuns);
   const complete = results.length === towns;
   const all = counts(acts);
+  const skippedBy = (reason: NoFanData) =>
+    runs.reduce(
+      (sum, run) =>
+        sum + run.skipped.filter((room) => room.because === reason).length,
+      0,
+    );
   return {
     complete,
     towns: results.length,
@@ -584,6 +601,16 @@ export function summarise(
     ) as Record<FeeBandId, Counts>,
     venueRuns: runs.length,
     controlsSkipped: runs.reduce((sum, run) => sum + run.skipped.length, 0),
+    controlsSkippedByWarning: skippedBy("warning"),
+    controlsSkippedByEqualRanking: skippedBy("equal ranking"),
+    venueRunsWithoutControl: runs.filter((run) => run.control === null).length,
+    controlTownsWithoutFanData: new Set(
+      results.flatMap((result) =>
+        result.venueRuns.some((run) => run.control === null)
+          ? [result.controlCity]
+          : [],
+      ),
+    ).size,
     roomsSkipped: new Set(
       runs.flatMap((run) => run.skipped.map((room) => room.entityId)),
     ).size,
@@ -597,8 +624,6 @@ export function summarise(
     ).length,
     venuesUnscoredToday: runs.filter((run) => run.venueUnscored).length,
     venuesLikeHeadliners: runs.filter((run) => run.venueLikeHeadliners).length,
-    controlsLikeHeadliners: runs.filter((run) => run.controlLikeHeadliners)
-      .length,
     barMet: complete ? all.atBar >= BAR_ACTS : null,
     productBar: complete ? productBar(all.atBar) : null,
   };
