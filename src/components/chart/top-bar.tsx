@@ -1,18 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-/** The mark: a chart's three rising bars, the last one lit. */
-export function Logo() {
-  return (
-    <svg viewBox="0 0 30 30" aria-hidden>
-      <rect x="1" y="1" width="28" height="28" className="fill-ink" />
-      <rect x="6" y="17" width="5" height="8" className="fill-surface" />
-      <rect x="12.5" y="12" width="5" height="13" className="fill-surface" />
-      <rect x="19" y="6" width="5" height="19" className="fill-accent" />
-    </svg>
-  );
-}
-
 /**
  * The bar over every screen: the product's name, back to Sagebrush Sound, and the other screens.
  * A screen adds its own links before the shared ones.
@@ -28,12 +16,12 @@ export function TopBar({
 }) {
   return (
     <header className="topbar">
+      {/* One wordmark on every page, as the landing sets it (WS12 item 7). */}
       <Link
         href="/"
-        className="logo"
+        className="logo wordmark"
         aria-label="Undercard, back to Sagebrush Sound"
       >
-        <Logo />
         Undercard
       </Link>
       <nav aria-label="Other screens" className="nav">
