@@ -1,3 +1,4 @@
+import { REFUSED_PREFIX } from "@/lib/agent-words";
 import { MIN_LIFT } from "@/lib/assemble-lineup";
 import type { TraceCall } from "@/lib/build-events";
 import type { FeeBand, FeeBandId } from "@/lib/fee-bands";
@@ -55,6 +56,8 @@ export interface SetlistLine {
   noFanData: boolean;
   /** The AI agent's lines said before this call. */
   before: string[];
+  /** Busy answers the call was retried after (WS13's retried): a retry isn't a new call. */
+  retries: number;
 }
 
 /** The tier a call's line names ("Mid-band artists for …"), by the festival's tier labels. */
@@ -162,6 +165,7 @@ export function setlistLines(
       before: notes
         .filter((note) => note.at === call.n - 1)
         .map((note) => note.text),
+      retries: call.retried?.length ?? 0,
     };
   });
   const last = trace.length;
@@ -247,7 +251,18 @@ export function ticketStamps(
  * words, as a saved call's line is (words.ts callWords): venue, not room (M6r); tier, not band
  * where a band is a fee tier (WS8). The saved line itself keeps its words.
  */
-export const setlistCue = (note: string) => `The AI agent: ${plainWords(note)}`;
+export const setlistCue = (note: string) =>
+  isDecision(note)
+    ? note.replace(/\brooms\b/g, "venues").replace(/\broom\b/g, "venue")
+    : `The AI agent: ${plainWords(note)}`;
+
+/**
+ * A decision line WS13 writes in the buyer's words (Daniel, 2026-10-28): a place the planner
+ * skipped as not a music venue ("Skipped …"), or a stop it was refused ("Tried to stop after …").
+ * It reads on its own on the setlist, with no cue in front; a place's own words keep their bands.
+ */
+const isDecision = (note: string) =>
+  note.startsWith("Skipped ") || note.startsWith(REFUSED_PREFIX);
 
 const AFTER_BUILD = new Set(["refill", "redraft", "running_order"]);
 
@@ -257,6 +272,14 @@ const AFTER_BUILD = new Set(["refill", "redraft", "running_order"]);
  */
 export const buildCallCount = (lines: readonly Pick<SetlistLine, "tool">[]) =>
   lines.filter((line) => !AFTER_BUILD.has(line.tool)).length;
+
+/** The build's own retries, from the trace (WS13), as buildCallCount counts its calls. */
+export const buildRetryCount = (
+  lines: readonly Pick<SetlistLine, "tool" | "retries">[],
+) =>
+  lines
+    .filter((line) => !AFTER_BUILD.has(line.tool))
+    .reduce((sum, line) => sum + line.retries, 0);
 
 /** The act's move, as the setlist writes it in the margin by its ringed call. */
 export function marginNote(act: Act, place: Placed | undefined): string {

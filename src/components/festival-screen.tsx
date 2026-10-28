@@ -56,7 +56,11 @@ import {
   type SceneVenue,
 } from "@/components/chart/town-scene";
 import { PageEnd, Setlist } from "@/components/chart/setlist";
-import { marginNote, setlistLines } from "@/components/chart/setlist-words";
+import {
+  buildRetryCount,
+  marginNote,
+  setlistLines,
+} from "@/components/chart/setlist-words";
 import { DoorCheck } from "@/components/chart/ticket";
 import type { VenueLine } from "@/components/chart/venue-switch";
 import { WithoutQlooChecksLine } from "@/components/chart/with-without-line";
@@ -90,6 +94,7 @@ import { LiveRunProvider, useLiveRun } from "@/components/live-run";
 import {
   agentLineFor,
   liveRunFacts,
+  plusRetries,
   retriesIn,
   RUN_IT_LIVE,
   runItLiveSub,
@@ -1077,6 +1082,8 @@ export function FestivalScreen({
     noFanData: fanless,
     notes: streamed ? state.notes : (firstBill?.notes ?? []),
   });
+  // The build's retries, from its trace (WS13): said wherever its call count is (Daniel, 19:20).
+  const retries = plusRetries(buildRetryCount(setlist.lines));
   // Each venue's colour as the poster sets it: grey (none) for a venue that lifted no act.
   const liftingHues = new Map([...hues].filter(([id]) => savedLifted(id) > 0));
   // The door check's act: the one last pointed at on the poster, else the poster's first act.
@@ -1309,7 +1316,7 @@ export function FestivalScreen({
       <p className="watch-sub">
         {custom
           ? ownRun
-            ? `Replays its ${calls ?? state.calls.length} Qloo calls`
+            ? `Replays its ${calls ?? state.calls.length} Qloo calls${retries}`
             : runAgain
               ? "Runs the AI agent again; its Qloo calls list below"
               : "Runs the AI agent; its Qloo calls list below"
@@ -1589,8 +1596,8 @@ export function FestivalScreen({
       <p className="drafted">
         {calls && state.build?.createdAt
           ? liveOnly
-            ? `Drafted from ${calls} Qloo calls the AI agent planned · run live ${savedAt.format(new Date(state.build.createdAt))} UTC, not saved for other visitors`
-            : `Drafted from ${calls} Qloo calls the AI agent planned · saved ${savedAt.format(new Date(state.build.createdAt))} UTC`
+            ? `Drafted from ${calls} Qloo calls the AI agent planned${retries} · run live ${savedAt.format(new Date(state.build.createdAt))} UTC, not saved for other visitors`
+            : `Drafted from ${calls} Qloo calls the AI agent planned${retries} · saved ${savedAt.format(new Date(state.build.createdAt))} UTC`
           : state.status === "building"
             ? "The AI agent is drafting the undercard."
             : "No undercard drafted yet."}

@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
-import { buildCallCount, setlistCue, type SetlistLine } from "./setlist-words";
+import { plusRetries } from "@/lib/agent-words";
+import {
+  buildCallCount,
+  buildRetryCount,
+  setlistCue,
+  type SetlistLine,
+} from "./setlist-words";
 import { signName } from "./town-scene";
 import { useLiveRun } from "@/components/live-run";
 import { useReveal } from "./use-reveal";
@@ -69,6 +75,7 @@ export function Setlist({
           <p className="setlist-count">
             {buildCallCount(lines)} Qloo{" "}
             {buildCallCount(lines) === 1 ? "call" : "calls"}
+            {plusRetries(buildRetryCount(lines))}
           </p>
         </div>
         <ol aria-label="The calls, in order" className="setlist-lines">

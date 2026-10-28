@@ -81,6 +81,7 @@ export function MethodPage({
           <BackstagePasses
             festival={SAGEBRUSH_SOUND}
             calls={story?.calls ?? 12}
+            retries={story?.retries ?? 0}
             local={Boolean(story?.act.localLift)}
           >
             <p className="dc-principle">

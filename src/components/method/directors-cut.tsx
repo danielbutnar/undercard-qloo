@@ -8,6 +8,7 @@ import { TownScene, type SceneVenue } from "@/components/chart/town-scene";
 import { useReveal } from "@/components/chart/use-reveal";
 import { ordinal, PLAIN_BAND } from "@/components/chart/words";
 import { Cover } from "@/components/chart/cover";
+import { plusRetries } from "@/lib/agent-words";
 import { LOCAL_LIFT_BAR, MIN_LIFT } from "@/lib/assemble-lineup";
 import type { Festival } from "@/lib/festival";
 import { formatPopularityRange } from "@/lib/format";
@@ -368,7 +369,8 @@ const PASSES = [
   {
     id: "agent",
     role: "The AI agent",
-    does: (calls: number) => `plans the ${calls} Qloo calls`,
+    does: (calls: number, retries = 0) =>
+      `plans the ${calls} Qloo calls${plusRetries(retries)}`,
     access: "Chooses which venues to read, and in what order",
   },
   {
@@ -392,11 +394,14 @@ const LOCAL_RULE_ACCESS = `A climb of ${MIN_LIFT} or more, a local lift of ${LOC
 export function BackstagePasses({
   festival,
   calls,
+  retries = 0,
   local = false,
   children,
 }: {
   festival: Festival;
   calls: number;
+  /** The build's retries, said beside its calls (Daniel, 2026-10-28, 19:20). */
+  retries?: number;
   /** The saved build's acts carry a local lift (a 2.0 build): the rule checks it too. */
   local?: boolean;
   children?: ReactNode;
@@ -412,7 +417,7 @@ export function BackstagePasses({
         {PASSES.map((pass, index) => (
           <li
             key={pass.id}
-            aria-label={`${pass.role}: ${pass.does(calls)}`}
+            aria-label={`${pass.role}: ${pass.does(calls, retries)}`}
             className={`dc-pass dc-pass-${pass.id}`}
             style={{ "--i": index } as CSSProperties}
           >
@@ -425,7 +430,9 @@ export function BackstagePasses({
               <p className="dc-pass-event">{festival.name} · crew</p>
               <p className="dc-pass-role">{pass.role}</p>
               <p className="dc-pass-does">
-                {pass.does(calls).replace(/^./, (c) => c.toUpperCase())}
+                {pass
+                  .does(calls, retries)
+                  .replace(/^./, (c) => c.toUpperCase())}
               </p>
               <p className="dc-pass-access">
                 {pass.id === "rule" && local ? LOCAL_RULE_ACCESS : pass.access}

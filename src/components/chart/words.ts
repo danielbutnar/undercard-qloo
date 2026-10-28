@@ -1,4 +1,5 @@
 import type { AgentSwitch } from "@/lib/agent-switch";
+import { plusRetries } from "@/lib/agent-words";
 import { MIN_LIFT } from "@/lib/assemble-lineup";
 import type { TraceCall } from "@/lib/build-events";
 import { feeBandFor, type FeeBand, type FeeBandId } from "@/lib/fee-bands";
@@ -137,10 +138,10 @@ export const callWords = (summary: string) =>
   summary.replace(/\b(Mid|Opener)-band\b/g, "$1-tier");
 
 export const watchCallLine = (
-  call: Pick<TraceCall, "n" | "summary" | "resultCount">,
+  call: Pick<TraceCall, "n" | "summary" | "resultCount" | "retried">,
   shown: number,
 ) =>
-  `Qloo call ${call.n} of ${shown}: ${callWords(call.summary)}${call.resultCount !== null ? ` · ${call.resultCount} results` : ""}`;
+  `Qloo call ${call.n} of ${shown}: ${callWords(call.summary)}${call.resultCount !== null ? ` · ${call.resultCount} results` : ""}${plusRetries(call.retried?.length ?? 0)}`;
 
 export const watchTicksLabel = (calls: number, shown: number) =>
   `${calls} of ${shown} Qloo calls in`;
