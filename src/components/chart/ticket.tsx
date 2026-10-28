@@ -145,12 +145,9 @@ export function Ticket({
             </span>
             <span>{max}</span>
           </span>
-          <span className="stamp-small">
-            popularity, inside{" "}
-            <span className="nowrap">
-              {min}–{max}
-            </span>
-          </span>
+          {/* The scale above shows the tier's range, so the ring's last line names the number
+              and stays inside the ring (WS12 item 7). */}
+          <span className="stamp-small">popularity</span>
         </li>
         <li
           aria-label={`Genres: ${stamps.genres[0]} and ${stamps.genres[1]}, shared with the headliners`}
