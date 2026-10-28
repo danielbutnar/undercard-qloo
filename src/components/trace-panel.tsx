@@ -6,6 +6,7 @@ import type { BuildState } from "@/lib/build-state";
 import { callWords } from "@/components/chart/words";
 import { noFanDataCallLine } from "@/lib/agent-words";
 import { QLOO_CALL_CAP } from "@/lib/agent-limits";
+import { paramWords } from "@/lib/call-words";
 
 const seconds = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
 const savedAt = new Intl.DateTimeFormat("en-US", {
@@ -86,8 +87,16 @@ export function CallRow({
           </button>
         )}
       </div>
+      {/* WS13.9: what the app asked, in plain words and as sent; never what Qloo answered. */}
+      {showParams && call.params.length > 0 && (
+        <ul aria-label="In plain words" className="trace-params">
+          {paramWords(call.params).map((line, index) => (
+            <li key={index}>{line}</li>
+          ))}
+        </ul>
+      )}
       {showParams && (
-        <ul className="trace-params">
+        <ul aria-label="As sent to Qloo" className="trace-params">
           {call.params.map((param) => (
             <li key={param.key}>
               <code>
