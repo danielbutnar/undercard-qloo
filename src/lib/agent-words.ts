@@ -20,6 +20,16 @@ import type { LocalPick } from "./local-pick";
 export const skippedLine = (place: string, reason: string) =>
   `Skipped ${place}: listed by Qloo, but ${reason.trim()}`;
 
+/** The first words of a refusal's line, by which a comparison counts them (Daniel, 19:20). */
+export const REFUSED_PREFIX = "Tried to stop after ";
+
+/**
+ * A stop refused before two music venues with fan data were read (Daniel, 2026-10-28): one of
+ * the run's decision lines, saved with the build and replayed.
+ */
+export const refusedLine = (read: number, untried: readonly string[]) =>
+  `${REFUSED_PREFIX}${read} music ${read === 1 ? "venue" : "venues"} with fan data; refused: two are needed.${untried.length > 0 ? ` Not tried yet: ${untried.join(", ")}.` : ""}`;
+
 /** A venue read's line, when Qloo had no fan data for the venue (WS13.1). */
 export const noFanDataCallLine = (venue: string) =>
   `Qloo had no fan data for ${venue}: the agent skips it.`;

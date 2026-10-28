@@ -158,7 +158,7 @@ export async function runUndercardAgent({
       );
       if (toolUses.length === 0) {
         // Daniel, 2026-10-28: the planner may not stop before two music venues with fan data.
-        const more = toolbox.mustReadMore();
+        const more = toolbox.refuseStop();
         if (!more) break;
         messages.push({ role: "user", content: more });
         continue;

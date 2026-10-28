@@ -19,7 +19,7 @@ import {
 } from "@/lib/control-venue";
 import { controlTownFor } from "@/lib/control-town";
 import { QLOO_CALL_CAP } from "@/lib/agent-limits";
-import { skippedLine } from "@/lib/agent-words";
+import { refusedLine, skippedLine } from "@/lib/agent-words";
 import { FEE_BAND_IDS, type FeeBand, type FeeBandId } from "@/lib/fee-bands";
 import { roomKind } from "@/lib/place-kinds";
 import {
@@ -542,10 +542,18 @@ export function createToolbox({
    * data read with their controls, while a listed place is untried and the cap leaves room for a
    * venue and its control. Null when it may stop.
    */
-  function mustReadMore(): string | null {
+  function refuseStop(): string | null {
     const { controlled, untried } = roomsRead();
     if (controlled >= 2 || untried.length === 0 || cap - used < 2) return null;
-    return `Read at least two music venues with fan data, each with its control, before you finish: ${controlled} so far. Not tried yet: ${untried.map((venue) => venue.name).join(", ")}. If one of them isn't a music venue, name it in not_music_venues, with your reason.`;
+    const names = untried.map((venue) => venue.name);
+    // Daniel, 2026-10-28 (19:20): each refusal is a decision line of the run, saved and replayed,
+    // so the comparison can count them.
+    emit({
+      type: "status",
+      text: refusedLine(controlled, names),
+      planner: true,
+    });
+    return `Read at least two music venues with fan data, each with its control, before you finish: ${controlled} so far. Not tried yet: ${names.join(", ")}. If one of them isn't a music venue, name it in not_music_venues, with your reason.`;
   }
 
   // WS13.2: how full each tier is by the rule, so the planner reads until every one is.
@@ -1008,7 +1016,7 @@ export function createToolbox({
         });
       }
       // Daniel, 2026-10-28: at least two music venues with fan data before the agent may stop.
-      const more = mustReadMore();
+      const more = refuseStop();
       if (more) throw new ToolMisuse(more);
       // WS13.7: why it stopped, in the planner's own words, is a line of the trace.
       if (summary.trim())
@@ -1138,7 +1146,7 @@ export function createToolbox({
     callsUsed: () => used,
     cap,
     roomsRead,
-    mustReadMore,
+    refuseStop,
   };
 }
 

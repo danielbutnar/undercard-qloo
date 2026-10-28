@@ -19,6 +19,7 @@
 //     --import ./scripts/register-ts.mjs scripts/rerun-towns.ts
 import { mkdirSync, writeFileSync } from "node:fs";
 import { QLOO_CALL_CAP } from "@/lib/agent-limits";
+import { REFUSED_PREFIX } from "@/lib/agent-words";
 import { CHECKED_TOWNS } from "@/lib/checked-towns";
 import { controlTownFor } from "@/lib/control-town";
 import { checkedFestival } from "@/lib/towns";
@@ -137,6 +138,10 @@ for (const run of runs) {
   const rerun: SavedBuild | null = run.buildId
     ? await reading.byId(run.buildId)
     : null;
+  // Daniel, 19:20: each time the planner tried to stop before two rooms and was refused.
+  const refused = (rerun?.notes ?? []).filter((note) =>
+    note.text.startsWith(REFUSED_PREFIX),
+  );
   print({
     festival: run.festivalId,
     buildId: run.buildId,
@@ -145,6 +150,7 @@ for (const run of runs) {
     failedCalls: run.failedCalls,
     ms: run.ms,
     stoppedBy: run.stoppedBy?.message ?? null,
+    refusals: rerun ? refused.length : null,
     ...(DEMO.includes(festival.city)
       ? { bill: billBeside(saved[index], rerun, festival.feeBands) }
       : {}),
@@ -154,6 +160,7 @@ for (const run of runs) {
     festival: run.festivalId,
     saved1: saved[index]?.lineup.acts.map(({ name, band }) => ({ name, band })),
     rerun2: rerun?.lineup.acts.map(({ name, band }) => ({ name, band })),
+    refusals: refused.map((note) => note.text),
   });
 }
 writeFileSync(`${OUT}/bills.json`, JSON.stringify(bills, null, 1));
