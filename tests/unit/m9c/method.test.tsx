@@ -94,6 +94,25 @@ describe("the method page (M9c)", () => {
     ).toBe("/method");
   });
 
+  // Daniel, 2026-10-28: section 37's two limits, with no names, on the evidence page too.
+  it("lists section 37's two limits on the controls, linked to section 37", () => {
+    render(<MethodEvidencePage />);
+    const limits = screen.getByRole("region", {
+      name: "What these numbers don't establish",
+    });
+    const text = (limits.textContent ?? "").replace(/\s+/g, " ");
+    expect(text).toContain(
+      "The control room is matched on Qloo popularity alone, not on size or style: one small club's control was an arena, another venue's a pool bar. A control that draws a different crowd makes the bar easier to clear.",
+    );
+    expect(text).toContain(
+      "Every control is abroad, so a local lift can reflect the country as much as the town: one opening act clears the bar in all four US demo towns.",
+    );
+    const links = within(limits).getAllByRole("link", { name: "Section 37" });
+    expect(links).toHaveLength(2);
+    for (const link of links)
+      expect(headings).toContain(link.getAttribute("href")!.split("#")[1]);
+  });
+
   it("loads the video only when it's played", () => {
     render(<MethodPage videoUrl="https://example.org/demo.mp4" />);
     expect(document.querySelector("video, iframe")).toBeNull();

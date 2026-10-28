@@ -29,6 +29,8 @@ const S = {
   people: "32. The test with real people, written before it runs",
   cheap: "33. Two cheap tests, written before any run",
   controls: "34. Two controls for the premise test, written before any call",
+  controlTest:
+    "37. The control test across the 29 towns, written before any call",
   climb:
     "19. The lift, visible (M9a), written before the spike and the readers",
   compare:
@@ -625,6 +627,19 @@ export function MethodEvidencePage() {
                   sit below the opening range&apos;s popularity floor, so
                   Undercard drafts the touring slots and leaves local ones to
                   the buyer.
+                </li>
+                <li>
+                  The control room is matched on Qloo popularity alone, not on
+                  size or style: one small club&apos;s control was an arena,
+                  another venue&apos;s a pool bar. A control that draws a
+                  different crowd makes the bar easier to clear. (
+                  <Ev to="controlTest">Section 37</Ev>, added 2026-10-28.)
+                </li>
+                <li>
+                  Every control is abroad, so a local lift can reflect the
+                  country as much as the town: one opening act clears the bar in
+                  all four US demo towns. (<Ev to="controlTest">Section 37</Ev>,
+                  added 2026-10-28.)
                 </li>
               </ul>
               <p className="mt-2 text-label">

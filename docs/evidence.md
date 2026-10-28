@@ -1004,6 +1004,8 @@ A description of the code, not a measurement, so the method page can point to it
 ## What these numbers don't establish
 
 - These acts were chosen because they climbed with that venue, so a different venue lifting them less is partly built into the test. Whether a town's venues point to the acts its real festivals book is section 38's question. (Section 37, added 2026-10-28.)
+- The control room is matched on Qloo popularity alone, not on size or style: one small club's control was an arena, another venue's a pool bar. A control that draws a different crowd makes the bar easier to clear. (Section 37, added 2026-10-28.)
+- Every control is abroad, so a local lift can reflect the country as much as the town: one opening act clears the bar in all four US demo towns. (Section 37, added 2026-10-28.)
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
 - That a town's crowd knows the undercard acts: section 6 found no usable measure of it.
 - That every room behind a bill is a club: a festival park or an arena can still draft one (section 10).
