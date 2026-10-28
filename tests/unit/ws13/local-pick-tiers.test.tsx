@@ -45,7 +45,8 @@ describe("the local pick's prompt (Daniel, 17:10)", () => {
       expect(line).toContain(
         `${rangeOf(festival, "opener")} for the opening tier`,
       );
-      expect(line).toMatch(/artist names only/i);
+      // Daniel, 21:50: artists only, never a festival, venue, label or scene.
+      expect(line).toMatch(/artists only \(bands or solo acts\)/i);
       expect(line).toMatch(/never a phrase/);
     }
     expect(rangeOf(LOWER, "mid")).toBe("0.70–0.85");
@@ -62,7 +63,7 @@ describe("the local pick's prompt (Daniel, 17:10)", () => {
     expect(tool.description).toMatch(/fit the mid-size or opening tier/);
     expect(tool.description).toContain("0.70–0.85 for the mid-size tier");
     expect(tool.description).toContain("0.40–0.70 for the opening tier");
-    expect(tool.description).toMatch(/artist names only/i);
+    expect(tool.description).toMatch(/artists only \(bands or solo acts\)/i);
     expect(tool.description).toMatch(/never a phrase/);
   });
 });
