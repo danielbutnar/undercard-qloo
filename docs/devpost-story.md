@@ -22,7 +22,7 @@ The demo festival, Sagebrush Sound (Boise, Idaho; 3,000 capacity; crowd aged 25â
 
 ## Qloo calls used, and why
 
-Claude Sonnet 5.5 plans the build. Every tool but finish is one Qloo call, and a build stops at 12.
+Claude Sonnet 5.5 plans the build. Every tool but finish is one Qloo call, and a build stops at 28.
 
 - `GET /search` resolves each booked headliner.
 - `GET /v2/tags` finds Qloo's live-music-venue tag.

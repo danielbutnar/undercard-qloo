@@ -715,6 +715,14 @@ Binding until 05:45 Bucharest on Saturday 31 October (03:45 UTC). Until Wednesda
 - [x] Baseline for the after-window checks: Boise's What-if lineups from production (GET /api/venue-switch, 8 combinations, hash 2ab6f73f, stable on a second fetch) in .design/orchestrator/boise-whatif-baseline.json
 - [ ] After every Qloo window: the 29 pointers and Boise's What-if hash unchanged, before anything else
 - [ ] Before WS13's deploy: remind Daniel to set LIVE_BUILDS_GLOBAL_PER_DAY=50 in Vercel Production
+- [x] Section 37 in Daniel's window (28 October, 08:00 to 13:00 Bucharest): five readings committed before any call (99066dd); the script on branch s37 (12 commits, 75 tests), merged (cba11c6); before the first call the 29 pointers and Boise's What-if hash recorded; 246 Qloo calls from 06:55 to 07:08 UTC and the side check's 13 at 07:09, none retried, no rate-limit answer; the bar met, 244 of the 290 at a local lift of 5 (253 at 3), so 2.0's bar is 5 places; the side check differs by one act (Montreal); after it the pointers 29 of 29 and Boise's hash unchanged, and the deep check "Qloo ok, Anthropic ok in 1101 ms" (smoke run 40649029525); the result in section 37 (65197ae)
+- [x] WS12 step 0 delivered to Daniel (ws12 d272c1b, 877fae6: 35 shots and NOTE.md in .design/shots/ws12/); items 1-10 wait for his yes
+- [ ] WS13: items 1, 2 and 4-10 running; item 3 unblocked with the bar at 5 (28 October); item 11 last
+- [x] Section 37 accepted by Daniel (28 October); in one sentence and its limit in docs/evidence.md (dadfd0a); How it works gives it SHOWN with that sentence
+- [x] WS12's direction approved (ink stamps with the venue colour on the stub, the phone's ticket on the first act, the short layout from 760 px tall) with four fixes; items 1-10 started
+- [ ] Re-runs: the four demo towns' 2.0 bills beside 1.0, with each tier's fill, to Daniel before any pointer moves
+- [ ] Section 38: its script as soon as WS13.3 lands, windows proposed to Daniel, stopping at the first rate-limit or quota answer
+- [ ] The site's evidence page: section 37's sentence and limit (with WS14.3)
 - [ ] After the reset: WS13 and WS12 in parallel (WS12 sends step 0's screenshots first); section 37 first (one window Daniel names), then the bar, then WS13.3 and the re-runs, then section 38 (windows of at most 600 calls); then WS15 and WS16
 - [ ] Deploy on Daniel's yes; his panel re-run; its defects as WS18
 - [ ] The freeze, WS17 and the submission (Thursday 29 October), improved until the deadline

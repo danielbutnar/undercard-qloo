@@ -809,6 +809,8 @@ Written on 2026-10-22, before the call. The bar doesn't change after the answers
 
 **The card line, 2026-10-23 (WS7).** Each act card on the first screen and the town pages carries one line on Qloo's split, read from the cache only, for the saved lineup with every venue on. Across the 29 saved builds, 290 of 290 acts have one; 186 say the fee range's venues were together (two or more in Qloo's split), 104 don't (one); for 44 the venue the card credits isn't the largest venue share, which the line shows by its order alone; the parts add to 99, 100 or 101 (28, 237 and 25 lines). Daniel approved the wording on 2026-10-23: "Qloo traces N% of this act's match to fans of …", with "With this fee range's venues together," in front when two or more venues are in Qloo's split.
 
+**Recount, 2026-10-28.** With the code that ships (scripts/credit-split.ts, from the cache only), 41 of the 290 cards have another venue whose share is strictly larger than the credited venue's (16 mid-size, 25 opening), plus 4 exact ties, against the 44 noted above on 23 October by a script that wasn't kept. The cards follow the recount (Daniel, 2026-10-28): the 41 carry "Credited to <venue>: its fans alone lifted this act onto the bill. Asked about all the venues together, Qloo traces more of the match to <venue>.", and the 4 ties carry nothing more.
+
 **The same answer, score for score, 2026-10-23 (WS4), from the cache with no call.** Of the 29 saved builds' 125 venue runs, the 29 whose ranking equals the headliners-only ranking also carry exactly the headliners-only scores, act for act, and no run has the headliners' order with different scores (WS4's read; the orchestrator re-checked the order, not the scores). So the shortlist says "Qloo had no fan data for <venue>" when a venue's answer is the headliners' own, score for score; a short list of ten acts or fewer can keep its order with fan data, so order alone isn't enough there. For the shortlist's own calls this is an inference: none has been checked against a not_found warning. A venue whose scores change but whose order doesn't moved none of the shortlist's acts, and the page says so.
 
 ## 36. The 30-second test, round 2, written before it runs
@@ -864,6 +866,8 @@ Written on 2026-10-24, before any of its calls (Daniel's plan of 23 October, sec
 The 29 builds share their headliners, crowd age and tiers, so the headliners-only rankings are 2 calls. The dry run plans 284 calls before any skip, about 325 in all, plus about 15 for (5).
 
 **Result, 2026-10-28 (06:55 to 07:08 UTC, 08:55 to 09:08 Bucharest): bar met, 244 of the 290 acts at a local lift of 5 places or more (the bar was 145); 253 at 3 or more. So, by section 37's rule, Undercard 2.0's bar is 5 places.** 246 Qloo requests from scripts/control-test-37.ts, one at a time, every one answered, none retried; the dry run planned 285 before any skip. Every ranking was read in this run by the script's own client, which read nothing from the server's Qloo cache and wrote nothing to it.
+
+**In one sentence (Daniel's wording, 2026-10-28).** 244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a matched music room abroad.
 
 | Town | Control town | Acts | Local lift ≥ 5 | Local lift ≥ 3 | Still climb ≥ 5 that day | No scored control |
 |---|---|---|---|---|---|---|
@@ -989,6 +993,7 @@ A description of the code, not a measurement, so the method page can point to it
 
 ## What these numbers don't establish
 
+- These acts were chosen because they climbed with that venue, so a different venue lifting them less is partly built into the test. Whether a town's venues point to the acts its real festivals book is section 38's question. (Section 37, added 2026-10-28.)
 - That the acts would sell tickets, take the slot or fit the buyer's budget. The fee bands are popularity ranges the buyer sets, not fees.
 - That a town's crowd knows the undercard acts: section 6 found no usable measure of it.
 - That every room behind a bill is a club: a festival park or an arena can still draft one (section 10).
