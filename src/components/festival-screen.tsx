@@ -82,6 +82,7 @@ import { namesVenue } from "@/lib/venue-call";
 import { useWatch, type WatchPhase } from "@/components/use-watch";
 import { QLOO_CALL_CAP } from "@/lib/agent-limits";
 import { LocalPickBox } from "@/components/local-pick-box";
+import { agentLineFor } from "@/lib/agent-words";
 import type { TraceCall } from "@/lib/build-events";
 import { firstBoard } from "@/lib/build-state";
 import {
@@ -846,7 +847,11 @@ export function FestivalScreen({
   const noteAt = call
     ? state.notes.findLastIndex((entry) => entry.at < call.n)
     : state.notes.length - 1;
-  const note = state.notes[noteAt]?.text ?? null;
+  // WS13.7: a 2.0 read carries its own line; an old run's step reads the planner's latest.
+  const note = agentLineFor({
+    call,
+    note: state.notes[noteAt]?.text ?? null,
+  });
   // The first of the agent's lines that says "Anchors" gets a one-line key under it.
   const anchorsKey =
     noteAt >= 0 &&
@@ -1074,6 +1079,8 @@ export function FestivalScreen({
     tested: allVenues.length,
     lifting: sceneVenues.filter((venue) => venue.lifted > 0).length,
     without,
+    // WS13.7 (WS8 item 16): why these venues, in the agent's own line, for the saved build.
+    plan: onFirst ? firstBill?.plan : undefined,
   });
   const onShow = TOWNS.filter((town) => towns.includes(town.slug));
   const current = townOf(festival).slug;

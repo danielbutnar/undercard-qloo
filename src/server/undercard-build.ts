@@ -305,6 +305,7 @@ export async function handleUndercardBuild({
         cachePrefix: qlooClient.cachePrefix,
         ...(result.stopped ? { stopped: result.stopped } : {}),
         ...(result.localPicks ? { localPicks: result.localPicks } : {}),
+        ...(result.plan ? { plan: result.plan } : {}),
       });
     }
   });

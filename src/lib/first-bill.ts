@@ -37,6 +37,11 @@ export interface FirstBill {
   /** Each saved lineup act's card line on Qloo's split (src/lib/attribution-line.ts), by entity
    * id, from the server's Qloo cache (WS7); left out when no act has one. */
   splits?: Record<string, SplitLine>;
+  /**
+   * The agent's own line on why it read these venues (WS13.7, WS8 item 16): a 2.0 build's plan,
+   * else a 1.0 build's first line naming its anchors; left out when the build has neither.
+   */
+  plan?: string;
   /** The AI's local picks for the buyer to check (WS13.5), from a 2.0 build; left out otherwise. */
   localPicks?: LocalPick[];
 }

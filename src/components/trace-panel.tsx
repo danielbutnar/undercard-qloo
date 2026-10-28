@@ -55,6 +55,10 @@ export function CallRow({
       {before.map((text, index) => (
         <PlannerLine key={index} text={text} />
       ))}
+      {/* WS13.7: the planner's own line on why it made this call. */}
+      {call.why && !before.includes(call.why) && (
+        <PlannerLine text={call.why} />
+      )}
       <div className="trace-call-head">
         <p className="trace-summary">
           {call.n}. {callWords(call.summary)}

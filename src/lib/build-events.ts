@@ -23,6 +23,8 @@ export const TraceCallSchema = z.object({
    * named it, or its ranking was the headliners' own, score for score. Absent on 1.0 builds.
    */
   noFanData: z.string().optional(),
+  /** The planner's own line on why it made this call (WS13.7): a venue read's reason. */
+  why: z.string().optional(),
 });
 
 /** The events POST /api/undercard streams, one JSON object per line. */

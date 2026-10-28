@@ -92,7 +92,7 @@ describe("each venue read says how full each tier is (WS13.2)", () => {
       /until every (fee band|band|tier) is full/i.test(line),
     );
     expect(steps).toHaveLength(1);
-    expect(steps[0]).toMatch(/every music room/);
+    expect(steps[0]).toMatch(/every music venue/);
   });
 
   it("asks the planner, when it finishes, why it stopped", () => {
@@ -199,7 +199,7 @@ describe("the trace's last line says why the agent stopped (WS13.2)", () => {
     expect(
       stopLine({ ...base, reason: "rooms", open: { mid: 1, opener: 2 } }),
     ).toBe(
-      "The agent stopped after trying every music room Qloo listed in Larkspur: 1 mid-size slot and 2 opening slots stay open.",
+      "The agent stopped after trying every music venue Qloo listed in Larkspur: 1 mid-size slot and 2 opening slots stay open.",
     );
     expect(
       stopLine({ ...base, reason: "cap", open: { mid: 0, opener: 1 } }),

@@ -62,6 +62,8 @@ export const SavedBuildSchema = z.object({
    * (WS13, Daniel 2026-10-24). Absent on 1.0 builds, which read src/lib/qloo's QLOO_CACHE_PREFIX.
    */
   cachePrefix: z.string().optional(),
+  /** The planner's one sentence on its plan and why it stopped (WS13.7); absent on 1.0. */
+  plan: z.string().optional(),
   /** The AI's local picks for the buyer to check (WS13.5); never on the lineup. */
   localPicks: z.array(LocalPickSchema).optional(),
   /** Why the agent stopped reading venues (WS13.2), the replay's last line; absent on 1.0. */

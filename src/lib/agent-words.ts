@@ -57,7 +57,7 @@ export function stopLine({
     case "full":
       return `The agent stopped reading venues: every tier is full, after ${calls} of its ${cap} Qloo calls.`;
     case "rooms":
-      return `The agent stopped after trying every music room Qloo listed in ${city}: ${openWords(open)}.`;
+      return `The agent stopped after trying every music venue Qloo listed in ${city}: ${openWords(open)}.`;
     case "cap":
       return `The agent stopped at its cap of ${cap} Qloo calls: ${openWords(open)}.`;
     case "planner":
@@ -67,7 +67,7 @@ export function stopLine({
 
 /**
  * Why a run stopped, from what is true, not only what the planner says: every tier full by the
- * rule; else the cap spent; else the planner's word that it tried every music room; else it
+ * rule; else the cap spent; else the planner's word that it tried every music venue; else it
  * stopped early.
  */
 export function stopOf({
@@ -137,3 +137,15 @@ export const ON_THE_BILL =
 
 /** The CSV's reason for a local pick the buyer added. */
 export const LOCAL_PICK_ADDED = "Added by you: the AI's local pick";
+
+/**
+ * The agent's line for a step of Watch (WS13.7): the read's own line when the call carries one,
+ * else the planner's latest line, else none, and only an old run with none gets the fallback.
+ */
+export const agentLineFor = ({
+  call,
+  note,
+}: {
+  call: { why?: string } | null;
+  note: string | null;
+}): string | null => call?.why ?? note ?? null;

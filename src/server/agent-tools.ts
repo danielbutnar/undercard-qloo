@@ -146,6 +146,11 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
         type: "string",
         description: "A venue's entity id from find_venues.",
       },
+      why: {
+        type: "string",
+        description:
+          "One line on why you read this venue now: why this room, or which venue it replaces and why.",
+      },
     }),
   },
   {
@@ -170,7 +175,7 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
   {
     name: "finish",
     description:
-      "End the build once every band is full, or once you have tried every music room find_venues listed. The app then books the acts each venue lifts most. Not a Qloo call.",
+      "End the build once every band is full, or once you have tried every music venue find_venues listed. The app then books the acts each venue lifts most. Not a Qloo call.",
     strict: true,
     input_schema: objectSchema({
       anchor_venue_ids: {
@@ -186,7 +191,7 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
         type: "string",
         enum: [...STOP_CLAIMS],
         description:
-          "Why you stopped: every band is full, or you tried every music room find_venues listed.",
+          "Why you stopped: every band is full, or you tried every music venue find_venues listed.",
       },
     }),
   },
@@ -204,6 +209,8 @@ const Inputs = {
   venue_artists: z.object({
     band: z.enum(FEE_BAND_IDS),
     venue_id: z.string().min(1),
+    // Required of the model (strict schema); older scripted plans send none.
+    why: z.string().optional(),
   }),
   local_pick: z.object({
     picks: z
@@ -339,8 +346,8 @@ export function createToolbox({
     request: () => Promise<QlooResult<T>>,
     /** A fuller line for the trace, once the answer is in (M6j's resolved place). */
     describe?: (data: T) => string,
-    /** What the answer adds to the call's trace line (WS13.1: Qloo had no fan data). */
-    mark?: (data: T) => Pick<TraceCall, "noFanData">,
+    /** What the answer adds to the call's trace line (Qloo had no fan data; the planner's line). */
+    mark?: (data: T) => Pick<TraceCall, "noFanData" | "why">,
   ) {
     if (used >= cap)
       throw new BudgetSpent(
@@ -538,7 +545,7 @@ export function createToolbox({
       };
     },
 
-    async venue_artists({ band, venue_id }) {
+    async venue_artists({ band, venue_id, why }) {
       const pair = headlinerPair();
       const venue = state.venues.find(
         (candidate) => candidate.entityId === venue_id,
@@ -554,7 +561,7 @@ export function createToolbox({
           band,
           venue: venue.name,
           fan_data: false,
-          note: `Qloo had no fan data for ${venue.name} on an earlier read, so no call was made. Read the next music room instead.`,
+          note: `Qloo had no fan data for ${venue.name} on an earlier read, so no call was made. Read the next music venue instead.`,
           ...progress(),
         };
       // A park, arena or stadium is named on its line (M6l); booking doesn't read the label.
@@ -583,7 +590,10 @@ export function createToolbox({
             ages: crowd.buckets,
           }),
         undefined,
-        (data) => (lacksFanData(data) ? { noFanData: venue.name } : {}),
+        (data) => ({
+          ...(lacksFanData(data) ? { noFanData: venue.name } : {}),
+          ...(why?.trim() ? { why: why.trim() } : {}),
+        }),
       );
       const artists = answer.entities;
       const noFanData = lacksFanData(answer);
@@ -599,7 +609,7 @@ export function createToolbox({
           band,
           venue: venue.name,
           fan_data: false,
-          note: `Qloo had no fan data for ${venue.name}: it left the venue out of the signal, so this ranking is the headliners' own and lifts no act. Skip ${venue.name} for every tier and read the next music room in its place.`,
+          note: `Qloo had no fan data for ${venue.name}: it left the venue out of the signal, so this ranking is the headliners' own and lifts no act. Skip ${venue.name} for every tier and read the next music venue in its place.`,
           ...progress(),
         };
       if (!baseline)
@@ -666,6 +676,9 @@ export function createToolbox({
     },
 
     async finish({ anchor_venue_ids, summary, stopped_because }) {
+      // WS13.7: why it stopped, in the planner's own words, is a line of the trace.
+      if (summary.trim())
+        emit({ type: "status", text: summary.trim(), planner: true });
       state.finished = {
         anchorVenueIds: anchor_venue_ids,
         summary,

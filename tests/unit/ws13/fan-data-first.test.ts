@@ -33,7 +33,7 @@ describe("venue_artists passes Qloo's fan data to the planner (WS13.1)", () => {
     const result = resultOf(outcome);
     expect(result.fan_data).toBe(false);
     expect(result.note).toContain(`Qloo had no fan data for ${HALL_NAME}`);
-    expect(result.note).toMatch(/next music room/);
+    expect(result.note).toMatch(/next music venue/);
     // The call's trace line carries it, so the Qloo calls list, Watch and a replay can say so.
     expect(calls().at(-1)).toMatchObject({
       tool: "venue_artists",
@@ -100,7 +100,7 @@ describe("venue_artists passes Qloo's fan data to the planner (WS13.1)", () => {
 
   it("tells the planner, in the system prompt, to skip a venue Qloo had no fan data for", () => {
     expect(SYSTEM_PROMPT).toMatch(/no fan data/);
-    expect(SYSTEM_PROMPT).toMatch(/next music room/);
+    expect(SYSTEM_PROMPT).toMatch(/next music venue/);
   });
 });
 
