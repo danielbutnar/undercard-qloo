@@ -19,7 +19,6 @@ import "./method/directors-cut.css";
 
 const { city } = SAGEBRUSH_SOUND;
 
-
 /**
  * How it works (M10b, docs/evidence.md section 28), in the chart's look, top to bottom: the demo
  * video, once it's published; the method in one picture; one act followed through the saved build, with the AI
@@ -79,7 +78,11 @@ export function MethodPage({
         )}
 
         <div className="chart-app fs directors-cut">
-          <BackstagePasses festival={SAGEBRUSH_SOUND} calls={story?.calls ?? 12}>
+          <BackstagePasses
+            festival={SAGEBRUSH_SOUND}
+            calls={story?.calls ?? 12}
+            local={Boolean(story?.act.localLift)}
+          >
             <p className="dc-principle">
               Qloo decides, the model plans, the rule books.
             </p>

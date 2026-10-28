@@ -8,7 +8,7 @@ import { TownScene, type SceneVenue } from "@/components/chart/town-scene";
 import { useReveal } from "@/components/chart/use-reveal";
 import { ordinal, PLAIN_BAND } from "@/components/chart/words";
 import { Cover } from "@/components/chart/cover";
-import { MIN_LIFT } from "@/lib/assemble-lineup";
+import { LOCAL_LIFT_BAR, MIN_LIFT } from "@/lib/assemble-lineup";
 import type { Festival } from "@/lib/festival";
 import { formatPopularityRange } from "@/lib/format";
 import { actsInBand, type Act } from "@/lib/lineup";
@@ -162,9 +162,13 @@ export function DirectorsCut({
   const [on, setOn] = useState(true);
   // A step's old link (/method?step=N, review fix) still lands on its scene.
   useEffect(() => {
-    const step = Number(new URLSearchParams(window.location.search).get("step"));
+    const step = Number(
+      new URLSearchParams(window.location.search).get("step"),
+    );
     if (Number.isInteger(step) && step >= 1 && step <= 4)
-      document.getElementById(`scene-${step}`)?.scrollIntoView?.({ block: "start" });
+      document
+        .getElementById(`scene-${step}`)
+        ?.scrollIntoView?.({ block: "start" });
   }, []);
   const { act, band, place } = story;
   const was = place?.was ?? null;
@@ -286,9 +290,9 @@ export function DirectorsCut({
         title="The door check"
         line={
           <p>
-            To get on, an act needs a climb of {MIN_LIFT} places or more, a Qloo
-            popularity inside its tier ({formatPopularityRange(band)}) and two
-            genres shared with the headliners. {act.name} passes all three.
+            {act.localLift
+              ? `To get on, an act needs a climb of ${MIN_LIFT} places or more, a local lift of ${LOCAL_LIFT_BAR} or more over a room in ${act.localLift.control.town} with similar Qloo popularity, a Qloo popularity inside its tier (${formatPopularityRange(band)}) and two genres shared with the headliners. ${act.name} passes them all.`
+              : `To get on, an act needs a climb of ${MIN_LIFT} places or more, a Qloo popularity inside its tier (${formatPopularityRange(band)}) and two genres shared with the headliners. ${act.name} passes all three.`}
           </p>
         }
       >
@@ -381,14 +385,20 @@ const PASSES = [
   },
 ] as const;
 
+/** The rule's pass on a 2.0 build (WS13.3): the local lift is checked too. */
+const LOCAL_RULE_ACCESS = `A climb of ${MIN_LIFT} or more, a local lift of ${LOCAL_LIFT_BAR} or more, inside the fee range, two genres shared`;
+
 /** Who does what (WS12 item 2) as three backstage passes on lanyards, from one rail. */
 export function BackstagePasses({
   festival,
   calls,
+  local = false,
   children,
 }: {
   festival: Festival;
   calls: number;
+  /** The saved build's acts carry a local lift (a 2.0 build): the rule checks it too. */
+  local?: boolean;
   children?: ReactNode;
 }) {
   const reveal = useReveal<HTMLElement>();
@@ -417,7 +427,9 @@ export function BackstagePasses({
               <p className="dc-pass-does">
                 {pass.does(calls).replace(/^./, (c) => c.toUpperCase())}
               </p>
-              <p className="dc-pass-access">{pass.access}</p>
+              <p className="dc-pass-access">
+                {pass.id === "rule" && local ? LOCAL_RULE_ACCESS : pass.access}
+              </p>
             </div>
           </li>
         ))}
@@ -476,4 +488,3 @@ export function TestedStamps({ children }: { children?: ReactNode }) {
     </section>
   );
 }
-

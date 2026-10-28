@@ -168,7 +168,7 @@ export function ActCard({
               <strong>Why it&apos;s here: </strong>
               {whySentence(act, place)}
             </p>
-            {/* WS13.3: both climbs, the town venue's and its matched venue abroad's. */}
+            {/* WS13.3: both climbs, in WS13's words (climbsLine). */}
             {act.localLift && (
               <p className="card-check-rule">{climbsLine(act)}</p>
             )}

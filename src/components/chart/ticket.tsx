@@ -62,7 +62,7 @@ export function Ticket({
   const first = local
     ? {
         big: `↑${local.lift}`,
-        label: `Climb: a local lift of ${local.lift} places, the bar is ${stamps.bar}; ${local.venue} with ${venue}'s fans, ${local.control} with a matched venue abroad`,
+        label: `Climb: a local lift of ${local.lift} places, the bar is ${stamps.bar}; ${climbsLine(act) ?? ""}`,
       }
     : {
         big: climb,

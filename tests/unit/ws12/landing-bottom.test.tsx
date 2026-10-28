@@ -3,6 +3,7 @@
 // trace (invented acts and venues). The AI agent's setlist takes the Qloo calls panel's place
 // (the full calls list stays under it), the door check takes How an act gets on's, the second
 // venue switch is gone (its sentence under the poster key), and the page ends on who decides.
+import { climbsLine } from "@/lib/agent-words";
 import {
   cleanup,
   fireEvent,
@@ -46,7 +47,7 @@ describe("the AI agent's setlist", () => {
       /^Call 8: Mid-size \+ The Lantern Room fans/,
     );
     expect(lines[7].className).toContain("is-circled");
-    expect((lines[7]).textContent).toContain("Hollow Pines");
+    expect(lines[7].textContent).toContain("Hollow Pines");
     expect(
       lines.filter((line) => line.className.includes("is-circled")),
     ).toHaveLength(1);
@@ -54,8 +55,12 @@ describe("the AI agent's setlist", () => {
 
   it("cues the AI agent's own lines in its own words, apart from Watch's caption", () => {
     open();
-    const sheet = screen.getByRole("region", { name: "The AI agent's setlist" });
-    expect(sheet.textContent).toContain(`The AI agent: ${saved.notes![0].text}`);
+    const sheet = screen.getByRole("region", {
+      name: "The AI agent's setlist",
+    });
+    expect(sheet.textContent).toContain(
+      `The AI agent: ${saved.notes![0].text}`,
+    );
     expect(sheet.textContent).not.toContain("The AI agent's plan:");
   });
 
@@ -69,7 +74,7 @@ describe("the AI agent's setlist", () => {
         }}
       />,
     );
-    expect((setlistLines()[11]).textContent).toContain("no fan data");
+    expect(setlistLines()[11].textContent).toContain("no fan data");
   });
 
   it("plays it live: a fresh run of the agent, in place of Run the agent live instead", () => {
@@ -81,9 +86,9 @@ describe("the AI agent's setlist", () => {
     ).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Play it live" }));
     expect(fetch).toHaveBeenCalled();
-    const build = (
-      fetch.mock.calls as unknown as [string, RequestInit][]
-    ).find(([url]) => String(url).includes("/api/undercard"));
+    const build = (fetch.mock.calls as unknown as [string, RequestInit][]).find(
+      ([url]) => String(url).includes("/api/undercard"),
+    );
     expect(JSON.parse(String(build?.[1].body)).fresh).toBe(true);
   });
 });
@@ -103,7 +108,7 @@ describe("the door check", () => {
         name: /^(Climb|Popularity|Genres)/,
       }),
     ).toHaveLength(3);
-    expect((door).textContent).toContain(
+    expect(door.textContent).toContain(
       "4 slots · fee range (Mid): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (80th–92nd percentile)",
     );
   });
@@ -121,16 +126,23 @@ describe("the door check", () => {
   });
 
   it("stamps the local lift against the bar from the act's own data, both climbs as the card words them (WS13.3)", () => {
+    const lifted = {
+      ...acts[0],
+      localLift: {
+        venueClimb: 11,
+        controlClimb: 4,
+        control: {
+          entityId: "control-1",
+          name: "A Room Abroad",
+          town: "Elsewhere",
+        },
+      },
+    };
+    // The climbs in WS13's own words, whatever they become (Daniel, 2026-10-28).
+    const [own, abroad] = climbsLine(lifted)!.split(" · ");
     render(
       <Ticket
-        act={{
-          ...acts[0],
-          localLift: {
-            venueClimb: 11,
-            controlClimb: 4,
-            control: { entityId: "control-1", name: "A Room Abroad", town: "Elsewhere" },
-          },
-        }}
+        act={lifted}
         band={SAGEBRUSH_SOUND.feeBands[0]}
         hue={0}
         festival={SAGEBRUSH_SOUND}
@@ -139,8 +151,10 @@ describe("the door check", () => {
     const stamp = screen.getByRole("listitem", { name: /^Climb/ });
     expect(stamp.textContent).toContain("↑7");
     expect(stamp.textContent).toContain("local lift");
-    expect(stamp.textContent).toContain("↑11 with The Lantern Room's fans");
-    expect(stamp.textContent).toContain("↑4 with a matched venue abroad");
+    expect(stamp.textContent).toContain(own);
+    expect(stamp.textContent).toContain(abroad);
+    // The stamp's own label names the climbs in the same words, none of its own.
+    expect(stamp.getAttribute("aria-label")).toContain(climbsLine(lifted)!);
   });
 });
 
@@ -156,15 +170,13 @@ describe("the second venue switch and the page's end", () => {
     expect(key.parentElement!.textContent).toContain(
       "These venues' fans are the signal: the acts won't necessarily play there.",
     );
-    expect(key.parentElement!.textContent).not.toContain(
-      "Untick a venue",
-    );
+    expect(key.parentElement!.textContent).not.toContain("Untick a venue");
   });
 
   it("ends on who decides, then one way on", () => {
     open();
     const end = screen.getByRole("region", { name: "Who decides" });
-    expect((end).textContent).toContain(
+    expect(end.textContent).toContain(
       "Undercard drafts. The buyer makes every call.",
     );
     expect(

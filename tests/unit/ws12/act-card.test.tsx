@@ -2,6 +2,7 @@
 // WS12 item 3: the act card, finished, on the synthetic lineup (invented acts and venues): its
 // rank beside its climb as the poster prints them, "with <venue>'s fans added", its popularity on
 // its tier's own scale, both climbs from WS13.3's data, and its actions (pinned by the panel).
+import { climbsLine } from "@/lib/agent-words";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { ActCard } from "@/components/act-card";
@@ -53,15 +54,15 @@ describe("the act card, finished (WS12 item 3)", () => {
   });
 
   it("shows both climbs once WS13.3's data carries them", () => {
-    open({
-      localLift: {
-        venueClimb: 11,
-        controlClimb: 4,
-        control: { entityId: "c-1", name: "A Room Abroad", town: "Elsewhere" },
-      },
-    });
+    const localLift = {
+      venueClimb: 11,
+      controlClimb: 4,
+      control: { entityId: "c-1", name: "A Room Abroad", town: "Elsewhere" },
+    };
+    open({ localLift });
+    // In WS13's own words (climbsLine), whatever they become (Daniel, 2026-10-28).
     expect(document.body.textContent).toContain(
-      `↑11 with ${act.anchorVenue.name}'s fans · ↑4 with a matched venue abroad`,
+      climbsLine({ ...act, localLift })!,
     );
   });
 

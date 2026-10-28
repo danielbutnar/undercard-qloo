@@ -126,3 +126,44 @@ describe("How it works as the director's cut of Watch (WS12 item 2)", () => {
     );
   });
 });
+
+describe("How it works tells a 2.0 build's rule from the saved act (Daniel, 2026-10-28)", () => {
+  const lifted = methodStory(SAGEBRUSH_SOUND, {
+    ...FIRST_BILL,
+    places: PLACES,
+    acts: FIRST_BILL.acts.map((entry, index) =>
+      index === 0
+        ? {
+            ...entry,
+            localLift: {
+              venueClimb: 11,
+              controlClimb: 4,
+              control: {
+                entityId: "c-1",
+                name: "A Room Abroad",
+                town: "Elsewhere",
+              },
+            },
+          }
+        : entry,
+    ),
+  })!;
+
+  it("names the local lift over a room in the control's town with similar Qloo popularity", () => {
+    render(<MethodPage story={lifted} videoUrl={null} />);
+    expect(scene(3).textContent).toContain(
+      "a local lift of 5 or more over a room in Elsewhere with similar Qloo popularity",
+    );
+    expect(
+      screen.getByRole("region", { name: "Who does what" }).textContent,
+    ).toContain("a local lift of 5 or more");
+  });
+
+  it("says nothing of a local lift on a 1.0 build, whose acts had none", () => {
+    page();
+    expect(scene(3).textContent).not.toContain("local lift");
+    expect(
+      screen.getByRole("region", { name: "Who does what" }).textContent,
+    ).not.toContain("local lift");
+  });
+});

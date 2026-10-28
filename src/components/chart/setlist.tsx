@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
-import { setlistCue, type SetlistLine } from "./setlist-words";
+import { buildCallCount, setlistCue, type SetlistLine } from "./setlist-words";
 import { signName } from "./town-scene";
 import { useLiveRun } from "@/components/live-run";
 import { useReveal } from "./use-reveal";
@@ -67,7 +67,8 @@ export function Setlist({
             The AI agent&apos;s setlist
           </h2>
           <p className="setlist-count">
-            {lines.length} Qloo {lines.length === 1 ? "call" : "calls"}
+            {buildCallCount(lines)} Qloo{" "}
+            {buildCallCount(lines) === 1 ? "call" : "calls"}
           </p>
         </div>
         <ol aria-label="The calls, in order" className="setlist-lines">

@@ -39,6 +39,8 @@ export interface SetlistVenue {
 /** One numbered line of the agent's setlist. */
 export interface SetlistLine {
   n: number;
+  /** The call's tool: a refill's, a redraft's or a running order's come after the build. */
+  tool: string;
   /** The line, or, on a venue's line, what comes before the venue's name. */
   text: string;
   /** The venue a venue call read: the setlist sets its name in the venue's colour. */
@@ -151,6 +153,7 @@ export function setlistLines(
       : undefined;
     return {
       n: call.n,
+      tool: call.tool,
       ...lineWords(call, band, venue),
       venue: venue ? { entityId: venue.entityId, name: venue.name } : null,
       band: band?.id ?? null,
@@ -189,7 +192,7 @@ export function liftingCall(
 
 /**
  * WS13.3's two climbs for an act, once its data carries them: places it climbed with the town's
- * venue, and with that venue's matched control abroad (src/lib/control-venue.ts).
+ * venue, and with its control, a room elsewhere with similar Qloo popularity (control-venue.ts).
  */
 export interface TwoClimbs {
   venue: number;
@@ -245,6 +248,15 @@ export function ticketStamps(
  * where a band is a fee tier (WS8). The saved line itself keeps its words.
  */
 export const setlistCue = (note: string) => `The AI agent: ${plainWords(note)}`;
+
+const AFTER_BUILD = new Set(["refill", "redraft", "running_order"]);
+
+/**
+ * The build's own Qloo calls: the one total the trace's stop line gives (Daniel, 2026-10-28),
+ * never counting a refill, a redraft or a running order made after it.
+ */
+export const buildCallCount = (lines: readonly Pick<SetlistLine, "tool">[]) =>
+  lines.filter((line) => !AFTER_BUILD.has(line.tool)).length;
 
 /** The act's move, as the setlist writes it in the margin by its ringed call. */
 export function marginNote(act: Act, place: Placed | undefined): string {
