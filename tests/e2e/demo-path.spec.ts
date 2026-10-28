@@ -435,7 +435,10 @@ test.describe("demo path", () => {
       await expect(bill(page).locator(".poster-slot")).toHaveCount(7);
     }
 
-    await switcher.getByRole("button", { name: "All venues on" }).click();
+    await bill(page)
+      .getByRole("button", { name: "All venues on" })
+      .first()
+      .click();
     await expect.poll(names).toEqual(saved);
     expect(sent).toEqual([]);
   });
@@ -497,7 +500,8 @@ test.describe("demo path", () => {
     page,
   }) => {
     const html = await (await page.request.get("/")).text();
-    expect(html.match(/<article\b/g) ?? []).toHaveLength(10);
+    // The poster's acts (each carries data-act; the door check's ticket is an article too).
+    expect(html.match(/<article\b[^>]*\bdata-act=/g) ?? []).toHaveLength(10);
 
     const started = Date.now();
     await page.goto("/");

@@ -36,7 +36,6 @@ import {
   openBandLine,
   openPosterLine,
   regionCode,
-  KEY_NOTE,
   KEY_SIGNAL,
   RULE_LINE,
   stampWords,
@@ -1252,7 +1251,7 @@ export function FestivalScreen({
       />
       {!custom && !watching && (
         <p className="poster-key-note">
-          {KEY_NOTE} {KEY_SIGNAL}
+          {KEY_SIGNAL}
         </p>
       )}
       {!allOpen && (

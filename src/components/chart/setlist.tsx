@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
-import type { SetlistLine } from "./setlist-words";
+import { setlistCue, type SetlistLine } from "./setlist-words";
 import { signName } from "./town-scene";
 import { useReveal } from "./use-reveal";
-import { agentLine } from "./words";
 
 const day = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -86,7 +85,7 @@ export function Setlist({
               >
                 {line.before.map((text) => (
                   <p key={text} className="setlist-agent">
-                    {agentLine(text)}
+                    {setlistCue(text)}
                   </p>
                 ))}
                 <div className="setlist-line">
@@ -123,7 +122,7 @@ export function Setlist({
         </ol>
         {closing.map((text) => (
           <p key={text} className="setlist-agent setlist-closing">
-            {agentLine(text)}
+            {setlistCue(text)}
           </p>
         ))}
         {onLive && (

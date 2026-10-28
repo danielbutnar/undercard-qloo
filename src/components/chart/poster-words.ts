@@ -107,11 +107,7 @@ export const inkLabel = (venue: string, on: boolean, lifted: number) =>
     : `${venue}'s fans: off. Switch them on`;
 
 /** The poster's key under the venues: what the ↑ counts and which act takes a slot. */
-/** Under the poster's key, where the second venue switch's sentence went (WS12 item 1). */
-export const KEY_NOTE =
-  "Untick a venue: the lineup re-forms by the same rule, without that venue's fans.";
-
-/** After it, in Daniel's words (2026-10-28): what the venues are, and what they aren't. */
+/** Under the poster's key, in Daniel's words (2026-10-28): what the venues are, and aren't. */
 export const KEY_SIGNAL =
   "These venues' fans are the signal: the acts won't necessarily play there.";
 

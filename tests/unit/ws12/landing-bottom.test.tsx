@@ -52,6 +52,13 @@ describe("the AI agent's setlist", () => {
     ).toHaveLength(1);
   });
 
+  it("cues the AI agent's own lines in its own words, apart from Watch's caption", () => {
+    open();
+    const sheet = screen.getByRole("region", { name: "The AI agent's setlist" });
+    expect(sheet.textContent).toContain(`The AI agent: ${saved.notes![0].text}`);
+    expect(sheet.textContent).not.toContain("The AI agent's plan:");
+  });
+
   it("marks the venue Qloo had no fan data for", () => {
     render(
       <FestivalScreen
@@ -133,7 +140,7 @@ describe("the door check", () => {
 });
 
 describe("the second venue switch and the page's end", () => {
-  it("drops Switch a venue off; its one sentence sits under the poster key", () => {
+  it("drops Switch a venue off; under the poster key, exactly Daniel's line (2026-10-28)", () => {
     open();
     expect(
       screen.queryByRole("heading", { name: "Switch a venue off" }),
@@ -142,7 +149,10 @@ describe("the second venue switch and the page's end", () => {
       name: "Venue fans used for this draft",
     });
     expect(key.parentElement!.textContent).toContain(
-      "Untick a venue: the lineup re-forms by the same rule, without that venue's fans.",
+      "These venues' fans are the signal: the acts won't necessarily play there.",
+    );
+    expect(key.parentElement!.textContent).not.toContain(
+      "Untick a venue",
     );
   });
 

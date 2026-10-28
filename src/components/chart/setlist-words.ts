@@ -230,6 +230,9 @@ export function ticketStamps(
   };
 }
 
+/** One of the AI agent's lines on the setlist: its own words, apart from Watch's caption. */
+export const setlistCue = (note: string) => `The AI agent: ${note}`;
+
 /** The act's move, as the setlist writes it in the margin by its ringed call. */
 export function marginNote(act: Act, place: Placed | undefined): string {
   const lift = liftOf(act);

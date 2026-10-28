@@ -217,7 +217,7 @@ describe("the venue switch during Watch", () => {
     );
     // Since WS12 item 1 the switch is the poster's key; its sentence sits under it.
     const venueSwitch = () =>
-      screen.queryByText(/^Untick a venue: the lineup re-forms by the same rule/);
+      screen.queryByText(/^These venues' fans are the signal/);
     expect(venueSwitch()).toBeTruthy();
     fireEvent.click(screen.getByRole("button", WATCH));
     await waitFor(
