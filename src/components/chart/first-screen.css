@@ -288,14 +288,32 @@
     display: none;
   }
 }
+/* WS12: and on a laptop only from 1250 px wide and 960 px tall, where Watch's corner has room for
+   it beside the town's controls and clear of every sign. At 1280x800, 1366x768, 1440x780,
+   1440x900 and 1536x864 it stood over a sign, and from 1100 to 1280 px wide over the controls;
+   there "Play it live" starts the live run from the setlist, right under the town. */
+@media (max-width: 1249px), (max-height: 959px) {
+  .chart-app.fs .fs-live {
+    display: none;
+  }
+}
 /* With a card open over the town, Watch keeps its own size, clear of the card's actions. */
 .chart-app.fs .fs-grid.has-panel .fs-live {
   display: none;
 }
+/* Watch's corner stops short of the town's controls at the bottom right (their 244 px row, its
+   12 px margin, and a gap), so the live run's line wraps instead of covering them. */
+@media (min-width: 1250px) and (min-height: 761px) {
+  .chart-app.fs .fs-watch {
+    max-width: min(520px, calc(100% - 300px));
+  }
+}
 
 /* WS8: on a short laptop (a maximized browser at 1366x640 or 1280x650, and 1280x720) Watch sits above the town
-   instead of over its corner, so it shows before any scroll. */
-@media (min-width: 1100px) and (max-height: 760px) {
+   instead of over its corner, so it shows before any scroll. So it does on a laptop narrower than
+   1250 px (WS12): there the town is too narrow for Watch's corner beside the town's controls. */
+@media (min-width: 1100px) and (max-height: 760px),
+  (min-width: 1100px) and (max-width: 1249px) {
   .chart-app.fs .fs-grid {
     grid-template-rows: auto auto auto auto 1fr;
     grid-template-areas: "lead poster" "towns poster" "watch poster" "town poster" ". poster";
@@ -336,9 +354,9 @@
 
 /* WS12 item 4 (WS8's item 18): a card open over a narrow laptop's town stops above Watch's
    corner (Watch's 83 px and its 15 px margin, with room to spare), so Watch stays reachable at
-   every width; from 1400 px the town is wide enough for both side by side. On a short laptop
-   Watch stands above the town, so there the card keeps its height. */
-@media (min-width: 1100px) and (max-width: 1399px) and (min-height: 761px) {
+   every width; from 1400 px the town is wide enough for both side by side. On a short laptop, and
+   below 1250 px, Watch stands above the town, so there the card keeps its height. */
+@media (min-width: 1250px) and (max-width: 1399px) and (min-height: 761px) {
   .chart-app.fs .fs-grid.has-panel .scene-panel {
     max-height: calc(100% - 130px);
   }

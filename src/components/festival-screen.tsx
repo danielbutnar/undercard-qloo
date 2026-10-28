@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -153,8 +154,12 @@ function useWide(): boolean {
   return useSyncExternalStore(subscribeWide, wideNow, () => false);
 }
 
-/** A short laptop (WS8, WS12 item 1): Watch stands above the town, not over its corner. */
-const SHORT = "(min-width: 1100px) and (max-height: 760px)";
+/**
+ * A short laptop (WS8, WS12 item 1), or one narrower than 1250 px, where the town is too narrow
+ * for Watch's corner beside its controls: Watch stands above the town, not over its corner.
+ */
+const SHORT =
+  "(min-width: 1100px) and (max-height: 760px), (min-width: 1100px) and (max-width: 1249px)";
 function subscribeShort(change: () => void) {
   const query = window.matchMedia?.(SHORT);
   query?.addEventListener?.("change", change);
@@ -163,6 +168,29 @@ function subscribeShort(change: () => void) {
 const shortNow = () => window.matchMedia?.(SHORT)?.matches === true;
 function useShort(): boolean {
   return useSyncExternalStore(subscribeShort, shortNow, () => false);
+}
+
+/**
+ * An element's size as it draws, kept up as it changes (WS12): Watch's corner of the town grows
+ * with the live run's line under it, and the town keeps its signs out of whatever it covers.
+ * Null until measured, and where ResizeObserver is missing (a test's DOM).
+ */
+function useBoxSize(element: HTMLElement | null) {
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
+  useLayoutEffect(() => {
+    if (!element || typeof ResizeObserver === "undefined") return;
+    const measure = () => {
+      const { width, height } = element.getBoundingClientRect();
+      const w = Math.ceil(width);
+      const h = Math.ceil(height);
+      setSize((now) => (now && now.w === w && now.h === h ? now : { w, h }));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [element]);
+  return size;
 }
 
 /** The poster's With and Without Qloo tabs, each named for what it shows (label fix 3). */
@@ -565,6 +593,9 @@ export function FestivalScreen({
   const llm = useLlmOnly(festival.id);
   const wide = useWide();
   const short = useShort();
+  // Watch's corner of the town, measured, so the town's signs stand clear of all of it.
+  const [watchCorner, setWatchCorner] = useState<HTMLDivElement | null>(null);
+  const watchSize = useBoxSize(watchCorner);
   // The act the door check shows: the one last pointed at on the poster (WS12 item 1).
   const [pointedId, setPointedId] = useState<string | null>(null);
   // The printable poster (WS12 item 6): drawn on the server, which takes a second or two.
@@ -1240,7 +1271,7 @@ export function FestivalScreen({
   );
 
   const watchButton = thinTown ? null : limited ? null : (
-    <div className="fs-watch">
+    <div className="fs-watch" ref={setWatchCorner}>
       <button
         type="button"
         onClick={() =>
@@ -1788,7 +1819,18 @@ export function FestivalScreen({
                 reserve={
                   wide
                     ? {
-                        ...(short ? {} : { corner: { w: 420, h: 104 } }),
+                        // Watch's block and its 15 px margin, with its button's 5 px shadow
+                        // and room to spare; before it is measured, its usual size.
+                        ...(short
+                          ? {}
+                          : {
+                              corner: watchSize
+                                ? {
+                                    w: watchSize.w + 15 + 5 + 8,
+                                    h: watchSize.h + 15 + 8,
+                                  }
+                                : { w: 420, h: 104 },
+                            }),
                         ...(watching ? { top: 150 } : {}),
                         ...((cardInTown && openAct) || (venueCard && !openAct)
                           ? { right: 404 }
