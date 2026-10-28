@@ -146,6 +146,10 @@ export function createBuildStore(
   return {
     byId,
     latest,
+    /** Keeps a build under its own id only, never as a festival's latest (WS13.11's re-runs). */
+    async keep(build: SavedBuild): Promise<void> {
+      await cache.set(`${PREFIX}id:${build.id}`, build, cacheTtlSeconds(now()));
+    },
     async save(build: SavedBuild): Promise<void> {
       const ttl = cacheTtlSeconds(now());
       await cache.set(`${PREFIX}id:${build.id}`, build, ttl);
