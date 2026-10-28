@@ -581,7 +581,7 @@ export function createToolbox({
       text: refusedLine(controlled, names),
       planner: true,
     });
-    return `Read at least two music venues with fan data, each with its control, before you finish: ${controlled} so far. Not tried yet: ${names.join(", ")}. If one of them isn't a music venue, name it in not_music_venues, with your reason.`;
+    return `Read at least two music venues with fan data, each with its control, before you finish: ${controlled} so far. Not tried yet: ${names.join(", ")}. Read the next of them. Name one in not_music_venues, with your reason, only if you are sure it never hosts concerts, never because of its name or its food.`;
   }
 
   // WS13.2: how full each tier is by the rule, so the planner reads until every one is.

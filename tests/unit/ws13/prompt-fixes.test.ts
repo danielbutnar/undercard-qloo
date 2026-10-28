@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { systemPrompt } from "@/server/agent";
 import { AGENT_TOOLS } from "@/server/agent-tools";
+import { LANTERN, OPENING, read, runAgent, scriptedModel } from "./agent-kit";
 
 const prompt = systemPrompt(SAGEBRUSH_SOUND);
 const tool = (name: string) => {
@@ -29,6 +30,43 @@ describe("skipping a listed place (Daniel, 21:50)", () => {
     expect(finish).toContain("sure never host concerts");
     expect(finish).toContain("never because of its name or its food");
     expect(finish).not.toContain("restaurants, cafes, breweries");
+  });
+
+  it("asks a refused planner to read the next place, skipping one only if it's sure it never hosts concerts", async () => {
+    const { model, requests } = scriptedModel([
+      ...OPENING,
+      [read("mid", LANTERN), read("opener", LANTERN)],
+      [
+        {
+          name: "finish",
+          input: {
+            anchor_venue_ids: [],
+            summary: "Done reading.",
+            stopped_because: "every_band_full",
+            not_music_venues: [],
+          },
+        },
+      ],
+    ]);
+    await runAgent(model);
+    const refusals = requests.flatMap((request) =>
+      request.messages.flatMap((message) =>
+        Array.isArray(message.content)
+          ? message.content.flatMap((block) =>
+              block.type === "tool_result" &&
+              typeof block.content === "string" &&
+              block.content.includes("at least two music venues")
+                ? [block.content]
+                : [],
+            )
+          : [],
+      ),
+    );
+    expect(refusals.length).toBeGreaterThan(0);
+    for (const refusal of refusals) {
+      expect(refusal).not.toContain("isn't a music venue");
+      expect(refusal).toContain("only if you are sure it never hosts concerts");
+    }
   });
 });
 
