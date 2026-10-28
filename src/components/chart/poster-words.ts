@@ -107,9 +107,16 @@ export function signChip({
 }
 
 /** A venue's switch on the poster, read out: on or off, and what it does. */
-export const inkLabel = (venue: string, on: boolean, lifted: number) =>
+export const inkLabel = (
+  venue: string,
+  on: boolean,
+  lifted: number,
+  noFanData = false,
+) =>
   on
-    ? `${venue}'s fans: on, ${lifted === 1 ? "1 act" : `${lifted} acts`}. Switch them off`
+    ? noFanData
+      ? `${venue}'s fans: no fan data on Qloo. Switch them off`
+      : `${venue}'s fans: on, ${lifted === 1 ? "1 act" : `${lifted} acts`}. Switch them off`
     : `${venue}'s fans: off. Switch them on`;
 
 /** The poster's key under the venues: what the ↑ counts and which act takes a slot. */

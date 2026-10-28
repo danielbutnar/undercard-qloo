@@ -71,6 +71,8 @@ export interface KeyVenue {
   hue: number | null;
   lifted: number;
   off: boolean;
+  /** Qloo had no fan data for it (WS8): its count says so, in grey, as its sign in the town. */
+  noFanData?: boolean;
 }
 
 /**
@@ -123,8 +125,13 @@ export function VenueKey({
               )}
             </span>
             <span className="poster-ink-name">{signName(venue.name)}</span>
-            <span className="poster-ink-count">
-              {venue.off ? "off" : venue.lifted}
+            {/* WS12 item 7: grey where the venue is unlit, as its sign in the town. */}
+            <span className={`poster-ink-count ${lit ? "" : "is-grey"}`}>
+              {venue.off
+                ? "off"
+                : venue.noFanData
+                  ? "no fan data"
+                  : venue.lifted}
             </span>
           </>
         );
@@ -134,7 +141,12 @@ export function VenueKey({
             type="button"
             className={`poster-ink ${venue.off ? "is-off" : ""}`}
             aria-pressed={!venue.off}
-            aria-label={inkLabel(venue.name, !venue.off, venue.lifted)}
+            aria-label={inkLabel(
+              venue.name,
+              !venue.off,
+              venue.lifted,
+              venue.noFanData,
+            )}
             onClick={() => onToggle(venue.entityId)}
             onMouseEnter={() => onHover?.(venue.entityId)}
             onMouseLeave={() => onHover?.(null)}
@@ -146,7 +158,7 @@ export function VenueKey({
             key={venue.entityId}
             className={`poster-ink ${venue.off ? "is-off" : ""}`}
             role="img"
-            aria-label={`${venue.name}'s fans: ${venue.off ? "off" : venue.lifted === 1 ? "1 act" : `${venue.lifted} acts`}`}
+            aria-label={`${venue.name}'s fans: ${venue.off ? "off" : venue.noFanData ? "no fan data on Qloo" : venue.lifted === 1 ? "1 act" : `${venue.lifted} acts`}`}
           >
             {body}
           </span>

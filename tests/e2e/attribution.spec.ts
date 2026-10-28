@@ -108,7 +108,8 @@ test.describe("at 1440x900", () => {
   }) => {
     await page.goto("/");
     const toggle = rooms(page).getByRole("button", {
-      name: /^Cottonwood Social Hall's fans: on/,
+      // Qloo has no fan data for it in the synthetic build: its key says so (WS12 item 7).
+      name: /^Cottonwood Social Hall's fans: no fan data on Qloo\. Switch them off$/,
     });
     await expect(toggle).toBeEnabled({ timeout: 15_000 });
     await toggle.click();

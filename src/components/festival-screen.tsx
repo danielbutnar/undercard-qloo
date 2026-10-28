@@ -760,6 +760,7 @@ export function FestivalScreen({
     hue: venue.hue,
     lifted: venue.lifted,
     off: venue.off,
+    noFanData: venue.noFanData,
   }));
 
   function startShow(replay: boolean) {

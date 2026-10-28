@@ -21,6 +21,7 @@ import {
   switchLine,
 } from "@/components/chart/words";
 import { useReducedMotion } from "@/components/use-watch";
+import { plusRetries } from "@/lib/agent-words";
 import { pictured } from "@/lib/artist-images";
 import { MIN_LIFT } from "@/lib/assemble-lineup";
 import { formatPopularity, formatPopularityRange } from "@/lib/format";
@@ -105,15 +106,16 @@ export function AgentChoices({
       <p className="panel-sub">
         {story.placesListed !== null &&
           `Qloo listed ${story.placesListed} live-music places in ${city}. `}
-        The AI agent chose whose fans to read, in {story.calls} Qloo calls. Here
-        is how many acts each venue&apos;s fans lifted onto the whole lineup,
-        mid-size and opening:
+        The AI agent chose whose fans to read, in {story.calls} Qloo calls
+        {plusRetries(story.retries)}. Here is how many acts each venue&apos;s
+        fans lifted onto the whole lineup, mid-size and opening:
       </p>
       <ul className="how-venues">
         {story.venues.map((venue) => (
           <li
             key={venue.entityId}
-            className={`how-venue venue-${hues.get(venue.entityId) ?? 0}`}
+            // WS12 item 7: a venue colour only where its fans lifted acts; grey otherwise.
+            className={`how-venue ${venue.lifted > 0 && hues.has(venue.entityId) ? `venue-${hues.get(venue.entityId)}` : ""}`}
           >
             <i className="how-swatch" aria-hidden />
             <span className="how-venue-name">{venue.name}</span>

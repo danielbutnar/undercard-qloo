@@ -1293,6 +1293,11 @@
   color: var(--color-surface);
   font-size: 11px;
 }
+/* WS12 item 7: an unlit venue's count is grey, as its sign in the town. */
+.chart-app.fs .poster-ink-count.is-grey {
+  background: var(--color-quiet);
+  color: var(--color-ink);
+}
 .chart-app.fs .poster-rule {
   max-width: 440px;
   font-size: 14px;

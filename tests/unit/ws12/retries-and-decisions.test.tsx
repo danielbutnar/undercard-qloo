@@ -148,5 +148,9 @@ describe("retries beside every call count (Daniel, 19:20)", () => {
       `The AI agent: plans the ${BILL.calls} Qloo calls, plus 3 retries`,
     );
     expect(passes[0].textContent).toContain("plus 3 retries");
+    expect(
+      screen.getByRole("region", { name: "The AI agent's choices" })
+        .textContent,
+    ).toContain(`in ${BILL.calls} Qloo calls, plus 3 retries. Here`);
   });
 });
