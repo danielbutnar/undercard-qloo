@@ -99,6 +99,7 @@ import {
   townsNear,
   type CheckedTown,
 } from "@/lib/checked-towns";
+import { posterFile, printRequest } from "@/components/share/print-words";
 import { lineupCsv } from "@/lib/csv";
 import type { FeeBand } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
@@ -127,7 +128,11 @@ const savedAt = new Intl.DateTimeFormat("en-US", {
 });
 
 function downloadText(filename: string, text: string, type: string) {
-  const url = URL.createObjectURL(new Blob([text], { type }));
+  downloadBlob(filename, new Blob([text], { type }));
+}
+
+function downloadBlob(filename: string, blob: Blob) {
+  const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
   link.download = filename;
@@ -562,6 +567,10 @@ export function FestivalScreen({
   const short = useShort();
   // The act the door check shows: the one last pointed at on the poster (WS12 item 1).
   const [pointedId, setPointedId] = useState<string | null>(null);
+  // The printable poster (WS12 item 6): drawn on the server, which takes a second or two.
+  const [posterPrint, setPosterPrint] = useState<"idle" | "drawing" | "failed">(
+    "idle",
+  );
   // The switch works from the saved build on screen, never a judge's own run (it isn't saved).
   // It follows a new build once the build has finished, so a live run's lineup is the one it
   // re-forms (on a preview, which saves nothing, the switch then says it isn't available).
@@ -996,6 +1005,32 @@ export function FestivalScreen({
   const printedActs = bandRows.flatMap(({ rows }) =>
     rows.flatMap((row) => (row.act ? [row.act] : [])),
   );
+
+  // The printable poster (WS12 item 6): the poster on screen, drawn by /api/poster at print
+  // size, so a refill or a venue switched off prints as the poster shows it.
+  async function downloadPoster() {
+    setPosterPrint("drawing");
+    try {
+      const response = await fetch("/api/poster", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(
+          printRequest({
+            festival,
+            brief: custom?.brief,
+            bands: bandRows,
+            venues: keyVenues,
+            unavailable: whatIf ? [] : state.unavailable,
+          }),
+        ),
+      });
+      if (!response.ok) throw new Error(`The poster: ${response.status}`);
+      downloadBlob(posterFile(festival), await response.blob());
+      setPosterPrint("idle");
+    } catch {
+      setPosterPrint("failed");
+    }
+  }
   // The setlist (WS12 item 1): the calls of the run on screen once one streams in, else the
   // saved build's, with the AI agent's lines where it said them.
   const streamed = state.calls.length > 0;
@@ -1413,6 +1448,21 @@ export function FestivalScreen({
               Export CSV
             </button>
           )}
+          {bookedActs.length > 0 && (
+            <button
+              type="button"
+              className="tool poster-export"
+              onClick={() => void downloadPoster()}
+              disabled={posterPrint === "drawing"}
+            >
+              <svg viewBox="0 0 16 16" aria-hidden>
+                <path d="M8 2 V11 M4 7 L8 11 L12 7 M2 14 H14" />
+              </svg>
+              {posterPrint === "drawing"
+                ? "Drawing the poster…"
+                : "Download the poster"}
+            </button>
+          )}
           {!custom && state.build && (
             <>
               <button
@@ -1470,6 +1520,11 @@ export function FestivalScreen({
             </>
           )}
         </PosterActions>
+      )}
+      {posterPrint === "failed" && !watching && (
+        <p role="alert" className="tools-note">
+          The poster couldn&apos;t be drawn. Try again.
+        </p>
       )}
       {!without && state.keeping.length > 0 && !whatIf && !watching && (
         <p className="tools-note">

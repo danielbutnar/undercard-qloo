@@ -151,7 +151,7 @@ export function drawable(text: string): string {
 export const capitals = (text: string) => drawable(text.toUpperCase());
 
 /** A venue's name on its sign: without a bracketed note (town-scene.tsx's signName). */
-const signName = (name: string) =>
+export const signName = (name: string) =>
   name.replace(/\s*\([^)]*\)/g, "").trim() || name;
 
 // The lineup's order on the poster (chart-rows.ts, billRows by climb): the biggest climb first, a
