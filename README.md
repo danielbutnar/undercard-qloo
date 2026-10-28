@@ -83,7 +83,7 @@ Beyond the demo path, one click from the bill:
   ranking, its popularity sits inside the band, and it shares two genre tags with the
   headliners; each band takes its strongest-affinity acts. Every number on a card is Qloo's.
 - **A refill** ([src/server/refill.ts](src/server/refill.ts)) reruns the venue query for that
-  band with every act on the board excluded, in at most 3 calls, and applies the same bar.
+  band with every act on the board excluded, in at most 5 calls, and applies the same bar.
 - **Saved builds.** A festival's first complete build is saved ([src/server/build-store.ts](src/server/build-store.ts))
   and replayed to every later visitor; the trace says when a board is a replay. A later live run
   is kept under its own id for whoever ran it (its lineup, refill and venue switch) and never
@@ -94,7 +94,7 @@ Beyond the demo path, one click from the bill:
   back to the empty board and Build undercard. Each act's mark is read from its Why Boise line
   ([src/lib/marks.ts](src/lib/marks.ts)), so older saved builds need no new field.
 - **Checks.** Unit tests in [tests/unit](tests/unit) run against a synthetic Qloo: each tool's
-  query parameters, the 12-call cap, the refill's exclusions and 3-call cap, the rate limits.
+  query parameters, the 12-call cap, the refill's exclusions and 5-call cap, the rate limits.
   The demo path in [tests/e2e/demo-path.spec.ts](tests/e2e/demo-path.spec.ts) (all five steps,
   plus a first-paint check) passes against the live demo, most recently on 2026-10-17.
   GitHub Actions runs `pnpm gate` on every push to main and on pull requests.
@@ -129,7 +129,7 @@ and 22–23 of them share at least two genre tags with the headliners. The Visua
 Collective moved N–31 (21–23 with shared tags). Venue 166 Boise changed nothing, which
 is why the agent measures each venue's lift instead of trusting the venue list.
 
-Marking an act **Unavailable** refills its slot with at most 3 more Qloo calls: artist
+Marking an act **Unavailable** refills its slot with at most 5 more Qloo calls: artist
 insights for the same fee band, seeded by the headliners and the act's anchor venue (then the
 build's other anchors), with the headliners and every act on the board in
 `filter.exclude.entities`. The first act that venue lifts past the same bar takes the slot,
@@ -357,7 +357,7 @@ everyone, and answer with a friendly message at the limit:
 | Action | Per IP per day | Everyone per day |
 |---|---|---|
 | Fresh build (runs the agent: Qloo and Claude) | 5 | 60 |
-| Refill (up to 3 Qloo calls) | 25 | 500 |
+| Refill (up to 5 Qloo calls) | 25 | 500 |
 | LLM only (asks Claude) | 10 | 100 |
 | Deep health check (`GET /api/health/deep` with the `HEALTH_TOKEN` bearer token: one Qloo search and a one-token Claude call) | 3 | 3 |
 
