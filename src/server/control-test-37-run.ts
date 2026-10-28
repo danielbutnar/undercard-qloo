@@ -5,6 +5,7 @@ import {
   createRunClient,
   RunStopped,
   SPACING_MS,
+  type Attempt,
   type RunRecord,
 } from "./control-test-37-client";
 import {
@@ -232,6 +233,127 @@ export function checksOf(festivals: readonly FestivalInput[]) {
   };
 }
 
+/** Fills each {{name}} in the page; a name with no value is an error, not a gap. */
+export function fillResult(
+  template: string,
+  values: Record<string, string | number>,
+): string {
+  return template.replace(/\{\{(\w+)\}\}/g, (_, name: string) => {
+    if (!(name in values))
+      throw new Error(`The result page has no value for {{${name}}}.`);
+    return String(values[name]);
+  });
+}
+
+const TIER_LABELS: Record<FeeBandId, string> = {
+  mid: "Mid-size range",
+  opener: "Opening range",
+};
+
+const clock = (iso: string, timeZone: string) =>
+  new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(new Date(iso));
+
+export interface StopInfo {
+  reason: string;
+  detail: string;
+  festival: string;
+  town: string;
+}
+
+/**
+ * The result page's values (scripts/control-test-37-result.md): counts and town names only.
+ * The outcome follows section 37's "What each outcome means for the site", written before
+ * the run; an incomplete run sets no bar.
+ */
+export function resultValues({
+  summary,
+  attempts,
+  answers,
+  planned,
+  stopped,
+  totalTowns = summary.towns,
+}: {
+  summary: Summary;
+  attempts: readonly Attempt[];
+  answers: number;
+  planned: number;
+  stopped: StopInfo | null;
+  totalTowns?: number;
+}): Record<string, string | number> {
+  const times = attempts.map((attempt) => attempt.at).sort();
+  const first = times[0];
+  const last = times.at(-1);
+  const day = (iso: string | undefined) => iso?.slice(0, 10) ?? "n/a";
+  const share = (count: number) =>
+    `${count} of ${summary.acts}, ${summary.acts ? ((100 * count) / summary.acts).toFixed(1) : "0.0"}%`;
+  const met = summary.barMet === true;
+  const unanswered = attempts.filter((attempt) => attempt.stop);
+  const reasons = [...new Set(unanswered.map((attempt) => attempt.stop))];
+  return {
+    date:
+      day(first) === day(last) ? day(first) : `${day(first)} to ${day(last)}`,
+    startUtc: first?.slice(11, 16) ?? "n/a",
+    endUtc: last?.slice(11, 16) ?? "n/a",
+    startBucharest: first ? clock(first, "Europe/Bucharest") : "n/a",
+    endBucharest: last ? clock(last, "Europe/Bucharest") : "n/a",
+    verdict: summary.complete
+      ? met
+        ? "bar met"
+        : "bar not met"
+      : `incomplete: ${summary.towns} of ${totalTowns} towns measured`,
+    productBar:
+      summary.productBar === null ? "not set" : String(summary.productBar),
+    productBarSentence: summary.complete
+      ? ` So, by section 37's rule, Undercard 2.0's bar is ${summary.productBar} places.`
+      : "",
+    requests: attempts.length,
+    requestsNote: unanswered.length
+      ? `${answers} of them answered; ${unanswered.length} stopped the run (${reasons.join(", ")})${stopped ? "" : " and RESUME=1 carried on without repeating a call"}`
+      : "every one answered, none retried",
+    planned,
+    towns: summary.towns,
+    acts: summary.acts,
+    atBar: summary.atBar,
+    atFallback: summary.atFallback,
+    stillClimb: summary.stillClimb,
+    noScoredControl: summary.noScoredControl,
+    controlsSkipped: summary.controlsSkipped,
+    roomsSkipped: summary.roomsSkipped,
+    venueRuns: summary.venueRuns,
+    popularityFromEntities: summary.popularityFromEntities,
+    noVenuePopularity: summary.noVenuePopularity,
+    venuesUnscoredToday: summary.venuesUnscoredToday,
+    controlsLikeHeadliners: summary.controlsLikeHeadliners,
+    townRows: summary.byTown
+      .map(
+        (town) =>
+          `| ${town.city} | ${town.controlCity} | ${town.acts} | ${town.atBar} | ${town.atFallback} | ${town.stillClimb} | ${town.noScoredControl} |`,
+      )
+      .join("\n"),
+    tierRows: (Object.keys(TIER_LABELS) as FeeBandId[])
+      .map((band) => {
+        const tier = summary.byTier[band];
+        return `| ${TIER_LABELS[band]} | ${tier.acts} | ${tier.atBar} | ${tier.atFallback} |`;
+      })
+      .join("\n"),
+    barSentence: !summary.complete
+      ? `Not set: ${summary.towns} of ${totalTowns} towns measured.`
+      : met
+        ? `At least half of the ${summary.acts} acts reach a local lift of 5 places: ${share(summary.atBar)}.`
+        : `Fewer than half of the ${summary.acts} acts reach a local lift of 5 places: ${share(summary.atBar)}; at 3 places, ${share(summary.atFallback)}.`,
+    outcome: !summary.complete
+      ? `not set: the run stopped (${stopped?.reason ?? "before every town"}) at ${stopped?.town ?? "a town"}, after ${summary.towns} of ${totalTowns} towns; RESUME=1 carries on from .design/evidence-37/ without repeating a call.`
+      : met
+        ? `the bar is met, so the evidence page's SHOWN stamp gives the share at 5 places (${share(summary.atBar)}), and Undercard 2.0 books an act only if its local lift is at least 5 places and it still climbs at least 5 places with the town's venue (WS13.3's constant: 5).`
+        : `the bar is not met, so PARTLY SHOWN gives both shares (${share(summary.atBar)}, at 5 places; ${share(summary.atFallback)}, at 3), "What these numbers don't establish" says that for most 1.0 acts the town's own part of the climb was under 5 places, and Undercard 2.0 books an act only if its local lift is at least 3 places and it still climbs at least 5 places with the town's venue (WS13.3's constant: 3).`,
+  };
+}
+
 /** A festival's result without the rankings themselves: those stay in answers.ndjson. */
 const omitRankings = (result: FestivalResult) => ({
   ...result,
@@ -253,6 +375,7 @@ export async function runControlTest37({
   apiKey,
   log,
   write,
+  template,
   now = Date.now,
   sleep,
 }: {
@@ -268,6 +391,8 @@ export async function runControlTest37({
   log: (line: unknown) => void;
   /** A result file in the run's folder (git-ignored). */
   write: (name: string, text: string) => void;
+  /** The result page to fill (scripts/control-test-37-result.md); without it, none is written. */
+  template?: string;
   now?: () => number;
   sleep?: (ms: number) => Promise<void>;
 }): Promise<{ code: 0 | 2; summary?: Summary }> {
@@ -322,12 +447,7 @@ export async function runControlTest37({
     ...(sleep ? { sleep } : {}),
   });
   const results: FestivalResult[] = [];
-  let stopped: {
-    reason: string;
-    detail: string;
-    festival: string;
-    town: string;
-  } | null = null;
+  let stopped: StopInfo | null = null;
   for (const own of festivals) {
     const before = client.counts();
     try {
@@ -386,6 +506,21 @@ export async function runControlTest37({
       1,
     )}\n`,
   );
+  if (template)
+    write(
+      "result.md",
+      fillResult(
+        template,
+        resultValues({
+          summary,
+          attempts,
+          answers: record.answers().length,
+          planned: totals.total,
+          stopped,
+          totalTowns: festivals.length,
+        }),
+      ),
+    );
   if (stopped) {
     log({
       stopped: stopped.reason,
