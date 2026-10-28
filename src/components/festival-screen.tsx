@@ -38,7 +38,7 @@ import {
   openPosterLine,
   regionCode,
   KEY_SIGNAL,
-  RULE_LINE,
+  ruleLine,
   stampWords,
   TAGLINE_LEAD,
   TAGLINE_QLOO,
@@ -106,7 +106,12 @@ import {
   townsNear,
   type CheckedTown,
 } from "@/lib/checked-towns";
-import { posterFile, printRequest } from "@/components/share/print-words";
+import {
+  csvFile,
+  csvNote,
+  posterFile,
+  printRequest,
+} from "@/components/share/print-words";
 import { lineupCsv } from "@/lib/csv";
 import type { FeeBand } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
@@ -875,12 +880,13 @@ export function FestivalScreen({
 
   function exportCsv() {
     downloadText(
-      `${festival.id}-undercard.csv`,
+      csvFile(festival),
       lineupCsv(
         bookedActs,
         festival.feeBands,
         whatIf ? {} : state.replaced,
         state.localPicks.filter((pick) => state.added.includes(pick.entityId)),
+        { note: csvNote(festival) },
       ),
       "text/csv;charset=utf-8",
     );
@@ -1364,7 +1370,7 @@ export function FestivalScreen({
       {!custom && !watching && <p className="poster-key-note">{KEY_SIGNAL}</p>}
       {!allOpen && (
         <p className={`poster-rule ${watching ? "is-quiet" : ""}`}>
-          {RULE_LINE}
+          {ruleLine(anyNew && !without)}
         </p>
       )}
       {watching && !wide && (
@@ -1812,7 +1818,8 @@ export function FestivalScreen({
                 {!custom && <WithoutQlooChecksLine />}
                 <ImageCredit images={creditImages} />
                 <p className="poster-foot">
-                  {footnote(festival, anyNew && !without)}
+                  {/* NEW is defined in the rule line above (WS12 item 7). */}
+                  {footnote(festival, false)}
                 </p>
               </div>
             </section>

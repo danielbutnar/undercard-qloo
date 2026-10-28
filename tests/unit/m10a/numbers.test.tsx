@@ -140,9 +140,11 @@ describe("what ships (variant (a): both variants passed, evidence section 27)", 
         .getAllByRole("article")
         .map((act) => act.querySelector(".poster-climb")!.textContent),
     ).toEqual(["3rd ↑11", "6th ↑7", "2nd ↑26", "9th ↑9"]);
+    // The fixture's Low Bench Choir is new to the top 50: the key says what NEW means too
+    // (WS12 item 7).
     expect(
       screen.getByText(
-        "↑ = places it rose in Qloo's ranking with that venue's fans (5+ to qualify); the strongest Qloo match takes each slot",
+        "↑ = places it rose in Qloo's ranking with that venue's fans (5+ to qualify); NEW = rose into Qloo's top 50; the strongest Qloo match takes each slot",
       ),
     ).toBeTruthy();
   });

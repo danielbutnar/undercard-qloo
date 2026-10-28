@@ -121,6 +121,20 @@ export const posterFile = (festival: Pick<Festival, "id">) =>
     ? `${festival.id}-fictional-demo-festival-poster.png`
     : `${festival.id}-poster.png`;
 
+/** Export CSV's file name, which says so too on a demo festival (WS12 item 7). */
+export const csvFile = (festival: Pick<Festival, "id">) =>
+  isDemo(festival)
+    ? `${festival.id}-fictional-demo-festival-undercard.csv`
+    : `${festival.id}-undercard.csv`;
+
+/** Export CSV's first line on a demo festival (WS12 item 7); a judge's own has none. */
+export const csvNote = (
+  festival: Pick<Festival, "id" | "name" | "city" | "region">,
+): string | null =>
+  isDemo(festival)
+    ? `${PRINT_STAMP}: ${festival.name} in ${festival.city}, ${festival.region}, drafted by Undercard`
+    : null;
+
 /** An act's mark, as its name on the poster carries it: its place over its climb. */
 function markOf(place: number | null, climb: PrintClimb): string | null {
   if (!climb) return null;

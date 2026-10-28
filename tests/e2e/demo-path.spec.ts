@@ -114,8 +114,9 @@ test.describe("demo path", () => {
       bill(page).getByRole("article").first().locator(".poster-climb"),
     ).toHaveText(/^(\d+(st|nd|rd|th) )?(↑\d+|NEW)$/);
     await expect(
+      // NEW is defined there too when an act is new to the top 50 (WS12 item 7).
       bill(page).getByText(
-        "↑ = places it rose in Qloo's ranking with that venue's fans (5+ to qualify); the strongest Qloo match takes each slot",
+        /^↑ = places it rose in Qloo's ranking with that venue's fans \(5\+ to qualify\); (NEW = rose into Qloo's top 50; )?the strongest Qloo match takes each slot$/,
       ),
     ).toHaveCount(1);
     await expect(bill(page).locator(".poster-example")).toContainText(
@@ -355,14 +356,20 @@ test.describe("demo path", () => {
     // M6q: Export CSV sits below the bill.
     await page.getByRole("button", { name: "Export CSV" }).click();
     const file = await download;
-    expect(file.suggestedFilename()).toBe("sagebrush-sound-undercard.csv");
+    // WS12 item 7: the demo festival's CSV says it's fictional, in its name and first line.
+    expect(file.suggestedFilename()).toBe(
+      "sagebrush-sound-fictional-demo-festival-undercard.csv",
+    );
     const lines = (await readFile(await file.path(), "utf8"))
       .trimEnd()
       .split("\r\n");
     expect(lines[0]).toBe(
+      '"Fictional demo festival: Sagebrush Sound in Boise, Idaho, drafted by Undercard"',
+    );
+    expect(lines[1]).toBe(
       "act,band,affinity,popularity,anchor_venue,reason,replaces,unavailable_reason",
     );
-    expect(lines).toHaveLength(11);
+    expect(lines).toHaveLength(12);
   });
 
   test("the venue switch: a venue off re-forms the lineup from the saved build, with no Qloo call; on again brings it back", async ({

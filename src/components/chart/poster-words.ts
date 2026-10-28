@@ -126,6 +126,18 @@ export const KEY_SIGNAL =
 
 export const RULE_LINE = `↑ = places it rose in Qloo's ranking with that venue's fans (${MIN_LIFT}+ to qualify); the strongest Qloo match takes each slot`;
 
+/** What NEW on an act means (the poster's mark for an act new to Qloo's top 50). */
+export const NEW_KEY = "NEW = rose into Qloo's top 50";
+
+/**
+ * The rule line, with NEW defined beside ↑ where an act on the poster is new to the top 50
+ * (WS12 item 7: a reader looks for what the marks mean there).
+ */
+export const ruleLine = (anyNew: boolean) =>
+  anyNew
+    ? RULE_LINE.replace("to qualify); ", `to qualify); ${NEW_KEY}; `)
+    : RULE_LINE;
+
 /** A band's head on the poster: its Qloo popularity range, the first band saying what it stands for. */
 export function bandRange(band: FeeBand, first: boolean): string {
   const range = `${Math.round(band.minPopularity * 100)}–${Math.round(band.maxPopularity * 100)}`;
@@ -327,7 +339,7 @@ export function footnote(
       : festival.id.startsWith(`${SAGEBRUSH_SOUND.id}-`)
         ? "Fictional demo festival: the same headliners and slot sizes in every town"
         : null;
-  const key = anyNew ? "NEW = rose into Qloo's top 50" : null;
+  const key = anyNew ? NEW_KEY : null;
   return [demo, key].filter(Boolean).join(" · ");
 }
 
