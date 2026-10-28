@@ -102,6 +102,8 @@ export interface AgentState {
   unchecked: string[];
   /** Places find_venues listed that the planner named as not music venues, by entity id. */
   notMusic: Set<string>;
+  /** Local picks the planner has named in this build: at most two (Daniel, 2026-10-28, 22:20). */
+  picksNamed: number;
   finished: {
     anchorVenueIds: string[];
     summary: string;
@@ -130,6 +132,9 @@ const bandProperty = {
  * Where the prompt's step 6 and the local_pick tool give the tiers' popularity ranges (Daniel,
  * 2026-10-28). Read as is, it points to the brief; tierRanges puts in the festival's own.
  */
+/** Stands for the festival's town in the prompt and local_pick, replaced per festival (Daniel, 22:20). */
+export const TOWN = "<town>";
+
 export const TIER_RANGES =
   "Qloo popularity within the range the brief gives each tier";
 
@@ -217,7 +222,7 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
   },
   {
     name: "local_pick",
-    description: `Name one or two acts from the festival's town that you know of from your own knowledge and that fit the mid-size or opening tier: ${TIER_RANGES}. Acts based there who would suit this undercard: artists only (bands or solo acts), never a festival, venue, label or scene, by the name they're billed under, never a phrase or a description; each with one line on why. The app searches each on Qloo (GET /search, one Qloo call each) and returns what Qloo knows of it. A local pick is for the buyer to check; it never takes a slot.`,
+    description: `Name one or two acts from the festival's town that you know of from your own knowledge and that fit the mid-size or opening tier: ${TIER_RANGES}. Acts based there who would suit this undercard: artists only (bands or solo acts), never a festival, venue, label or scene, by the name they're billed under, never a phrase or a description; each with one line on why. Name an act only if you are confident it is based in ${TOWN}; if you are not sure, name none. The app searches each on Qloo (GET /search, one Qloo call each) and returns what Qloo knows of it. A local pick is for the buyer to check; it never takes a slot.`,
     strict: true,
     input_schema: objectSchema({
       picks: {
@@ -272,7 +277,7 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
           },
         }),
         description:
-          "Places find_venues listed that you are sure never host concerts, each with your reason. Judge by what happens there, never because of its name or its food: when in doubt, read the place instead. The buyer sees a line for each.",
+          "Places find_venues listed that you are sure never host concerts, each with your reason. Judge by what happens there, never because of its name or its food: when in doubt, read the place instead. A skip is kept only when you need it to stop with fewer than two music venues with fan data. The buyer sees a line for each.",
       },
     }),
   },
@@ -389,6 +394,7 @@ export function createToolbox({
     localPicks: [],
     unchecked: [],
     notMusic: new Set(),
+    picksNamed: 0,
     finished: null,
   };
   const names = new Map<string, string>();
@@ -547,7 +553,7 @@ export function createToolbox({
    * stop), and the listed places not yet tried: neither read, nor known to have no fan data, nor
    * left unchecked by a failed call, nor named by the planner as not a music venue.
    */
-  function roomsRead() {
+  function roomsRead(skipping: ReadonlySet<string> = new Set()) {
     const fanData = new Set<string>();
     const controlled = new Set<string>();
     for (const run of state.venueRuns) {
@@ -560,7 +566,8 @@ export function createToolbox({
         !state.venueRuns.some((run) => run.venue.entityId === venue.entityId) &&
         !state.noFanData.has(venue.entityId) &&
         !state.unchecked.includes(venue.name) &&
-        !state.notMusic.has(venue.entityId),
+        !state.notMusic.has(venue.entityId) &&
+        !skipping.has(venue.entityId),
     );
     return { fanData: fanData.size, controlled: controlled.size, untried };
   }
@@ -570,9 +577,15 @@ export function createToolbox({
    * data read with their controls, while a listed place is untried and the cap leaves room for a
    * venue and its control. Null when it may stop.
    */
+  /** Whether the planner may stop, were it to skip these places too. */
+  function mayStop(skipping: ReadonlySet<string> = new Set()): boolean {
+    const { controlled, untried } = roomsRead(skipping);
+    return controlled >= 2 || untried.length === 0 || cap - used < 2;
+  }
+
   function refuseStop(): string | null {
+    if (mayStop()) return null;
     const { controlled, untried } = roomsRead();
-    if (controlled >= 2 || untried.length === 0 || cap - used < 2) return null;
     const names = untried.map((venue) => venue.name);
     // Daniel, 2026-10-28 (19:20): each refusal is a decision line of the run, saved and replayed,
     // so the comparison can count them.
@@ -581,7 +594,7 @@ export function createToolbox({
       text: refusedLine(controlled, names),
       planner: true,
     });
-    return `Read at least two music venues with fan data, each with its control, before you finish: ${controlled} so far. Not tried yet: ${names.join(", ")}. Read the next of them. Name one in not_music_venues, with your reason, only if you are sure it never hosts concerts, never because of its name or its food.`;
+    return `Read at least two music venues with fan data, each with its control, before you finish: ${controlled} so far. Not tried yet: ${names.join(", ")}. Read the next of them. Name one in not_music_venues, with your reason, only if you are sure it never hosts concerts, never because of its name or its food; a skip is kept only when it lets you stop.`;
   }
 
   // WS13.2: how full each tier is by the rule, so the planner reads until every one is.
@@ -995,6 +1008,12 @@ export function createToolbox({
     },
 
     async local_pick({ picks }) {
+      // Daniel, 2026-10-28 (22:20): at most two local picks a build, enforced here.
+      if (state.picksNamed + picks.length > 2)
+        throw new ToolMisuse(
+          `At most two local picks a build: you have named ${state.picksNamed}. Call finish.`,
+        );
+      state.picksNamed += picks.length;
       // Searched as search_artist searches, with the accents folded once more when a name
       // with letters beyond ASCII finds nothing (WS8). Only a pick Qloo finds is kept.
       const input = assemblyOf(festival, state);
@@ -1002,12 +1021,15 @@ export function createToolbox({
       const weights = headlinerTagWeights(input);
       const results = [];
       for (const { name, why } of picks) {
+        // Daniel, 2026-10-28 (22:20): a search that finds no artist is said, with no pick.
         const search = (query: string) =>
           callQloo(
             "local_pick",
             "/search",
             `Search for the AI's local pick "${query}"`,
             () => qloo.search({ query }),
+            (data) =>
+              `Search for the AI's local pick "${query}"${foundOnQloo(query, data, weights) ? "" : ": not an artist Qloo knows"}`,
           );
         let found = foundOnQloo(name, await search(name), weights);
         if (!found && hasNonAscii(name))
@@ -1017,7 +1039,11 @@ export function createToolbox({
             weights,
           );
         if (!found) {
-          results.push({ name, found: false });
+          results.push({
+            name,
+            found: false,
+            note: "not an artist Qloo knows",
+          });
           continue;
         }
         names.set(found.entityId, found.name);
@@ -1042,6 +1068,12 @@ export function createToolbox({
     }) {
       // Daniel, 2026-10-28 (19:10): a place skipped as not a music venue is said, with the
       // planner's reason, as one of its lines: in the trace, saved with the build, replayed.
+      // (22:20): a skip is kept only when the agent needs it to stop with fewer than two rooms,
+      // so a finish that may stop anyway, or is refused anyway, keeps none.
+      const untried = new Set(
+        roomsRead().untried.map((venue) => venue.entityId),
+      );
+      const skips = new Map<string, { name: string; reason: string }>();
       for (const { entity_id, reason } of not_music_venues ?? []) {
         const place = state.venues.find(
           (venue) => venue.entityId === entity_id,
@@ -1050,18 +1082,18 @@ export function createToolbox({
           throw new ToolMisuse(
             `Unknown place ${entity_id} in not_music_venues: pick an entity_id from find_venues.`,
           );
-        if (
-          state.notMusic.has(entity_id) ||
-          state.venueRuns.some((run) => run.venue.entityId === entity_id)
-        )
-          continue;
-        state.notMusic.add(entity_id);
-        emit({
-          type: "status",
-          text: skippedLine(place.name, reason),
-          planner: true,
-        });
+        if (untried.has(entity_id))
+          skips.set(entity_id, { name: place.name, reason });
       }
+      if (!mayStop() && skips.size > 0 && mayStop(new Set(skips.keys())))
+        for (const [entityId, { name, reason }] of skips) {
+          state.notMusic.add(entityId);
+          emit({
+            type: "status",
+            text: skippedLine(name, reason),
+            planner: true,
+          });
+        }
       // Daniel, 2026-10-28: at least two music venues with fan data before the agent may stop.
       const more = refuseStop();
       if (more) throw new ToolMisuse(more);
@@ -1177,10 +1209,10 @@ export function createToolbox({
     tool.name === "local_pick" && tool.description
       ? {
           ...tool,
-          description: tool.description.replace(
-            TIER_RANGES,
-            tierRanges(festival.feeBands),
-          ),
+          description: tool.description
+            .replace(TIER_RANGES, tierRanges(festival.feeBands))
+            .split(TOWN)
+            .join(festival.city),
         }
       : tool,
   );
