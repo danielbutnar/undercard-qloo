@@ -5,8 +5,7 @@ import type { TraceCall } from "@/lib/build-events";
 import type { BuildState } from "@/lib/build-state";
 import { callWords } from "@/components/chart/words";
 import { noFanDataCallLine } from "@/lib/agent-words";
-
-const CALL_CAP = 12;
+import { QLOO_CALL_CAP } from "@/lib/agent-limits";
 
 const seconds = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
 const savedAt = new Intl.DateTimeFormat("en-US", {
@@ -179,7 +178,7 @@ export function TracePanel({
             <p className="trace-tally">
               {folded
                 ? refillCount
-                : `${buildCalls} of ${CALL_CAP}${refillCalls > 0 ? ` · ${refillCount}` : ""}`}
+                : `${buildCalls} of ${state.build?.replayed && savedCalls ? savedCalls : QLOO_CALL_CAP}${refillCalls > 0 ? ` · ${refillCount}` : ""}`}
             </p>
           )}
         </div>
@@ -311,6 +310,10 @@ export function TracePanel({
               />
             ))}
           </ol>
+        )}
+        {/* WS13.2: the trace's last line says why the agent stopped reading venues. */}
+        {state.stopped && state.calls.length > 0 && (
+          <p className="trace-line">{state.stopped.text}</p>
         )}
       </div>
     </aside>

@@ -163,7 +163,7 @@ describe("runUndercardAgent", () => {
     ).toBe(true);
   });
 
-  it("stops at 12 Qloo calls even when the model keeps asking for more", async () => {
+  it("stops at the cap of 28 Qloo calls even when the model keeps asking for more", async () => {
     // Unique names per turn, so no call is served from the cache.
     const searches = (turn: number): Turn =>
       Array.from({ length: 5 }, (_, i) => ({
@@ -172,9 +172,9 @@ describe("runUndercardAgent", () => {
       }));
     const { model, requests: turns } = scriptedModel(searches);
     const { calls, requests, error } = await build(model);
-    expect(calls).toHaveLength(12);
-    expect(requests).toHaveLength(12);
-    expect(turns).toHaveLength(3);
+    expect(calls).toHaveLength(28);
+    expect(requests).toHaveLength(28);
+    expect(turns).toHaveLength(6);
     expect(error).toBeDefined();
   });
 

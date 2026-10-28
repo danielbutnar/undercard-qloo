@@ -12,7 +12,7 @@ import {
 import { clientIp } from "@/server/rate-limit";
 import { handleUndercardBuild, ndjsonResponse } from "@/server/undercard-build";
 
-// A fresh build makes up to 12 Qloo calls and a few model turns.
+// A fresh build makes up to 28 Qloo calls (Agent 2.0's cap) and up to 16 model turns.
 export const maxDuration = 120;
 
 const Body = z.object({

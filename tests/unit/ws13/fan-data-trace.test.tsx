@@ -54,6 +54,45 @@ describe("the Qloo calls list (WS13.1)", () => {
   });
 });
 
+describe("the Qloo calls list's last line (WS13.2)", () => {
+  it("says why the agent stopped, after the last call", () => {
+    const text =
+      "The agent stopped reading venues: every tier is full, after 11 of its 28 Qloo calls.";
+    render(
+      <TracePanel
+        state={{
+          ...IDLE_BUILD,
+          status: "done",
+          calls: [call(8, "The Lantern Room")],
+          summary: { calls: 11, ms: 1800 },
+          stopped: { reason: "full", text },
+        }}
+        onBuild={() => {}}
+      />,
+    );
+    const line = screen.getByText(text);
+    const list = screen.getByRole("list", { name: "Qloo calls" });
+    expect(
+      list.compareDocumentPosition(line) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("says nothing on a 1.0 replay, which has no such line", () => {
+    render(
+      <TracePanel
+        state={{
+          ...IDLE_BUILD,
+          status: "done",
+          calls: [call(8, "The Lantern Room")],
+          summary: { calls: 12, ms: 1800 },
+        }}
+        onBuild={() => {}}
+      />,
+    );
+    expect(screen.queryByText(/The agent stopped/)).toBeNull();
+  });
+});
+
 describe("a 2.0 build's no-fan-data venues (WS13.1)", () => {
   it("come from its calls, with no read of the Qloo cache", async () => {
     const store = createBuildStore(createMemoryCache());

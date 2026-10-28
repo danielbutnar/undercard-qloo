@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { STOP_REASONS } from "@/lib/agent-words";
 import { TraceCallSchema } from "@/lib/build-events";
 import { FEE_BAND_IDS } from "@/lib/fee-bands";
 import { LineupSchema } from "@/lib/lineup";
@@ -60,6 +61,10 @@ export const SavedBuildSchema = z.object({
    * (WS13, Daniel 2026-10-24). Absent on 1.0 builds, which read src/lib/qloo's QLOO_CACHE_PREFIX.
    */
   cachePrefix: z.string().optional(),
+  /** Why the agent stopped reading venues (WS13.2), the replay's last line; absent on 1.0. */
+  stopped: z
+    .object({ reason: z.enum(STOP_REASONS), text: z.string() })
+    .optional(),
 });
 
 export type BuildContext = z.infer<typeof BuildContextSchema>;

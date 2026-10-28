@@ -1,3 +1,4 @@
+import type { StopLine } from "./agent-words";
 import type { ClimbEvent } from "./lift-climb";
 import type { RunningSlot } from "./running-order";
 import type { BuildEvent, TraceCall } from "./build-events";
@@ -52,6 +53,8 @@ export interface BuildState {
   ordering: boolean;
   /** The lift, visible (M9a): each band's list after each baseline and venue call. */
   climbs: ClimbEvent[];
+  /** Why the agent stopped reading venues (WS13.2); a 1.0 replay has none. */
+  stopped: StopLine | null;
 }
 
 export const IDLE_BUILD: BuildState = {
@@ -79,6 +82,7 @@ export const IDLE_BUILD: BuildState = {
   order: null,
   ordering: false,
   climbs: [],
+  stopped: null,
 };
 
 /** The board the first screen opens on: the saved build's acts, ready to replay or refill. */
@@ -294,6 +298,11 @@ export function buildReducer(
           return withCall(state, event.call);
         case "climb":
           return { ...state, climbs: [...state.climbs, event] };
+        case "stopped":
+          return {
+            ...state,
+            stopped: { reason: event.reason, text: event.text },
+          };
         case "status":
           return {
             ...state,

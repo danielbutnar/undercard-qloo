@@ -172,6 +172,7 @@ async function replay(
     if (climb) emit(climb);
   }
   sayNotes((at) => at >= saved.trace.length);
+  if (saved.stopped) emit({ type: "stopped", ...saved.stopped });
   emit({ type: "lineup", lineup: saved.lineup });
   emit({ type: "done", calls: saved.trace.length, ms: Date.now() - started });
 }
@@ -300,6 +301,7 @@ export async function handleUndercardBuild({
         // Agent 2.0 (WS13): its venue reads are scored reads, under the prefix its client used.
         engine: 2,
         cachePrefix: qlooClient.cachePrefix,
+        ...(result.stopped ? { stopped: result.stopped } : {}),
       });
     }
   });

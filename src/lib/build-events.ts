@@ -1,3 +1,4 @@
+import { STOP_REASONS } from "./agent-words";
 import { ClimbEventSchema } from "./lift-climb";
 import { RunningSlotSchema } from "./running-order";
 import { z } from "zod";
@@ -73,6 +74,12 @@ export const BuildEventSchema = z.discriminatedUnion("type", [
     type: z.literal("done"),
     calls: z.number().int().nonnegative(),
     ms: z.number().nonnegative(),
+  }),
+  /** Why the agent stopped reading venues (WS13.2): the trace's last line, before the lineup. */
+  z.object({
+    type: z.literal("stopped"),
+    reason: z.enum(STOP_REASONS),
+    text: z.string(),
   }),
 ]);
 

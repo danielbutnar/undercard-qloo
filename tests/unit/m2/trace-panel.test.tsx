@@ -68,7 +68,7 @@ describe("TracePanel", () => {
       ),
     ).toBeTruthy();
     expect(within(row).getByLabelText("50 results").textContent).toBe("50");
-    expect(screen.getByText("1 of 12")).toBeTruthy();
+    expect(screen.getByText("1 of 28")).toBeTruthy();
   });
 
   it("folds a finished build's parameters behind a per-call toggle", () => {

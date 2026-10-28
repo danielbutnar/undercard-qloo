@@ -1,10 +1,16 @@
 import { climbAfter, climbBaseline } from "@/lib/lift-climb";
 import type Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
-import { liftsOver, MIN_LIFT } from "@/lib/assemble-lineup";
+import {
+  assembleLineup,
+  liftsOver,
+  MIN_LIFT,
+  type AssemblyInput,
+} from "@/lib/assemble-lineup";
 import { ageBuckets } from "@/lib/ages";
 import type { BuildEvent, TraceCall } from "@/lib/build-events";
 import { rankingUnchanged } from "@/lib/fan-data";
+import { QLOO_CALL_CAP } from "@/lib/agent-limits";
 import { FEE_BAND_IDS, type FeeBandId } from "@/lib/fee-bands";
 import { roomKind } from "@/lib/place-kinds";
 import {
@@ -24,8 +30,15 @@ import {
   type ScoredArtists,
 } from "./qloo";
 
-/** The most Qloo calls one build may make (SPEC.md, M2). Cached answers count too. */
-export const QLOO_CALL_CAP = 12;
+/** The most Qloo calls one build may make, cached answers included (src/lib/agent-limits.ts). */
+export { QLOO_CALL_CAP };
+
+/** Why the planner says it stopped (WS13.2), in finish's input. */
+export const STOP_CLAIMS = [
+  "every_band_full",
+  "tried_every_music_room",
+] as const;
+export type StopClaim = (typeof STOP_CLAIMS)[number];
 
 export interface ToolOutcome {
   content: string;
@@ -46,7 +59,12 @@ export interface AgentState {
   }[];
   /** Venues Qloo had no fan data for (WS13.1), by entity id: never read again. */
   noFanData: Set<string>;
-  finished: { anchorVenueIds: string[]; summary: string } | null;
+  finished: {
+    anchorVenueIds: string[];
+    summary: string;
+    /** Why the planner says it stopped (WS13.2); absent from older scripted plans. */
+    stoppedBecause?: StopClaim;
+  } | null;
 }
 
 const objectSchema = (
@@ -127,7 +145,7 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
   {
     name: "finish",
     description:
-      "End the build once both bands have a baseline and venue runs. The app then books the acts each venue lifts most. Not a Qloo call.",
+      "End the build once every band is full, or once you have tried every music room find_venues listed. The app then books the acts each venue lifts most. Not a Qloo call.",
     strict: true,
     input_schema: objectSchema({
       anchor_venue_ids: {
@@ -138,6 +156,12 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
       summary: {
         type: "string",
         description: "One sentence on the plan you followed.",
+      },
+      stopped_because: {
+        type: "string",
+        enum: [...STOP_CLAIMS],
+        description:
+          "Why you stopped: every band is full, or you tried every music room find_venues listed.",
       },
     }),
   },
@@ -159,6 +183,7 @@ const Inputs = {
   finish: z.object({
     anchor_venue_ids: z.array(z.string()),
     summary: z.string(),
+    stopped_because: z.enum(STOP_CLAIMS).optional(),
   }),
 };
 type ToolName = keyof typeof Inputs;
@@ -174,6 +199,34 @@ function describeFailure(error: unknown): string {
 
 class BudgetSpent extends Error {}
 class ToolMisuse extends Error {}
+
+const isGenreTag = (type: string) => type.includes("genre");
+
+/** The booking rule's input from what the build has read so far (src/lib/assemble-lineup.ts). */
+export function assemblyOf(
+  festival: Festival,
+  state: AgentState,
+): AssemblyInput {
+  return {
+    bands: festival.feeBands,
+    headliners: festival.headliners.flatMap(
+      (name) => state.headliners.get(name.toLowerCase()) ?? [],
+    ),
+    comparedTags: state.comparedTags
+      .filter(({ tag }) => isGenreTag(tag.type))
+      .map(({ tag, score }) => ({ name: tag.name, score })),
+    baselines: state.baselines,
+    venueRuns: state.venueRuns.map(({ venue, band, artists }) => ({
+      venue: {
+        entityId: venue.entityId,
+        name: venue.name,
+        ...(venue.kind ? { kind: venue.kind } : {}),
+      },
+      band,
+      artists,
+    })),
+  };
+}
 
 const round = (value: number) => Math.round(value * 100) / 100;
 const PLACE_KIND = /:(category|genre):place:/;
@@ -209,6 +262,24 @@ export function createToolbox({
 
   const bandLabel = (band: FeeBandId) =>
     festival.feeBands.find((entry) => entry.id === band)?.label ?? band;
+
+  // WS13.2: how full each tier is by the rule, so the planner reads until every one is.
+  function progress() {
+    const { shortfall } = assembleLineup(assemblyOf(festival, state));
+    const tiers = Object.fromEntries(
+      festival.feeBands.map((band) => [
+        band.id,
+        { filled: band.slots - shortfall[band.id], slots: band.slots },
+      ]),
+    );
+    return {
+      tiers,
+      every_tier_full: festival.feeBands.every(
+        (band) => shortfall[band.id] === 0,
+      ),
+      qloo_calls_left: Math.max(0, cap - used),
+    };
+  }
 
   function headlinerPair(): [QlooEntity, QlooEntity] {
     const [a, b] = festival.headliners.map((name) =>
@@ -451,6 +522,7 @@ export function createToolbox({
           venue: venue.name,
           fan_data: false,
           note: `Qloo had no fan data for ${venue.name} on an earlier read, so no call was made. Read the next music room instead.`,
+          ...progress(),
         };
       // A park, arena or stadium is named on its line (M6l); booking doesn't read the label.
       const kind = roomKind(venue.tags, venue.keywords);
@@ -495,6 +567,7 @@ export function createToolbox({
           venue: venue.name,
           fan_data: false,
           note: `Qloo had no fan data for ${venue.name}: it left the venue out of the signal, so this ranking is the headliners' own and lifts no act. Skip ${venue.name} for every tier and read the next music room in its place.`,
+          ...progress(),
         };
       if (!baseline)
         return {
@@ -503,6 +576,7 @@ export function createToolbox({
           fan_data: true,
           count: artists.length,
           note: "Fetch this band's baseline to measure the lift.",
+          ...progress(),
         };
       const lifted = liftsOver(baseline, artists).filter(
         (entry) => entry.lift >= MIN_LIFT,
@@ -514,11 +588,16 @@ export function createToolbox({
         count: artists.length,
         acts_lifted_5_or_more_places: lifted.length,
         top_lifted: lifted.slice(0, 6).map((entry) => entry.artist.name),
+        ...progress(),
       };
     },
 
-    async finish({ anchor_venue_ids, summary }) {
-      state.finished = { anchorVenueIds: anchor_venue_ids, summary };
+    async finish({ anchor_venue_ids, summary, stopped_because }) {
+      state.finished = {
+        anchorVenueIds: anchor_venue_ids,
+        summary,
+        ...(stopped_because ? { stoppedBecause: stopped_because } : {}),
+      };
       return { status: "Assembling the board." };
     },
   };

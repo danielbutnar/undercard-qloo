@@ -80,6 +80,7 @@ import { useUndercardBuild } from "@/components/use-undercard-build";
 import { useVenueSwitch } from "@/components/use-venue-switch";
 import { namesVenue } from "@/lib/venue-call";
 import { useWatch, type WatchPhase } from "@/components/use-watch";
+import { QLOO_CALL_CAP } from "@/lib/agent-limits";
 import type { TraceCall } from "@/lib/build-events";
 import { firstBoard } from "@/lib/build-state";
 import {
@@ -870,7 +871,7 @@ export function FestivalScreen({
       hue={stepHue}
       call={call}
       calls={state.calls.length}
-      total={calls ?? 12}
+      total={calls ?? QLOO_CALL_CAP}
       note={note}
       anchorsKey={anchorsKey}
       switched={switched ? switchLine(switched, savedNoFanData) : null}
