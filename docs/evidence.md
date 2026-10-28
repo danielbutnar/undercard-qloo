@@ -867,7 +867,7 @@ The 29 builds share their headliners, crowd age and tiers, so the headliners-onl
 
 **Result, 2026-10-28 (06:55 to 07:08 UTC, 08:55 to 09:08 Bucharest): bar met, 244 of the 290 acts at a local lift of 5 places or more (the bar was 145); 253 at 3 or more. So, by section 37's rule, Undercard 2.0's bar is 5 places.** 246 Qloo requests from scripts/control-test-37.ts, one at a time, every one answered, none retried; the dry run planned 285 before any skip. Every ranking was read in this run by the script's own client, which read nothing from the server's Qloo cache and wrote nothing to it.
 
-**In one sentence (Daniel's wording, 2026-10-28).** 244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a matched music room abroad.
+**In one sentence (Daniel's wording, 2026-10-28; reworded 2026-10-28 to match the card; numbers unchanged).** 244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a music room abroad of similar Qloo popularity.
 
 | Town | Control town | Acts | Local lift ≥ 5 | Local lift ≥ 3 | Still climb ≥ 5 that day | No scored control |
 |---|---|---|---|---|---|---|
