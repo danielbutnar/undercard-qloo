@@ -1,7 +1,9 @@
+import { STOP_REASONS } from "./agent-words";
 import { ClimbEventSchema } from "./lift-climb";
 import { RunningSlotSchema } from "./running-order";
 import { z } from "zod";
 import { ActSchema, LineupSchema } from "./lineup";
+import { LocalPickSchema } from "./local-pick";
 
 /** One Qloo call as the trace panel shows it. Entity ids in params are replaced by names. */
 export const TraceCallSchema = z.object({
@@ -16,6 +18,15 @@ export const TraceCallSchema = z.object({
   /** Busy answers (429, 5xx) the call was retried after; a retry isn't a new call. */
   retried: z.array(z.number().int()).optional(),
   error: z.string().optional(),
+  /**
+   * The venue this call read, when Qloo had no fan data for it (WS13.1): Qloo's not_found warning
+   * named it, or its ranking was the headliners' own, score for score. Absent on 1.0 builds.
+   */
+  noFanData: z.string().optional(),
+  /** The planner's own line on why it made this call (WS13.7): a venue read's reason. */
+  why: z.string().optional(),
+  /** On a control's read (WS13.3): the town venue it is the matched venue abroad for. */
+  controlFor: z.string().optional(),
 });
 
 /** The events POST /api/undercard streams, one JSON object per line. */
@@ -68,6 +79,14 @@ export const BuildEventSchema = z.discriminatedUnion("type", [
     type: z.literal("done"),
     calls: z.number().int().nonnegative(),
     ms: z.number().nonnegative(),
+  }),
+  /** The AI's local picks Qloo found (WS13.5), after the lineup: for the buyer to check. */
+  z.object({ type: z.literal("local-pick"), picks: z.array(LocalPickSchema) }),
+  /** Why the agent stopped reading venues (WS13.2): the trace's last line, before the lineup. */
+  z.object({
+    type: z.literal("stopped"),
+    reason: z.enum(STOP_REASONS),
+    text: z.string(),
   }),
 ]);
 

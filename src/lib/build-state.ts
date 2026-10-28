@@ -1,8 +1,10 @@
+import type { StopLine } from "./agent-words";
 import type { ClimbEvent } from "./lift-climb";
 import type { RunningSlot } from "./running-order";
 import type { BuildEvent, TraceCall } from "./build-events";
 import type { FirstBill } from "./first-bill";
 import type { Act } from "./lineup";
+import type { LocalPick } from "./local-pick";
 import type { Replacement, UnavailableReason } from "./unavailable";
 
 export interface BuildState {
@@ -52,6 +54,12 @@ export interface BuildState {
   ordering: boolean;
   /** The lift, visible (M9a): each band's list after each baseline and venue call. */
   climbs: ClimbEvent[];
+  /** Why the agent stopped reading venues (WS13.2); a 1.0 replay has none. */
+  stopped: StopLine | null;
+  /** The AI's local picks for the buyer to check (WS13.5); none on a 1.0 build. */
+  localPicks: LocalPick[];
+  /** The local picks the buyer added to the bill, by entity id. */
+  added: string[];
 }
 
 export const IDLE_BUILD: BuildState = {
@@ -79,6 +87,9 @@ export const IDLE_BUILD: BuildState = {
   order: null,
   ordering: false,
   climbs: [],
+  stopped: null,
+  localPicks: [],
+  added: [],
 };
 
 /** The board the first screen opens on: the saved build's acts, ready to replay or refill. */
@@ -88,6 +99,7 @@ export function firstBoard(bill: FirstBill | null): BuildState {
     ...IDLE_BUILD,
     acts: bill.acts,
     build: { ...bill.build, replayed: true },
+    localPicks: bill.localPicks ?? [],
   };
 }
 
@@ -101,6 +113,7 @@ export type BuildAction =
   | { type: "refillEnd" }
   | { type: "refillFail"; message: string }
   | { type: "toggleKeep"; entityId: string }
+  | { type: "toggleLocal"; entityId: string }
   | { type: "startRedraft" }
   | { type: "startOrder" }
   | { type: "closeOrder" };
@@ -210,6 +223,13 @@ export function buildReducer(
               state.error ?? "The build stopped before it finished. Try again.",
           }
         : state;
+    case "toggleLocal":
+      return {
+        ...state,
+        added: state.added.includes(action.entityId)
+          ? state.added.filter((id) => id !== action.entityId)
+          : [...state.added, action.entityId],
+      };
     case "toggleKeep":
       return {
         ...state,
@@ -294,6 +314,13 @@ export function buildReducer(
           return withCall(state, event.call);
         case "climb":
           return { ...state, climbs: [...state.climbs, event] };
+        case "stopped":
+          return {
+            ...state,
+            stopped: { reason: event.reason, text: event.text },
+          };
+        case "local-pick":
+          return { ...state, localPicks: event.picks };
         case "status":
           return {
             ...state,

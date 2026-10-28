@@ -7,7 +7,9 @@ import {
 import { FEE_BAND_IDS, type FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import type { BuildStore } from "./build-store";
+import { controlRanking, recordedControl } from "./control-reads";
 import { QlooError, type QlooClient } from "./qloo";
+import { readerFor } from "./saved-reads";
 import type { RateLimiter } from "./rate-limit";
 import { limitedResponse, ndjsonResponse } from "./undercard-build";
 
@@ -84,15 +86,31 @@ export async function handleRedraft({
     const bands = FEE_BAND_IDS.filter((band) => open(band) > 0).sort(
       (a, b) => open(b) - open(a),
     );
-    // The calls go round the bands with open slots, each band's rooms in the build's order.
-    const plan: { band: FeeBandId; venue: VenueRef }[] = [];
-    for (let round = 0; plan.length < REDRAFT_CALL_CAP; round++) {
-      const before = plan.length;
+    // The calls go round the bands with open slots, each band's rooms in the build's order. On a
+    // 2.0 build (WS13.3) each venue read comes with its matched control, both counted, and a
+    // venue with no matched control is passed over: nothing can be booked from it.
+    const twoPointOh = context.controls !== undefined;
+    const reader = readerFor(saved, client);
+    const plan: {
+      band: FeeBandId;
+      venue: VenueRef;
+      control?: NonNullable<ReturnType<typeof recordedControl>>;
+    }[] = [];
+    let planned = 0;
+    for (let round = 0; planned < REDRAFT_CALL_CAP; round++) {
+      let listed = false;
       for (const band of bands) {
         const venue = context.anchors[band]?.[round];
-        if (venue && plan.length < REDRAFT_CALL_CAP) plan.push({ band, venue });
+        if (!venue) continue;
+        listed = true;
+        const control = recordedControl(context, band, venue.entityId);
+        if (twoPointOh && !control) continue;
+        const cost = control ? 2 : 1;
+        if (planned + cost > REDRAFT_CALL_CAP) continue;
+        plan.push({ band, venue, ...(control ? { control } : {}) });
+        planned += cost;
       }
-      if (plan.length === before) break;
+      if (!listed) break;
     }
 
     const names = new Map<string, string>([
@@ -114,27 +132,62 @@ export async function handleRedraft({
       venue: VenueRef;
       band: FeeBandId;
       artists: RankedArtist[];
+      control?: Awaited<ReturnType<typeof controlRanking>>["run"];
     }[] = [];
     let calls = 0;
-    for (const { band: bandId, venue } of plan) {
+    for (const { band: bandId, venue, control } of plan) {
       const n = ++calls;
       const band = festival.feeBands.find((entry) => entry.id === bandId)!;
       const summary = `Redraft: ${band.label}-band artists for the headliners and ${venue.name}, minus the board`;
       names.set(venue.entityId, venue.name);
       try {
-        const result = await client.artists({
+        const query = {
           signalEntityIds: [...headlinerIds, venue.entityId],
           popularityMin: band.minPopularity,
           popularityMax: band.maxPopularity,
           excludeEntityIds: excluded,
           ages: context.ages,
-        });
+        };
+        const result = await reader.artists(query);
+        let controlRun: Awaited<ReturnType<typeof controlRanking>>["run"] =
+          null;
+        if (control) {
+          const m = ++calls;
+          names.set(control.entityId, control.name);
+          const read = await controlRanking(
+            reader,
+            query,
+            venue.entityId,
+            control,
+            excluded,
+          );
+          controlRun = read.run;
+          emit({
+            type: "call",
+            call: {
+              n: m,
+              tool: "redraft",
+              endpoint: read.call?.path ?? "/v2/insights",
+              summary: `Redraft: ${band.label}-band artists for the headliners and ${control.name}, a room in ${control.town} matched to ${venue.name}, minus the board`,
+              params: (read.call?.params ?? []).map(([key, value]) => ({
+                key,
+                value: readable(value),
+              })),
+              resultCount: read.call?.resultCount ?? null,
+              ms: read.call?.ms ?? 0,
+              cached: read.call?.cached ?? false,
+              controlFor: venue.name,
+              ...(read.call ? {} : { error: "The Qloo request failed." }),
+            },
+          });
+        }
         runs.push({
           venue,
           band: bandId,
           artists: result.data.filter(
             (artist) => !excluded.includes(artist.entityId),
           ),
+          ...(control ? { control: controlRun } : {}),
         });
         emit({
           type: "call",

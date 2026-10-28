@@ -16,6 +16,15 @@ import { callWords, ordinal } from "./words";
  * three times. Nothing here calls Qloo or the model.
  */
 
+/** Today's plain words on the setlist (M6r, WS8): venue, not room; tier, not band. */
+function plainWords(line: string): string {
+  return line
+    .replace(/\brooms\b/g, "venues")
+    .replace(/\broom\b/g, "venue")
+    .replace(/\bbands\b/g, "tiers")
+    .replace(/\bband\b/g, "tier");
+}
+
 /** A tier as the setlist names it. */
 const TIER: Record<FeeBandId, string> = { mid: "Mid-size", opener: "Opening" };
 
@@ -113,7 +122,7 @@ function lineWords(
     case "running_order":
       return { text: "Running order", after: "" };
   }
-  return { text: callWords(call.summary), after: "" };
+  return { text: plainWords(callWords(call.summary)), after: "" };
 }
 
 /**
@@ -230,8 +239,12 @@ export function ticketStamps(
   };
 }
 
-/** One of the AI agent's lines on the setlist: its own words, apart from Watch's caption. */
-export const setlistCue = (note: string) => `The AI agent: ${note}`;
+/**
+ * One of the AI agent's lines on the setlist, apart from Watch's caption and in today's plain
+ * words, as a saved call's line is (words.ts callWords): venue, not room (M6r); tier, not band
+ * where a band is a fee tier (WS8). The saved line itself keeps its words.
+ */
+export const setlistCue = (note: string) => `The AI agent: ${plainWords(note)}`;
 
 /** The act's move, as the setlist writes it in the margin by its ringed call. */
 export function marginNote(act: Act, place: Placed | undefined): string {

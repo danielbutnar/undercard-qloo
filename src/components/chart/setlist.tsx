@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import { setlistCue, type SetlistLine } from "./setlist-words";
 import { signName } from "./town-scene";
+import { useLiveRun } from "@/components/live-run";
 import { useReveal } from "./use-reveal";
 
 const day = new Intl.DateTimeFormat("en-US", {
@@ -35,7 +36,6 @@ export function Setlist({
   hues,
   circled,
   margin,
-  onLive,
   children,
 }: {
   festival: { name: string; city: string };
@@ -48,11 +48,11 @@ export function Setlist({
   circled: number | null;
   /** That act's move, written beside the ring. */
   margin: string | null;
-  /** Runs the agent fresh; left out where a live run isn't on offer. */
-  onLive?: () => void;
   children?: ReactNode;
 }) {
   const reveal = useReveal<HTMLElement>();
+  // WS13.8's live run, as the screen provides it (src/components/live-run.tsx).
+  const { runLive, available } = useLiveRun();
   return (
     <section ref={reveal} aria-labelledby="setlist-title" className="setlist">
       <div className="setlist-sheet">
@@ -125,9 +125,14 @@ export function Setlist({
             {setlistCue(text)}
           </p>
         ))}
-        {onLive && (
+        {
           <div className="setlist-foot">
-            <button type="button" onClick={onLive} className="setlist-live">
+            <button
+              type="button"
+              onClick={runLive}
+              disabled={!available}
+              className="setlist-live"
+            >
               <span className="setlist-rec" aria-hidden />
               Play it live
             </button>
@@ -135,7 +140,7 @@ export function Setlist({
               Runs the AI agent fresh, call by call
             </p>
           </div>
-        )}
+        }
       </div>
       {children}
     </section>

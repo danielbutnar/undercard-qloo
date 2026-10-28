@@ -6,7 +6,8 @@ import type { Festival } from "@/lib/festival";
 import type { Act } from "@/lib/lineup";
 import type { Placed } from "@/lib/venue-switch";
 import { Cover } from "./cover";
-import { ticketStamps, type TwoClimbs } from "./setlist-words";
+import { climbsLine } from "@/lib/agent-words";
+import { ticketStamps } from "./setlist-words";
 import { signName } from "./town-scene";
 import { useReveal } from "./use-reveal";
 import { feeRangeWords, ordinal, PLAIN_BAND } from "./words";
@@ -27,7 +28,6 @@ export function Ticket({
   hue,
   image,
   festival,
-  climbs,
 }: {
   act: Act;
   band: FeeBand;
@@ -35,9 +35,16 @@ export function Ticket({
   hue: number | null;
   image?: string;
   festival: Pick<Festival, "name" | "city">;
-  climbs?: TwoClimbs | null;
 }) {
-  const stamps = ticketStamps(act, band, climbs);
+  // WS13.3's two climbs, from the act's own data (absent on 1.0 builds), in the card's words.
+  const stamps = ticketStamps(
+    act,
+    band,
+    act.localLift
+      ? { venue: act.localLift.venueClimb, control: act.localLift.controlClimb }
+      : null,
+  );
+  const [ownClimb, abroadClimb] = climbsLine(act)?.split(" · ") ?? [];
   const venue = signName(act.anchorVenue.name);
   const { value, min, max } = stamps.popularity;
   const at = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
@@ -112,8 +119,9 @@ export function Ticket({
                 the bar is {stamps.bar}
               </span>
               <span className="stamp-fine">
-                ↑{local.venue} with {venue}&apos;s fans
-                <br />↑{local.control} with a matched venue abroad
+                {ownClimb}
+                <br />
+                {abroadClimb}
               </span>
             </>
           ) : (
@@ -173,14 +181,12 @@ export function DoorCheck({
   place,
   hue,
   image,
-  climbs,
 }: {
   festival: Festival;
   act: Act;
   place?: Placed;
   hue: number | null;
   image?: string;
-  climbs?: TwoClimbs | null;
 }) {
   const reveal = useReveal<HTMLElement>();
   const band = festival.feeBands.find((entry) => entry.id === act.band);
@@ -208,7 +214,6 @@ export function DoorCheck({
         hue={hue}
         image={image}
         festival={festival}
-        climbs={climbs}
       />
       <p className="door-rule">
         Of the acts that pass all three, the strongest Qloo match fills each

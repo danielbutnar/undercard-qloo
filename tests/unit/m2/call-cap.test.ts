@@ -19,12 +19,13 @@ function setup() {
   return { toolbox, requests: fake.requests };
 }
 
-describe("the 12-call cap", () => {
-  it("is 12", () => {
-    expect(QLOO_CALL_CAP).toBe(12);
+// M2 set 12; Daniel's cap for Agent 2.0 is 28 a live run (WS13, 2026-10-24).
+describe("the call cap", () => {
+  it("is 28", () => {
+    expect(QLOO_CALL_CAP).toBe(28);
   });
 
-  it("lets 12 Qloo calls through and refuses the 13th without calling Qloo", async () => {
+  it("lets 28 Qloo calls through and refuses the 29th without calling Qloo", async () => {
     const { toolbox, requests } = setup();
     for (let i = 0; i < QLOO_CALL_CAP; i++) {
       const result = await toolbox.run("search_artist", {
@@ -32,24 +33,24 @@ describe("the 12-call cap", () => {
       });
       expect(result.isError).toBe(false);
     }
-    const thirteenth = await toolbox.run("search_artist", {
-      name: "Synthetic Artist 13",
+    const over = await toolbox.run("search_artist", {
+      name: "Synthetic Artist 29",
     });
-    expect(thirteenth.isError).toBe(true);
-    expect(thirteenth.content).toMatch(/12/);
-    expect(requests).toHaveLength(12);
-    expect(toolbox.callsUsed()).toBe(12);
+    expect(over.isError).toBe(true);
+    expect(over.content).toMatch(/28/);
+    expect(requests).toHaveLength(28);
+    expect(toolbox.callsUsed()).toBe(28);
   });
 
   it("holds when calls arrive in parallel", async () => {
     const { toolbox, requests } = setup();
     const results = await Promise.all(
-      Array.from({ length: 15 }, (_, i) =>
+      Array.from({ length: 31 }, (_, i) =>
         toolbox.run("search_artist", { name: `Parallel ${i}` }),
       ),
     );
     expect(results.filter((result) => result.isError)).toHaveLength(3);
-    expect(requests).toHaveLength(12);
+    expect(requests).toHaveLength(28);
   });
 
   it("counts a call that was served from the cache", async () => {

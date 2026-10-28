@@ -1,7 +1,9 @@
 import { z } from "zod";
+import { STOP_REASONS } from "@/lib/agent-words";
 import { TraceCallSchema } from "@/lib/build-events";
 import { FEE_BAND_IDS } from "@/lib/fee-bands";
 import { LineupSchema } from "@/lib/lineup";
+import { LocalPickSchema } from "@/lib/local-pick";
 import { cacheTtlSeconds, type QlooCache } from "./qloo-cache";
 
 const TagSchema = z.object({
@@ -34,6 +36,20 @@ export const BuildContextSchema = z.object({
   /** The Qloo age buckets the build's artist calls sent; a refill sends the same. Optional:
    * builds saved before 2026-10-17 sent none. */
   ages: z.array(z.string()).optional(),
+  /**
+   * Per band, each venue's matched control abroad (WS13.3), null where no room had fan data; the
+   * replay and the venue switch read each control's ranking back. Absent on 1.0 builds.
+   */
+  controls: perBand(
+    z.array(
+      z.object({
+        venueId: z.string(),
+        control: z
+          .object({ entityId: z.string(), name: z.string(), town: z.string() })
+          .nullable(),
+      }),
+    ),
+  ).optional(),
 });
 
 export const SavedBuildSchema = z.object({
@@ -49,6 +65,24 @@ export const SavedBuildSchema = z.object({
    */
   notes: z
     .array(z.object({ at: z.number().int().nonnegative(), text: z.string() }))
+    .optional(),
+  /**
+   * 2 for a build Agent 2.0 made (WS13): its venue reads keep Qloo's warnings (the scored read),
+   * so its replay and venue switch read them back that way. Absent on 1.0 builds.
+   */
+  engine: z.literal(2).optional(),
+  /**
+   * The Qloo cache prefix the build's answers sit under, which its replay and venue switch read
+   * (WS13, Daniel 2026-10-24). Absent on 1.0 builds, which read src/lib/qloo's QLOO_CACHE_PREFIX.
+   */
+  cachePrefix: z.string().optional(),
+  /** The planner's one sentence on its plan and why it stopped (WS13.7); absent on 1.0. */
+  plan: z.string().optional(),
+  /** The AI's local picks for the buyer to check (WS13.5); never on the lineup. */
+  localPicks: z.array(LocalPickSchema).optional(),
+  /** Why the agent stopped reading venues (WS13.2), the replay's last line; absent on 1.0. */
+  stopped: z
+    .object({ reason: z.enum(STOP_REASONS), text: z.string() })
     .optional(),
 });
 
@@ -112,6 +146,10 @@ export function createBuildStore(
   return {
     byId,
     latest,
+    /** Keeps a build under its own id only, never as a festival's latest (WS13.11's re-runs). */
+    async keep(build: SavedBuild): Promise<void> {
+      await cache.set(`${PREFIX}id:${build.id}`, build, cacheTtlSeconds(now()));
+    },
     async save(build: SavedBuild): Promise<void> {
       const ttl = cacheTtlSeconds(now());
       await cache.set(`${PREFIX}id:${build.id}`, build, ttl);

@@ -76,7 +76,7 @@ Beyond the demo path, one click from the bill:
   It resolves the headliners, finds the city's live music venues and picks the music rooms
   among them as anchors, gets the taste the headliners share, then asks for each band's
   artists for the headliners alone, then once more for each anchor venue. It
-  runs independent calls in parallel and stops at 12. In live builds it has changed course
+  runs independent calls in parallel and stops at 28. In live builds it has changed course
   mid-build: when Qloo had no fan data for one anchor venue, it spent its last call on another room.
 - **The app books the acts.** [src/lib/assemble-lineup.ts](src/lib/assemble-lineup.ts) takes
   an act when an anchor venue lifts it at least five places above the headliners-only
@@ -102,7 +102,7 @@ Beyond the demo path, one click from the bill:
 ## Sponsor technology
 
 Qloo does the work in every build. The agent calls the Qloo hackathon API
-(`https://hackathon.api.qloo.com`, `X-Api-Key`, GET only) at most 12 times per build, and
+(`https://hackathon.api.qloo.com`, `X-Api-Key`, GET only) at most 28 times per build, and
 the trace panel lists every call with its parameters and result count.
 
 | Endpoint | Why the agent calls it |

@@ -1,4 +1,5 @@
 import { agentSwitches } from "@/lib/agent-switch";
+import { saysAnchors } from "@/components/chart/words";
 import type { FeeBandId } from "@/lib/fee-bands";
 import type { FirstBill } from "@/lib/first-bill";
 import { billPlaces } from "@/lib/places";
@@ -34,7 +35,16 @@ function toFirstBill(saved: SavedBuild): FirstBill {
       name,
     })),
     ...(switches.length > 0 ? { agentSwitches: switches } : {}),
+    ...(saved.localPicks?.length ? { localPicks: saved.localPicks } : {}),
+    ...planOf(saved),
   };
+}
+
+/** The agent's line on its venues: a 2.0 build's plan, else a 1.0 line naming its anchors. */
+function planOf(saved: SavedBuild): { plan?: string } {
+  const plan =
+    saved.plan ?? saved.notes?.find((note) => saysAnchors(note.text))?.text;
+  return plan ? { plan } : {};
 }
 
 /**

@@ -4,7 +4,9 @@ import { FEE_BAND_IDS } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import { UNAVAILABLE_REASON_IDS, UNAVAILABLE_REASONS } from "@/lib/unavailable";
 import type { BuildStore } from "./build-store";
+import { controlRanking, recordedControl } from "./control-reads";
 import { QlooError, type QlooClient } from "./qloo";
+import { readerFor } from "./saved-reads";
 import type { RateLimiter } from "./rate-limit";
 import { limitedResponse, ndjsonResponse } from "./undercard-build";
 
@@ -86,10 +88,11 @@ export async function handleRefill({
     const excluded = [
       ...new Set([...headlinerIds, ...excludeIds, unavailableId]),
     ];
-    const venues = venueOrder(context.anchors, bandId, anchorVenueId).slice(
-      0,
-      REFILL_CALL_CAP,
-    );
+    // WS13.3: a 2.0 build refills by the 2.0 rule, each venue read beside its matched control,
+    // both with the board left out, in the build's own prefix and inside the same 3 calls.
+    const twoPointOh = context.controls !== undefined;
+    const reader = readerFor(saved, client);
+    const venues = venueOrder(context.anchors, bandId, anchorVenueId);
     const names = new Map<string, string>([
       ...context.headliners.map((headliner): [string, string] => [
         headliner.entityId,
@@ -111,13 +114,17 @@ export async function handleRefill({
       .map((entityId) => ({ entityId }));
 
     for (const venue of venues) {
+      const control = recordedControl(context, bandId, venue.entityId);
+      // No matched control on a 2.0 build: nothing can be booked from this venue.
+      if (twoPointOh && !control) continue;
+      if (calls + (control ? 2 : 1) > REFILL_CALL_CAP) break;
       const n = ++calls;
       const why = reason ? ` (${UNAVAILABLE_REASONS[reason]})` : "";
       const summary = `Refill${why}: ${band.label}-band artists for the headliners and ${venue.name}, minus the board`;
       names.set(venue.entityId, venue.name);
       let artists;
       try {
-        const result = await client.artists({
+        const result = await reader.artists({
           signalEntityIds: [...headlinerIds, venue.entityId],
           popularityMin: band.minPopularity,
           popularityMax: band.maxPopularity,
@@ -164,6 +171,60 @@ export async function handleRefill({
         continue;
       }
 
+      let controlRun:
+        Awaited<ReturnType<typeof controlRanking>>["run"] | undefined;
+      if (control) {
+        const m = ++calls;
+        const controlSummary = `Refill${why}: ${band.label}-band artists for the headliners and ${control.name}, a room in ${control.town} matched to ${venue.name}, minus the board`;
+        names.set(control.entityId, control.name);
+        const read = await controlRanking(
+          reader,
+          {
+            signalEntityIds: [...headlinerIds, venue.entityId],
+            popularityMin: band.minPopularity,
+            popularityMax: band.maxPopularity,
+            excludeEntityIds: excluded,
+            ages: context.ages,
+          },
+          venue.entityId,
+          control,
+          excluded,
+        );
+        controlRun = read.run;
+        emit({
+          type: "call",
+          call: read.call
+            ? {
+                n: m,
+                tool: "refill",
+                endpoint: read.call.path,
+                summary: controlSummary,
+                params: read.call.params.map(([key, value]) => ({
+                  key,
+                  value: readable(value),
+                })),
+                resultCount: read.call.resultCount,
+                ms: read.call.ms,
+                cached: read.call.cached,
+                controlFor: venue.name,
+              }
+            : {
+                n: m,
+                tool: "refill",
+                endpoint: "/v2/insights",
+                summary: controlSummary,
+                params: [],
+                resultCount: null,
+                ms: 0,
+                cached: false,
+                error:
+                  read.error instanceof QlooError
+                    ? read.error.message
+                    : "The Qloo request failed.",
+              },
+        });
+      }
+
       const [act] = assembleLineup({
         bands: [{ ...band, slots: 1 }],
         headliners: context.headliners,
@@ -176,6 +237,7 @@ export async function handleRefill({
             artists: artists.filter(
               (artist) => !excluded.includes(artist.entityId),
             ),
+            ...(control ? { control: controlRun ?? null } : {}),
           },
         ],
       }).acts;

@@ -15,6 +15,13 @@ export const VenueSchema = z.object({
   kind: z.string().optional(),
 });
 
+export const LocationReadingSchema = z.object({
+  /** The town as the signal named it: "Boise, Idaho". */
+  town: z.string().min(1),
+  withSignal: z.number().min(0).max(1),
+  without: z.number().min(0).max(1),
+});
+
 export const ActSchema = z.object({
   entityId: z.string().min(1),
   name: z.string().min(1),
@@ -27,6 +34,27 @@ export const ActSchema = z.object({
   /** The "Why Boise" line; it names the anchor venue. */
   reason: z.string().min(1),
   sharedTags: z.tuple([TagSchema, TagSchema]),
+  /**
+   * Qloo's location signal for the town, a second reading that never books an act (WS13.4): its
+   * affinity among its tier's lineup acts with signal.location.query added to the headliners, and
+   * without. Only where Qloo answered it both ways; absent on 1.0 builds.
+   */
+  location: LocationReadingSchema.optional(),
+  /**
+   * Its climb with the town's venue and with that venue's matched control abroad (WS13.3); its
+   * local lift is the difference, which the rule needs at 5 places or more. Absent on 1.0 builds.
+   */
+  localLift: z
+    .object({
+      venueClimb: z.number().int(),
+      controlClimb: z.number().int(),
+      control: z.object({
+        entityId: z.string().min(1),
+        name: z.string().min(1),
+        town: z.string().min(1),
+      }),
+    })
+    .optional(),
 });
 
 export const LineupSchema = z.object({
@@ -37,6 +65,7 @@ export const LineupSchema = z.object({
 export type Tag = z.infer<typeof TagSchema>;
 export type Venue = z.infer<typeof VenueSchema>;
 export type Act = z.infer<typeof ActSchema>;
+export type LocationReading = z.infer<typeof LocationReadingSchema>;
 export type Lineup = z.infer<typeof LineupSchema>;
 
 /** A band's acts, strongest affinity first. */

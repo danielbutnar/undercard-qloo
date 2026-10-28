@@ -120,22 +120,27 @@ describe("the door check", () => {
     expect(setlistLines()[10].className).toContain("is-circled");
   });
 
-  it("stamps the local lift with both climbs once the act's data carries them", () => {
-    const act = acts[0];
+  it("stamps the local lift against the bar from the act's own data, both climbs as the card words them (WS13.3)", () => {
     render(
       <Ticket
-        act={act}
+        act={{
+          ...acts[0],
+          localLift: {
+            venueClimb: 11,
+            controlClimb: 4,
+            control: { entityId: "control-1", name: "A Room Abroad", town: "Elsewhere" },
+          },
+        }}
         band={SAGEBRUSH_SOUND.feeBands[0]}
         hue={0}
         festival={SAGEBRUSH_SOUND}
-        climbs={{ venue: 11, control: 4 }}
       />,
     );
     const stamp = screen.getByRole("listitem", { name: /^Climb/ });
-    expect((stamp).textContent).toContain("↑7");
-    expect((stamp).textContent).toContain("local lift");
-    expect((stamp).textContent).toContain("↑11 with The Lantern Room's fans");
-    expect((stamp).textContent).toContain("↑4 with a matched venue abroad");
+    expect(stamp.textContent).toContain("↑7");
+    expect(stamp.textContent).toContain("local lift");
+    expect(stamp.textContent).toContain("↑11 with The Lantern Room's fans");
+    expect(stamp.textContent).toContain("↑4 with a matched venue abroad");
   });
 });
 

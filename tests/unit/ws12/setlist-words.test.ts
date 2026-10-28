@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   firstAct,
   liftingCall,
+  setlistCue,
   setlistLines,
   ticketStamps,
 } from "@/components/chart/setlist-words";
@@ -169,5 +170,21 @@ describe("the door check's first stamp, once WS13.3's two climbs land", () => {
 
   it("is today's climb against the bar until then", () => {
     expect(ticketStamps(act("Hollow Pines"), bands[0]).local).toBeNull();
+  });
+});
+
+describe("the AI agent's lines on the setlist", () => {
+  it("are cued in today's plain words: venue, not room; tier, not band (M6r, WS8)", () => {
+    expect(setlistCue("Try Cottonwood Social Hall for Mid as a third room.")).toBe(
+      "The AI agent: Try Cottonwood Social Hall for Mid as a third venue.",
+    );
+    expect(
+      setlistCue("Venue 166 lifted nothing; try Venue 227 for both bands (2 calls left)."),
+    ).toBe(
+      "The AI agent: Venue 166 lifted nothing; try Venue 227 for both tiers (2 calls left).",
+    );
+    expect(setlistCue("Rank each band for the headliners alone; two rooms lifted.")).toBe(
+      "The AI agent: Rank each tier for the headliners alone; two venues lifted.",
+    );
   });
 });

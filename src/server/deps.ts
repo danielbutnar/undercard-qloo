@@ -2,6 +2,7 @@ import { Redis } from "@upstash/redis";
 import { AiNotConfigured, createAgentModel, createHealthModel } from "./ai";
 import { createBuildStore, previewSafe } from "./build-store";
 import {
+  AGENT_CACHE_PREFIX,
   createQlooClient,
   type QlooClient,
   type QlooClientOptions,
@@ -29,6 +30,14 @@ export function serverQloo(): QlooClient | null {
     cache: createQlooCache(),
     baseUrl: process.env.QLOO_BASE_URL || undefined,
   });
+}
+
+/**
+ * Agent 2.0's live runs (WS13): the server's client over the agent's own cache prefix, so a run
+ * reads and writes one generation of answers and never the entries the saved 1.0 builds read.
+ */
+export function serverAgentQloo(): QlooClient | null {
+  return serverQloo()?.withPrefix(AGENT_CACHE_PREFIX) ?? null;
 }
 
 /** Reads the Qloo cache only (M9a's replays): it never calls Qloo, so a replay stays free. */

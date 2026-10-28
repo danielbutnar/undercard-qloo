@@ -46,6 +46,7 @@ export function legendLine({
   tested,
   lifting,
   without = false,
+  plan,
 }: {
   city: string;
   /** Live-music places Qloo listed in the town, from the build's venue search. */
@@ -55,6 +56,8 @@ export function legendLine({
   /** Of those, the venues whose fans lifted an act onto the lineup. */
   lifting: number;
   without?: boolean;
+  /** The agent's own line on why these venues (WS13.7), when the build has one. */
+  plan?: string;
 }): { title: string; text: string } {
   if (without)
     return {
@@ -78,7 +81,10 @@ export function legendLine({
       : lifting === 0
         ? "Grey: none of their acts are on your poster."
         : "Coloured: their fans lifted acts onto your poster. Grey: none of their acts are on your poster.";
-  return { title: "Venues the agent tested", text: `${found} ${key}` };
+  const why = plan?.trim()
+    ? ` The agent's plan: ${plan.trim()}${/[.!?]$/.test(plan.trim()) ? "" : "."}`
+    : "";
+  return { title: "Venues the agent tested", text: `${found}${why} ${key}` };
 }
 
 /** A venue's sign in the town: its acts on the poster, or why it has none. */

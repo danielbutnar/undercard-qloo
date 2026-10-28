@@ -1,9 +1,24 @@
 import { climbAfter, climbBaseline } from "@/lib/lift-climb";
 import type Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
-import { liftsOver, MIN_LIFT } from "@/lib/assemble-lineup";
+import {
+  assembleLineup,
+  headlinerTagWeights,
+  liftsOver,
+  LOCAL_LIFT_BAR,
+  MIN_LIFT,
+  type AssemblyInput,
+  type ControlRef,
+} from "@/lib/assemble-lineup";
 import { ageBuckets } from "@/lib/ages";
-import type { BuildEvent } from "@/lib/build-events";
+import type { BuildEvent, TraceCall } from "@/lib/build-events";
+import {
+  controlCandidates,
+  localLift,
+  noFanData as fanless,
+} from "@/lib/control-venue";
+import { controlTownFor } from "@/lib/control-town";
+import { QLOO_CALL_CAP } from "@/lib/agent-limits";
 import { FEE_BAND_IDS, type FeeBandId } from "@/lib/fee-bands";
 import { roomKind } from "@/lib/place-kinds";
 import {
@@ -12,6 +27,9 @@ import {
   resolvedName,
 } from "@/lib/town-resolution";
 import type { Festival } from "@/lib/festival";
+import type { Act, LocationReading } from "@/lib/lineup";
+import { localPickOf, type LocalPick } from "@/lib/local-pick";
+import { foldAccents, foundOnQloo, hasNonAscii } from "@/lib/pick-tests";
 import {
   QlooBusy,
   QlooError,
@@ -20,10 +38,18 @@ import {
   type QlooEntity,
   type QlooResult,
   type QlooTag,
+  type ScoredArtists,
 } from "./qloo";
 
-/** The most Qloo calls one build may make (SPEC.md, M2). Cached answers count too. */
-export const QLOO_CALL_CAP = 12;
+/** The most Qloo calls one build may make, cached answers included (src/lib/agent-limits.ts). */
+export { QLOO_CALL_CAP };
+
+/** Why the planner says it stopped (WS13.2), in finish's input. */
+export const STOP_CLAIMS = [
+  "every_band_full",
+  "tried_every_music_room",
+] as const;
+export type StopClaim = (typeof STOP_CLAIMS)[number];
 
 export interface ToolOutcome {
   content: string;
@@ -41,8 +67,22 @@ export interface AgentState {
     venue: QlooEntity & { kind?: string };
     band: FeeBandId;
     artists: QlooEntity[];
+    /**
+     * Its matched control abroad and the control's ranking for the tier (WS13.3); null when no
+     * room in the control town had fan data. Absent on a venue Qloo had no fan data for.
+     */
+    control?: { venue: ControlRef; artists: QlooEntity[] } | null;
   }[];
-  finished: { anchorVenueIds: string[]; summary: string } | null;
+  /** Venues Qloo had no fan data for (WS13.1), by entity id: never read again. */
+  noFanData: Set<string>;
+  /** The AI's local picks Qloo's search found (WS13.5): for the buyer to check, never booked. */
+  localPicks: LocalPick[];
+  finished: {
+    anchorVenueIds: string[];
+    summary: string;
+    /** Why the planner says it stopped (WS13.2); absent from older scripted plans. */
+    stoppedBecause?: StopClaim;
+  } | null;
 }
 
 const objectSchema = (
@@ -118,12 +158,36 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
         type: "string",
         description: "A venue's entity id from find_venues.",
       },
+      why: {
+        type: "string",
+        description:
+          "One line on why you read this venue now: why this room, or which venue it replaces and why.",
+      },
+    }),
+  },
+  {
+    name: "local_pick",
+    description:
+      "Name one or two acts from the festival's town that you know of from your own knowledge: acts based there who would suit this undercard, each with one line on why. The app searches each on Qloo (GET /search, one Qloo call each) and returns what Qloo knows of it. A local pick is for the buyer to check; it never takes a slot.",
+    strict: true,
+    input_schema: objectSchema({
+      picks: {
+        type: "array",
+        description: "One or two acts from the town.",
+        items: objectSchema({
+          name: { type: "string", description: "The act's name." },
+          why: {
+            type: "string",
+            description: "One line on why it suits this undercard.",
+          },
+        }),
+      },
     }),
   },
   {
     name: "finish",
     description:
-      "End the build once both bands have a baseline and venue runs. The app then books the acts each venue lifts most. Not a Qloo call.",
+      "End the build once every band is full, or once you have tried every music venue find_venues listed. The app then books the acts each venue lifts most. Not a Qloo call.",
     strict: true,
     input_schema: objectSchema({
       anchor_venue_ids: {
@@ -134,6 +198,12 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
       summary: {
         type: "string",
         description: "One sentence on the plan you followed.",
+      },
+      stopped_because: {
+        type: "string",
+        enum: [...STOP_CLAIMS],
+        description:
+          "Why you stopped: every band is full, or you tried every music venue find_venues listed.",
       },
     }),
   },
@@ -151,10 +221,19 @@ const Inputs = {
   venue_artists: z.object({
     band: z.enum(FEE_BAND_IDS),
     venue_id: z.string().min(1),
+    // Required of the model (strict schema); older scripted plans send none.
+    why: z.string().optional(),
+  }),
+  local_pick: z.object({
+    picks: z
+      .array(z.object({ name: z.string().min(1), why: z.string() }))
+      .min(1)
+      .max(2),
   }),
   finish: z.object({
     anchor_venue_ids: z.array(z.string()),
     summary: z.string(),
+    stopped_because: z.enum(STOP_CLAIMS).optional(),
   }),
 };
 type ToolName = keyof typeof Inputs;
@@ -170,6 +249,35 @@ function describeFailure(error: unknown): string {
 
 class BudgetSpent extends Error {}
 class ToolMisuse extends Error {}
+
+const isGenreTag = (type: string) => type.includes("genre");
+
+/** The booking rule's input from what the build has read so far (src/lib/assemble-lineup.ts). */
+export function assemblyOf(
+  festival: Festival,
+  state: AgentState,
+): AssemblyInput {
+  return {
+    bands: festival.feeBands,
+    headliners: festival.headliners.flatMap(
+      (name) => state.headliners.get(name.toLowerCase()) ?? [],
+    ),
+    comparedTags: state.comparedTags
+      .filter(({ tag }) => isGenreTag(tag.type))
+      .map(({ tag, score }) => ({ name: tag.name, score })),
+    baselines: state.baselines,
+    venueRuns: state.venueRuns.map(({ venue, band, artists, control }) => ({
+      venue: {
+        entityId: venue.entityId,
+        name: venue.name,
+        ...(venue.kind ? { kind: venue.kind } : {}),
+      },
+      band,
+      artists,
+      ...(control !== undefined ? { control } : {}),
+    })),
+  };
+}
 
 const round = (value: number) => Math.round(value * 100) / 100;
 const PLACE_KIND = /:(category|genre):place:/;
@@ -196,6 +304,8 @@ export function createToolbox({
     comparedTags: [],
     baselines: {},
     venueRuns: [],
+    noFanData: new Set(),
+    localPicks: [],
     finished: null,
   };
   const names = new Map<string, string>();
@@ -204,6 +314,140 @@ export function createToolbox({
 
   const bandLabel = (band: FeeBandId) =>
     festival.feeBands.find((entry) => entry.id === band)?.label ?? band;
+
+  // WS13.3: the control town (section 37's rule) and its rooms, listed once when first needed;
+  // the rooms Qloo had no fan data for; each room's ranking per tier, read once.
+  const controlTown = controlTownFor(festival);
+  let venueTag: string | null = null;
+  let controlRooms: Promise<QlooEntity[]> | null = null;
+  const controlsWithout = new Set<string>();
+  const controlRankings = new Map<string, Promise<ScoredArtists>>();
+
+  function roomsAbroad(): Promise<QlooEntity[]> {
+    if (!controlTown || !venueTag) return Promise.resolve([]);
+    const tag = venueTag;
+    const town = controlTown;
+    const label = tagNames.get(tag) ?? tag;
+    // As find_venues reads a town (M6j): the plain name, then "town, region" when it misses.
+    controlRooms ??= (async () => {
+      const summary = `${town.city} places tagged ${label}, to match each venue with a room abroad`;
+      const plain = await callQloo(
+        "control_venues",
+        "/v2/insights",
+        summary,
+        () => qloo.places({ locationQuery: town.city, tagId: tag }),
+      );
+      if (!needsFullName(plain, town.region)) return plain;
+      const fullName = `${town.city}, ${town.region}`;
+      const full = await callQloo(
+        "control_venues",
+        "/v2/insights",
+        `${summary}, asked again as “${fullName}”`,
+        () => qloo.places({ locationQuery: fullName, tagId: tag }),
+      );
+      return placesInRegion([plain, full], town.region).places;
+    })();
+    return controlRooms;
+  }
+
+  /**
+   * The venue's matched control for a tier (WS13.3, Daniel's rule): the control town's room
+   * closest in Qloo popularity, ties by name, skipping a room Qloo has no fan data for (its
+   * warning, or a ranking that is the headliners' own); null when none has fan data, or the
+   * calls run out. Each room's ranking for a tier is read once, whichever venue asks for it.
+   */
+  async function matchedControl(
+    venue: QlooEntity,
+    band: FeeBandId,
+    headliners: string[],
+  ): Promise<{ venue: ControlRef; artists: QlooEntity[] } | null> {
+    if (!controlTown) return null;
+    let rooms: QlooEntity[];
+    try {
+      rooms = await roomsAbroad();
+    } catch {
+      return null;
+    }
+    const range = festival.feeBands.find((entry) => entry.id === band)!;
+    const baseline = state.baselines[band];
+    for (const room of controlCandidates(rooms, venue.popularity)) {
+      if (controlsWithout.has(room.entityId)) continue;
+      const key = `${room.entityId}|${band}`;
+      let answer: ScoredArtists;
+      try {
+        if (!controlRankings.has(key))
+          controlRankings.set(
+            key,
+            callQloo(
+              "control_artists",
+              "/v2/insights",
+              `${bandLabel(band)}-band artists for the headliners and ${room.name}, a room in ${controlTown.city} matched to ${venue.name}${ageNote}`,
+              () =>
+                qloo.scoredArtists({
+                  signalEntityIds: [...headliners, room.entityId],
+                  popularityMin: range.minPopularity,
+                  popularityMax: range.maxPopularity,
+                  excludeEntityIds: headliners,
+                  ages: crowd.buckets,
+                }),
+              undefined,
+              (data) => ({
+                controlFor: venue.name,
+                ...(fanless({
+                  warned: data.unscored.includes(room.entityId),
+                  ranking: data.entities,
+                  without: baseline ?? [],
+                })
+                  ? { noFanData: room.name }
+                  : {}),
+              }),
+            ),
+          );
+        answer = await controlRankings.get(key)!;
+      } catch {
+        // The cap is spent or the call failed: no control, so this run books nothing.
+        return null;
+      }
+      if (
+        fanless({
+          warned: answer.unscored.includes(room.entityId),
+          ranking: answer.entities,
+          without: baseline ?? [],
+        })
+      ) {
+        controlsWithout.add(room.entityId);
+        continue;
+      }
+      names.set(room.entityId, room.name);
+      return {
+        venue: {
+          entityId: room.entityId,
+          name: room.name,
+          town: controlTown.city,
+        },
+        artists: answer.entities,
+      };
+    }
+    return null;
+  }
+
+  // WS13.2: how full each tier is by the rule, so the planner reads until every one is.
+  function progress() {
+    const { shortfall } = assembleLineup(assemblyOf(festival, state));
+    const tiers = Object.fromEntries(
+      festival.feeBands.map((band) => [
+        band.id,
+        { filled: band.slots - shortfall[band.id], slots: band.slots },
+      ]),
+    );
+    return {
+      tiers,
+      every_tier_full: festival.feeBands.every(
+        (band) => shortfall[band.id] === 0,
+      ),
+      qloo_calls_left: Math.max(0, cap - used),
+    };
+  }
 
   function headlinerPair(): [QlooEntity, QlooEntity] {
     const [a, b] = festival.headliners.map((name) =>
@@ -216,11 +460,12 @@ export function createToolbox({
     return [a, b];
   }
 
-  // Entity ids in a parameter value read better as names in the trace panel.
+  // Entity ids in a parameter value read better as names in the trace panel. A value that is
+  // already words ("Boise, Idaho") keeps its single spaces.
   const readable = (value: string) =>
     value
       .split(",")
-      .map((part) => names.get(part) ?? part)
+      .map((part) => names.get(part.trim()) ?? part.trim())
       .join(", ");
 
   async function callQloo<T>(
@@ -230,6 +475,8 @@ export function createToolbox({
     request: () => Promise<QlooResult<T>>,
     /** A fuller line for the trace, once the answer is in (M6j's resolved place). */
     describe?: (data: T) => string,
+    /** What the answer adds to the call's trace line (Qloo had no fan data; the planner's line). */
+    mark?: (data: T) => Pick<TraceCall, "noFanData" | "why">,
   ) {
     if (used >= cap)
       throw new BudgetSpent(
@@ -241,7 +488,10 @@ export function createToolbox({
       const { data, call } = await request();
       emit({
         type: "call",
-        call: traceOf(n, tool, describe ? describe(data) : summary, call),
+        call: {
+          ...traceOf(n, tool, describe ? describe(data) : summary, call),
+          ...mark?.(data),
+        },
       });
       return data;
     } catch (error) {
@@ -325,6 +575,7 @@ export function createToolbox({
     },
 
     async find_venues({ tag_id }) {
+      venueTag = tag_id;
       const label = tagNames.get(tag_id) ?? tag_id;
       const { city, region } = festival;
       const summary = `${city} places tagged ${label}`;
@@ -424,7 +675,7 @@ export function createToolbox({
       };
     },
 
-    async venue_artists({ band, venue_id }) {
+    async venue_artists({ band, venue_id, why }) {
       const pair = headlinerPair();
       const venue = state.venues.find(
         (candidate) => candidate.entityId === venue_id,
@@ -433,16 +684,35 @@ export function createToolbox({
         throw new ToolMisuse(
           `Unknown venue ${venue_id}: pick an entity_id from find_venues.`,
         );
+      // WS13.1: Qloo's fan data is a venue's, not a tier's (evidence 35: every venue unscored in
+      // one fee range was unscored in all), so a venue without it is never read again.
+      if (state.noFanData.has(venue.entityId))
+        return {
+          band,
+          venue: venue.name,
+          fan_data: false,
+          note: `Qloo had no fan data for ${venue.name} on an earlier read, so no call was made. Read the next music venue instead.`,
+          ...progress(),
+        };
       // A park, arena or stadium is named on its line (M6l); booking doesn't read the label.
       const kind = roomKind(venue.tags, venue.keywords);
       const kindNote = kind ? ` (${kind})` : "";
       const range = festival.feeBands.find((entry) => entry.id === band)!;
-      const artists = await callQloo(
+      const baseline = state.baselines[band];
+      // Qloo's not_found warning names the venue; or, with no warning, its ranking is the
+      // headliners' own, act for act (section 37's reading 2, src/lib/control-venue.ts).
+      const lacksFanData = (answer: ScoredArtists) =>
+        fanless({
+          warned: answer.unscored.includes(venue.entityId),
+          ranking: answer.entities,
+          without: baseline ?? [],
+        }) !== null;
+      const answer = await callQloo(
         "venue_artists",
         "/v2/insights",
         `${bandLabel(band)}-band artists for the headliners and ${venue.name}${kindNote}${ageNote}`,
         () =>
-          qloo.artists({
+          qloo.scoredArtists({
             signalEntityIds: [
               ...pair.map((headliner) => headliner.entityId),
               venue.entityId,
@@ -452,40 +722,194 @@ export function createToolbox({
             excludeEntityIds: pair.map((headliner) => headliner.entityId),
             ages: crowd.buckets,
           }),
+        undefined,
+        (data) => ({
+          ...(lacksFanData(data) ? { noFanData: venue.name } : {}),
+          ...(why?.trim() ? { why: why.trim() } : {}),
+        }),
       );
-      const climbBase = state.baselines[band];
-      if (climbBase)
-        emit(climbAfter(band, range, venue, climbBase, artists));
+      const artists = answer.entities;
+      const noFanData = lacksFanData(answer);
+      if (noFanData) state.noFanData.add(venue.entityId);
+      if (baseline) emit(climbAfter(band, range, venue, baseline, artists));
+      // WS13.3: a venue with fan data is read against its matched control abroad, same tier.
+      const control = noFanData
+        ? undefined
+        : await matchedControl(
+            venue,
+            band,
+            pair.map((headliner) => headliner.entityId),
+          );
       state.venueRuns.push({
         venue: kind ? { ...venue, kind } : venue,
         band,
         artists,
+        ...(control !== undefined ? { control } : {}),
       });
-      const baseline = state.baselines[band];
+      if (noFanData)
+        return {
+          band,
+          venue: venue.name,
+          fan_data: false,
+          note: `Qloo had no fan data for ${venue.name}: it left the venue out of the signal, so this ranking is the headliners' own and lifts no act. Skip ${venue.name} for every tier and read the next music venue in its place.`,
+          ...progress(),
+        };
       if (!baseline)
         return {
           band,
           venue: venue.name,
+          fan_data: true,
           count: artists.length,
           note: "Fetch this band's baseline to measure the lift.",
+          ...progress(),
         };
       const lifted = liftsOver(baseline, artists).filter(
         (entry) => entry.lift >= MIN_LIFT,
       );
+      const local = control
+        ? lifted.filter(
+            (entry) =>
+              (localLift(entry.artist.entityId, artists, control.artists) ??
+                0) >= LOCAL_LIFT_BAR,
+          )
+        : [];
       return {
         band,
         venue: venue.name,
+        fan_data: true,
         count: artists.length,
         acts_lifted_5_or_more_places: lifted.length,
-        top_lifted: lifted.slice(0, 6).map((entry) => entry.artist.name),
+        matched_control: control
+          ? `${control.venue.name} (${control.venue.town})`
+          : null,
+        acts_with_local_lift_5_or_more: local.length,
+        top_lifted: local.slice(0, 6).map((entry) => entry.artist.name),
+        ...(control
+          ? {}
+          : {
+              note: `No room in ${controlTown?.city ?? "the control town"} had fan data to match ${venue.name} against, so its acts can't be booked: read the next music venue.`,
+            }),
+        ...progress(),
       };
     },
 
-    async finish({ anchor_venue_ids, summary }) {
-      state.finished = { anchorVenueIds: anchor_venue_ids, summary };
+    async local_pick({ picks }) {
+      // Searched as search_artist searches, with the accents folded once more when a name
+      // with letters beyond ASCII finds nothing (WS8). Only a pick Qloo finds is kept.
+      const input = assemblyOf(festival, state);
+      // Between two acts of one name, the one the headliners' genres point to (WS13.6).
+      const weights = headlinerTagWeights(input);
+      const results = [];
+      for (const { name, why } of picks) {
+        const search = (query: string) =>
+          callQloo(
+            "local_pick",
+            "/search",
+            `Search for the AI's local pick "${query}"`,
+            () => qloo.search({ query }),
+          );
+        let found = foundOnQloo(name, await search(name), weights);
+        if (!found && hasNonAscii(name))
+          found = foundOnQloo(
+            foldAccents(name),
+            await search(foldAccents(name)),
+            weights,
+          );
+        if (!found) {
+          results.push({ name, found: false });
+          continue;
+        }
+        names.set(found.entityId, found.name);
+        const pick = localPickOf(input, found, name, why);
+        if (!state.localPicks.some((kept) => kept.entityId === pick.entityId))
+          state.localPicks.push(pick);
+        results.push({
+          name: found.name,
+          found: true,
+          popularity: round(found.popularity),
+          tier: pick.band,
+        });
+      }
+      return { picks: results };
+    },
+
+    async finish({ anchor_venue_ids, summary, stopped_because }) {
+      // WS13.7: why it stopped, in the planner's own words, is a line of the trace.
+      if (summary.trim())
+        emit({ type: "status", text: summary.trim(), planner: true });
+      state.finished = {
+        anchorVenueIds: anchor_venue_ids,
+        summary,
+        ...(stopped_because ? { stoppedBecause: stopped_because } : {}),
+      };
       return { status: "Assembling the board." };
     },
   };
+
+  /**
+   * WS13.4: Qloo's location signal as a second reading for the lineup's acts, never the booking
+   * basis. Per tier, the tier's acts among themselves for the headliners alone and with
+   * signal.location.query set to the town (Qloo scores each call on its own scale, so both read
+   * the same acts), as section 34's Control B measured it. Two calls a tier while the cap allows;
+   * an act Qloo leaves out of either answer, or a call that fails, gives no reading.
+   */
+  async function readLocation(
+    acts: readonly Act[],
+  ): Promise<Map<string, LocationReading>> {
+    const readings = new Map<string, LocationReading>();
+    const town = festival.region.trim()
+      ? `${festival.city}, ${festival.region}`
+      : festival.city;
+    const pair = festival.headliners.flatMap(
+      (name) => state.headliners.get(name.toLowerCase())?.entityId ?? [],
+    );
+    if (pair.length < 2) return readings;
+    for (const band of festival.feeBands) {
+      const among = acts
+        .filter((act) => act.band === band.id)
+        .map((act) => act.entityId);
+      if (among.length === 0 || cap - used < 2) continue;
+      for (const id of among)
+        names.set(id, acts.find((act) => act.entityId === id)!.name);
+      const ask = (locationQuery?: string) =>
+        callQloo(
+          "location_signal",
+          "/v2/insights",
+          locationQuery
+            ? `${bandLabel(band.id)}-band lineup acts for the headliners and Qloo's location signal for ${locationQuery}${ageNote}`
+            : `${bandLabel(band.id)}-band lineup acts for the headliners alone, to compare${ageNote}`,
+          () =>
+            qloo.rankAmong({
+              signalEntityIds: pair,
+              amongIds: among,
+              ages: crowd.buckets,
+              ...(locationQuery ? { locationQuery } : {}),
+            }),
+        );
+      try {
+        const [alone, located] = await Promise.all([ask(), ask(town)]);
+        const without = new Map(
+          alone.map((artist) => [artist.entityId, artist.affinity]),
+        );
+        for (const artist of located) {
+          const before = without.get(artist.entityId);
+          if (
+            artist.affinity !== null &&
+            before !== null &&
+            before !== undefined
+          )
+            readings.set(artist.entityId, {
+              town,
+              withSignal: artist.affinity,
+              without: before,
+            });
+        }
+      } catch {
+        // A second reading only: a failed call leaves the tier without one.
+      }
+    }
+    return readings;
+  }
 
   async function run(name: string, input: unknown): Promise<ToolOutcome> {
     if (!(name in Inputs))
@@ -511,7 +935,14 @@ export function createToolbox({
     }
   }
 
-  return { tools: AGENT_TOOLS, run, state, callsUsed: () => used, cap };
+  return {
+    tools: AGENT_TOOLS,
+    run,
+    readLocation,
+    state,
+    callsUsed: () => used,
+    cap,
+  };
 }
 
 export type Toolbox = ReturnType<typeof createToolbox>;

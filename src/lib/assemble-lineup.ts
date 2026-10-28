@@ -1,8 +1,17 @@
+import { localLift as localLiftOf } from "./control-venue";
 import { feeBandFor, type FeeBand, type FeeBandId } from "./fee-bands";
 import type { Act, Tag } from "./lineup";
 
 /** An act must rank at least this many places higher with a venue in the signal to count. */
 export const MIN_LIFT = 5;
+
+/**
+ * Agent 2.0's bar (WS13.3): an act books only if its local lift, its climb with the town's venue
+ * minus its climb with that venue's matched control abroad, is at least this many places. Set by
+ * docs/evidence.md section 37's rule from its result of 2026-10-28 (244 of the 290 1.0 acts
+ * reached 5, against a bar of 145), so 5 places; the climb of MIN_LIFT with the venue stays too.
+ */
+export const LOCAL_LIFT_BAR = 5;
 
 export interface ArtistTag {
   id: string;
@@ -26,10 +35,23 @@ export interface VenueRef {
   kind?: string;
 }
 
+/** A venue's matched control abroad (WS13.3): a room in the control town, and its town. */
+export interface ControlRef {
+  entityId: string;
+  name: string;
+  town: string;
+}
+
 export interface VenueRun {
   venue: VenueRef;
   band: FeeBandId;
   artists: RankedArtist[];
+  /**
+   * The venue's matched control for this tier (WS13.3): the room and its ranking for the
+   * headliners plus its fans, or null when no room in the control town had fan data, so this
+   * run books no act. Absent on a 1.0 run, which the rule reads as before.
+   */
+  control?: { venue: ControlRef; artists: RankedArtist[] } | null;
 }
 
 export interface AssemblyInput {
@@ -94,6 +116,22 @@ export function headlinerTagWeights(input: AssemblyInput) {
   return weights;
 }
 
+/**
+ * How much of the headliners' taste an artist's genres carry (WS13.6): the weights of the genre
+ * tags it shares with them, each tag once. 0 when it shares none.
+ */
+export function sharedWeight(
+  artist: { tags?: readonly ArtistTag[] },
+  weights: ReadonlyMap<string, number>,
+): number {
+  const keys = new Set(
+    (artist.tags ?? []).filter(isGenre).map((tag) => normalize(tag.name)),
+  );
+  let total = 0;
+  for (const key of keys) total += weights.get(key) ?? 0;
+  return total;
+}
+
 /** An artist's genre tags the headliners carry, strongest first (two are needed to book it). */
 export function sharedTags(
   artist: RankedArtist,
@@ -141,11 +179,31 @@ export function assembleLineup(input: AssemblyInput): {
 
   for (const band of input.bands) {
     const baseline = input.baselines[band.id] ?? [];
-    const best = new Map<string, { venue: VenueRef; lift: Lift }>();
+    const best = new Map<
+      string,
+      { venue: VenueRef; lift: Lift; local?: Act["localLift"] }
+    >();
     for (const run of input.venueRuns.filter(
       (candidate) => candidate.band === band.id,
     )) {
       for (const lift of liftsOver(baseline, run.artists)) {
+        if (baseline.length === 0 || lift.lift < MIN_LIFT) continue;
+        // WS13.3: on a 2.0 run, the climb counts only where the act's local lift reaches the bar.
+        let local: Act["localLift"];
+        if (run.control !== undefined) {
+          if (run.control === null) continue;
+          const ahead = localLiftOf(
+            lift.artist.entityId,
+            run.artists,
+            run.control.artists,
+          );
+          if (ahead === null || ahead < LOCAL_LIFT_BAR) continue;
+          local = {
+            venueClimb: lift.lift,
+            controlClimb: lift.lift - ahead,
+            control: { ...run.control.venue },
+          };
+        }
         const current = best.get(lift.artist.entityId);
         const stronger =
           !current ||
@@ -153,12 +211,15 @@ export function assembleLineup(input: AssemblyInput): {
           (lift.lift === current.lift.lift &&
             (lift.artist.affinity ?? 0) > (current.lift.artist.affinity ?? 0));
         if (stronger)
-          best.set(lift.artist.entityId, { venue: run.venue, lift });
+          best.set(lift.artist.entityId, {
+            venue: run.venue,
+            lift,
+            ...(local ? { local } : {}),
+          });
       }
     }
 
     const booked = [...best.values()]
-      .filter(({ lift }) => baseline.length > 0 && lift.lift >= MIN_LIFT)
       .filter(
         ({ lift }) =>
           lift.artist.affinity !== null &&
@@ -180,7 +241,7 @@ export function assembleLineup(input: AssemblyInput): {
       )
       .slice(0, band.slots);
 
-    for (const { venue, lift, tags } of booked) {
+    for (const { venue, lift, tags, local } of booked) {
       acts.push({
         entityId: lift.artist.entityId,
         name: lift.artist.name,
@@ -194,6 +255,7 @@ export function assembleLineup(input: AssemblyInput): {
         },
         reason: whyBoise(venue, lift),
         sharedTags: [tags[0], tags[1]],
+        ...(local ? { localLift: local } : {}),
       });
     }
     shortfall[band.id] = band.slots - booked.length;

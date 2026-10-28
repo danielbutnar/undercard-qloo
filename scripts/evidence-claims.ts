@@ -127,7 +127,7 @@ export const CLAIMS: readonly Entry[] = [
     phrase: "NEW when it entered the top {50})",
     equals: { kind: "baseline-top", town: "Boise" },
   },
-  { file: README, phrase: "stops at {12}", equals: rule("call-cap") },
+  { file: README, phrase: "stops at {28}", equals: rule("call-cap") },
   {
     file: README,
     phrase: "at least {five} places above the headliners-only ranking",
@@ -136,7 +136,7 @@ export const CLAIMS: readonly Entry[] = [
   { file: README, phrase: "in at most {3} calls", equals: rule("refill-cap") },
   {
     file: README,
-    phrase: "at most {12} times per build",
+    phrase: "at most {28} times per build",
     equals: rule("call-cap"),
   },
   {
@@ -240,7 +240,7 @@ export const CLAIMS: readonly Entry[] = [
     phrase: "in at most {three} Qloo calls",
     equals: rule("refill-cap"),
   },
-  { file: STORY, phrase: "a build stops at {12}", equals: rule("call-cap") },
+  { file: STORY, phrase: "a build stops at {28}", equals: rule("call-cap") },
   {
     file: STORY,
     phrase: "an artist lifted {five} or more places",

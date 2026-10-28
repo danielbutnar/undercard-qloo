@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { QLOO_CALL_CAP } from "@/lib/agent-limits";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { createBuildStore } from "@/server/build-store";
 import { createQlooClient, QlooBusy, QLOO_RETRY } from "@/server/qloo";
@@ -149,7 +150,7 @@ describe("a build under a rate limit", () => {
     return { events, calls, lineup, requests: fake.requests, time };
   }
 
-  it("tests the same rooms and books the same bill as without the 429s and 503s, within the 12 calls", async () => {
+  it("tests the same rooms and books the same bill as without the 429s and 503s, within the cap", async () => {
     const clean = await build(syntheticQloo);
     // Every URL fails once, alternating 429 and 503, then answers.
     const seen = new Set<string>();
@@ -169,14 +170,14 @@ describe("a build under a rate limit", () => {
     expect(summaries(flaky.calls)).toEqual(summaries(clean.calls));
     expect(flaky.lineup).toEqual(clean.lineup);
     expect(flaky.calls.length).toBe(clean.calls.length);
-    expect(flaky.calls.length).toBeLessThanOrEqual(12);
+    expect(flaky.calls.length).toBeLessThanOrEqual(QLOO_CALL_CAP);
     expect(flaky.calls.every((call) => (call.retried ?? []).length === 1)).toBe(
       true,
     );
     expect(flaky.events.some((event) => event.type === "error")).toBe(false);
   });
 
-  it("ends in a Qloo-is-busy error when the time budget runs out, still within the 12 calls", async () => {
+  it("ends in a Qloo-is-busy error when the time budget runs out, still within the cap", async () => {
     const result = await build((url) =>
       url.pathname === "/v2/insights" ? busy(429) : syntheticQloo(url),
     );
@@ -184,7 +185,7 @@ describe("a build under a rate limit", () => {
       (event) => event.type === "error" && event.code === "qloo-busy",
     );
     expect(error).toBeTruthy();
-    expect(result.calls.length).toBeLessThanOrEqual(12);
+    expect(result.calls.length).toBeLessThanOrEqual(QLOO_CALL_CAP);
     expect(result.time.now()).toBeLessThanOrEqual(QLOO_RETRY.budgetMs);
   });
 });

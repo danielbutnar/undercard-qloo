@@ -6,8 +6,17 @@ import { cacheTtlSeconds, type QlooCache } from "@/server/qloo-cache";
 
 /** The hackathon key works only against this host (RULES.md, Dev guide). */
 export const QLOO_BASE_URL = "https://hackathon.api.qloo.com";
-// v2: entries cached until at least 2026-11-18 (v1 entries kept only 7 days).
-const CACHE_PREFIX = "qloo:v2:";
+/**
+ * The cache prefix every answer the saved 1.0 builds read sits under (v2: entries cached until
+ * at least 2026-11-18; v1 entries kept only 7 days). Their replays and venue switch are rebuilt
+ * from these entries, so nothing Agent 2.0 asks is ever written here (Daniel, 2026-10-24).
+ */
+export const QLOO_CACHE_PREFIX = "qloo:v2:";
+/**
+ * Agent 2.0's prefix (WS13): its live runs read and write their own entries, so a build compares
+ * rankings from the same generation of answers, and a saved build records the prefix it read.
+ */
+export const AGENT_CACHE_PREFIX = "qloo:a2:";
 const REQUEST_TIMEOUT_MS = 20_000;
 
 /** The only Qloo endpoints this app calls, all with GET and parameters in the query string. */
@@ -221,15 +230,19 @@ export interface QlooClientOptions {
   random?: () => number;
   /** Answer only from the cache (M9a's replays): a miss throws QlooCacheMiss, never fetches. */
   cacheOnly?: boolean;
+  /** The cache prefix answers are read and written under; the 1.0 builds' by default (WS13). */
+  prefix?: string;
 }
 
 /** One cached, retried GET against Qloo; every endpoint file calls through it. */
-export type QlooGet = <T extends unknown[]>(
+export type QlooGet = <T>(
   path: QlooPath,
   params: Record<string, string | number>,
   parse: (body: unknown) => T,
   /** Bumped when the parsed shape gains a field, so older cached answers aren't reused. */
   keyVersion?: string,
+  /** The answer's result count for the trace: a list's length unless the endpoint says. */
+  count?: (data: T) => number,
 ) => Promise<QlooResult<T>>;
 
 /** A client's GET: its own calls in flight, its own retry budget from now. */
@@ -244,6 +257,7 @@ export function createGet({
   clock = Date.now,
   random = Math.random,
   cacheOnly = false,
+  prefix = QLOO_CACHE_PREFIX,
 }: QlooClientOptions): QlooGet {
   const deadline = clock() + retry.budgetMs;
   let inFlight = 0;
@@ -258,25 +272,27 @@ export function createGet({
     waiting.shift()?.();
   }
 
-  // Every result is a list, so its length is the result count the trace shows.
-  async function get<T extends unknown[]>(
+  // A list's length is the result count the trace shows, unless the endpoint counts its own.
+  async function get<T>(
     path: QlooPath,
     params: Record<string, string | number>,
     parse: (body: unknown) => T,
     /** Bumped when the parsed shape gains a field, so older cached answers aren't reused. */
     keyVersion = "",
+    count: (data: T) => number = (data) =>
+      Array.isArray(data) ? data.length : 0,
   ): Promise<QlooResult<T>> {
     const entries = Object.entries(params).map(
       ([key, value]): [string, string] => [key, String(value)],
     );
-    const cacheKey = `${CACHE_PREFIX}${keyVersion}${path}?${new URLSearchParams([...entries].sort()).toString()}`;
+    const cacheKey = `${prefix}${keyVersion}${path}?${new URLSearchParams([...entries].sort()).toString()}`;
     const started = Date.now();
     // A retry isn't a new call: it rides on this call's line in the trace.
     const retried: number[] = [];
     const call = (data: T, cached: boolean): QlooCall => ({
       path,
       params: entries,
-      resultCount: data.length,
+      resultCount: count(data),
       ms: Date.now() - started,
       cached,
       ...(retried.length ? { retried: [...retried] } : {}),

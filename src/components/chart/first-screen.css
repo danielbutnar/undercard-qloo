@@ -279,6 +279,20 @@
   }
 }
 
+/* WS13.8: Run it live sits under Watch on a laptop taller than 760 px, WS12's short layout line.
+   Narrower, or shorter, the first screen has no room to spare (the first act, the town's signs):
+   there the live run starts from WS12's setlist ("Play it live", through useLiveRun) and from the
+   Qloo calls list's "Run the agent live instead". */
+@media (max-width: 1099px), (max-height: 760px) {
+  .chart-app.fs .fs-live {
+    display: none;
+  }
+}
+/* With a card open over the town, Watch keeps its own size, clear of the card's actions. */
+.chart-app.fs .fs-grid.has-panel .fs-live {
+  display: none;
+}
+
 /* WS8: on a short laptop (a maximized browser at 1366x640 or 1280x650, and 1280x720) Watch sits above the town
    instead of over its corner, so it shows before any scroll. */
 @media (min-width: 1100px) and (max-height: 760px) {
@@ -1909,7 +1923,9 @@
 }
 .chart-app.fs .card-check-rule,
 .chart-app.fs .card-strongest,
-.chart-app.fs .card-split {
+.chart-app.fs .card-split,
+.chart-app.fs .card-credit,
+.chart-app.fs .card-location {
   font-size: 13px;
   font-weight: 600;
   line-height: 1.35;

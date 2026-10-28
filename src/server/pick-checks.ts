@@ -1,3 +1,4 @@
+import { headlinerTagWeights } from "@/lib/assemble-lineup";
 import type { Festival } from "@/lib/festival";
 import type { LlmOnlyLineup, PickCheck } from "@/lib/llm-only";
 import {
@@ -42,13 +43,19 @@ export async function pickChecks({
     build && build.festivalId === festival.id
       ? await assemblyFromSaved(build, festival, qloo)
       : null;
+  // Between two acts of one name, the one the headliners' genres point to (WS13.6).
+  const weights = input ? headlinerTagWeights(input) : undefined;
   return Promise.all(
     answer.picks.map(async ({ name }): Promise<PickCheck> => {
       if (!input) return { name, status: "not-checked" };
       let found = null;
       let missed = false;
       try {
-        found = foundOnQloo(name, (await qloo.search({ query: name })).data);
+        found = foundOnQloo(
+          name,
+          (await qloo.search({ query: name })).data,
+          weights,
+        );
       } catch (error) {
         if (!(error instanceof QlooCacheMiss)) throw error;
         missed = true;
@@ -61,6 +68,7 @@ export async function pickChecks({
           found = foundOnQloo(
             folded,
             (await qloo.search({ query: folded })).data,
+            weights,
           );
           missed = false;
         } catch (error) {

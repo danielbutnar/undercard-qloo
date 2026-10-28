@@ -15,7 +15,8 @@ export interface ActionLimit {
 }
 
 export const LIMITS: Record<LimitedAction, ActionLimit> = {
-  // A fresh build runs the agent: up to 12 Qloo calls and a few Claude turns.
+  // A fresh build runs the agent: up to 28 Qloo calls and up to 16 Claude turns. Production sets
+  // 10 per IP and 50 a day overall (LIVE_BUILDS_*; Daniel, 2026-10-24): up to 1,400 calls a day.
   build: {
     perIp: 5,
     perDay: 60,

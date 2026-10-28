@@ -3,6 +3,7 @@
 // withFanData are), never a Qloo call. Invented build, names and shares (./invented.ts).
 import { describe, expect, it, vi } from "vitest";
 import { attributionLine, splitLines } from "@/lib/attribution-line";
+import { creditLines } from "@/lib/credit-split";
 import type { FirstBill } from "@/lib/first-bill";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { attributionFor, explainCalls, withSplits } from "@/server/attribution";
@@ -59,10 +60,16 @@ describe("each act's line on Qloo's split, with the first bill (WS7 part b)", ()
         cache,
       });
       const splits = await attributionFor(BUILD, cache);
-      expect(withLines?.splits).toEqual(splitLines(splits));
+      // WS13.10: where another venue's share is strictly larger, the line says why the credit stands.
+      const lines = splitLines(splits);
+      for (const [id, credit] of Object.entries(
+        creditLines(BUILD.lineup.acts, splits),
+      ))
+        lines[id] = { ...lines[id], credit };
+      expect(withLines?.splits).toEqual(lines);
       expect(Object.keys(withLines!.splits!)).toHaveLength(10);
       // Invented Act 1001: the headliners 0.5, Fort Street Ballroom 0.3, The Lantern Room 0.2.
-      expect(withLines!.splits![syntheticId(1001)]).toEqual({
+      expect(withLines!.splits![syntheticId(1001)]).toMatchObject({
         line: "With this fee range's venues together, Qloo traces 50% of this act's match to fans of the headliners, 30% to fans of Fort Street Ballroom and 20% to fans of The Lantern Room.",
         short:
           "With this fee range's venues together, Qloo traces 50% of this act's match to fans of the headliners, 30% to fans of FSB and 20% to fans of The Lantern Room.",
