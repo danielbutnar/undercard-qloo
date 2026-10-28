@@ -4,10 +4,12 @@
 // DRY (the default): no Qloo or model call, nothing written. It reads each town's latest saved
 // build (read-only) and prints, per town, its control town, the calls a run may make (Agent
 // 2.0's cap) and, for the four demo towns, the saved 1.0 bill's fill per tier.
-// LIVE=1 MAX_CALLS=<n>: re-runs the towns one at a time (the four demo towns, or every checked
-// town with TOWNS=all, the demo towns first), each with the real planner and a Qloo client over
-// PREFIX (default qloo:rerun1:), never the 1.0 builds' prefix. Every HTTP attempt counts against
-// <n>; a town starts only while a whole run's cap is left; the first 429 stops the run. Each
+// LIVE=1 MAX_CALLS=<n>: re-runs the towns one at a time (the four demo towns, every checked
+// town with TOWNS=all, the demo towns first, or the towns TOWNS=<city>[,<city>] names), each with
+// the real planner and a Qloo client over PREFIX (default qloo:rerun1:), never the 1.0 builds'
+// prefix. Every HTTP attempt counts against <n>; a town starts only while a whole run's cap is
+// left; the first 429 stops the run. Each town's line says its failed or busy requests (any one
+// means a redo, Daniel 2026-10-28) and its time against the route's 120 seconds. Each
 // complete or partial 2.0 build is kept by its own id, recording its prefix: NO LATEST POINTER
 // MOVES (moving one is a separate step, after Daniel's yes; the 1.0 builds stay saved). After the
 // run it re-reads every pointer and says whether any changed. Counts to stdout; act names and
@@ -26,11 +28,15 @@ import { readOnlyCache } from "@/server/attribution-warm";
 import { createBuildStore, type SavedBuild } from "@/server/build-store";
 import { createQlooClient, QLOO_CACHE_PREFIX } from "@/server/qloo";
 import { createQlooCache } from "@/server/qloo-cache";
-import { billBeside, countingFetch, rerunTowns } from "@/server/rerun";
+import {
+  billBeside,
+  countingFetch,
+  pickTowns,
+  rerunTowns,
+} from "@/server/rerun";
 
 const DEMO = ["Boise", "Austin", "Denver", "Nashville"];
 const live = process.env.LIVE === "1";
-const all = process.env.TOWNS === "all";
 const PREFIX = process.env.PREFIX ?? "qloo:rerun1:";
 const OUT =
   process.env.OUT ??
@@ -47,11 +53,9 @@ if (cache.kind !== "upstash")
     "No Upstash settings: run with node --env-file=<main folder>/.env.local.",
   );
 
-// The four demo towns first, then (TOWNS=all) every other checked town in the list's order.
-const towns = [
-  ...CHECKED_TOWNS.filter((town) => DEMO.includes(town.city)),
-  ...(all ? CHECKED_TOWNS.filter((town) => !DEMO.includes(town.city)) : []),
-];
+// The four demo towns; with TOWNS=all every checked town, the demo towns first; with
+// TOWNS=<city>[,<city>] the towns named, so each town's trace is checked before the next runs.
+const towns = pickTowns(CHECKED_TOWNS, DEMO, process.env.TOWNS);
 const festivals = towns.map(checkedFestival);
 const reading = createBuildStore(readOnlyCache(cache));
 const pointers = async () =>
@@ -138,6 +142,8 @@ for (const run of runs) {
     buildId: run.buildId,
     complete: run.complete,
     calls: run.calls,
+    failedCalls: run.failedCalls,
+    ms: run.ms,
     stoppedBy: run.stoppedBy?.message ?? null,
     ...(DEMO.includes(festival.city)
       ? { bill: billBeside(saved[index], rerun, festival.feeBands) }

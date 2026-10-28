@@ -34,6 +34,12 @@ export class OverBudget extends QlooBusy {
 export interface CallBudget {
   used(): number;
   left(): number;
+  /**
+   * Requests that failed or came back busy: every answer that wasn't OK, and every request that
+   * threw. Daniel, 2026-10-28: a town with any of these in its trace is redone, even when its run
+   * finished.
+   */
+  failed(): number;
   /** Why the run stopped, once it has. */
   stoppedBy(): QlooBusy | null;
 }
@@ -52,6 +58,7 @@ export function countingFetch({
   onAnswer?: (url: string, status: number, body: unknown) => void;
 }): CallBudget & { fetch: typeof globalThis.fetch } {
   let used = 0;
+  let failed = 0;
   let stopped: QlooBusy | null = null;
   const counted = async (
     input: RequestInfo | URL,
@@ -60,7 +67,14 @@ export function countingFetch({
     if (stopped) throw stopped;
     if (used >= maxCalls) throw (stopped = new OverBudget(maxCalls));
     used++;
-    const response = await fetch(input, init);
+    let response: Response;
+    try {
+      response = await fetch(input, init);
+    } catch (error) {
+      failed++;
+      throw error;
+    }
+    if (!response.ok) failed++;
     if (response.status === 429) throw (stopped = new RateLimited());
     if (onAnswer)
       onAnswer(
@@ -77,6 +91,7 @@ export function countingFetch({
     fetch: counted as typeof globalThis.fetch,
     used: () => used,
     left: () => maxCalls - used,
+    failed: () => failed,
     stoppedBy: () => stopped,
   };
 }
@@ -122,6 +137,10 @@ export interface RerunResult {
   buildId: string | null;
   complete: boolean;
   calls: number;
+  /** The town's requests that failed or came back busy (CallBudget.failed): any one means a redo. */
+  failedCalls: number;
+  /** The run's time, start to its build kept, against the build route's 120-second limit. */
+  ms: number;
   stoppedBy: QlooBusy | null;
 }
 
@@ -136,6 +155,7 @@ export async function rerunTowns({
   model,
   store,
   budget,
+  clock = Date.now,
 }: {
   festivals: readonly Festival[];
   /** A client over the re-run's own prefix, counting its requests against `budget`. */
@@ -143,6 +163,7 @@ export async function rerunTowns({
   model: () => AgentModel;
   store: Pick<BuildStore, "keep">;
   budget: CallBudget;
+  clock?: () => number;
 }): Promise<RerunResult[]> {
   const results: RerunResult[] = [];
   for (const festival of festivals) {
@@ -152,12 +173,16 @@ export async function rerunTowns({
         buildId: null,
         complete: false,
         calls: 0,
+        failedCalls: 0,
+        ms: 0,
         stoppedBy:
           budget.stoppedBy() ?? new OverBudget(budget.used() + budget.left()),
       });
       break;
     }
     const before = budget.used();
+    const failedBefore = budget.failed();
+    const started = clock();
     const { result, build } = await recordRun({
       festival,
       qloo: qloo(),
@@ -171,9 +196,34 @@ export async function rerunTowns({
       buildId: build && !stoppedBy ? build.id : null,
       complete: result.complete && !stoppedBy,
       calls: budget.used() - before,
+      failedCalls: budget.failed() - failedBefore,
+      ms: clock() - started,
       stoppedBy,
     });
     if (stoppedBy) break;
   }
   return results;
+}
+
+/**
+ * The towns a re-run takes, from TOWNS: unset, the demo towns; "all", every checked town with the
+ * demo towns first; otherwise the towns named, comma-separated, in that order (one town per run,
+ * so its trace is checked before the next starts).
+ */
+export function pickTowns<T extends { city: string }>(
+  checked: readonly T[],
+  demo: readonly string[],
+  value: string | undefined,
+): T[] {
+  if (!value) return checked.filter((town) => demo.includes(town.city));
+  if (value === "all")
+    return [
+      ...checked.filter((town) => demo.includes(town.city)),
+      ...checked.filter((town) => !demo.includes(town.city)),
+    ];
+  return value.split(",").map((name) => {
+    const town = checked.find((t) => t.city === name.trim());
+    if (!town) throw new Error(`${name.trim()} isn't a checked town.`);
+    return town;
+  });
 }

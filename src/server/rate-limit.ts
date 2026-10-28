@@ -23,7 +23,7 @@ export const LIMITS: Record<LimitedAction, ActionLimit> = {
     noun: "fresh builds",
     hint: " The saved build still replays instantly.",
   },
-  // A refill makes up to 3 Qloo calls.
+  // A refill makes up to 3 Qloo calls on a 1.0 build, 5 on a 2.0 build (WS13).
   refill: { perIp: 25, perDay: 500, noun: "refills", hint: "" },
   // Counted only when the model is asked; the saved answer is free.
   llmOnly: { perIp: 10, perDay: 100, noun: "LLM-only requests", hint: "" },

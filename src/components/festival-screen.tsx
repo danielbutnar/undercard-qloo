@@ -1475,7 +1475,7 @@ export function FestivalScreen({
         <p className="tools-note">
           Redraft the rest keeps {state.keeping.length}{" "}
           {state.keeping.length === 1 ? "act" : "acts"} and refills the other
-          slots from the same venues, in at most 3 Qloo calls.
+          slots from the same venues, in at most 5 Qloo calls.
         </p>
       )}
       {/* WS13.5: the AI's local pick, for the buyer to check; WS12 places it beside Without Qloo. */}

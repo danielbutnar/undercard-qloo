@@ -6,6 +6,7 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { assembleLineup, type AssemblyInput } from "@/lib/assemble-lineup";
+import { CHECKED_TOWNS } from "@/lib/checked-towns";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { TOWNS } from "@/lib/towns";
 import { createBuildStore, type SavedBuild } from "@/server/build-store";
@@ -15,6 +16,7 @@ import {
   billBeside,
   countingFetch,
   OverBudget,
+  pickTowns,
   RateLimited,
   rerunTowns,
 } from "@/server/rerun";
@@ -244,5 +246,115 @@ describe("a re-run (WS13.11)", () => {
     const short = await rerun(cache, store, 10);
     expect(short.runs[0].stoppedBy).toBeInstanceOf(OverBudget);
     expect(short.counted.used()).toBe(0);
+  });
+
+  // Daniel, 2026-10-28 14:10: a town whose trace holds ANY failed or busy call is redone, even
+  // when its run finished; and each run is timed against the route's 120-second limit.
+  it("counts every answer that isn't OK, and every request that throws, as failed", async () => {
+    let asked = 0;
+    const counted = countingFetch({
+      fetch: async () => {
+        asked++;
+        if (asked === 1) return new Response("{}", { status: 503 });
+        if (asked === 2) throw new TypeError("fetch failed");
+        return new Response("{}", { status: 200 });
+      },
+      maxCalls: 10,
+    });
+    expect((await counted.fetch("https://q.test/a")).status).toBe(503);
+    await expect(counted.fetch("https://q.test/b")).rejects.toThrow(
+      "fetch failed",
+    );
+    expect((await counted.fetch("https://q.test/c")).status).toBe(200);
+    expect(counted.used()).toBe(3);
+    expect(counted.failed()).toBe(2);
+  });
+
+  it("reports each town's failed or busy answers, even when its run finishes", async () => {
+    const { cache, store } = await production();
+    let asked = 0;
+    const counted = countingFetch({
+      fetch: fakeFetch((url) => {
+        asked++;
+        return asked === 3
+          ? new Response("{}", { status: 503 })
+          : syntheticQloo(url);
+      }).fetch,
+      maxCalls: 200,
+    });
+    const runs = await rerunTowns({
+      festivals: [SAGEBRUSH_SOUND],
+      qloo: () =>
+        createQlooClient({
+          apiKey: "k",
+          cache,
+          fetch: counted.fetch,
+          prefix: PREFIX,
+          sleep: async () => {},
+        }),
+      model: () => scriptedPlanner().model,
+      store,
+      budget: counted,
+    });
+    expect(runs[0].stoppedBy).toBeNull();
+    expect(runs[0].buildId).not.toBeNull();
+    expect(runs[0].failedCalls).toBe(1);
+  });
+
+  it("times each town's run, start to finish", async () => {
+    const { cache, store } = await production();
+    let now = 0;
+    const route = fakeFetch(syntheticQloo).fetch;
+    const counted = countingFetch({
+      fetch: async (input, init) => {
+        now += 10;
+        return route(input, init);
+      },
+      maxCalls: 200,
+    });
+    const runs = await rerunTowns({
+      festivals: [SAGEBRUSH_SOUND],
+      qloo: () =>
+        createQlooClient({
+          apiKey: "k",
+          cache,
+          fetch: counted.fetch,
+          prefix: PREFIX,
+        }),
+      model: () => scriptedPlanner().model,
+      store,
+      budget: counted,
+      clock: () => now,
+    });
+    expect(runs[0].calls).toBeGreaterThan(0);
+    expect(runs[0].ms).toBe(10 * runs[0].calls);
+  });
+});
+
+describe("the towns a re-run takes (TOWNS)", () => {
+  const DEMO = ["Boise", "Austin", "Denver", "Nashville"];
+  const cities = (towns: readonly { city: string }[]) =>
+    towns.map((town) => town.city);
+
+  it("takes the four demo towns by default, every checked town with all, demo towns first, or the towns named", () => {
+    expect(cities(pickTowns(CHECKED_TOWNS, DEMO, undefined))).toEqual(
+      cities(CHECKED_TOWNS.filter((town) => DEMO.includes(town.city))),
+    );
+    const all = pickTowns(CHECKED_TOWNS, DEMO, "all");
+    expect(all).toHaveLength(CHECKED_TOWNS.length);
+    expect(cities(all.slice(0, 4)).sort()).toEqual([...DEMO].sort());
+    expect(cities(pickTowns(CHECKED_TOWNS, DEMO, "Denver"))).toEqual([
+      "Denver",
+    ]);
+    expect(cities(pickTowns(CHECKED_TOWNS, DEMO, "Austin,Boise"))).toEqual([
+      "Austin",
+      "Boise",
+    ]);
+  });
+
+  it("refuses a town that isn't checked", () => {
+    expect(() => pickTowns(CHECKED_TOWNS, DEMO, "Atlantis")).toThrow(
+      /Atlantis/,
+    );
   });
 });
