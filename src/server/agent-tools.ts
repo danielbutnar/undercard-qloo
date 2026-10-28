@@ -20,6 +20,8 @@ import {
 } from "@/lib/town-resolution";
 import type { Festival } from "@/lib/festival";
 import type { Act, LocationReading } from "@/lib/lineup";
+import { localPickOf, type LocalPick } from "@/lib/local-pick";
+import { foldAccents, foundOnQloo, hasNonAscii } from "@/lib/pick-tests";
 import {
   QlooBusy,
   QlooError,
@@ -60,6 +62,8 @@ export interface AgentState {
   }[];
   /** Venues Qloo had no fan data for (WS13.1), by entity id: never read again. */
   noFanData: Set<string>;
+  /** The AI's local picks Qloo's search found (WS13.5): for the buyer to check, never booked. */
+  localPicks: LocalPick[];
   finished: {
     anchorVenueIds: string[];
     summary: string;
@@ -144,6 +148,25 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
     }),
   },
   {
+    name: "local_pick",
+    description:
+      "Name one or two acts from the festival's town that you know of from your own knowledge: acts based there who would suit this undercard, each with one line on why. The app searches each on Qloo (GET /search, one Qloo call each) and returns what Qloo knows of it. A local pick is for the buyer to check; it never takes a slot.",
+    strict: true,
+    input_schema: objectSchema({
+      picks: {
+        type: "array",
+        description: "One or two acts from the town.",
+        items: objectSchema({
+          name: { type: "string", description: "The act's name." },
+          why: {
+            type: "string",
+            description: "One line on why it suits this undercard.",
+          },
+        }),
+      },
+    }),
+  },
+  {
     name: "finish",
     description:
       "End the build once every band is full, or once you have tried every music room find_venues listed. The app then books the acts each venue lifts most. Not a Qloo call.",
@@ -180,6 +203,12 @@ const Inputs = {
   venue_artists: z.object({
     band: z.enum(FEE_BAND_IDS),
     venue_id: z.string().min(1),
+  }),
+  local_pick: z.object({
+    picks: z
+      .array(z.object({ name: z.string().min(1), why: z.string() }))
+      .min(1)
+      .max(2),
   }),
   finish: z.object({
     anchor_venue_ids: z.array(z.string()),
@@ -255,6 +284,7 @@ export function createToolbox({
     baselines: {},
     venueRuns: [],
     noFanData: new Set(),
+    localPicks: [],
     finished: null,
   };
   const names = new Map<string, string>();
@@ -592,6 +622,43 @@ export function createToolbox({
         top_lifted: lifted.slice(0, 6).map((entry) => entry.artist.name),
         ...progress(),
       };
+    },
+
+    async local_pick({ picks }) {
+      // Searched as search_artist searches, with the accents folded once more when a name
+      // with letters beyond ASCII finds nothing (WS8). Only a pick Qloo finds is kept.
+      const input = assemblyOf(festival, state);
+      const results = [];
+      for (const { name, why } of picks) {
+        const search = (query: string) =>
+          callQloo(
+            "local_pick",
+            "/search",
+            `Search for the AI's local pick "${query}"`,
+            () => qloo.search({ query }),
+          );
+        let found = foundOnQloo(name, await search(name));
+        if (!found && hasNonAscii(name))
+          found = foundOnQloo(
+            foldAccents(name),
+            await search(foldAccents(name)),
+          );
+        if (!found) {
+          results.push({ name, found: false });
+          continue;
+        }
+        names.set(found.entityId, found.name);
+        const pick = localPickOf(input, found, name, why);
+        if (!state.localPicks.some((kept) => kept.entityId === pick.entityId))
+          state.localPicks.push(pick);
+        results.push({
+          name: found.name,
+          found: true,
+          popularity: round(found.popularity),
+          tier: pick.band,
+        });
+      }
+      return { picks: results };
     },
 
     async finish({ anchor_venue_ids, summary, stopped_because }) {

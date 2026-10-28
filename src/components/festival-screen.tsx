@@ -81,6 +81,7 @@ import { useVenueSwitch } from "@/components/use-venue-switch";
 import { namesVenue } from "@/lib/venue-call";
 import { useWatch, type WatchPhase } from "@/components/use-watch";
 import { QLOO_CALL_CAP } from "@/lib/agent-limits";
+import { LocalPickBox } from "@/components/local-pick-box";
 import type { TraceCall } from "@/lib/build-events";
 import { firstBoard } from "@/lib/build-state";
 import {
@@ -525,6 +526,7 @@ export function FestivalScreen({
     redraft,
     runningOrder,
     closeOrder,
+    toggleLocal,
   } = useUndercardBuild(
     firstBoard(firstBill),
     festival.id,
@@ -801,7 +803,12 @@ export function FestivalScreen({
   function exportCsv() {
     downloadText(
       `${festival.id}-undercard.csv`,
-      lineupCsv(bookedActs, festival.feeBands, whatIf ? {} : state.replaced),
+      lineupCsv(
+        bookedActs,
+        festival.feeBands,
+        whatIf ? {} : state.replaced,
+        state.localPicks.filter((pick) => state.added.includes(pick.entityId)),
+      ),
       "text/csv;charset=utf-8",
     );
   }
@@ -1390,6 +1397,15 @@ export function FestivalScreen({
           {state.keeping.length === 1 ? "act" : "acts"} and refills the other
           slots from the same venues, in at most 3 Qloo calls.
         </p>
+      )}
+      {/* WS13.5: the AI's local pick, for the buyer to check; WS12 places it beside Without Qloo. */}
+      {!without && !watching && (
+        <LocalPickBox
+          picks={state.localPicks}
+          festival={festival}
+          added={state.added}
+          onToggle={toggleLocal}
+        />
       )}
       {/* The running order is planned for the saved lineup: it steps aside while a venue is off. */}
       {!without && !watching && !whatIf && state.order && !openAct && (

@@ -2,6 +2,7 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { ageBuckets } from "@/lib/ages";
 import { stopOf, type StopLine } from "@/lib/agent-words";
 import { assembleLineup, type AssemblyInput } from "@/lib/assemble-lineup";
+import type { LocalPick } from "@/lib/local-pick";
 import type { BuildEvent } from "@/lib/build-events";
 import type { Lineup } from "@/lib/lineup";
 import type { PlaceWhere } from "@/lib/town-resolution";
@@ -24,7 +25,8 @@ A build that works:
 3. compare_headliners, and baseline_artists for each fee band, together.
 4. venue_artists for two music rooms and each fee band, together. Each result says whether Qloo had fan data for the venue and how many slots each band has filled so far. If Qloo had no fan data for a venue, skip it for every band.
 5. Read until every band is full: while a band has open slots and calls remain, read the next music room for the bands still open, and stop once every band is full or you have tried every music room find_venues listed.
-6. finish, naming the anchor venues, the plan in one sentence, and why you stopped.
+6. local_pick: name one or two acts from the town that you know of from your own knowledge, each with one line on why. The buyer checks them; they take no slot.
+7. finish, naming the anchor venues, the plan in one sentence, and why you stopped.
 
 Use only entity ids and tag ids that tools returned. Don't pick acts or invent numbers yourself: the app books the acts each venue lifts most, from Qloo's data.
 
@@ -73,6 +75,8 @@ export interface AgentResult {
   places?: { name: string; where?: PlaceWhere }[];
   /** Why the agent stopped (WS13.2): the trace's last line, saved with the build. */
   stopped?: StopLine;
+  /** The AI's local picks Qloo found (WS13.5), saved with the build; never on the lineup. */
+  localPicks?: LocalPick[];
 }
 
 /**
@@ -187,6 +191,8 @@ export async function runUndercardAgent({
   const lineup = acts.length > 0 ? { festivalId: festival.id, acts } : null;
   emit({ type: "stopped", ...stopped });
   if (lineup) emit({ type: "lineup", lineup });
+  const localPicks = toolbox.state.localPicks;
+  if (localPicks.length > 0) emit({ type: "local-pick", picks: localPicks });
   if (missing > 0) {
     emit({
       type: "error",
@@ -203,6 +209,7 @@ export async function runUndercardAgent({
     context: buildContext(input, festival),
     places: toolbox.state.venues.map(({ name, where }) => ({ name, where })),
     stopped,
+    ...(localPicks.length > 0 ? { localPicks } : {}),
   };
 }
 

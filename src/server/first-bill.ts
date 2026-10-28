@@ -32,6 +32,7 @@ function toFirstBill(saved: SavedBuild): FirstBill {
       name,
     })),
     ...(switches.length > 0 ? { agentSwitches: switches } : {}),
+    ...(saved.localPicks?.length ? { localPicks: saved.localPicks } : {}),
   };
 }
 

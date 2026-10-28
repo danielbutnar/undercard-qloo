@@ -3,6 +3,7 @@ import { STOP_REASONS } from "@/lib/agent-words";
 import { TraceCallSchema } from "@/lib/build-events";
 import { FEE_BAND_IDS } from "@/lib/fee-bands";
 import { LineupSchema } from "@/lib/lineup";
+import { LocalPickSchema } from "@/lib/local-pick";
 import { cacheTtlSeconds, type QlooCache } from "./qloo-cache";
 
 const TagSchema = z.object({
@@ -61,6 +62,8 @@ export const SavedBuildSchema = z.object({
    * (WS13, Daniel 2026-10-24). Absent on 1.0 builds, which read src/lib/qloo's QLOO_CACHE_PREFIX.
    */
   cachePrefix: z.string().optional(),
+  /** The AI's local picks for the buyer to check (WS13.5); never on the lineup. */
+  localPicks: z.array(LocalPickSchema).optional(),
   /** Why the agent stopped reading venues (WS13.2), the replay's last line; absent on 1.0. */
   stopped: z
     .object({ reason: z.enum(STOP_REASONS), text: z.string() })

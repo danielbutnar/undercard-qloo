@@ -3,6 +3,7 @@ import type { ArtistImages } from "./artist-images";
 import type { SplitLine } from "./attribution-line";
 import type { FeeBandId } from "./fee-bands";
 import type { Act, Venue } from "./lineup";
+import type { LocalPick } from "./local-pick";
 import type { Placed, VenueSwitchData } from "./venue-switch";
 
 /** What the first screen needs from the latest saved build, read on the server. */
@@ -36,4 +37,6 @@ export interface FirstBill {
   /** Each saved lineup act's card line on Qloo's split (src/lib/attribution-line.ts), by entity
    * id, from the server's Qloo cache (WS7); left out when no act has one. */
   splits?: Record<string, SplitLine>;
+  /** The AI's local picks for the buyer to check (WS13.5), from a 2.0 build; left out otherwise. */
+  localPicks?: LocalPick[];
 }

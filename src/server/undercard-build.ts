@@ -174,6 +174,8 @@ async function replay(
   sayNotes((at) => at >= saved.trace.length);
   if (saved.stopped) emit({ type: "stopped", ...saved.stopped });
   emit({ type: "lineup", lineup: saved.lineup });
+  if (saved.localPicks?.length)
+    emit({ type: "local-pick", picks: saved.localPicks });
   emit({ type: "done", calls: saved.trace.length, ms: Date.now() - started });
 }
 
@@ -302,6 +304,7 @@ export async function handleUndercardBuild({
         engine: 2,
         cachePrefix: qlooClient.cachePrefix,
         ...(result.stopped ? { stopped: result.stopped } : {}),
+        ...(result.localPicks ? { localPicks: result.localPicks } : {}),
       });
     }
   });
