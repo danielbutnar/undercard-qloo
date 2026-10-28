@@ -10,7 +10,7 @@ import { exampleAct } from "./poster-words";
 import { callWords, ordinal } from "./words";
 
 /**
- * WS12 step 0 (Design 2.0, /lab/design-2): the prototype's words and picks, from the saved build
+ * WS12 (Design 2.0): the landing's lower half's words and picks, from the saved build
  * alone. The agent's setlist prints the build's Qloo calls as short numbered lines; it circles
  * the call that lifted the act the landing follows; the door check stamps that act's ticket
  * three times. Nothing here calls Qloo or the model.
