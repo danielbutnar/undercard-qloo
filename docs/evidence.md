@@ -128,6 +128,11 @@ The production build of 17 October 2026 matched Boise's row above: Venue 418 8, 
 - **A retry isn't a new call.** It doesn't count against the 12; the call's own line in the trace says "retried after 429".
 - **When the budget would run out,** the build ends with "Qloo is busy right now. Try again in a minute." The trace offers the saved build's replay where one exists; Your festival has its own state for it.
 
+**Added on 2026-10-28 (Agent 2.0; Daniel's answers of 14:10 and 19:20).** The client's settings above are unchanged. Three things around them changed, so three lines above no longer hold for a build, refill or redraft:
+- **A call the client doesn't retry** (a 4xx such as 400 or 404, a network error, a timeout) is now retried once by the run itself, after 1 to 2 seconds, within the same 45-second budget. The run never retries on top of the client's retries.
+- **A busy answer the client gave up on** no longer ends the build unless no act was booked. Its venue is marked unchecked, and the page says the bill may be short.
+- **The cap is 28 calls a build.** Retries still don't count against it, but every retry is now counted and stated beside the call count, for example "20 Qloo calls, plus 2 retries".
+
 **Tested** (tests/unit/m6g, a synthetic Qloo): when every request fails once, alternating 429 and 503, a build tests the same rooms, books the same bill and makes the same number of calls as without the failures. When every artist call answers 429, the build ends in the busy state within the 45-second budget and the 12 calls. Retry-After, the backoff ceiling, the 2-call cap and a 400 that isn't retried each have a test.
 
 **Not tested:** real concurrent load. No load test was run against the real key.
