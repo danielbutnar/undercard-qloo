@@ -247,10 +247,10 @@ export function ActCard({
         </p>
       )}
       {/* WS13.10: why the credit stands where another venue's share is larger. */}
-      {split?.credit && <p className="card-split">{split.credit}</p>}
+      {split?.credit && <p className="card-credit">{split.credit}</p>}
       {/* WS13.4: Qloo's location signal, a second reading, only where Qloo answered it. */}
       {act.location && (
-        <p className="card-split">{locationLine(act.location)}</p>
+        <p className="card-location">{locationLine(act.location)}</p>
       )}
       {act.anchorVenue.kind && (
         <p className="card-kind">

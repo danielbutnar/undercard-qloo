@@ -288,6 +288,10 @@
     display: none;
   }
 }
+/* With a card open over the town, Watch keeps its own size, clear of the card's actions. */
+.chart-app.fs .fs-grid.has-panel .fs-live {
+  display: none;
+}
 
 /* WS8: on a short laptop (a maximized browser at 1366x640 or 1280x650, and 1280x720) Watch sits above the town
    instead of over its corner, so it shows before any scroll. */
@@ -1891,7 +1895,9 @@
 }
 .chart-app.fs .card-check-rule,
 .chart-app.fs .card-strongest,
-.chart-app.fs .card-split {
+.chart-app.fs .card-split,
+.chart-app.fs .card-credit,
+.chart-app.fs .card-location {
   font-size: 13px;
   font-weight: 600;
   line-height: 1.35;
