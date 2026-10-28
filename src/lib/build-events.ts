@@ -25,8 +25,13 @@ export const TraceCallSchema = z.object({
   noFanData: z.string().optional(),
   /** The planner's own line on why it made this call (WS13.7): a venue read's reason. */
   why: z.string().optional(),
-  /** On a control's read (WS13.3): the town venue it is the matched venue abroad for. */
+  /** On a control's read (WS13.3): the town venue it is the control for. */
   controlFor: z.string().optional(),
+  /**
+   * What a call that failed twice left unchecked (Daniel, 2026-10-28): a venue's name, or a tier's
+   * location reading. A failed or busy call never passes silently.
+   */
+  unchecked: z.string().optional(),
 });
 
 /** The events POST /api/undercard streams, one JSON object per line. */
@@ -79,6 +84,12 @@ export const BuildEventSchema = z.discriminatedUnion("type", [
     type: z.literal("done"),
     calls: z.number().int().nonnegative(),
     ms: z.number().nonnegative(),
+  }),
+  /** The venues a failed call left unchecked, so the bill may be short (Daniel, 2026-10-28). */
+  z.object({
+    type: z.literal("short"),
+    venues: z.array(z.string()),
+    text: z.string(),
   }),
   /** The AI's local picks Qloo found (WS13.5), after the lineup: for the buyer to check. */
   z.object({ type: z.literal("local-pick"), picks: z.array(LocalPickSchema) }),

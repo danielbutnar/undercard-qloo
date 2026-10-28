@@ -1,7 +1,23 @@
 import type { ControlRef, RankedArtist } from "@/lib/assemble-lineup";
 import type { FeeBandId } from "@/lib/fee-bands";
 import type { BuildContext } from "./build-store";
-import type { ArtistsQuery, QlooClient } from "./qloo";
+import { QlooBusy, type ArtistsQuery, type QlooClient } from "./qloo";
+
+/**
+ * The retries a refill's or a redraft's call made, for its line (Daniel, 2026-10-28: every retry
+ * is counted, the client's included): those on its answer, or those the client made before it
+ * gave up on a busy Qloo.
+ */
+export function retriedOf(
+  call: { retried?: readonly number[] } | null | undefined,
+  error?: unknown,
+): { retried?: number[] } {
+  const retried = [
+    ...(call?.retried ?? []),
+    ...(error instanceof QlooBusy ? error.retried : []),
+  ];
+  return retried.length > 0 ? { retried } : {};
+}
 
 /**
  * A 2.0 build's matched control for a venue in a tier, as its context records it (WS13.3):

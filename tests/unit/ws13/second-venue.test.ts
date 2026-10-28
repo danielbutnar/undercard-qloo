@@ -50,7 +50,10 @@ const PLAN: Turn[] = [
 const HALL = syntheticId(401);
 const FRESH = 9999;
 
-async function twoPointOh() {
+async function twoPointOh(
+  wrap: (route: (url: URL) => unknown) => (url: URL) => unknown = (route) =>
+    route,
+) {
   const cache = createMemoryCache();
   const store = createBuildStore(cache);
   const qloo = createQlooClient({
@@ -122,7 +125,8 @@ async function twoPointOh() {
   const live = createQlooClient({
     apiKey: "k",
     cache: createMemoryCache(),
-    fetch: fakeFetch(route).fetch,
+    fetch: fakeFetch(wrap(route)).fetch,
+    sleep: async () => {},
   });
   return { saved, store, cached, live, taken };
 }
@@ -139,6 +143,43 @@ const expectFresh = (act: {
     act.localLift!.venueClimb - act.localLift!.controlClimb,
   ).toBeGreaterThanOrEqual(LOCAL_LIFT_BAR);
 };
+
+describe("a refill's retries (Daniel, 2026-10-28, 19:20)", () => {
+  it("are on its call's line, counted, never silent", async () => {
+    // Qloo is busy once, for the refill's first call; the client retries it.
+    let first = true;
+    const { saved, store, cached, live, taken } = await twoPointOh(
+      (route) => (url) => {
+        if (first) {
+          first = false;
+          return new Response("{}", { status: 429 });
+        }
+        return route(url);
+      },
+    );
+    const gone = saved.lineup.acts.find((act) => act.band === "mid")!;
+    const events = await readEvents(
+      handleRefill({
+        festival: LARKSPUR_FESTIVAL,
+        limiter: createMemoryLimiter(),
+        ip: "203.0.113.7",
+        qloo: () => live,
+        cachedQloo: () => cached,
+        store,
+        body: {
+          buildId: saved.id,
+          unavailableId: gone.entityId,
+          band: "mid",
+          anchorVenueId: LANTERN,
+          excludeIds: taken,
+        },
+      }),
+    );
+    const made = calls(events);
+    expect(made[0].retried).toEqual([429]);
+    expect(made.flatMap((call) => call.retried ?? [])).toEqual([429]);
+  });
+});
 
 describe("the second venue (Daniel, 2026-10-28, 13:25)", () => {
   it("a refill reads the second venue and its control when the first gives no act that passes", async () => {
@@ -164,6 +205,12 @@ describe("the second venue (Daniel, 2026-10-28, 13:25)", () => {
     const made = calls(events);
     expect(made).toHaveLength(4);
     expect(made.filter((call) => call.controlFor)).toHaveLength(2);
+    // Daniel, 17:10: the control is worded as what it is, never "matched".
+    for (const call of made.filter((entry) => entry.controlFor))
+      expect(call.summary).toMatch(
+        /and Aarhus Hall, a room in Aarhus with similar Qloo popularity, the control for (The Lantern Room|Fort Street Ballroom), minus the board$/,
+      );
+    for (const call of made) expect(call.summary).not.toMatch(/matched/i);
     const refill = events.find((event) => event.type === "refill");
     expect(refill?.type).toBe("refill");
     if (refill?.type === "refill") expectFresh(refill.act);
@@ -190,6 +237,13 @@ describe("the second venue (Daniel, 2026-10-28, 13:25)", () => {
     const made = calls(events);
     expect(made).toHaveLength(4);
     expect(made.length).toBeLessThanOrEqual(REDRAFT_CALL_CAP);
+    // Daniel, 17:10: the control is worded as what it is, never "matched".
+    expect(made.filter((call) => call.controlFor)).toHaveLength(2);
+    for (const call of made.filter((entry) => entry.controlFor))
+      expect(call.summary).toMatch(
+        /^Redraft: Mid-band artists for the headliners and Aarhus Hall, a room in Aarhus with similar Qloo popularity, the control for (The Lantern Room|Fort Street Ballroom), minus the board$/,
+      );
+    for (const call of made) expect(call.summary).not.toMatch(/matched/i);
     const redraft = events.find((event) => event.type === "redraft");
     expect(redraft?.type).toBe("redraft");
     if (redraft?.type === "redraft") {

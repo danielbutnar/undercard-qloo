@@ -208,7 +208,9 @@ describe("the agent reads a matched control for every venue read (WS13.3)", () =
     ]);
     expect(controls[1].summary).toContain("Aarhus Hall");
     expect(controls[1].controlFor).toBe("The Lantern Room");
-    expect(result.matched_control).toBe("Aarhus Hall (Aarhus)");
+    expect(result.control).toBe(
+      "Aarhus Hall, a room in Aarhus with similar Qloo popularity",
+    );
     expect(result.acts_with_local_lift_5_or_more).toBeGreaterThan(0);
   });
 
@@ -361,20 +363,24 @@ describe("the card's line (WS13.3)", () => {
 
   it("gives both climbs in words", () => {
     expect(climbsLine(entry)).toBe(
-      "↑15 with Venue 227's fans · ↑2 with a matched venue abroad",
+      "↑15 with Venue 227's fans · ↑2 with a room in Bucharest with similar Qloo popularity",
     );
     expect(
       climbsLine({
         ...entry,
         localLift: { ...entry.localLift!, controlClimb: -3 },
       }),
-    ).toBe("↑15 with Venue 227's fans · ↓3 with a matched venue abroad");
+    ).toBe(
+      "↑15 with Venue 227's fans · ↓3 with a room in Bucharest with similar Qloo popularity",
+    );
     expect(
       climbsLine({
         ...entry,
         localLift: { ...entry.localLift!, controlClimb: 0 },
       }),
-    ).toBe("↑15 with Venue 227's fans · no climb with a matched venue abroad");
+    ).toBe(
+      "↑15 with Venue 227's fans · no climb with a room in Bucharest with similar Qloo popularity",
+    );
     expect(climbsLine({ ...entry, localLift: undefined })).toBeNull();
   });
 
@@ -382,7 +388,7 @@ describe("the card's line (WS13.3)", () => {
     render(<ActCard act={entry} />);
     expect(
       screen.getByText(
-        "↑15 with Venue 227's fans · ↑2 with a matched venue abroad",
+        "↑15 with Venue 227's fans · ↑2 with a room in Bucharest with similar Qloo popularity",
       ),
     ).toBeTruthy();
   });
