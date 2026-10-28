@@ -217,7 +217,7 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
   },
   {
     name: "local_pick",
-    description: `Name one or two acts from the festival's town that you know of from your own knowledge and that fit the mid-size or opening tier: ${TIER_RANGES}. Acts based there who would suit this undercard; artist names only, as they are billed, never a phrase or a description; each with one line on why. The app searches each on Qloo (GET /search, one Qloo call each) and returns what Qloo knows of it. A local pick is for the buyer to check; it never takes a slot.`,
+    description: `Name one or two acts from the festival's town that you know of from your own knowledge and that fit the mid-size or opening tier: ${TIER_RANGES}. Acts based there who would suit this undercard: artists only (bands or solo acts), never a festival, venue, label or scene, by the name they're billed under, never a phrase or a description; each with one line on why. The app searches each on Qloo (GET /search, one Qloo call each) and returns what Qloo knows of it. A local pick is for the buyer to check; it never takes a slot.`,
     strict: true,
     input_schema: objectSchema({
       picks: {
@@ -227,7 +227,7 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
           name: {
             type: "string",
             description:
-              "The artist's name as billed, and nothing else: never a phrase or a description.",
+              "The artist's name as billed: a band or a solo act, never a festival, venue, label or scene, and never a phrase or a description.",
           },
           why: {
             type: "string",
@@ -268,11 +268,11 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
           reason: {
             type: "string",
             description:
-              'What the place is instead, to end the buyer\'s line "Skipped <place>: listed by Qloo, but …", for example "a restaurant, not a music room".',
+              'What the place is, and why you are sure it never hosts concerts, to end the buyer\'s line "Skipped <place>: listed by Qloo, but …", for example "a coffee roaster with no stage, not a music venue".',
           },
         }),
         description:
-          "Places find_venues listed that you skipped because they aren't music venues (restaurants, cafes, breweries, theaters, arenas), each with your reason. The buyer sees a line for each.",
+          "Places find_venues listed that you are sure never host concerts, each with your reason. Judge by what happens there, never because of its name or its food: when in doubt, read the place instead. The buyer sees a line for each.",
       },
     }),
   },
@@ -581,7 +581,7 @@ export function createToolbox({
       text: refusedLine(controlled, names),
       planner: true,
     });
-    return `Read at least two music venues with fan data, each with its control, before you finish: ${controlled} so far. Not tried yet: ${names.join(", ")}. If one of them isn't a music venue, name it in not_music_venues, with your reason.`;
+    return `Read at least two music venues with fan data, each with its control, before you finish: ${controlled} so far. Not tried yet: ${names.join(", ")}. Read the next of them. Name one in not_music_venues, with your reason, only if you are sure it never hosts concerts, never because of its name or its food.`;
   }
 
   // WS13.2: how full each tier is by the rule, so the planner reads until every one is.
