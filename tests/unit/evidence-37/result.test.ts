@@ -97,8 +97,9 @@ const summary = (atBar: number, atFallback: number): Summary => ({
   noScoredControl: 0,
   stillClimb: 250,
   popularitySources: { find_venues: 0, entities: 0, none: 0 },
-  venuesUnscoredToday: 0,
-  venuesLikeHeadliners: 0,
+  townVenuesWithoutFanData: { warning: 0, equalRanking: 0 },
+  actsWithTownVenueWithoutFanData: 0,
+  actsWithTownVenueWithoutFanDataAtLift5: 0,
   barMet: atBar >= 145,
   productBar: atBar >= 145 ? 5 : 3,
 });

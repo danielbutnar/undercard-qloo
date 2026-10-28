@@ -333,8 +333,12 @@ export function resultValues({
     popularityFromFindVenues: summary.popularitySources.find_venues,
     popularityFromEntities: summary.popularitySources.entities,
     popularityFromNeither: summary.popularitySources.none,
-    venuesUnscoredToday: summary.venuesUnscoredToday,
-    venuesLikeHeadliners: summary.venuesLikeHeadliners,
+    townVenuesWithoutFanDataByWarning: summary.townVenuesWithoutFanData.warning,
+    townVenuesWithoutFanDataByEqualRanking:
+      summary.townVenuesWithoutFanData.equalRanking,
+    actsWithTownVenueWithoutFanData: summary.actsWithTownVenueWithoutFanData,
+    actsWithTownVenueWithoutFanDataAtLift5:
+      summary.actsWithTownVenueWithoutFanDataAtLift5,
     townRows: summary.byTown
       .map(
         (town) =>
@@ -475,13 +479,9 @@ export async function runControlTest37({
           (total, run) => total + run.skipped.length,
           0,
         ),
-        // Venue rankings equal to the headliners' own, beside those with a not_found warning:
-        // if the first is above 0 and the second 0, Qloo's warning isn't coming back.
-        venuesLikeHeadliners: result.venueRuns.filter(
-          (run) => run.venueLikeHeadliners,
+        townVenuesWithoutFanData: result.venueRuns.filter(
+          (run) => run.venueNoFanData,
         ).length,
-        venuesUnscored: result.venueRuns.filter((run) => run.venueUnscored)
-          .length,
         ...one,
       });
     } catch (error) {

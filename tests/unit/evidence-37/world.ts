@@ -92,8 +92,11 @@ export function answerFor(
   path: string,
   params: Record<string, string>,
   unscored: readonly string[] = DEFAULT_UNSCORED,
-  /** false: /entities knows no popularity. */
-  { entities = true }: { entities?: boolean } = {},
+  /** false: /entities knows no popularity. quiet: inputs ignored with no warning. */
+  {
+    entities = true,
+    quiet = [],
+  }: { entities?: boolean; quiet?: readonly string[] } = {},
 ): unknown {
   if (path === "/v2/insights" && params["filter.type"] === "urn:entity:place")
     return {
@@ -123,7 +126,10 @@ export function answerFor(
     return {
       success: true,
       results: {
-        entities: ranking(blind ? null : input, band)
+        entities: ranking(
+          blind || (input !== null && quiet.includes(input)) ? null : input,
+          band,
+        )
           .slice(0, Number(params.take))
           .map((id) => ({ entity_id: id, name: `Act ${id}` })),
       },
@@ -163,7 +169,7 @@ const keyOf = (path: string, params: Record<string, string | number>) =>
 /** An ask that answers each distinct call once, as the run's memory does, and counts the calls. */
 export function memoAsk(
   unscored: readonly string[] = DEFAULT_UNSCORED,
-  options: { entities?: boolean } = {},
+  options: { entities?: boolean; quiet?: readonly string[] } = {},
 ) {
   const memory = new Map<string, unknown>();
   const calls: { path: string; params: Record<string, string> }[] = [];

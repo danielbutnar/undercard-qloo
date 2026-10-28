@@ -314,14 +314,11 @@ export interface VenueRunResult {
   skipped: (RoomRef & { because: NoFanData })[];
   /** The rooms the rule could try, in its order. */
   candidates: number;
-  /** The venue's own answer that day reported it not found. */
-  venueUnscored: boolean;
   /**
-   * The venue's ranking that day is the headliners' own, act for act: beside venueUnscored, it
-   * shows whether Qloo's not_found warning comes back on these rankings at all (section 35 saw
-   * it on its explainability calls only).
+   * The town venue had no fan data that day: Qloo warned it wasn't scored, or its ranking was the
+   * headliners-only one. Its acts keep that day's climb and count against the bar.
    */
-  venueLikeHeadliners: boolean;
+  venueNoFanData: NoFanData | null;
   withVenue: string[];
   withControl: string[] | null;
 }
@@ -340,6 +337,8 @@ export interface ActResult {
   /** Its climb with its town venue that day: the drift's description. */
   climbToday: number | null;
   noLiftBecause: NoLiftReason | null;
+  /** Its town venue had no fan data that day: it counts against the bar, whatever its lift. */
+  venueNoFanData: NoFanData | null;
 }
 
 export interface FestivalResult {
@@ -458,11 +457,11 @@ export async function runFestival(
         because: reasons.get(room.entityId)!,
       })),
       candidates: candidates.length,
-      venueUnscored: withVenue.unscored.includes(venue.entityId),
-      venueLikeHeadliners: sameRanking(
-        withVenue.ids,
-        headlinersOnly.get(band) ?? [],
-      ),
+      venueNoFanData: noFanData({
+        warned: withVenue.unscored.includes(venue.entityId),
+        ranking: withVenue.ids,
+        without: headlinersOnly.get(band) ?? [],
+      }),
       withVenue: withVenue.ids,
       withControl,
     });
@@ -495,6 +494,7 @@ export async function runFestival(
         : null,
       climbToday: run ? climb(act.entityId, alone, run.withVenue) : null,
       noLiftBecause,
+      venueNoFanData: run?.venueNoFanData ?? null,
     };
   });
 
@@ -543,20 +543,24 @@ export interface Summary extends Counts {
   stillClimb: number;
   /** Where the town venues' popularity came from, each venue of each festival once. */
   popularitySources: { find_venues: number; entities: number; none: number };
-  venuesUnscoredToday: number;
-  venuesLikeHeadliners: number;
+  /** Venue runs whose town venue had no fan data that day, by why. */
+  townVenuesWithoutFanData: { warning: number; equalRanking: number };
+  /** Their acts, counted against the bar; and how many of them the arithmetic alone puts at 5. */
+  actsWithTownVenueWithoutFanData: number;
+  actsWithTownVenueWithoutFanDataAtLift5: number;
   barMet: boolean | null;
   productBar: 5 | 3 | null;
 }
 
+/** An act reaches a bar only with a control, a town venue that had fan data, and the lift. */
+const reaches = (act: ActResult, bar: number) =>
+  act.venueNoFanData === null && act.localLift !== null && act.localLift >= bar;
+
 function counts(acts: readonly ActResult[]): Counts {
   return {
     acts: acts.length,
-    atBar: acts.filter((act) => (act.localLift ?? -Infinity) >= LOCAL_LIFT_BAR)
-      .length,
-    atFallback: acts.filter(
-      (act) => (act.localLift ?? -Infinity) >= LOCAL_LIFT_FALLBACK,
-    ).length,
+    atBar: acts.filter((act) => reaches(act, LOCAL_LIFT_BAR)).length,
+    atFallback: acts.filter((act) => reaches(act, LOCAL_LIFT_FALLBACK)).length,
   };
 }
 
@@ -628,8 +632,19 @@ export function summarise(
     noScoredControl: withNoControl(acts),
     stillClimb: stillClimbs(acts),
     popularitySources: popularitySourcesOf(results),
-    venuesUnscoredToday: runs.filter((run) => run.venueUnscored).length,
-    venuesLikeHeadliners: runs.filter((run) => run.venueLikeHeadliners).length,
+    townVenuesWithoutFanData: {
+      warning: runs.filter((run) => run.venueNoFanData === "warning").length,
+      equalRanking: runs.filter((run) => run.venueNoFanData === "equal ranking")
+        .length,
+    },
+    actsWithTownVenueWithoutFanData: acts.filter((act) => act.venueNoFanData)
+      .length,
+    actsWithTownVenueWithoutFanDataAtLift5: acts.filter(
+      (act) =>
+        act.venueNoFanData !== null &&
+        act.localLift !== null &&
+        act.localLift >= LOCAL_LIFT_BAR,
+    ).length,
     barMet: complete ? all.atBar >= BAR_ACTS : null,
     productBar: complete ? productBar(all.atBar) : null,
   };

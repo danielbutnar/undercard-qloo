@@ -235,12 +235,11 @@ describe("section 37's run, on a synthetic world", () => {
     expect(summary.noScoredControl).toBe(5);
     // Birch Cellar, Birch's own venue, is unscored too: its ranking is the headliners' own,
     // and its answer says so. Both are counted, so a run can tell whether warnings come back.
-    expect(results[1].venueRuns[0]).toMatchObject({
-      venueUnscored: true,
-      venueLikeHeadliners: true,
+    expect(results[1].venueRuns[0].venueNoFanData).toBe("warning");
+    expect(summary.townVenuesWithoutFanData).toEqual({
+      warning: 1,
+      equalRanking: 0,
     });
-    expect(summary.venuesUnscoredToday).toBe(1);
-    expect(summary.venuesLikeHeadliners).toBe(1);
     // Alder's three venue runs and Cedar's one tried all four of Birch's rooms with a popularity,
     // each with a warning; Birch's tried both of Cedar's, each with an equal ranking.
     expect(summary).toMatchObject({
@@ -276,8 +275,8 @@ describe("section 37's run, on a synthetic world", () => {
       // Distinct venues: Alder Club, Birch Cellar and Cedar Room from their own towns'
       // find_venues, Alder Hall from /entities.
       popularitySources: { find_venues: 3, entities: 1, none: 0 },
-      venuesUnscoredToday: 0,
-      venuesLikeHeadliners: 0,
+      townVenuesWithoutFanData: { warning: 0, equalRanking: 0 },
+      actsWithTownVenueWithoutFanData: 0,
     });
     expect(summary.byTown).toEqual([
       {
@@ -341,6 +340,71 @@ describe("section 37's run, on a synthetic world", () => {
     });
     // No call beyond the one /entities lookup that came back without a popularity.
     expect(calls.filter((call) => call.path === "/entities")).toHaveLength(1);
+  });
+
+  it("keeps the same-day climb of a town venue with no fan data that day, and counts its acts against the bar", async () => {
+    // Alder Club's rankings come back as the headliners' own, with no warning.
+    const { ask } = memoAsk(undefined, { quiet: ["v-a2"] });
+    const results = await runAll(ask);
+    expect(
+      results[0].venueRuns.map((run) => [
+        run.venue.entityId,
+        run.venueNoFanData,
+      ]),
+    ).toEqual([
+      ["v-a2", "equal ranking"],
+      ["v-a1", null],
+      ["v-a2", "equal ranking"],
+    ]);
+    // Its acts stand where the headliners alone put them: no climb that day.
+    expect(
+      results[0].acts
+        .filter((act) => act.venue.entityId === "v-a2")
+        .map((act) => [act.entityId, act.climbToday, act.venueNoFanData]),
+    ).toEqual([
+      ["m20", 0, "equal ranking"],
+      ["o15", 0, "equal ranking"],
+    ]);
+    const summary = summarise(results, { towns: 3 });
+    expect(summary).toMatchObject({
+      townVenuesWithoutFanData: { warning: 0, equalRanking: 2 },
+      actsWithTownVenueWithoutFanData: 2,
+      atBar: 0,
+      atFallback: 1,
+    });
+  });
+
+  it("counts such an act against the bar even when the arithmetic alone would reach it", () => {
+    const act = {
+      entityId: "x",
+      name: "X",
+      band: "mid" as const,
+      venue: { entityId: "v", name: "V" },
+      headlinersOnlyPlace: 20,
+      venuePlace: 20,
+      controlPlace: 30,
+      localLift: 10,
+      climbToday: 0,
+      noLiftBecause: null,
+    };
+    const result = {
+      festivalId: "f",
+      city: "Alder",
+      controlCity: "Birch",
+      buildId: "b",
+      builtAt: "2026-10-17T20:00:00.000Z",
+      venueRuns: [],
+      acts: [
+        { ...act, venueNoFanData: "equal ranking" as const },
+        { ...act, entityId: "y", venueNoFanData: null },
+      ],
+    };
+    expect(summarise([result], { towns: 1 })).toMatchObject({
+      atBar: 1,
+      atFallback: 1,
+      actsWithTownVenueWithoutFanData: 1,
+      actsWithTownVenueWithoutFanDataAtLift5: 1,
+    });
   });
 
   it("leaves the bar unset until every town is measured", async () => {
