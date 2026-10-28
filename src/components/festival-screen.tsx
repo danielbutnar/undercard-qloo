@@ -1779,7 +1779,20 @@ export function FestivalScreen({
                   </span>
                 </p>
                 <h1 className="poster-name">{festival.name}</h1>
-                <p className="facts">{factsLine(festival)}</p>
+                {/* Each part on one line ("3,000 capacity"), breaking only after a part's dot. */}
+                <p className="facts">
+                  {factsLine(festival)
+                    .split(" · ")
+                    .map((part, index, parts) => (
+                      <span key={part}>
+                        {index > 0 && " "}
+                        <span className="nowrap">
+                          {part}
+                          {index < parts.length - 1 && " ·"}
+                        </span>
+                      </span>
+                    ))}
+                </p>
                 <span className="poster-rule-line" aria-hidden />
                 <HeadlinerList
                   headliners={festival.headliners}

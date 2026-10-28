@@ -61,9 +61,13 @@ describe("the first screen for a lay reader (M6q)", () => {
         .map((item) => item.textContent),
     ).toEqual(["Khruangbin", "Japanese Breakfast"]);
     // The old example line's town and size are in the facts line above them.
+    // The facts line sets each part unbroken (WS12 item 7), so it's read as a whole.
     expect(
       within(draft).getByText(
-        "Boise, Idaho · 3,000 capacity · crowd aged 25–34",
+        (_, element) =>
+          element?.classList.contains("facts") === true &&
+          element.textContent ===
+            "Boise, Idaho · 3,000 capacity · crowd aged 25–34",
       ),
     ).toBeTruthy();
     // WS8 (item 12a): the note under them says they're booked, and that the demo's two are bands.

@@ -707,6 +707,8 @@
   border: 3px solid var(--color-ink);
   background: var(--color-ink);
   box-shadow: 4px 4px 0 color-mix(in srgb, var(--color-ink) 30%, transparent);
+  /* Slid inside the town's frame where the sign stands by its edge (town-scene.tsx). */
+  translate: var(--shift, 0) 0;
 }
 .chart-app.fs .town-sign.is-picked .town-sign-plate,
 .chart-app.fs .town-sign:hover .town-sign-plate {

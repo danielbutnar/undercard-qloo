@@ -8,6 +8,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type PointerEvent,
   type ReactNode,
 } from "react";
@@ -445,16 +446,25 @@ export function TownScene({
             chip.length * 7.2 +
             22;
           const h = size + 11 + 6 + 14;
+          // The plate stands inside the town's frame (WS12 item 7: on a phone a sign by the
+          // edge sat on the frame), slid along as far as it needs; its pole stays on the venue.
+          const edge = 8;
+          const at =
+            vp.w < w + 2 * edge
+              ? vp.w / 2
+              : Math.min(Math.max(p.x, w / 2 + edge), vp.w - w / 2 - edge);
           const covered =
             selected !== venue.entityId &&
             zones.some(
               (zone) =>
-                p.x + w / 2 > zone.x0 &&
-                p.x - w / 2 < zone.x1 &&
+                at + w / 2 > zone.x0 &&
+                at - w / 2 < zone.x1 &&
                 p.y > zone.y0 &&
                 p.y - h < zone.y1,
             );
-          return covered ? [] : [{ venue, x: p.x, y: p.y - 4, k: p.k }];
+          return covered
+            ? []
+            : [{ venue, x: p.x, y: p.y - 4, k: p.k, shift: at - p.x }];
         })
       : [];
 
@@ -531,7 +541,7 @@ export function TownScene({
       )}
       <div className="town-veil" aria-hidden />
       <div className="town-signs">
-        {signs.map(({ venue, x, y, k }) => {
+        {signs.map(({ venue, x, y, k, shift }) => {
           const chip = signChip({
             lifted: venue.lifted,
             off: venue.off,
@@ -559,6 +569,11 @@ export function TownScene({
             >
               <span
                 className={`town-sign-plate ${venue.hue !== null && !venue.off && venue.lifted > 0 && !venue.unread ? `venue-${venue.hue}` : ""} ${venue.off ? "is-off" : venue.unread ? "is-unread" : venue.lifted === 0 ? "is-none" : ""}`}
+                style={
+                  shift
+                    ? ({ "--shift": `${Math.round(shift)}px` } as CSSProperties)
+                    : undefined
+                }
               >
                 <span className="town-sign-name">{name}</span>
                 <span className="town-sign-chip">{chip}</span>
