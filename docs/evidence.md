@@ -998,6 +998,63 @@ The model calls (B's, and the planner's turns in A and C) go one at a time, with
 
 **Added on 2026-10-28, before any call (Daniel's answers of 19:00 and 23:10).** In A and C the location reads are skipped: the agent makes them only after the lineup is assembled, so they can't change a shortlist, and each still counts against the run's 28 calls as built. The local picks are kept, and sent as built: in one of the 29 towns' re-runs (Aarhus) a local pick came inside the venue loop, after the last venue read and before that venue's control read. The agent measured is integration 7f0d154, the agent of the 29 re-runs; section 38's script runs from branch s38 at e32233d and records the commit of each window. The ceiling: at most 2,096 Qloo calls (about 1,172 expected), 33 calls to the model alone and at most 1,056 planner turns, with about $10.99 of model spend expected; the run stops for Daniel's word if the spend passes $16.48.
 
+**Result, 2026-10-28: neither bar met, NOT SHOWN.** A had more hits than the model alone at 2 of the 10 festivals where the two differ (p = 0.989), and more than the control town's venues at 3 of 5 (p = 0.500); each bar was p ≤ 0.05. 1040 Qloo requests from scripts/evidence-38.ts at commit e32233d in 3 windows (2026-10-28, 21:26 to 21:31 UTC, 23:26 to 23:31 Bucharest; 2026-10-28, 21:36 to 22:16 UTC, 23:36 to 00:16 Bucharest; 2026-10-28, 22:26 to 22:51 UTC, 00:26 to 00:51 Bucharest), one at a time, every one answered, none retried; the dry run planned at most 2096, before the run's memory and the hit checks. 411 model calls: 33 to the model alone, one a festival, and 378 planner turns in A's and C's runs, one at a time with no retries, for $3.35 at Claude Sonnet 5.5's published prices against an expected $10.99. Every Qloo answer was read by the script's own client, which read nothing from the server's Qloo cache and wrote nothing to it.
+
+A hit is any act on the festival's lineup, except its headliners, in a shortlist, inside the tiers or not, matched by Qloo entity id; the bars use this count. In brackets beside each count is the narrower one: hits among the record's N booked undercard acts inside the tiers only (n/a where the record names none). N is the record's count of those acts; each shortlist holds N, at most 10.
+
+| Festival | Town | Control town | N | A: the town's venues | B: the model alone | C: the control town's venues |
+|---|---|---|---|---|---|---|
+| Treefort Music Fest 2026, Boise | Boise | Bucharest | 10 | 0 (0) | 1 (0) | 0 (0) |
+| Levitation 2025, Austin | Austin | Berlin | 6 | 0 (0) | 0 (0) | 0 (0), 1 listed |
+| Live on the Green 2022, Nashville | Nashville | Oslo | 8 | 0 (0) | 0 (0) | 0 (0) |
+| Lollapalooza Chicago 2025 | Chicago | Cluj-Napoca | 12 (lists of 10) | 0 (0) | 1 (1) | 0 (0) |
+| Rock the Garden 2022, Minneapolis | Minneapolis | Montreal | 1 | 0 (n/a) | 0 (n/a) | 0 (n/a) |
+| Sled Island 2026, Calgary | Calgary | Chicago | 5 | 0 (0) | 0 (0) | 0 (0) |
+| Pop Montreal 2024 | Montreal | Nashville | 12 (lists of 10) | 0 (0) | 1 (0) | 0 (0) |
+| Le Guess Who? 2014, Utrecht | Utrecht | Vienna | 1 | 0 (n/a) | 0 (n/a) | 0 (n/a) |
+| Pitchfork Music Festival Paris 2025 | Paris | Raleigh | 10 | 1 (1) | 0 (0) | 0 (0) |
+| Electric Castle 2026, Bonțida (Cluj) | Cluj-Napoca | Denver | 2 | 0 (0) | 0 (0) | 0 (0) |
+| Alpenglow Festival 2024, Bozeman | Bozeman | Bucharest | 0 | 0 (0) | 0 (0) | 0 (0) |
+| Boise Music Festival 2024, Boise | Boise | Bucharest | 3 | 0 (0) | 0 (0) | 0 (0) |
+| Bumbershoot 2026, Seattle | Seattle | Tallinn | 7 | 0 (0) | 0 (0) | 0 (0) |
+| Calgary Folk Music Festival 2026, Calgary | Calgary | Chicago | 8 | 0 (0) | 0 (0) | 0 (0) |
+| KKFI Crossroads Music Fest 2026, Kansas City | Kansas City | Montreal | 0 | 0 (0) | 0 (0) | 0 (0) |
+| MS Dockville 2024, Hamburg | Hamburg | Kansas City | 12 (lists of 10) | 1 (1) | 0 (0) | 0 (0) |
+| FOCUS Wales 2026, Wrexham | Wrexham | Aarhus | 2 | 0 (0) | 0 (0) | 0 (0) |
+| Duluth Homegrown Music Festival 2026, Duluth | Duluth | Hamburg | 0 | 0 (0) | 0 (0) | 0 (0) |
+| Hopscotch Music Festival 2025, Raleigh | Raleigh | Reykjavík | 8 | 0 (0) | 1 (0) | 0 (0) |
+| Hyde Park Jazz Festival 2026, Chicago | Chicago | Cluj-Napoca | 0 | 0 (0) | 0 (0) | 0 (0) |
+| Iceland Airwaves 2025, Reykjavík | Reykjavík | Rotterdam | 7 | 0 (0) | 2 (0) | 0 (0) |
+| ÎleSoniq 2026, Montreal | Montreal | Nashville | 7 | 0 (0) | 1 (1) | 1 (1) |
+| Mountain Dance and Folk Festival 2026, Asheville | Asheville | Berlin | 0 | 0 (0) | 0 (0) | 0 (0) |
+| NN North Sea Jazz Festival 2026, Rotterdam | Rotterdam | Seattle | 3 | 0 (0) | 0 (0) | 0 (0) |
+| NorthSide 2024, Aarhus | Aarhus | Asheville | 6 | 1 (1) | 1 (0) | 0 (0) |
+| Old Settler's Music Festival 2026, Austin | Austin | Berlin | 3 | 0 (0) | 0 (0) | 0 (0) |
+| Osheaga 2026, Montreal | Montreal | Nashville | 6 | 0 (0) | 0 (0) | 0 (0) |
+| Outside Days 2026, Denver | Denver | Hamburg | 0 | 0 (0) | 0 (0) | 0 (0) |
+| Øyafestivalen 2026, Oslo | Oslo | Paris | 7 | 0 (0) | 0 (0) | 0 (0) |
+| Pop-Kultur Festival 2026, Berlin | Berlin | Boise | 3 | 0 (0) | 0 (0) | 0 (0) |
+| popfest Wien 2026, Vienna | Vienna | Wrexham | 1 | 0 (n/a) | 0 (n/a) | 0 (n/a) |
+| Prepare The Ground 2024, Toronto | Toronto | Utrecht | 12 (lists of 10) | 0 (0) | 2 (0) | 0 (0) |
+| Reeperbahn Festival 2026, Hamburg | Hamburg | Kansas City | 7 | 0 (0) | 1 (0) | 0 (0) |
+| Soenda Festival 2026, Utrecht | Utrecht | Vienna | 3 | 0 (0) | 0 (0) | 0 (0) |
+| Solidays 2025, Paris | Paris | Raleigh | 8 | 0 (0) | 0 (0) | 1 (0) |
+| Summer Well 2026, Bucharest | Bucharest | Burlington | 7 | 0 (0) | 0 (0) | 0 (0) |
+| Twin Cities Jazz Festival 2026, Minneapolis | Minneapolis | Montreal | 0 | 0 (0) | 0 (0) | 0 (0) |
+| Tallinn Music Week 2026, Tallinn | Tallinn | Toronto | 2 | 0 (0) | 0 (0) | 0 (0) |
+| Tomato Art Fest 2026, Nashville | Nashville | Oslo | 4 | 0 (0) | 0 (0) | 0 (0) |
+| Toronto Jazz Festival 2026, Toronto | Toronto | Utrecht | 5 | 0 (0) | 0 (0) | 0 (0) |
+| All 40 | | | 198 | 3 (3) | 11 (2) | 2 (1) |
+
+**What it says.**
+- **A against B.** A had more hits than B at 2 festivals and fewer at 8; they tied at 30 (7 of them with N = 0, where every shortlist is empty). Over the 10 where they differ, a one-sided sign test gives p = 0.989: the bar isn't met (it needs 9 of 10).
+- **A against C.** A had more hits than C at 3 festivals and fewer at 2; they tied at 35 (7 of them with N = 0, where every shortlist is empty). Over the 5 where they differ, a one-sided sign test gives p = 0.500: the bar isn't met (it needs 5 of 5).
+- **The shortlists' sizes.** Each shortlist holds N acts, at most 10 (Daniel, 28 October), so at the 4 festivals with N above 10 all three hold 10. A held fewer than its size at 0 festivals and C at 1, where fewer passed the rule in what the agent read within its 28 calls; B at 0, where the model named fewer.
+- **Also counted.** Hits among the record's own booked acts inside the tiers: A 3, B 2, C 1 (3 festivals' records name none). B's hits outside both tiers: 6. B's picks Qloo's search didn't find: 11. Festivals whose two headliners section 26's rule didn't find again: 0.
+- **The skip (Daniel, 28 October).** A's and C's runs skipped 252 location reads, made after the lineup is assembled, and sent none of them to Qloo; their local-pick searches went to Qloo as built. A local pick came before a later venue read in 7 of the 66 runs, and a headliner went unresolved in 0.
+
+By the outcomes written before the run: neither bar is met, so the site's stamp is NOT SHOWN, said plainly, with the hits.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
