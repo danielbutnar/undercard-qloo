@@ -125,11 +125,18 @@ export const locationLine = ({ town, withSignal, without }: LocationReading) =>
 export const LOCAL_PICK_LABEL = "The AI's local pick";
 export const LOCAL_PICK_TITLE = "The AI's local pick, for you to check";
 
-/** Under the title: who named the acts, how, and that they take no slot on their own. */
-export const localPickIntro = (city: string, count: number) =>
+/**
+ * Under the title: who named the acts, how, and that they take no slot on their own; "unless you
+ * add it" only while one of them can be added (a pick above both tiers can't).
+ */
+export const localPickIntro = (city: string, count: number, addable = count) =>
   count === 1
-    ? `The AI agent named this act from what it knows of ${city}'s music, then found it on Qloo. Qloo's venue numbers and the rule didn't pick it, and it takes no slot unless you add it.`
-    : `The AI agent named these acts from what it knows of ${city}'s music, then found them on Qloo. Qloo's venue numbers and the rule didn't pick them, and each takes no slot unless you add it.`;
+    ? `The AI agent named this act from what it knows of ${city}'s music, then found it on Qloo. Qloo's venue numbers and the rule didn't pick it, and it takes no slot${addable > 0 ? " unless you add it" : ""}.`
+    : `The AI agent named these acts from what it knows of ${city}'s music, then found them on Qloo. Qloo's venue numbers and the rule didn't pick them, and ${addable > 0 ? "each takes no slot unless you add it" : "they take no slot"}.`;
+
+/** A local pick above both tiers (Daniel, 2026-10-28): still shown, never offered for the bill. */
+export const LOCAL_PICK_ABOVE =
+  "above both tiers: headliner-sized, not for this bill";
 
 const RANGE_WORDS: Record<FeeBandId, string> = {
   mid: "mid-size",
@@ -144,7 +151,9 @@ export function localPickNumbers(
   const band = bands.find((entry) => entry.id === pick.band);
   const where = band
     ? `inside the ${RANGE_WORDS[band.id]} range (${formatPopularityRange(band)})`
-    : `${pick.range} the fee ranges`;
+    : pick.range === "above"
+      ? LOCAL_PICK_ABOVE
+      : `${pick.range} the fee ranges`;
   const names = pick.sharedTags.slice(0, 2).map((tag) => tag.name);
   const genres = names.length
     ? `shares ${names.join(" and ")} with the headliners`

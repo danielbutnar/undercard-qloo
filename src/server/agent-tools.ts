@@ -19,7 +19,7 @@ import {
 } from "@/lib/control-venue";
 import { controlTownFor } from "@/lib/control-town";
 import { QLOO_CALL_CAP } from "@/lib/agent-limits";
-import { FEE_BAND_IDS, type FeeBandId } from "@/lib/fee-bands";
+import { FEE_BAND_IDS, type FeeBand, type FeeBandId } from "@/lib/fee-bands";
 import { roomKind } from "@/lib/place-kinds";
 import {
   needsFullName,
@@ -105,6 +105,31 @@ const bandProperty = {
 };
 
 /** One tool per Qloo call, plus finish. Strict schemas keep the model's inputs valid. */
+/**
+ * Where the prompt's step 6 and the local_pick tool give the tiers' popularity ranges (Daniel,
+ * 2026-10-28). Read as is, it points to the brief; tierRanges puts in the festival's own.
+ */
+export const TIER_RANGES =
+  "Qloo popularity within the range the brief gives each tier";
+
+const TIER_WORDS: Record<FeeBandId, string> = {
+  mid: "mid-size",
+  opener: "opening",
+};
+
+/** "Qloo popularity 0.80–0.90 for the mid-size tier or 0.55–0.80 for the opening tier". */
+export function tierRanges(bands: readonly FeeBand[]): string {
+  const ranges = FEE_BAND_IDS.flatMap((id) =>
+    bands
+      .filter((band) => band.id === id)
+      .map(
+        (band) =>
+          `${band.minPopularity.toFixed(2)}–${band.maxPopularity.toFixed(2)} for the ${TIER_WORDS[id]} tier`,
+      ),
+  );
+  return `Qloo popularity ${ranges.join(" or ")}`;
+}
+
 export const AGENT_TOOLS: Anthropic.Tool[] = [
   {
     name: "search_artist",
@@ -171,15 +196,18 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
   },
   {
     name: "local_pick",
-    description:
-      "Name one or two acts from the festival's town that you know of from your own knowledge: acts based there who would suit this undercard, each with one line on why. The app searches each on Qloo (GET /search, one Qloo call each) and returns what Qloo knows of it. A local pick is for the buyer to check; it never takes a slot.",
+    description: `Name one or two acts from the festival's town that you know of from your own knowledge and that fit the mid-size or opening tier: ${TIER_RANGES}. Acts based there who would suit this undercard; artist names only, as they are billed, never a phrase or a description; each with one line on why. The app searches each on Qloo (GET /search, one Qloo call each) and returns what Qloo knows of it. A local pick is for the buyer to check; it never takes a slot.`,
     strict: true,
     input_schema: objectSchema({
       picks: {
         type: "array",
         description: "One or two acts from the town.",
         items: objectSchema({
-          name: { type: "string", description: "The act's name." },
+          name: {
+            type: "string",
+            description:
+              "The artist's name as billed, and nothing else: never a phrase or a description.",
+          },
           why: {
             type: "string",
             description: "One line on why it suits this undercard.",
@@ -1048,8 +1076,21 @@ export function createToolbox({
     }
   }
 
+  // Daniel, 2026-10-28: local_pick gives the festival's own tier ranges.
+  const tools = AGENT_TOOLS.map((tool) =>
+    tool.name === "local_pick" && tool.description
+      ? {
+          ...tool,
+          description: tool.description.replace(
+            TIER_RANGES,
+            tierRanges(festival.feeBands),
+          ),
+        }
+      : tool,
+  );
+
   return {
-    tools: AGENT_TOOLS,
+    tools,
     run,
     readLocation,
     state,
