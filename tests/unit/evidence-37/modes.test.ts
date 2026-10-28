@@ -260,6 +260,8 @@ describe("LIVE: at most MAX_CALLS, stopping at the first 429, and RESUME", () =>
       stopped: "rate limit",
       town: "Birch",
       townsDone: 1,
+      // Birch Bar's two answers, in the mid and opening ranges, said it wasn't found.
+      notFoundWarnings: 2,
     });
     expect(record.answers()).toHaveLength(14);
 

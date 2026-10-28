@@ -310,6 +310,12 @@ export interface VenueRunResult {
   candidates: number;
   /** The venue's own answer that day reported it not found. */
   venueUnscored: boolean;
+  /**
+   * The venue's ranking that day is the headliners' own, act for act: beside venueUnscored, it
+   * shows whether Qloo's not_found warning comes back on these rankings at all (section 35 saw
+   * it on its explainability calls only).
+   */
+  venueLikeHeadliners: boolean;
   /** The matched control's ranking is the headliners' own, act for act, with no warning. */
   controlLikeHeadliners: boolean;
   withVenue: string[];
@@ -445,6 +451,10 @@ export async function runFestival(
       skipped: skipped.map(refOf),
       candidates: candidates.length,
       venueUnscored: withVenue.unscored.includes(venue.entityId),
+      venueLikeHeadliners: sameRanking(
+        withVenue.ids,
+        headlinersOnly.get(band) ?? [],
+      ),
       controlLikeHeadliners:
         withControl !== null &&
         sameRanking(withControl, headlinersOnly.get(band) ?? []),
@@ -524,6 +534,7 @@ export interface Summary extends Counts {
   stillClimb: number;
   popularityFromEntities: number;
   venuesUnscoredToday: number;
+  venuesLikeHeadliners: number;
   controlsLikeHeadliners: number;
   barMet: boolean | null;
   productBar: 5 | 3 | null;
@@ -585,6 +596,7 @@ export function summarise(
       (run) => run.venue.popularityFrom === "entities",
     ).length,
     venuesUnscoredToday: runs.filter((run) => run.venueUnscored).length,
+    venuesLikeHeadliners: runs.filter((run) => run.venueLikeHeadliners).length,
     controlsLikeHeadliners: runs.filter((run) => run.controlLikeHeadliners)
       .length,
     barMet: complete ? all.atBar >= BAR_ACTS : null,

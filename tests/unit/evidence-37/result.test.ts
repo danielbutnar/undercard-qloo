@@ -95,6 +95,7 @@ const summary = (atBar: number, atFallback: number): Summary => ({
   stillClimb: 250,
   popularityFromEntities: 0,
   venuesUnscoredToday: 0,
+  venuesLikeHeadliners: 0,
   controlsLikeHeadliners: 0,
   barMet: atBar >= 145,
   productBar: atBar >= 145 ? 5 : 3,

@@ -17,6 +17,7 @@ import {
   runFestival,
   summarise,
   UnreadableAnswer,
+  unscoredInputs,
   venueRunsOf,
   venueTagOf,
   type FestivalInput,
@@ -328,6 +329,7 @@ export function resultValues({
     popularityFromEntities: summary.popularityFromEntities,
     noVenuePopularity: summary.noVenuePopularity,
     venuesUnscoredToday: summary.venuesUnscoredToday,
+    venuesLikeHeadliners: summary.venuesLikeHeadliners,
     controlsLikeHeadliners: summary.controlsLikeHeadliners,
     townRows: summary.byTown
       .map(
@@ -469,6 +471,13 @@ export async function runControlTest37({
           (total, run) => total + run.skipped.length,
           0,
         ),
+        // Venue rankings equal to the headliners' own, beside those with a not_found warning:
+        // if the first is above 0 and the second 0, Qloo's warning isn't coming back.
+        venuesLikeHeadliners: result.venueRuns.filter(
+          (run) => run.venueLikeHeadliners,
+        ).length,
+        venuesUnscored: result.venueRuns.filter((run) => run.venueUnscored)
+          .length,
         ...one,
       });
     } catch (error) {
@@ -530,6 +539,9 @@ export async function runControlTest37({
       townsDone: results.length,
       requestsThisRun: client.counts().attempts,
       answersSaved: record.answers().length,
+      notFoundWarnings: record
+        .answers()
+        .filter((answer) => unscoredInputs(answer.body).length > 0).length,
       next: "RESUME=1 with a new MAX_CALLS carries on without repeating a call",
     });
     return { code: 2, summary };

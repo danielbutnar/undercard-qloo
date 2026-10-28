@@ -228,6 +228,14 @@ describe("section 37's run, on a synthetic world", () => {
     );
     const summary = summarise(results, { towns: TOWNS.length });
     expect(summary.noScoredControl).toBe(4);
+    // Birch Cellar, Birch's own venue, is unscored too: its ranking is the headliners' own,
+    // and its answer says so. Both are counted, so a run can tell whether warnings come back.
+    expect(results[1].venueRuns[0]).toMatchObject({
+      venueUnscored: true,
+      venueLikeHeadliners: true,
+    });
+    expect(summary.venuesUnscoredToday).toBe(1);
+    expect(summary.venuesLikeHeadliners).toBe(1);
     // Alder's three venue runs and Cedar's one tried all four of Birch's rooms with a popularity.
     expect(summary.controlsSkipped).toBe(16);
     expect(summary.roomsSkipped).toBe(4);
@@ -250,6 +258,7 @@ describe("section 37's run, on a synthetic world", () => {
       venueRuns: 5,
       popularityFromEntities: 1,
       venuesUnscoredToday: 0,
+      venuesLikeHeadliners: 0,
       // Cedar Yard's mid ranking and Birch Loft's opener ranking are the headliners' own,
       // with no warning: a description, not a skip.
       controlsLikeHeadliners: 2,
