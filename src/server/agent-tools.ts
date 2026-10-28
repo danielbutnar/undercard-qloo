@@ -3,6 +3,7 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import {
   assembleLineup,
+  headlinerTagWeights,
   liftsOver,
   MIN_LIFT,
   type AssemblyInput,
@@ -628,6 +629,8 @@ export function createToolbox({
       // Searched as search_artist searches, with the accents folded once more when a name
       // with letters beyond ASCII finds nothing (WS8). Only a pick Qloo finds is kept.
       const input = assemblyOf(festival, state);
+      // Between two acts of one name, the one the headliners' genres point to (WS13.6).
+      const weights = headlinerTagWeights(input);
       const results = [];
       for (const { name, why } of picks) {
         const search = (query: string) =>
@@ -637,11 +640,12 @@ export function createToolbox({
             `Search for the AI's local pick "${query}"`,
             () => qloo.search({ query }),
           );
-        let found = foundOnQloo(name, await search(name));
+        let found = foundOnQloo(name, await search(name), weights);
         if (!found && hasNonAscii(name))
           found = foundOnQloo(
             foldAccents(name),
             await search(foldAccents(name)),
+            weights,
           );
         if (!found) {
           results.push({ name, found: false });

@@ -124,10 +124,13 @@ export async function resolveNames({
   names,
   budget,
   headlinerIds,
+  tagWeights,
 }: {
   names: readonly string[];
   budget: CallBudget;
   headlinerIds: ReadonlySet<string>;
+  /** The headliners' genre weights: between two acts of one name, theirs decides (WS13.6). */
+  tagWeights?: ReadonlyMap<string, number>;
 }): Promise<{
   acts: ResolvedName[];
   repeats: Repeat[];
@@ -140,7 +143,7 @@ export async function resolveNames({
   const acts = typed.names.map((name, index): ResolvedName => {
     const result = results[index];
     if (!result) return { name, status: "not-checked" };
-    const artist = foundOnQloo(name, result.data);
+    const artist = foundOnQloo(name, result.data, tagWeights);
     if (!artist) return { name, status: "not-found" };
     return {
       name,
@@ -315,6 +318,13 @@ export async function checkShortlist({
     names,
     budget,
     headlinerIds: new Set(context.headliners.map((h) => h.entityId)),
+    tagWeights: headlinerTagWeights({
+      bands: [],
+      headliners: context.headliners,
+      comparedTags: context.comparedTags,
+      baselines: {},
+      venueRuns: [],
+    }),
   });
   const found = resolved.acts.flatMap((act) =>
     act.status === "found" ? [act.artist] : [],

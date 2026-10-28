@@ -94,6 +94,22 @@ export function headlinerTagWeights(input: AssemblyInput) {
   return weights;
 }
 
+/**
+ * How much of the headliners' taste an artist's genres carry (WS13.6): the weights of the genre
+ * tags it shares with them, each tag once. 0 when it shares none.
+ */
+export function sharedWeight(
+  artist: { tags?: readonly ArtistTag[] },
+  weights: ReadonlyMap<string, number>,
+): number {
+  const keys = new Set(
+    (artist.tags ?? []).filter(isGenre).map((tag) => normalize(tag.name)),
+  );
+  let total = 0;
+  for (const key of keys) total += weights.get(key) ?? 0;
+  return total;
+}
+
 /** An artist's genre tags the headliners carry, strongest first (two are needed to book it). */
 export function sharedTags(
   artist: RankedArtist,
