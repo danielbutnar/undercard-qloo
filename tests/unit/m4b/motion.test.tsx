@@ -48,14 +48,13 @@ function open({ reducedMotion = false } = {}) {
 }
 const bill = () => screen.getByRole("region", { name: "Undercard draft" });
 const acts = () => within(bill()).queryAllByRole("article");
+// The venue's count on the poster's key (the second switch's list went with WS12 item 1).
 const lantern = () =>
   within(
-    screen.getByRole("region", {
-      name: "Boise venues whose fans shaped this lineup",
-    }),
+    screen.getByRole("group", { name: "Venue fans used for this draft" }),
   )
-    .getAllByRole("listitem")
-    .find((item) => item.textContent?.startsWith("The Lantern Room"))!;
+    .getAllByLabelText(/^The Lantern Room/)
+    .at(0)!;
 const delayOf = (article: Element) =>
   Number.parseFloat((article as HTMLElement).style.animationDelay);
 
@@ -73,7 +72,9 @@ describe("the motion moment", () => {
     open();
     for (const article of acts())
       expect(article.className).not.toContain(PRINT);
-    expect(lantern().textContent).toMatch(/^The Lantern Room7 acts lifted/);
+    expect(lantern().getAttribute("aria-label")).toMatch(
+      /^The Lantern Room(: on,|'s fans:) 7 acts/,
+    );
   });
 
   it("prints the undercard in one act at a time when the replay's lineup lands", async () => {
@@ -115,13 +116,17 @@ describe("the motion moment", () => {
         true,
       ),
     );
-    expect(lantern().textContent).toMatch(/^The Lantern Room7 acts lifted/);
+    expect(lantern().getAttribute("aria-label")).toMatch(
+      /^The Lantern Room(: on,|'s fans:) 7 acts/,
+    );
   });
 
   it("brings the lineup back without printing in under reduced motion", async () => {
     open({ reducedMotion: true });
     await watch();
-    expect(lantern().textContent).toMatch(/^The Lantern Room7 acts lifted/);
+    expect(lantern().getAttribute("aria-label")).toMatch(
+      /^The Lantern Room(: on,|'s fans:) 7 acts/,
+    );
     for (const article of acts())
       expect(article.className).not.toContain(PRINT);
   });

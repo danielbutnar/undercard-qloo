@@ -206,7 +206,7 @@ describe("the lift, visible, on the screen (M9a)", () => {
 });
 
 describe("the venue switch during Watch", () => {
-  it("steps aside, so it never shows zero lifts beside steps that show them", async () => {
+  it("the switch's words step aside while Watch plays, and come back with the lineup", async () => {
     const { events, saved } = await liveEvents();
     vi.stubGlobal("fetch", stream(events));
     render(
@@ -215,10 +215,9 @@ describe("the venue switch during Watch", () => {
         firstBill={{ ...firstBill(saved), anchors: saved.context.anchors }}
       />,
     );
+    // Since WS12 item 1 the switch is the poster's key; its sentence sits under it.
     const venueSwitch = () =>
-      screen.queryByRole("region", {
-        name: /venues whose fans shaped this lineup/,
-      });
+      screen.queryByText(/^Untick a venue: the lineup re-forms by the same rule/);
     expect(venueSwitch()).toBeTruthy();
     fireEvent.click(screen.getByRole("button", WATCH));
     await waitFor(

@@ -16,7 +16,7 @@ import {
   setlistLines,
   type SetlistLine,
   type SetlistVenue,
-} from "./words";
+} from "@/components/chart/setlist-words";
 
 /**
  * WS12 step 0's data: the saved Boise build read exactly as the home page reads it (the synthetic

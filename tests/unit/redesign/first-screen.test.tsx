@@ -117,12 +117,6 @@ describe("the poster", () => {
       }),
     ).toHaveProperty("ariaPressed", "false");
     expect(within(poster()).getAllByRole("article")).toHaveLength(3);
-    // The switch below the fold says the same.
-    expect(
-      screen.getByRole("button", {
-        name: "The Lantern Room: off, lifted none",
-      }),
-    ).toBeTruthy();
   });
 
   it("names the first act's climb in one sentence, with what to try next", async () => {

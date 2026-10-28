@@ -64,7 +64,7 @@ describe("a busy Qloo on the first screen", () => {
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
     );
     fireEvent.click(
-      screen.getByRole("button", { name: "Run the agent live instead" }),
+      screen.getByRole("button", { name: "Play it live" }),
     );
 
     const trace = await screen.findByRole("list", { name: "Qloo calls" });

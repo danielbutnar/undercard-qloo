@@ -6,8 +6,8 @@ import { actsInBand, type Act } from "@/lib/lineup";
 import { liftOf } from "@/lib/marks";
 import { venueOfCall } from "@/lib/venue-call";
 import type { Placed } from "@/lib/venue-switch";
-import { exampleAct } from "@/components/chart/poster-words";
-import { callWords } from "@/components/chart/words";
+import { exampleAct } from "./poster-words";
+import { callWords, ordinal } from "./words";
 
 /**
  * WS12 step 0 (Design 2.0, /lab/design-2): the prototype's words and picks, from the saved build
@@ -178,10 +178,21 @@ export function liftingCall(
   return call?.n ?? null;
 }
 
+/**
+ * WS13.3's two climbs for an act, once its data carries them: places it climbed with the town's
+ * venue, and with that venue's matched control abroad (src/lib/control-venue.ts).
+ */
+export interface TwoClimbs {
+  venue: number;
+  control: number;
+}
+
 /** The door check: what the ticket's three stamps carry for one act. */
 export interface TicketStamps {
-  /** Its climb with its venue's fans (WS13.3 makes this its local lift over the control). */
+  /** Its climb with its venue's fans: the first stamp until WS13.3's climbs land. */
   climb: { kind: "up"; places: number } | { kind: "new"; top: number } | null;
+  /** Its local lift (the venue's climb less the control's), the first stamp once they land. */
+  local: { lift: number; venue: number; control: number } | null;
   /** The places a climb must reach (src/lib/assemble-lineup.ts). */
   bar: number;
   /** Its Qloo popularity on its tier's own scale, 0-100 as the card prints it. */
@@ -192,9 +203,17 @@ export interface TicketStamps {
 export function ticketStamps(
   act: Pick<Act, "reason" | "popularity" | "sharedTags">,
   band: Pick<FeeBand, "minPopularity" | "maxPopularity">,
+  climbs?: TwoClimbs | null,
 ): TicketStamps {
   const lift = liftOf(act);
   return {
+    local: climbs
+      ? {
+          lift: climbs.venue - climbs.control,
+          venue: climbs.venue,
+          control: climbs.control,
+        }
+      : null,
     climb:
       lift?.kind === "up"
         ? { kind: "up", places: lift.places }
@@ -209,6 +228,16 @@ export function ticketStamps(
     },
     genres: [act.sharedTags[0].name, act.sharedTags[1].name],
   };
+}
+
+/** The act's move, as the setlist writes it in the margin by its ringed call. */
+export function marginNote(act: Act, place: Placed | undefined): string {
+  const lift = liftOf(act);
+  if (lift?.kind === "new")
+    return `${act.name}: new in the top 50, at ${ordinal(place?.now ?? lift.top)}`;
+  return place?.was
+    ? `${act.name}: ${ordinal(place.was)} → ${ordinal(place.now)}`
+    : act.name;
 }
 
 /**

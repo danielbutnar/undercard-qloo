@@ -79,8 +79,8 @@ test.describe("demo path", () => {
     await expect(band(page, /^Opening acts/).getByRole("article")).toHaveCount(
       6,
     );
-    // Each band says its Qloo popularity range, our stand-in for fee; How an act gets on, under
-    // the poster, says each fee range in words.
+    // Each band says its Qloo popularity range, our stand-in for fee; the door check, under the
+    // poster (WS12 item 1), says each fee range in words.
     await expect(
       band(page, /^Mid/).getByText(
         "· Qloo popularity 80–92, our stand-in for fee",
@@ -89,7 +89,7 @@ test.describe("demo path", () => {
     await expect(
       band(page, /^Opening acts/).getByText("· Qloo popularity 55–80"),
     ).toBeVisible();
-    const rule = page.getByRole("region", { name: "How an act gets on" });
+    const rule = page.getByRole("region", { name: "The door check" });
     await expect(rule).toContainText(
       "4 slots · fee range (Mid): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (80th–92nd percentile)",
     );
@@ -187,7 +187,7 @@ test.describe("demo path", () => {
     await expect(bill(page).getByRole("article")).toHaveCount(10);
     await expect.poll(() => liftedTotal(page)).toBe(10);
     await expect(
-      page.getByRole("button", { name: "Run the agent live instead" }),
+      page.getByRole("button", { name: "Play it live" }),
     ).toBeVisible();
   });
 

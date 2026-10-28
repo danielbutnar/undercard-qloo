@@ -7,7 +7,7 @@ import {
   liftingCall,
   setlistLines,
   ticketStamps,
-} from "@/app/lab/design-2/_kit/words";
+} from "@/components/chart/setlist-words";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { syntheticSavedBuild } from "../../e2e/synthetic-build";
 
@@ -122,6 +122,7 @@ describe("the door check's three stamps", () => {
   it("carry the climb against the bar, the popularity on the tier's scale and the two genres", () => {
     expect(ticketStamps(act("Hollow Pines"), bands[0])).toEqual({
       climb: { kind: "up", places: 11 },
+      local: null,
       bar: 5,
       popularity: { value: 91, min: 80, max: 92 },
       genres: ["Dream Pop", "Psychedelic Rock"],
@@ -153,5 +154,20 @@ describe("the act the landing follows", () => {
     expect(firstAct(build.lineup.acts, places, bands)?.name).toBe(
       "Marisol Vey",
     );
+  });
+});
+
+describe("the door check's first stamp, once WS13.3's two climbs land", () => {
+  it("is the local lift against the bar, with both climbs kept for the small type", () => {
+    const stamps = ticketStamps(act("Hollow Pines"), bands[0], {
+      venue: 11,
+      control: 4,
+    });
+    expect(stamps.local).toEqual({ lift: 7, venue: 11, control: 4 });
+    expect(stamps.bar).toBe(5);
+  });
+
+  it("is today's climb against the bar until then", () => {
+    expect(ticketStamps(act("Hollow Pines"), bands[0]).local).toBeNull();
   });
 });

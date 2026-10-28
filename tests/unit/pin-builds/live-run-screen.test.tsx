@@ -29,7 +29,7 @@ afterEach(() => {
 
 const SKIP = { name: "Skip to the lineup" };
 const WATCH = { name: "Watch the AI agent build it" };
-const RUN_LIVE = { name: "Run the agent live instead" };
+const RUN_LIVE = { name: "Play it live" };
 const drafted = () => document.querySelector(".drafted")?.textContent ?? "";
 const under = () => document.querySelector(".watch-sub")?.textContent ?? "";
 

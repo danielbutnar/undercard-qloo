@@ -15,11 +15,10 @@ describe("the venues behind the bill", () => {
     render(
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
     );
+    // Since WS12 item 1 the town's legend says it: the switch's own heading went with it.
     expect(
-      screen.getByRole("region", {
-        name: "Boise venues whose fans shaped this lineup",
-      }),
-    ).toBeTruthy();
+      screen.getByRole("region", { name: "Your town" }).textContent,
+    ).toContain("live-music places in Boise");
   });
 
   it("calls the first mark's room a Boise venue in the key", () => {

@@ -111,6 +111,7 @@ export function TracePanel({
   replay = true,
   onBuild,
   button = true,
+  live = true,
 }: {
   state: BuildState;
   /** Qloo calls in the saved build the first screen shows, for the replay's description. */
@@ -120,6 +121,8 @@ export function TracePanel({
   onBuild: (request?: BuildRequest) => void;
   /** False when the screen places the Watch button itself (FestivalScreen). */
   button?: boolean;
+  /** False where the setlist's Play it live offers the live run (WS12 item 1). */
+  live?: boolean;
 }) {
   const listRef = useRef<HTMLOListElement>(null);
   const building = state.status === "building";
@@ -185,7 +188,7 @@ export function TracePanel({
                 ? `Replays the saved build: ${savedCalls} Qloo calls, then the lineup reprints.`
                 : "Replays the saved build call by call, then the lineup reprints."}
             </p>
-            {!state.refusal && (
+            {live && !state.refusal && (
               <button
                 type="button"
                 onClick={() => onBuild({ fresh: true })}
@@ -215,7 +218,7 @@ export function TracePanel({
               {state.summary.calls} Qloo calls, served from the cache.
             </p>
             {/* After a refusal, the replay below is the next step, not another fresh build. */}
-            {!state.refusal && (
+            {live && !state.refusal && (
               <button
                 type="button"
                 onClick={() => onBuild({ fresh: true })}

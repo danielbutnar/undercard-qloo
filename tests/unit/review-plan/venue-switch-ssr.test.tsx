@@ -2,7 +2,7 @@
 // Plan.md item 4 (the review's D2): for a saved build, the venue results come with the page, so
 // the first paint and a plain fetch show them, not a loading line; the browser doesn't ask for
 // them again.
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FestivalScreen } from "@/components/festival-screen";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
@@ -33,11 +33,10 @@ describe("the venue results with the page (plan.md item 4)", () => {
     expect(
       screen.queryByText("Loading the saved build's venue results…"),
     ).toBeNull();
-    // Ready on first paint: the slot count in place of the loading line, the toggles live.
-    expect(screen.getByText(/^\d+ of \d+ slots filled$/)).toBeTruthy();
-    const toggles = screen
-      .getAllByRole("button")
-      .filter((button) => button.className.includes("venue-toggle"));
+    // Ready on first paint: the poster key's toggles live (the key is the switch, WS12 item 1).
+    const toggles = within(
+      screen.getByRole("group", { name: "Venue fans used for this draft" }),
+    ).getAllByRole("button");
     expect(toggles.length).toBeGreaterThan(0);
     for (const toggle of toggles)
       expect(toggle.hasAttribute("disabled")).toBe(false);

@@ -19,7 +19,7 @@ import { liftOf } from "@/lib/marks";
 import type { Placed } from "@/lib/venue-switch";
 import type { LabStory } from "./data";
 import { Ticket } from "./ticket";
-import { useReveal } from "./use-reveal";
+import { useReveal } from "@/components/chart/use-reveal";
 
 /** One scene of the director's cut: its number, its line, and the landing's objects playing it. */
 function Scene({

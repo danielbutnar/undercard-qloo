@@ -20,11 +20,6 @@ vi.mock("@/app/lab/design-2/_kit/data", () => ({
   labStory: read,
   labTowns: read,
 }));
-vi.mock("@/components/festival-screen", () => ({ FestivalScreen: () => null }));
-vi.mock("@/app/lab/design-2/_kit/landing-bottom", () => ({
-  LandingBottom: () => null,
-}));
-vi.mock("@/app/lab/design-2/_kit/short-town", () => ({ ShortTown: () => null }));
 vi.mock("@/app/lab/design-2/_kit/how-it-works", () => ({
   BackstagePasses: () => null,
   DirectorsCut: () => null,
@@ -39,7 +34,6 @@ afterEach(() => {
 
 describe("the Design 2.0 prototype outside next dev", () => {
   it.each([
-    ["the landing", () => import("@/app/lab/design-2/page")],
     ["How it works", () => import("@/app/lab/design-2/how-it-works/page")],
     ["the card", () => import("@/app/lab/design-2/card/page")],
     [

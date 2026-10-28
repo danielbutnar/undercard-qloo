@@ -10,42 +10,6 @@ test.describe("Design 2.0 prototype", () => {
   // The laptop the step's screenshots use: the card opens over the town there.
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test("the setlist lists every call and circles the first act's; pointing at an act makes the ticket and the circle its own", async ({
-    page,
-  }) => {
-    const response = await page.goto("/lab/design-2");
-    test.skip(response?.status() === 404, "the lab runs only under next dev");
-    const setlist = page.getByRole("region", {
-      name: "The AI agent's setlist",
-    });
-    await expect(setlist.locator(".d2-set > li")).toHaveCount(12);
-    await expect(setlist.locator(".is-circled")).toContainText(
-      "The Lantern Room",
-    );
-    await expect(
-      page.getByRole("article", { name: "Hollow Pines's ticket" }),
-    ).toBeVisible();
-    // The poster is today's: an opening act from the other venue.
-    await page.locator('.fs-poster article[aria-label="Owyhee Drift"]').hover();
-    await expect(
-      page.getByRole("article", { name: "Owyhee Drift's ticket" }),
-    ).toBeVisible();
-    await expect(setlist.locator(".is-circled")).toContainText(
-      "Fort Street Ballroom",
-    );
-    await expect(setlist.locator(".is-circled")).toContainText("Opening");
-    // Today's three panels below the fold are gone.
-    await expect(
-      page.getByRole("heading", { name: "Switch a venue off" }),
-    ).toHaveCount(0);
-    // The page ends on who decides, then one way on.
-    const end = page.getByRole("region", { name: "Who decides" });
-    await expect(end).toContainText("The buyer makes every call.");
-    await expect(
-      end.getByRole("link", { name: "Draft your own festival" }),
-    ).toBeVisible();
-  });
-
   test("How it works plays four scenes, and the venue's switch sends the act back down", async ({
     page,
   }) => {

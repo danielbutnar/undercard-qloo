@@ -70,7 +70,7 @@ describe("Watch's banner during a live run", () => {
       />,
     );
     fireEvent.click(
-      screen.getAllByRole("button", { name: "Run the agent live instead" })[0],
+      screen.getAllByRole("button", { name: "Play it live" })[0],
     );
     const bill = screen.getByRole("region", { name: "Undercard draft" });
     await waitFor(

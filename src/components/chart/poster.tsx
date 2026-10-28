@@ -164,6 +164,7 @@ function PosterAct({
   gone,
   dim,
   onOpen,
+  onPoint,
   printDelay,
 }: {
   row: ChartRowData & { act: Act };
@@ -173,6 +174,8 @@ function PosterAct({
   gone: boolean;
   dim: boolean;
   onOpen?: (act: Act) => void;
+  /** The act was pointed at or focused: the door check shows its ticket (WS12 item 1). */
+  onPoint?: (act: Act) => void;
   printDelay: number | null;
 }) {
   // Decided when the act mounts, so the acts already on the poster never print again.
@@ -191,6 +194,8 @@ function PosterAct({
     <article
       aria-label={row.name}
       data-act={row.act.entityId}
+      onPointerEnter={onPoint ? () => onPoint(row.act) : undefined}
+      onFocus={onPoint ? () => onPoint(row.act) : undefined}
       className={`poster-act ${row.hue !== null ? `venue-${row.hue}` : ""} ${open ? "is-open" : ""} ${gone ? "is-gone" : ""} ${kept ? "is-kept" : ""} ${dim ? "is-dim" : ""} ${print !== null ? "motion-safe:animate-print-in" : ""}`}
       style={
         print !== null ? { animationDelay: `${print.toFixed(2)}s` } : undefined
@@ -248,6 +253,7 @@ export function PosterBand({
   keeping = [],
   unavailable = [],
   onOpen,
+  onPoint,
   printing = null,
   column = 0,
   landed,
@@ -266,6 +272,8 @@ export function PosterBand({
   keeping?: readonly string[];
   unavailable?: readonly string[];
   onOpen?: (act: Act) => void;
+  /** An act pointed at or focused on the poster (WS12 item 1's door check). */
+  onPoint?: (act: Act) => void;
   printing?: Printing;
   /** The band's place, 0 or 1, so a replay's two bands print side by side. */
   column?: number;
@@ -348,6 +356,7 @@ export function PosterBand({
                   gone={unavailable.includes(act.entityId)}
                   dim={dimmed?.(act) ?? false}
                   onOpen={onOpen}
+                  onPoint={onPoint}
                   printDelay={
                     printing === null
                       ? null

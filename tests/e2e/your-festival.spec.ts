@@ -329,7 +329,7 @@ test.describe("Your festival's checked towns (M6k, M6m)", () => {
       ).toBeVisible();
       await expect(page.getByText(/^Replayed the build saved/)).toBeVisible();
       await expect(
-        page.getByRole("button", { name: "Run the agent live instead" }),
+        page.getByRole("button", { name: "Play it live" }),
       ).toBeVisible();
       expect(bodies[index]).toMatchObject({ fresh: false, replayOnly: true });
       expect(bodies[index].brief).toBeUndefined();

@@ -113,7 +113,7 @@ describe("The line under Watch on a saved town", () => {
       "Replays how the agent drafted Boise",
     );
     fireEvent.click(
-      screen.getAllByRole("button", { name: "Run the agent live instead" })[0],
+      screen.getAllByRole("button", { name: "Play it live" })[0],
     );
     fireEvent.click(await screen.findByRole("button", SKIP));
     await waitFor(() => expect(screen.getByRole("button", WATCH)).toBeTruthy());

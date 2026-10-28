@@ -11,7 +11,7 @@ import { formatAffinity } from "@/lib/format";
 import type { Act } from "@/lib/lineup";
 import { liftOf } from "@/lib/marks";
 import type { Placed } from "@/lib/venue-switch";
-import { ticketStamps } from "./words";
+import { ticketStamps } from "@/components/chart/setlist-words";
 
 const TIER = { mid: "Mid-size act", opener: "Opening act" } as const;
 const RANGE = { mid: "mid-size", opener: "opening" } as const;

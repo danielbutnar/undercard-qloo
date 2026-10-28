@@ -36,6 +36,7 @@ import {
   openBandLine,
   openPosterLine,
   regionCode,
+  KEY_NOTE,
   RULE_LINE,
   stampWords,
   TAGLINE_LEAD,
@@ -48,13 +49,15 @@ import {
   withoutNote,
   withoutSummary,
 } from "@/components/chart/poster-words";
-import { RuleKey } from "@/components/chart/rule-key";
 import {
   signName,
   TownScene,
   type SceneVenue,
 } from "@/components/chart/town-scene";
-import { VenueSwitch, type VenueLine } from "@/components/chart/venue-switch";
+import { PageEnd, Setlist } from "@/components/chart/setlist";
+import { marginNote, setlistLines } from "@/components/chart/setlist-words";
+import { DoorCheck } from "@/components/chart/ticket";
+import type { VenueLine } from "@/components/chart/venue-switch";
 import { WithoutQlooChecksLine } from "@/components/chart/with-without-line";
 import {
   AGENT_DECIDES,
@@ -67,6 +70,7 @@ import {
   SKIP,
   switchLine,
   venueShort,
+  VENUES_STAND_FOR,
   watchCallLine,
   watchLine,
   watchTicksLabel,
@@ -101,6 +105,7 @@ import type { Placed } from "@/lib/venue-switch";
 import type { YourBrief } from "@/lib/your-festival";
 import "./chart/chart.css";
 import "./chart/first-screen.css";
+import "./chart/backstage.css";
 
 type Mode = "qloo" | "llm";
 
@@ -133,6 +138,18 @@ const wideNow = () => window.matchMedia?.(WIDE)?.matches === true;
 /** Whether the screen is laid out wide; false on the server and in a narrow window. */
 function useWide(): boolean {
   return useSyncExternalStore(subscribeWide, wideNow, () => false);
+}
+
+/** A short laptop (WS8, WS12 item 1): Watch stands above the town, not over its corner. */
+const SHORT = "(min-width: 1100px) and (max-height: 760px)";
+function subscribeShort(change: () => void) {
+  const query = window.matchMedia?.(SHORT);
+  query?.addEventListener?.("change", change);
+  return () => query?.removeEventListener?.("change", change);
+}
+const shortNow = () => window.matchMedia?.(SHORT)?.matches === true;
+function useShort(): boolean {
+  return useSyncExternalStore(subscribeShort, shortNow, () => false);
 }
 
 /** The poster's With and Without Qloo tabs, each named for what it shows (label fix 3). */
@@ -533,6 +550,9 @@ export function FestivalScreen({
   const watch = useWatch(state);
   const llm = useLlmOnly(festival.id);
   const wide = useWide();
+  const short = useShort();
+  // The act the door check shows: the one last pointed at on the poster (WS12 item 1).
+  const [pointedId, setPointedId] = useState<string | null>(null);
   // The switch works from the saved build on screen, never a judge's own run (it isn't saved).
   // It follows a new build once the build has finished, so a live run's lineup is the one it
   // re-forms (on a preview, which saves nothing, the switch then says it isn't available).
@@ -958,6 +978,37 @@ export function FestivalScreen({
   const printedActs = bandRows.flatMap(({ rows }) =>
     rows.flatMap((row) => (row.act ? [row.act] : [])),
   );
+  // The setlist (WS12 item 1): the calls of the run on screen once one streams in, else the
+  // saved build's, with the AI agent's lines where it said them.
+  const streamed = state.calls.length > 0;
+  const setlistTrace: TraceCall[] = streamed
+    ? state.calls
+    : onFirst
+      ? (firstBill?.trace ?? [])
+      : [];
+  const setlist = setlistLines(setlistTrace, {
+    venues: allVenues,
+    bands: festival.feeBands,
+    noFanData: fanless,
+    notes: streamed ? state.notes : (firstBill?.notes ?? []),
+  });
+  // Each venue's colour as the poster sets it: grey (none) for a venue that lifted no act.
+  const liftingHues = new Map(
+    [...hues].filter(([id]) => savedLifted(id) > 0),
+  );
+  // The door check's act: the one last pointed at on the poster, else the poster's first act.
+  const ticketAct =
+    printedActs.find((act) => act.entityId === pointedId) ??
+    exampleAct(printedActs, placeOf) ??
+    printedActs[0] ??
+    null;
+  const ticketCall = ticketAct
+    ? (setlist.lines.find(
+        (line) =>
+          line.band === ticketAct.band &&
+          line.venue?.entityId === ticketAct.anchorVenue.entityId,
+      )?.n ?? null)
+    : null;
   const onVenues = allVenues
     .filter((venue) => !switcher.off.has(venue.entityId))
     .map((venue) => venue.name);
@@ -1199,6 +1250,11 @@ export function FestivalScreen({
         }}
         quiet={watching}
       />
+      {!custom && !watching && (
+        <p className="poster-key-note">
+          {KEY_NOTE} {VENUES_STAND_FOR}
+        </p>
+      )}
       {!allOpen && (
         <p className={`poster-rule ${watching ? "is-quiet" : ""}`}>
           {RULE_LINE}
@@ -1251,6 +1307,9 @@ export function FestivalScreen({
                 keeping={whatIf ? [] : state.keeping}
                 unavailable={whatIf ? [] : state.unavailable}
                 onOpen={watching ? undefined : openCard}
+                onPoint={
+                  watching ? undefined : (act) => setPointedId(act.entityId)
+                }
                 printing={printing}
                 column={column}
                 landed={landed}
@@ -1621,7 +1680,7 @@ export function FestivalScreen({
               reserve={
                 wide
                   ? {
-                      corner: { w: 420, h: 104 },
+                      ...(short ? {} : { corner: { w: 420, h: 104 } }),
                       ...(watching ? { top: 150 } : {}),
                       ...((cardInTown && openAct) || (venueCard && !openAct)
                         ? { right: 404 }
@@ -1636,39 +1695,47 @@ export function FestivalScreen({
 
         <div className="fs-below">
           {!thinTown && notice}
-          <div className="fs-panels">
-            {/* While Watch plays the switch steps aside: the lineup it counts is being re-drawn. */}
-            {!without && !custom && !watching && allVenues.length > 0 && (
-              <VenueSwitch
-                city={festival.city}
-                venues={venueLines.map((venue) => ({
-                  ...venue,
-                  noFanData: fanless.includes(venue.entityId),
-                }))}
-                off={switcher.off}
-                status={switcher.status}
-                onToggle={(id) => {
-                  setOpenId(null);
-                  switcher.toggle(id);
-                }}
-                onReset={switcher.reset}
-                filled={bookedActs.length}
-                slots={slots}
-                placesListed={placesListed}
-                editable={!watching && !busy && !without}
-              />
-            )}
-            {!without && <RuleKey bands={festival.feeBands} positioning />}
-            {!without && (
-              <TracePanel
-                state={state}
-                savedCalls={firstBill?.calls}
-                replay={!custom}
-                onBuild={runBuild}
-                button={false}
-              />
-            )}
-          </div>
+          {!without && (
+            <div className="fs-below-cols">
+              <Setlist
+                festival={festival}
+                createdAt={
+                  state.calls.length > 0
+                    ? state.build?.createdAt
+                    : firstBill?.build.createdAt
+                }
+                lines={setlist.lines}
+                closing={setlist.closing}
+                hues={liftingHues}
+                circled={ticketCall}
+                margin={ticketAct ? marginNote(ticketAct, placeOf[ticketAct.entityId]) : null}
+                onLive={
+                  !custom && !state.refusal && !busy
+                    ? () => runBuild({ fresh: true })
+                    : undefined
+                }
+              >
+                <TracePanel
+                  state={state}
+                  savedCalls={firstBill?.calls}
+                  replay={!custom}
+                  onBuild={runBuild}
+                  button={false}
+                  live={false}
+                />
+              </Setlist>
+              {ticketAct && (
+                <DoorCheck
+                  festival={festival}
+                  act={ticketAct}
+                  place={placeOf[ticketAct.entityId]}
+                  hue={liftingHues.get(ticketAct.anchorVenue.entityId) ?? null}
+                  image={images?.[ticketAct.entityId]}
+                />
+              )}
+            </div>
+          )}
+          {!custom && <PageEnd />}
         </div>
       </main>
     </div>

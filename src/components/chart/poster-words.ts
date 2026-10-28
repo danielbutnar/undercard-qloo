@@ -107,6 +107,10 @@ export const inkLabel = (venue: string, on: boolean, lifted: number) =>
     : `${venue}'s fans: off. Switch them on`;
 
 /** The poster's key under the venues: what the ↑ counts and which act takes a slot. */
+/** Under the poster's key, where the second venue switch's sentence went (WS12 item 1). */
+export const KEY_NOTE =
+  "Untick a venue: the lineup re-forms by the same rule, without that venue's fans.";
+
 export const RULE_LINE = `↑ = places it rose in Qloo's ranking with that venue's fans (${MIN_LIFT}+ to qualify); the strongest Qloo match takes each slot`;
 
 /** A band's head on the poster: its Qloo popularity range, the first band saying what it stands for. */

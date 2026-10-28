@@ -161,9 +161,9 @@ describe("Without Qloo", () => {
 
   it("says over the town that the model can't see its venues, with nothing of the AI agent's beside the picks", async () => {
     answered(syntheticVenueSwitch());
-    const VENUES = { name: "Boise venues whose fans shaped this lineup" };
+    const KEY = { name: "Venue fans used for this draft" };
     const toggles = () =>
-      within(screen.getByRole("region", VENUES)).getAllByRole(
+      within(screen.getByRole("group", KEY)).getAllByRole(
         "button",
       ) as HTMLButtonElement[];
     // With Qloo, once the saved build's venue results are in, every venue can be switched.
@@ -182,7 +182,13 @@ describe("Without Qloo", () => {
       ),
     ).toBeTruthy();
     // The model's picks stand alone: no venues, no Qloo calls, no rule, no credit to the agent.
-    expect(screen.queryByRole("region", VENUES)).toBeNull();
+    expect(screen.queryByRole("group", KEY)).toBeNull();
+    expect(
+      screen.queryByRole("region", { name: "The AI agent's setlist" }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("region", { name: "The door check" }),
+    ).toBeNull();
     expect(
       screen.queryByRole("complementary", { name: "Qloo calls" }),
     ).toBeNull();

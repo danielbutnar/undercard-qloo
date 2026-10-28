@@ -7,7 +7,7 @@ import { ordinal } from "@/components/chart/words";
 import type { FeeBand } from "@/lib/fee-bands";
 import type { Act } from "@/lib/lineup";
 import type { Placed } from "@/lib/venue-switch";
-import { ticketStamps } from "./words";
+import { ticketStamps } from "@/components/chart/setlist-words";
 
 const TIER = { mid: "Mid-size act", opener: "Opening act" } as const;
 

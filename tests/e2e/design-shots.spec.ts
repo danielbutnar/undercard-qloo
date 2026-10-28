@@ -228,7 +228,7 @@ const SCENES: {
         );
       });
       await page
-        .getByRole("button", { name: "Run the agent live instead" })
+        .getByRole("button", { name: "Play it live" })
         .click();
       await page
         .getByRole("button", { name: "Replay the saved build" })

@@ -32,7 +32,7 @@ export default async function Design2HowItWorks() {
     <div className="chart-app stage-bg fs d2 d2-hiw">
       <header className="topbar fs-top">
         <Link
-          href="/lab/design-2"
+          href="/"
           className="logo fs-word"
           aria-label="Undercard, back to Sagebrush Sound"
         >
@@ -42,7 +42,7 @@ export default async function Design2HowItWorks() {
           {TAGLINE_LEAD} {TAGLINE_QLOO}
         </p>
         <nav aria-label="Other screens" className="nav">
-          <Link href="/lab/design-2">Back to the lineup</Link>
+          <Link href="/">Back to the lineup</Link>
           <Link href="/your-festival">Your festival</Link>
         </nav>
       </header>

@@ -24,7 +24,7 @@ describe("the first screen", () => {
     render(
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
     );
-    expect(screen.getAllByRole("article")).toHaveLength(10);
+    expect(within(screen.getByRole("region", { name: "Undercard draft" })).getAllByRole("article")).toHaveLength(10);
     expect(screen.queryByText("Open slot")).toBeNull();
     // The draft, not the board of cards: Qloo's figures wait on an act's card.
     expect(draft()).toBeTruthy();
