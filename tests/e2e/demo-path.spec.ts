@@ -209,8 +209,8 @@ test.describe("demo path", () => {
       // Daniel's brief of 2026-10-22, item 1: the badge says what the venue's fans did, no more,
       // naming the venue in full on a laptop (a phone takes the row tab's label, item 5 of the
       // second batch).
-      const [, venue] = /^with (.+)'s fans$/.exec(
-        await opened.locator(".card-place small").last().innerText(),
+      const [, venue] = /^in Qloo's ranking with (.+)'s fans added$/.exec(
+        await opened.locator(".card-rank-with").innerText(),
       )!;
       await expect(
         opened

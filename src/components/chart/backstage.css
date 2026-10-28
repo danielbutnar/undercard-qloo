@@ -712,3 +712,67 @@
     font-size: 19px;
   }
 }
+
+/* ---------- the act card, finished (WS12 item 3) ---------- */
+/* Its rank beside its climb, as the poster prints them, and its popularity on its tier's scale. */
+.chart-app .card-rank {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 4px 10px;
+  margin-top: 4px;
+}
+.chart-app .card-rank-place {
+  font-family: var(--font-display);
+  font-size: 52px;
+  line-height: 0.9;
+}
+.chart-app .card-rank-climb {
+  padding: 3px 8px;
+  border: 3px solid var(--color-ink);
+  background: var(--venue);
+  color: var(--on-venue);
+  font-size: var(--text-name);
+  font-weight: 800;
+  line-height: 1;
+}
+.chart-app .card-rank-with {
+  font-size: var(--text-label);
+  font-weight: 800;
+  line-height: 1.2;
+}
+.chart-app .card-rank-from {
+  font-size: var(--text-label);
+  font-weight: 700;
+  color: var(--color-muted);
+}
+.chart-app .card-scale {
+  display: flex;
+  flex-basis: 100%;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: var(--text-label);
+  font-weight: 800;
+}
+.chart-app .card-scale-track {
+  position: relative;
+  flex: 1;
+  height: 10px;
+  border: 2px solid var(--color-ink);
+  background: var(--venue);
+}
+.chart-app .card-scale-dot {
+  position: absolute;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  min-width: 38px;
+  height: 28px;
+  padding: 0 4px;
+  border: 2px solid var(--color-ink);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: var(--text-label);
+  translate: -50% -50%;
+}
