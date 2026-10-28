@@ -117,7 +117,7 @@ describe("How it works as the director's cut of Watch (WS12 item 2)", () => {
     const tested = screen.getByRole("region", { name: "What was tested" });
     const stamps = within(tested).getAllByRole("listitem");
     expect(stamps[0].textContent).toContain(
-      "244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a matched music room abroad.",
+      "244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a music room abroad of similar Qloo popularity.",
     );
     const not = stamps.at(-1)!;
     expect(not.textContent).toMatch(/^Not shown/);

@@ -448,7 +448,7 @@ const TESTED = [
     id: "shown",
     verdict: "Shown",
     big: "244 of 290",
-    line: "244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a matched music room abroad.",
+    line: "244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a music room abroad of similar Qloo popularity.",
   },
   {
     id: "partly",
