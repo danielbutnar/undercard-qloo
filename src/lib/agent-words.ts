@@ -212,8 +212,9 @@ const climbWord = (places: number) =>
   places > 0 ? `↑${places}` : places < 0 ? `↓${-places}` : null;
 
 /**
- * The card's line on both climbs (WS13.3): with the town venue's fans, and with its matched
- * venue abroad's; null on a 1.0 act, which has no control.
+ * The card's line on both climbs (WS13.3): with the town venue's fans, and with its control's,
+ * worded as what it is (Daniel, 2026-10-28): a room in the control town with similar Qloo
+ * popularity, never "matched". Null on a 1.0 act, which has no control.
  */
 export function climbsLine(
   act: Pick<Act, "anchorVenue" | "localLift">,
@@ -222,22 +223,30 @@ export function climbsLine(
   const { venueClimb, controlClimb } = act.localLift;
   const own = `${climbWord(venueClimb) ?? "no climb"} with ${act.anchorVenue.name}'s fans`;
   const abroad = climbWord(controlClimb);
-  return `${own} · ${abroad ? `${abroad} with` : "no climb with"} a matched venue abroad`;
+  return `${own} · ${abroad ? `${abroad} with` : "no climb with"} a room in ${act.localLift.control.town} with similar Qloo popularity`;
 }
 
-/** A control's line in the Qloo calls list: whose venue abroad it is, or why it was skipped. */
+/**
+ * A control's line in the Qloo calls list: whose control it is, or why it was skipped, worded as
+ * what it is (Daniel, 2026-10-28): a room in the control town with similar Qloo popularity.
+ */
 export const controlCallLine = ({
   controlFor,
   noFanData,
+  town,
 }: {
   controlFor?: string;
   noFanData?: string;
-}) =>
-  noFanData
-    ? `Qloo had no fan data for ${noFanData}: the next closest room in popularity is read.`
+  /** The control town. */
+  town?: string;
+}) => {
+  const where = town ? `in ${town} ` : "";
+  return noFanData
+    ? `Qloo had no fan data for ${noFanData}: the next room ${where}with similar Qloo popularity is read.`
     : controlFor
-      ? `The matched venue abroad for ${controlFor}: the room closest in Qloo popularity.`
+      ? `The control for ${controlFor}: a room ${where}with similar Qloo popularity.`
       : null;
+};
 
 /**
  * The page's line when a failed Qloo call left venues unchecked (Daniel, 2026-10-28): the run

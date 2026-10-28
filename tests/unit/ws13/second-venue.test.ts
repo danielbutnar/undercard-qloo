@@ -164,6 +164,12 @@ describe("the second venue (Daniel, 2026-10-28, 13:25)", () => {
     const made = calls(events);
     expect(made).toHaveLength(4);
     expect(made.filter((call) => call.controlFor)).toHaveLength(2);
+    // Daniel, 17:10: the control is worded as what it is, never "matched".
+    for (const call of made.filter((entry) => entry.controlFor))
+      expect(call.summary).toMatch(
+        /and Aarhus Hall, a room in Aarhus with similar Qloo popularity, the control for (The Lantern Room|Fort Street Ballroom), minus the board$/,
+      );
+    for (const call of made) expect(call.summary).not.toMatch(/matched/i);
     const refill = events.find((event) => event.type === "refill");
     expect(refill?.type).toBe("refill");
     if (refill?.type === "refill") expectFresh(refill.act);
@@ -190,6 +196,13 @@ describe("the second venue (Daniel, 2026-10-28, 13:25)", () => {
     const made = calls(events);
     expect(made).toHaveLength(4);
     expect(made.length).toBeLessThanOrEqual(REDRAFT_CALL_CAP);
+    // Daniel, 17:10: the control is worded as what it is, never "matched".
+    expect(made.filter((call) => call.controlFor)).toHaveLength(2);
+    for (const call of made.filter((entry) => entry.controlFor))
+      expect(call.summary).toMatch(
+        /^Redraft: Mid-band artists for the headliners and Aarhus Hall, a room in Aarhus with similar Qloo popularity, the control for (The Lantern Room|Fort Street Ballroom), minus the board$/,
+      );
+    for (const call of made) expect(call.summary).not.toMatch(/matched/i);
     const redraft = events.find((event) => event.type === "redraft");
     expect(redraft?.type).toBe("redraft");
     if (redraft?.type === "redraft") {

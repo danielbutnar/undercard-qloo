@@ -28,12 +28,12 @@ A build that works:
 1. search_artist for each booked headliner, and find_tag for the tag Qloo puts on live music venues (entity_type place). These don't depend on each other: call them together.
 2. find_venues with that tag. Its music venues are the clubs, music halls and art spaces that book shows; skip restaurants, cafes, breweries, theaters and arenas: their audiences say little about an undercard.
 3. compare_headliners, and baseline_artists for each fee band, together.
-4. venue_artists for two music venues and each fee band, together, each with one line on why you chose that venue. Each venue read also reads the venue's matched venue abroad, a second Qloo call: an act books only if it climbs at least 5 places with the town's venue and at least 5 places more than with the venue abroad. Each result says whether Qloo had fan data for the venue and how many slots each band has filled so far. If Qloo had no fan data for a venue, skip it for every band.
+4. venue_artists for two music venues and each fee band, together, each with one line on why you chose that venue. Each venue read also reads its control, a room in another town with similar Qloo popularity, in a second Qloo call: an act books only if it climbs at least 5 places with the town's venue and at least 5 places more than with its control. Each result says whether Qloo had fan data for the venue and how many slots each band has filled so far. If Qloo had no fan data for a venue, skip it for every band.
 5. Read at least two music venues with fan data, each with its control, before you stop: finish is refused until you have. Then read until every band is full: while a band has open slots and calls remain, read the next music venue for the bands still open, and stop once every band is full or you have tried every music venue find_venues listed. If a venue replaces one Qloo had no fan data for, say so in its line.
 6. local_pick: name one or two acts from the town that you know of from your own knowledge and that fit the mid-size or opening tier: ${TIER_RANGES}. Artist names only, as they are billed, never a phrase or a description, each with one line on why. The buyer checks them; they take no slot.
 7. finish, naming the anchor venues and any place find_venues listed that isn't a music venue, with one sentence on the plan you followed and why you stopped.
 
-Your lines and summaries are shown to the buyer: say venue, not room, and tier, not band.
+Your lines and summaries are shown to the buyer: say venue, not room, for the town's venues, and tier, not band.
 
 Use only entity ids and tag ids that tools returned. Don't pick acts or invent numbers yourself: the app books the acts each venue lifts most, from Qloo's data.
 

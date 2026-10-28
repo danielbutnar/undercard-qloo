@@ -372,7 +372,7 @@ export function createToolbox({
     const label = tagNames.get(tag) ?? tag;
     // As find_venues reads a town (M6j): the plain name, then "town, region" when it misses.
     controlRooms ??= (async () => {
-      const summary = `${town.city} places tagged ${label}, to match each venue with a room abroad`;
+      const summary = `${town.city} places tagged ${label}, to find each venue's control: a room in ${town.city} with similar Qloo popularity`;
       const plain = await callQloo(
         "control_venues",
         "/v2/insights",
@@ -436,7 +436,7 @@ export function createToolbox({
             callQloo(
               "control_artists",
               "/v2/insights",
-              `${bandLabel(band)}-band artists for the headliners and ${room.name}, a room in ${controlTown.city} matched to ${venue.name}${ageNote}`,
+              `${bandLabel(band)}-band artists for the headliners and ${room.name}, a room in ${controlTown.city} with similar Qloo popularity, the control for ${venue.name}${ageNote}`,
               () =>
                 qloo.scoredArtists({
                   signalEntityIds: [...headliners, room.entityId],
@@ -905,15 +905,16 @@ export function createToolbox({
         fan_data: true,
         count: artists.length,
         acts_lifted_5_or_more_places: lifted.length,
-        matched_control: control
-          ? `${control.venue.name} (${control.venue.town})`
+        // Daniel, 2026-10-28: the control is worded as what it is, never "matched".
+        control: control
+          ? `${control.venue.name}, a room in ${control.venue.town} with similar Qloo popularity`
           : null,
         acts_with_local_lift_5_or_more: local.length,
         top_lifted: local.slice(0, 6).map((entry) => entry.artist.name),
         ...(control
           ? {}
           : {
-              note: `No room in ${controlTown?.city ?? "the control town"} had fan data to match ${venue.name} against, so its acts can't be booked: read the next music venue.`,
+              note: `No room in ${controlTown?.city ?? "the control town"} with similar Qloo popularity had fan data to serve as ${venue.name}'s control, so its acts can't be booked: read the next music venue.`,
             }),
         ...progress(),
       };

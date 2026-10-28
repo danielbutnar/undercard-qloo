@@ -213,7 +213,7 @@ export async function handleRefill({
         Awaited<ReturnType<typeof controlRanking>>["run"] | undefined;
       if (control) {
         const m = ++calls;
-        const controlSummary = `Refill${why}: ${band.label}-band artists for the headliners and ${control.name}, a room in ${control.town} matched to ${venue.name}, minus the board`;
+        const controlSummary = `Refill${why}: ${band.label}-band artists for the headliners and ${control.name}, a room in ${control.town} with similar Qloo popularity, the control for ${venue.name}, minus the board`;
         names.set(control.entityId, control.name);
         const read = await controlRanking(
           reader,

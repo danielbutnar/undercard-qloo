@@ -25,7 +25,7 @@ export const TraceCallSchema = z.object({
   noFanData: z.string().optional(),
   /** The planner's own line on why it made this call (WS13.7): a venue read's reason. */
   why: z.string().optional(),
-  /** On a control's read (WS13.3): the town venue it is the matched venue abroad for. */
+  /** On a control's read (WS13.3): the town venue it is the control for. */
   controlFor: z.string().optional(),
   /**
    * What a call that failed twice left unchecked (Daniel, 2026-10-28): a venue's name, or a tier's
