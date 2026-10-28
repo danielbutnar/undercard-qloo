@@ -334,11 +334,13 @@
   color: var(--color-muted);
 }
 
-/* A card open over a narrow laptop's town would sit on Watch's corner: Watch waits behind
-   the town until the card closes. From 1400 px the town is wide enough for both. */
-@media (min-width: 1100px) and (max-width: 1399px) {
-  .chart-app.fs .fs-grid.has-panel .fs-watch {
-    visibility: hidden;
+/* WS12 item 4 (WS8's item 18): a card open over a narrow laptop's town stops above Watch's
+   corner (Watch's 83 px and its 15 px margin, with room to spare), so Watch stays reachable at
+   every width; from 1400 px the town is wide enough for both side by side. On a short laptop
+   Watch stands above the town, so there the card keeps its height. */
+@media (min-width: 1100px) and (max-width: 1399px) and (min-height: 761px) {
+  .chart-app.fs .fs-grid.has-panel .scene-panel {
+    max-height: calc(100% - 130px);
   }
 }
 
