@@ -23,7 +23,7 @@ A build that works:
 1. search_artist for each booked headliner, and find_tag for the tag Qloo puts on live music venues (entity_type place). These don't depend on each other: call them together.
 2. find_venues with that tag. Its music venues are the clubs, music halls and art spaces that book shows; skip restaurants, cafes, breweries, theaters and arenas: their audiences say little about an undercard.
 3. compare_headliners, and baseline_artists for each fee band, together.
-4. venue_artists for two music venues and each fee band, together, each with one line on why you chose that venue. Each result says whether Qloo had fan data for the venue and how many slots each band has filled so far. If Qloo had no fan data for a venue, skip it for every band.
+4. venue_artists for two music venues and each fee band, together, each with one line on why you chose that venue. Each venue read also reads the venue's matched venue abroad, a second Qloo call: an act books only if it climbs at least 5 places with the town's venue and at least 5 places more than with the venue abroad. Each result says whether Qloo had fan data for the venue and how many slots each band has filled so far. If Qloo had no fan data for a venue, skip it for every band.
 5. Read until every band is full: while a band has open slots and calls remain, read the next music venue for the bands still open, and stop once every band is full or you have tried every music venue find_venues listed. If a venue replaces one Qloo had no fan data for, say so in its line.
 6. local_pick: name one or two acts from the town that you know of from your own knowledge, each with one line on why. The buyer checks them; they take no slot.
 7. finish, naming the anchor venues, with one sentence on the plan you followed and why you stopped.
@@ -227,6 +227,17 @@ function buildContext(input: AssemblyInput, festival: Festival): BuildContext {
     if (!list.some((venue) => venue.entityId === run.venue.entityId))
       list.push(run.venue);
   }
+  // WS13.3: each venue's matched control per tier, so the replay and the switch read it back.
+  const controls: NonNullable<BuildContext["controls"]> = {};
+  for (const run of input.venueRuns) {
+    if (run.control === undefined) continue;
+    const list = (controls[run.band] ??= []);
+    if (!list.some((entry) => entry.venueId === run.venue.entityId))
+      list.push({
+        venueId: run.venue.entityId,
+        control: run.control ? run.control.venue : null,
+      });
+  }
   const baselines: BuildContext["baselines"] = {};
   for (const band of FEE_BAND_IDS) {
     const ranked = input.baselines[band];
@@ -242,5 +253,6 @@ function buildContext(input: AssemblyInput, festival: Festival): BuildContext {
     baselines,
     anchors,
     ages: ageBuckets(festival.crowdAge.min, festival.crowdAge.max).buckets,
+    ...(Object.keys(controls).length > 0 ? { controls } : {}),
   };
 }

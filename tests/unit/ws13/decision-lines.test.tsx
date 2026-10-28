@@ -107,7 +107,8 @@ describe("the planner writes a line for every choice (WS13.7)", () => {
       venue_id: LANTERN,
       why: "The Lantern Room books touring indie acts.",
     });
-    expect(calls().at(-1)!.why).toBe(
+    // The read's own call; its matched control abroad follows it (WS13.3).
+    expect(calls().find((call) => call.tool === "venue_artists")!.why).toBe(
       "The Lantern Room books touring indie acts.",
     );
   });

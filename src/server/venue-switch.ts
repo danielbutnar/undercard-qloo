@@ -70,22 +70,42 @@ export async function assemblyFromSaved(
   let venueRuns: VenueRun[];
   try {
     venueRuns = await Promise.all(
-      runs.map(async ({ band, venue }) => ({
-        venue,
-        band: band.id,
-        artists: await savedRanking(
+      runs.map(async ({ band, venue }) => {
+        const query = (signal: string) => ({
+          signalEntityIds: [...pair, signal],
+          popularityMin: band.minPopularity,
+          popularityMax: band.maxPopularity,
+          excludeEntityIds: pair,
+          ages: context.ages ?? [],
+        });
+        const artists = await savedRanking(
           saved,
           reader,
-          {
-            signalEntityIds: [...pair, venue.entityId],
-            popularityMin: band.minPopularity,
-            popularityMax: band.maxPopularity,
-            excludeEntityIds: pair,
-            ages: context.ages ?? [],
-          },
+          query(venue.entityId),
           true,
-        ),
-      })),
+        );
+        // WS13.3: a 2.0 run's matched control, read back from the build's own prefix.
+        const matched = context.controls?.[band.id]?.find(
+          (entry) => entry.venueId === venue.entityId,
+        );
+        if (!matched) return { venue, band: band.id, artists };
+        return {
+          venue,
+          band: band.id,
+          artists,
+          control: matched.control
+            ? {
+                venue: matched.control,
+                artists: await savedRanking(
+                  saved,
+                  reader,
+                  query(matched.control.entityId),
+                  true,
+                ),
+              }
+            : null,
+        };
+      }),
     );
   } catch (error) {
     if (error instanceof QlooCacheMiss) return null;

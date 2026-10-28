@@ -126,9 +126,10 @@ describe("runUndercardAgent", () => {
     const { model } = scriptedModel(PLAN);
     const { calls, lineup, error, events } = await build(model);
     expect(error).toBeUndefined();
-    // The plan's 11 calls, then Qloo's location signal for each tier's acts (WS13.4).
+    // The plan's 11 calls, the control town's venues and the matched control's two rankings
+    // (WS13.3), then Qloo's location signal for each tier's acts (WS13.4).
     expect(calls.map((call) => call.n)).toEqual([
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
     ]);
     const acts = LineupSchema.parse(lineup).acts;
     expect(acts).toHaveLength(10);
@@ -139,7 +140,7 @@ describe("runUndercardAgent", () => {
       expect(act.reason).toContain(act.anchorVenue.name);
       expect(act.sharedTags).toHaveLength(2);
     }
-    expect(events.at(-1)).toMatchObject({ type: "done", calls: 15 });
+    expect(events.at(-1)).toMatchObject({ type: "done", calls: 18 });
   });
 
   it("gives the model the festival brief and the Qloo tools, then every tool result in one message", async () => {

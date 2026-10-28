@@ -73,7 +73,7 @@ describe("venue_artists passes Qloo's fan data to the planner (WS13.1)", () => {
     expect(calls().at(-1)!.noFanData).toBe("The Lantern Room");
   });
 
-  it("also knows when a ranking is the headliners' own, score for score, with no warning (evidence 35)", async () => {
+  it("also knows when a ranking is the headliners' own, act for act, with no warning (section 37's reading 2)", async () => {
     // The invented diner's answer is the headliners-only ranking with no warning.
     const { toolbox, calls } = await opened();
     const result = resultOf(

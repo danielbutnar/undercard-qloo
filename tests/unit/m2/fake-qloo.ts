@@ -110,6 +110,33 @@ export const NO_FAN_DATA_VENUE = {
 export const LARKSPUR = "Larkspur";
 const LARKSPUR_VENUES = [VENUES[0], NO_FAN_DATA_VENUE, VENUES[1], VENUES[2]];
 
+/**
+ * WS13.3: the music rooms of the synthetic festivals' control towns (section 37's rule). Boise's
+ * is Bucharest; Larkspur's, a judge's own town in Idaho, is Aarhus, the first checked town
+ * abroad. The town's venues sit at popularity 0.7. In Bucharest, Strada Hall is closest and moves
+ * almost nothing; in Aarhus, Aarhus Club ties with Aarhus Hall and comes first by name, but Qloo
+ * has no fan data for it, so Aarhus Hall is matched, and it lifts most acts 10 places.
+ */
+export const CONTROL_ROOMS: Record<
+  string,
+  readonly { n: number; name: string; popularity: number; noFanData?: true }[]
+> = {
+  Bucharest: [
+    { n: 303, name: "Rahova Club", popularity: 0.3 },
+    { n: 301, name: "Strada Hall", popularity: 0.69 },
+  ],
+  Aarhus: [
+    { n: 401, name: "Aarhus Hall", popularity: 0.69 },
+    { n: 402, name: "Aarhus Club", popularity: 0.71, noFanData: true },
+  ],
+};
+const UNSCORED = new Set(
+  Object.values(CONTROL_ROOMS)
+    .flat()
+    .filter((room) => room.noFanData)
+    .map((room) => room.n),
+);
+
 const BAND_SPECS = {
   mid: { min: 0.8, span: 0.12, base: 1000, label: "Mid" },
   opener: { min: 0.55, span: 0.24, base: 2000, label: "Opener" },
@@ -147,6 +174,11 @@ function baselineFor(band: keyof typeof BAND_SPECS) {
 function venueOrder(venueN: number, ranks: number[]) {
   if (venueN === 201) return [...ranks].reverse();
   if (venueN === 202) return [...ranks.slice(20), ...ranks.slice(0, 20)];
+  // The controls (WS13.3): Strada Hall swaps the first two; Rahova Club reverses the list;
+  // Aarhus Hall lifts every act from the 11th down by 10 places.
+  if (venueN === 301) return [ranks[1], ranks[0], ...ranks.slice(2)];
+  if (venueN === 303) return [...ranks].reverse();
+  if (venueN === 401) return [...ranks.slice(10), ...ranks.slice(0, 10)];
   return ranks;
 }
 
@@ -193,6 +225,23 @@ export function syntheticQloo(url: URL): unknown {
     url.pathname === "/v2/insights" &&
     p["filter.type"] === "urn:entity:place"
   ) {
+    const control = CONTROL_ROOMS[p["filter.location.query"] ?? ""];
+    if (control)
+      return insightsBody(
+        control.map((room) => ({
+          name: room.name,
+          entity_id: syntheticId(room.n),
+          types: ["urn:entity:place"],
+          popularity: room.popularity,
+          tags: [
+            {
+              id: "urn:tag:category:place:live_music_venue",
+              name: "Live music venue",
+              type: "urn:tag:category:place",
+            },
+          ],
+        })),
+      );
     const listed =
       p["filter.location.query"] === LARKSPUR ? LARKSPUR_VENUES : VENUES;
     return insightsBody(
@@ -249,13 +298,13 @@ export function syntheticQloo(url: URL): unknown {
       ),
     );
     // Qloo leaves a venue it has no fan data for out of the signal, and says so.
-    return venueN === NO_FAN_DATA_VENUE.n
+    return venueN === NO_FAN_DATA_VENUE.n || UNSCORED.has(venueN ?? 0)
       ? {
           ...body,
           warnings: [
             {
               type: "not_found",
-              "signal.interests.entities": [syntheticId(NO_FAN_DATA_VENUE.n)],
+              "signal.interests.entities": [syntheticId(venueN!)],
             },
           ],
         }

@@ -25,6 +25,8 @@ export const TraceCallSchema = z.object({
   noFanData: z.string().optional(),
   /** The planner's own line on why it made this call (WS13.7): a venue read's reason. */
   why: z.string().optional(),
+  /** On a control's read (WS13.3): the town venue it is the matched venue abroad for. */
+  controlFor: z.string().optional(),
 });
 
 /** The events POST /api/undercard streams, one JSON object per line. */

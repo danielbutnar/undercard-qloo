@@ -5,7 +5,7 @@ import {
   formatPopularity,
   formatPopularityRange,
 } from "./format";
-import type { LocationReading } from "./lineup";
+import type { Act, LocationReading } from "./lineup";
 import type { LocalPick } from "./local-pick";
 
 /*
@@ -161,3 +161,34 @@ export const runItLiveSub = (city: string) =>
 /** Once a live run ends: its time and its Qloo calls. */
 export const liveRunFacts = ({ calls, ms }: { calls: number; ms: number }) =>
   `This live run took ${(ms / 1000).toFixed(1)} s and ${calls} Qloo ${calls === 1 ? "call" : "calls"}.`;
+
+const climbWord = (places: number) =>
+  places > 0 ? `↑${places}` : places < 0 ? `↓${-places}` : null;
+
+/**
+ * The card's line on both climbs (WS13.3): with the town venue's fans, and with its matched
+ * venue abroad's; null on a 1.0 act, which has no control.
+ */
+export function climbsLine(
+  act: Pick<Act, "anchorVenue" | "localLift">,
+): string | null {
+  if (!act.localLift) return null;
+  const { venueClimb, controlClimb } = act.localLift;
+  const own = `${climbWord(venueClimb) ?? "no climb"} with ${act.anchorVenue.name}'s fans`;
+  const abroad = climbWord(controlClimb);
+  return `${own} · ${abroad ? `${abroad} with` : "no climb with"} a matched venue abroad`;
+}
+
+/** A control's line in the Qloo calls list: whose venue abroad it is, or why it was skipped. */
+export const controlCallLine = ({
+  controlFor,
+  noFanData,
+}: {
+  controlFor?: string;
+  noFanData?: string;
+}) =>
+  noFanData
+    ? `Qloo had no fan data for ${noFanData}: the next closest room in popularity is read.`
+    : controlFor
+      ? `The matched venue abroad for ${controlFor}: the room closest in Qloo popularity.`
+      : null;

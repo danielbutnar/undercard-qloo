@@ -16,8 +16,9 @@ describe("saved builds", () => {
     expect(events[0]).toMatchObject({ type: "build", replayed: false });
     const saved = await server.store.latest(SAGEBRUSH_SOUND.id);
     expect(saved?.lineup.acts).toHaveLength(10);
-    // The plan's 11 calls, then Qloo's location signal for each tier's acts (WS13.4).
-    expect(saved?.trace).toHaveLength(15);
+    // The plan's 11 calls, the control town's venues and the matched control's two rankings
+    // (WS13.3), then Qloo's location signal for each tier's acts (WS13.4).
+    expect(saved?.trace).toHaveLength(18);
     expect(saved?.context.headliners.map((h) => h.name)).toEqual([
       "Khruangbin",
       "Japanese Breakfast",
@@ -45,10 +46,10 @@ describe("saved builds", () => {
     const calls = replay.flatMap((event) =>
       event.type === "call" ? [event.call] : [],
     );
-    expect(calls).toHaveLength(15);
+    expect(calls).toHaveLength(18);
     expect(calls.every((call) => call.cached)).toBe(true);
     expect(acts(replay)).toEqual(acts(first));
-    expect(replay.at(-1)).toMatchObject({ type: "done", calls: 15 });
+    expect(replay.at(-1)).toMatchObject({ type: "done", calls: 18 });
   });
 
   it("runs the agent again when a fresh build is asked for", async () => {

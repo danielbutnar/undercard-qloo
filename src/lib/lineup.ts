@@ -40,6 +40,21 @@ export const ActSchema = z.object({
    * without. Only where Qloo answered it both ways; absent on 1.0 builds.
    */
   location: LocationReadingSchema.optional(),
+  /**
+   * Its climb with the town's venue and with that venue's matched control abroad (WS13.3); its
+   * local lift is the difference, which the rule needs at 5 places or more. Absent on 1.0 builds.
+   */
+  localLift: z
+    .object({
+      venueClimb: z.number().int(),
+      controlClimb: z.number().int(),
+      control: z.object({
+        entityId: z.string().min(1),
+        name: z.string().min(1),
+        town: z.string().min(1),
+      }),
+    })
+    .optional(),
 });
 
 export const LineupSchema = z.object({

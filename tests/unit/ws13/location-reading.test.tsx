@@ -132,12 +132,14 @@ describe("Qloo's location signal, a second reading (WS13.4)", () => {
     ];
     const located = (calls: { tool: string }[]) =>
       calls.filter((call) => call.tool === "location_signal").length;
-    // 26 used: the mid-size tier's two calls fit, the opening tier's don't.
-    const two = await runAgent(scriptedModel(spending(17)).model);
+    // The opening's 7, the searches, then 7 for the room: its two reads, the control town's
+    // venues, and its matched controls (Aarhus Club, without fan data, then Aarhus Hall) for
+    // both tiers (WS13.3). 26 used: the mid-size tier's two calls fit, the opening tier's don't.
+    const two = await runAgent(scriptedModel(spending(12)).model);
     expect(located(two.calls)).toBe(2);
     expect(two.calls).toHaveLength(QLOO_CALL_CAP);
     // 27 used: neither tier's pair fits.
-    const none = await runAgent(scriptedModel(spending(18)).model);
+    const none = await runAgent(scriptedModel(spending(13)).model);
     expect(located(none.calls)).toBe(0);
     expect(none.calls).toHaveLength(QLOO_CALL_CAP - 1);
   });

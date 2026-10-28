@@ -117,8 +117,14 @@ describe("the trace's last line says why the agent stopped (WS13.2)", () => {
       [read("mid", LANTERN), read("opener", LANTERN)],
       finishBecause([LANTERN], "every_band_full"),
     ]);
-    const { result, events } = await runAgent(model);
+    const { result, events, calls } = await runAgent(model);
     expect(result.complete).toBe(true);
+    // Every call before the second reading of Qloo's location signal (WS13.4): the reads, the
+    // control town's venues and the matched controls (WS13.3).
+    const reading = calls.filter((call) => call.tool !== "location_signal");
+    expect(
+      reading.filter((call) => call.tool === "control_artists").length,
+    ).toBe(4);
     const stopped = events.filter((event) => event.type === "stopped");
     expect(stopped).toEqual([
       {
@@ -126,7 +132,7 @@ describe("the trace's last line says why the agent stopped (WS13.2)", () => {
         reason: "full",
         text: stopLine({
           reason: "full",
-          calls: 11,
+          calls: reading.length,
           cap: QLOO_CALL_CAP,
           city: LARKSPUR_FESTIVAL.city,
           open: { mid: 0, opener: 0 },

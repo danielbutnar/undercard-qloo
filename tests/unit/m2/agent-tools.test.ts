@@ -98,13 +98,20 @@ describe("agent tools: query parameters", () => {
   });
 
   it("venue_artists adds the anchor venue to the signal, never a location parameter", async () => {
-    const { toolbox, last } = setup();
+    const { toolbox, requests } = setup();
     await resolveHeadlinersAndVenues(toolbox);
     await toolbox.run("venue_artists", {
       band: "opener",
       venue_id: syntheticId(201),
     });
-    const sent = params(last().url);
+    // The venue's own read; its matched control abroad follows it (WS13.3).
+    const sent = params(
+      requests.find(({ url }) =>
+        url.searchParams
+          .get("signal.interests.entities")
+          ?.endsWith(syntheticId(201)),
+      )!.url,
+    );
     expect(sent).toEqual({
       "filter.type": "urn:entity:artist",
       "signal.interests.entities": `${syntheticId(1)},${syntheticId(2)},${syntheticId(201)}`,
@@ -151,7 +158,13 @@ describe("agent tools: guards and trace", () => {
     const calls = events.flatMap((event) =>
       event.type === "call" ? [event.call] : [],
     );
-    expect(calls.map((call) => call.n)).toEqual([1, 2, 3, 4]);
+    // The venue's read, then its matched control abroad: the control town's venues and the
+    // closest room's ranking (WS13.3).
+    expect(calls.map((call) => call.n)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(calls.slice(4).map((call) => call.tool)).toEqual([
+      "control_venues",
+      "control_artists",
+    ]);
     const last = calls[3];
     expect(last).toMatchObject({
       endpoint: "/v2/insights",

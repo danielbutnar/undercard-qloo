@@ -36,6 +36,20 @@ export const BuildContextSchema = z.object({
   /** The Qloo age buckets the build's artist calls sent; a refill sends the same. Optional:
    * builds saved before 2026-10-17 sent none. */
   ages: z.array(z.string()).optional(),
+  /**
+   * Per band, each venue's matched control abroad (WS13.3), null where no room had fan data; the
+   * replay and the venue switch read each control's ranking back. Absent on 1.0 builds.
+   */
+  controls: perBand(
+    z.array(
+      z.object({
+        venueId: z.string(),
+        control: z
+          .object({ entityId: z.string(), name: z.string(), town: z.string() })
+          .nullable(),
+      }),
+    ),
+  ).optional(),
 });
 
 export const SavedBuildSchema = z.object({

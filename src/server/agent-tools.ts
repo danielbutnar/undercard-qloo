@@ -5,12 +5,19 @@ import {
   assembleLineup,
   headlinerTagWeights,
   liftsOver,
+  LOCAL_LIFT_BAR,
   MIN_LIFT,
   type AssemblyInput,
+  type ControlRef,
 } from "@/lib/assemble-lineup";
 import { ageBuckets } from "@/lib/ages";
 import type { BuildEvent, TraceCall } from "@/lib/build-events";
-import { rankingUnchanged } from "@/lib/fan-data";
+import {
+  controlCandidates,
+  localLift,
+  noFanData as fanless,
+} from "@/lib/control-venue";
+import { controlTownFor } from "@/lib/control-town";
 import { QLOO_CALL_CAP } from "@/lib/agent-limits";
 import { FEE_BAND_IDS, type FeeBandId } from "@/lib/fee-bands";
 import { roomKind } from "@/lib/place-kinds";
@@ -60,6 +67,11 @@ export interface AgentState {
     venue: QlooEntity & { kind?: string };
     band: FeeBandId;
     artists: QlooEntity[];
+    /**
+     * Its matched control abroad and the control's ranking for the tier (WS13.3); null when no
+     * room in the control town had fan data. Absent on a venue Qloo had no fan data for.
+     */
+    control?: { venue: ControlRef; artists: QlooEntity[] } | null;
   }[];
   /** Venues Qloo had no fan data for (WS13.1), by entity id: never read again. */
   noFanData: Set<string>;
@@ -254,7 +266,7 @@ export function assemblyOf(
       .filter(({ tag }) => isGenreTag(tag.type))
       .map(({ tag, score }) => ({ name: tag.name, score })),
     baselines: state.baselines,
-    venueRuns: state.venueRuns.map(({ venue, band, artists }) => ({
+    venueRuns: state.venueRuns.map(({ venue, band, artists, control }) => ({
       venue: {
         entityId: venue.entityId,
         name: venue.name,
@@ -262,6 +274,7 @@ export function assemblyOf(
       },
       band,
       artists,
+      ...(control !== undefined ? { control } : {}),
     })),
   };
 }
@@ -301,6 +314,122 @@ export function createToolbox({
 
   const bandLabel = (band: FeeBandId) =>
     festival.feeBands.find((entry) => entry.id === band)?.label ?? band;
+
+  // WS13.3: the control town (section 37's rule) and its rooms, listed once when first needed;
+  // the rooms Qloo had no fan data for; each room's ranking per tier, read once.
+  const controlTown = controlTownFor(festival);
+  let venueTag: string | null = null;
+  let controlRooms: Promise<QlooEntity[]> | null = null;
+  const controlsWithout = new Set<string>();
+  const controlRankings = new Map<string, Promise<ScoredArtists>>();
+
+  function roomsAbroad(): Promise<QlooEntity[]> {
+    if (!controlTown || !venueTag) return Promise.resolve([]);
+    const tag = venueTag;
+    const town = controlTown;
+    const label = tagNames.get(tag) ?? tag;
+    // As find_venues reads a town (M6j): the plain name, then "town, region" when it misses.
+    controlRooms ??= (async () => {
+      const summary = `${town.city} places tagged ${label}, to match each venue with a room abroad`;
+      const plain = await callQloo(
+        "control_venues",
+        "/v2/insights",
+        summary,
+        () => qloo.places({ locationQuery: town.city, tagId: tag }),
+      );
+      if (!needsFullName(plain, town.region)) return plain;
+      const fullName = `${town.city}, ${town.region}`;
+      const full = await callQloo(
+        "control_venues",
+        "/v2/insights",
+        `${summary}, asked again as “${fullName}”`,
+        () => qloo.places({ locationQuery: fullName, tagId: tag }),
+      );
+      return placesInRegion([plain, full], town.region).places;
+    })();
+    return controlRooms;
+  }
+
+  /**
+   * The venue's matched control for a tier (WS13.3, Daniel's rule): the control town's room
+   * closest in Qloo popularity, ties by name, skipping a room Qloo has no fan data for (its
+   * warning, or a ranking that is the headliners' own); null when none has fan data, or the
+   * calls run out. Each room's ranking for a tier is read once, whichever venue asks for it.
+   */
+  async function matchedControl(
+    venue: QlooEntity,
+    band: FeeBandId,
+    headliners: string[],
+  ): Promise<{ venue: ControlRef; artists: QlooEntity[] } | null> {
+    if (!controlTown) return null;
+    let rooms: QlooEntity[];
+    try {
+      rooms = await roomsAbroad();
+    } catch {
+      return null;
+    }
+    const range = festival.feeBands.find((entry) => entry.id === band)!;
+    const baseline = state.baselines[band];
+    for (const room of controlCandidates(rooms, venue.popularity)) {
+      if (controlsWithout.has(room.entityId)) continue;
+      const key = `${room.entityId}|${band}`;
+      let answer: ScoredArtists;
+      try {
+        if (!controlRankings.has(key))
+          controlRankings.set(
+            key,
+            callQloo(
+              "control_artists",
+              "/v2/insights",
+              `${bandLabel(band)}-band artists for the headliners and ${room.name}, a room in ${controlTown.city} matched to ${venue.name}${ageNote}`,
+              () =>
+                qloo.scoredArtists({
+                  signalEntityIds: [...headliners, room.entityId],
+                  popularityMin: range.minPopularity,
+                  popularityMax: range.maxPopularity,
+                  excludeEntityIds: headliners,
+                  ages: crowd.buckets,
+                }),
+              undefined,
+              (data) => ({
+                controlFor: venue.name,
+                ...(fanless({
+                  warned: data.unscored.includes(room.entityId),
+                  ranking: data.entities,
+                  without: baseline ?? [],
+                })
+                  ? { noFanData: room.name }
+                  : {}),
+              }),
+            ),
+          );
+        answer = await controlRankings.get(key)!;
+      } catch {
+        // The cap is spent or the call failed: no control, so this run books nothing.
+        return null;
+      }
+      if (
+        fanless({
+          warned: answer.unscored.includes(room.entityId),
+          ranking: answer.entities,
+          without: baseline ?? [],
+        })
+      ) {
+        controlsWithout.add(room.entityId);
+        continue;
+      }
+      names.set(room.entityId, room.name);
+      return {
+        venue: {
+          entityId: room.entityId,
+          name: room.name,
+          town: controlTown.city,
+        },
+        artists: answer.entities,
+      };
+    }
+    return null;
+  }
 
   // WS13.2: how full each tier is by the rule, so the planner reads until every one is.
   function progress() {
@@ -446,6 +575,7 @@ export function createToolbox({
     },
 
     async find_venues({ tag_id }) {
+      venueTag = tag_id;
       const label = tagNames.get(tag_id) ?? tag_id;
       const { city, region } = festival;
       const summary = `${city} places tagged ${label}`;
@@ -570,10 +700,13 @@ export function createToolbox({
       const range = festival.feeBands.find((entry) => entry.id === band)!;
       const baseline = state.baselines[band];
       // Qloo's not_found warning names the venue; or, with no warning, its ranking is the
-      // headliners' own, score for score (section 35: exactly the venues Qloo left unscored).
+      // headliners' own, act for act (section 37's reading 2, src/lib/control-venue.ts).
       const lacksFanData = (answer: ScoredArtists) =>
-        answer.unscored.includes(venue.entityId) ||
-        (baseline !== undefined && rankingUnchanged(baseline, answer.entities));
+        fanless({
+          warned: answer.unscored.includes(venue.entityId),
+          ranking: answer.entities,
+          without: baseline ?? [],
+        }) !== null;
       const answer = await callQloo(
         "venue_artists",
         "/v2/insights",
@@ -599,10 +732,19 @@ export function createToolbox({
       const noFanData = lacksFanData(answer);
       if (noFanData) state.noFanData.add(venue.entityId);
       if (baseline) emit(climbAfter(band, range, venue, baseline, artists));
+      // WS13.3: a venue with fan data is read against its matched control abroad, same tier.
+      const control = noFanData
+        ? undefined
+        : await matchedControl(
+            venue,
+            band,
+            pair.map((headliner) => headliner.entityId),
+          );
       state.venueRuns.push({
         venue: kind ? { ...venue, kind } : venue,
         band,
         artists,
+        ...(control !== undefined ? { control } : {}),
       });
       if (noFanData)
         return {
@@ -624,13 +766,29 @@ export function createToolbox({
       const lifted = liftsOver(baseline, artists).filter(
         (entry) => entry.lift >= MIN_LIFT,
       );
+      const local = control
+        ? lifted.filter(
+            (entry) =>
+              (localLift(entry.artist.entityId, artists, control.artists) ??
+                0) >= LOCAL_LIFT_BAR,
+          )
+        : [];
       return {
         band,
         venue: venue.name,
         fan_data: true,
         count: artists.length,
         acts_lifted_5_or_more_places: lifted.length,
-        top_lifted: lifted.slice(0, 6).map((entry) => entry.artist.name),
+        matched_control: control
+          ? `${control.venue.name} (${control.venue.town})`
+          : null,
+        acts_with_local_lift_5_or_more: local.length,
+        top_lifted: local.slice(0, 6).map((entry) => entry.artist.name),
+        ...(control
+          ? {}
+          : {
+              note: `No room in ${controlTown?.city ?? "the control town"} had fan data to match ${venue.name} against, so its acts can't be booked: read the next music venue.`,
+            }),
         ...progress(),
       };
     },

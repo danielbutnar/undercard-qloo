@@ -13,7 +13,7 @@ import {
 } from "@/components/chart/poster-words";
 import { whySentence } from "@/components/chart/why";
 import { ordinal, venueShort } from "@/components/chart/words";
-import { locationLine } from "@/lib/agent-words";
+import { climbsLine, locationLine } from "@/lib/agent-words";
 import type { SplitLine } from "@/lib/attribution-line";
 import type { FeeBand } from "@/lib/fee-bands";
 import {
@@ -173,6 +173,10 @@ export function ActCard({
               <strong>Why it&apos;s here: </strong>
               {whySentence(act, place)}
             </p>
+            {/* WS13.3: both climbs, the town venue's and its matched venue abroad's. */}
+            {act.localLift && (
+              <p className="card-check-rule">{climbsLine(act)}</p>
+            )}
             <p className="card-check-rule">{cardClimbRule()}</p>
           </div>
         </li>
