@@ -20,7 +20,7 @@ test("How it works shows no video slot, heading included, while the video isn't 
   test.skip(DEMO_VIDEO_URL !== null, "the demo video is published");
   await page.goto("/method");
   await expect(
-    page.getByRole("img", { name: /How Undercard drafts a lineup/ }),
+    page.getByRole("region", { name: /^Scene 1: / }),
   ).toBeVisible();
   await expect(
     page.getByRole("region", { name: "The demo video" }),

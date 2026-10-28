@@ -103,12 +103,11 @@ describe("the video slot", () => {
     expect(slot.querySelector("iframe")).toBeNull();
   });
 
-  it("opens How it works once the video is published, before the picture", () => {
+  it("opens How it works once the video is published, before the scenes", () => {
     render(<MethodPage videoUrl={`https://youtu.be/${ID}`} />);
     const video = screen.getByRole("region", { name: "The demo video" });
-    const picture = screen.getByRole("region", {
-      name: "The method in one picture",
-    });
+    // No saved build here: the scenes' place says so (WS12 item 2).
+    const picture = screen.getByRole("region", { name: "Follow one act" });
     expect(
       video.compareDocumentPosition(picture) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();

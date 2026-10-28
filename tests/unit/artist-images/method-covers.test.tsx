@@ -3,7 +3,6 @@
 // the walkthrough's row at every step, its lineup and Try it. Invented image URLs.
 import {
   cleanup,
-  fireEvent,
   render,
   screen,
   within,
@@ -49,20 +48,10 @@ function page(images?: Record<string, string>) {
   render(<MethodPage story={story} videoUrl={null} />);
 }
 
-const region = (name: string) => screen.getByRole("region", { name });
+const region = (name: string | RegExp) =>
+  screen.getByRole("region", { name });
 const photoOf = (row: HTMLElement) =>
   row.querySelector("img.cover-photo")?.getAttribute("src") ?? null;
-const followed = () =>
-  within(region("Follow one act")).getAllByRole("article", {
-    name: acts[0].name,
-  })[0];
-const next = () =>
-  fireEvent.click(
-    within(region("Follow one act")).getByRole("button", {
-      name: "Next step",
-    }),
-  );
-
 describe("an act's photo on How it works", () => {
   it("carries the saved build's images into the story", () => {
     const story = methodStory(SAGEBRUSH_SOUND, {
@@ -72,31 +61,26 @@ describe("an act's photo on How it works", () => {
     expect(story.images).toEqual(IMAGES);
   });
 
-  it("is on the followed act's row at every step, and on every row of its lineup", () => {
+  // Since WS12 item 2: the act's strip in scenes 1 and 2, and its ticket at the door (scene 3).
+  it("is on the followed act's strip in the scenes it climbs in, and on its ticket", () => {
     page(IMAGES);
-    expect(photoOf(followed())).toBe(image(0));
-    next();
-    expect(photoOf(followed())).toBe(image(0));
-    next();
-    expect(photoOf(followed())).toBe(image(0));
-    next();
-    const lineup = within(region("Follow one act")).getByRole("region", {
-      name: "Mid-size acts",
-    });
-    for (const row of within(lineup).getAllByRole("article")) {
-      const n = acts.findIndex(
-        (act) => act.name === row.getAttribute("aria-label"),
-      );
-      expect(photoOf(row)).toBe(image(n));
+    for (const n of [1, 2]) {
+      const strip = within(
+        within(region(new RegExp(`^Scene ${n}: `))).getByRole("list", {
+          name: /^Qloo's ranking/,
+        }),
+      )
+        .getAllByRole("listitem")
+        .find((row) => row.textContent?.includes(acts[0].name))!;
+      expect(photoOf(strip)).toBe(image(0));
     }
-  });
-
-  it("is on Try it's lineup", () => {
-    page(IMAGES);
-    const row = within(region("Try it")).getByRole("article", {
-      name: acts[0].name,
-    });
-    expect(photoOf(row)).toBe(image(0));
+    expect(
+      photoOf(
+        within(region(/^Scene 3: /)).getByRole("article", {
+          name: `${acts[0].name}'s ticket`,
+        }),
+      ),
+    ).toBe(image(0));
   });
 
   it("is the drawn cover when the build has no images", () => {

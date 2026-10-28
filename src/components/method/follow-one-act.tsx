@@ -81,7 +81,7 @@ function ClimbChart({
 }
 
 /** Which venues' fans the AI agent read, and how many acts each put on the lineup. */
-function AgentChoices({
+export function AgentChoices({
   story,
   city,
   hues,

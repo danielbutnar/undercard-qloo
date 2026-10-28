@@ -1,0 +1,507 @@
+/* ========== How it works as the director's cut of Watch (WS12 item 2) ========== */
+/* The landing's own objects (the poster's strips, the town, the ticket, the poster) in four
+   full-width scenes, on the method page; theme tokens only. */
+.chart-app.fs.directors-cut {
+  padding: 0;
+  background: none;
+}
+.chart-app.fs.directors-cut .dc-cut {
+  margin-top: 8px;
+}
+.chart-app.fs.directors-cut .dc-rank-fold {
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1;
+}
+.chart-app.fs.directors-cut .dc-line {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.chart-app.fs.directors-cut .dc-principle {
+  font-size: var(--text-body);
+  font-weight: 800;
+}
+/* ---------- How it works: the director's cut of Watch ---------- */
+
+.chart-app.fs.directors-cut .dc-main {
+  display: flex;
+  flex-direction: column;
+  gap: 72px;
+  max-width: 1328px;
+  margin: 0 auto;
+  padding: 22px 0 40px;
+}
+.chart-app.fs.directors-cut .dc-page-title {
+  font-family: var(--font-display);
+  font-size: clamp(44px, 5.6vw, var(--text-bill));
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+.chart-app.fs.directors-cut .dc-lede {
+  max-width: 780px;
+  margin-top: 14px;
+  font-size: var(--text-body);
+  font-weight: 700;
+  line-height: 1.4;
+}
+.chart-app.fs.directors-cut .dc-cut {
+  display: flex;
+  flex-direction: column;
+  gap: 64px;
+}
+.chart-app.fs.directors-cut .dc-scene {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 22px;
+  padding-top: 26px;
+  border-top: 3px solid var(--color-ink);
+}
+@media (min-width: 1100px) {
+  .chart-app.fs.directors-cut .dc-scene {
+    grid-template-columns: 340px minmax(0, 1fr);
+    gap: 48px;
+  }
+}
+.chart-app.fs.directors-cut .dc-caption {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.chart-app.fs.directors-cut .dc-n {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--color-ink);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-family: var(--font-display);
+  font-size: var(--text-figure);
+  line-height: 1;
+}
+.chart-app.fs.directors-cut .dc-title {
+  font-family: var(--font-display);
+  font-size: var(--text-band);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+.chart-app.fs.directors-cut .dc-line {
+  font-size: var(--text-body);
+  font-weight: 600;
+  line-height: 1.42;
+}
+.chart-app.fs.directors-cut .dc-stage {
+  min-width: 0;
+}
+
+/* The ranking: one column of poster strips, one place a row. */
+.chart-app.fs.directors-cut .dc-rank-wrap {
+  position: relative;
+  width: min(100%, 380px);
+}
+.chart-app.fs.directors-cut .dc-rank {
+  display: flex;
+  flex-direction: column;
+}
+.chart-app.fs.directors-cut .dc-rank > li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  margin-bottom: 3px;
+  padding: 0 8px;
+}
+.chart-app.fs.directors-cut .dc-rank-slot {
+  border: 2px solid color-mix(in srgb, var(--color-ink) 30%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 70%, var(--color-page));
+}
+.chart-app.fs.directors-cut .dc-rank-slot.is-ghost {
+  border: 2px dashed var(--color-ink);
+  background: transparent;
+}
+.chart-app.fs.directors-cut .dc-rank-place {
+  min-width: 40px;
+  font-size: var(--text-label);
+  font-weight: 800;
+}
+.chart-app.fs.directors-cut .dc-rank-ghost {
+  font-size: var(--text-label);
+  font-weight: 800;
+}
+.chart-app.fs.directors-cut .dc-rank-act {
+  position: relative;
+  z-index: 1;
+  border: 3px solid var(--color-ink);
+  background: var(--venue);
+  color: var(--on-venue);
+  box-shadow: 6px 6px 0 var(--color-ink);
+}
+.chart-app.fs.directors-cut .dc-rank-act.is-plain {
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+.chart-app.fs.directors-cut .dc-rank-photo {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+}
+.chart-app.fs.directors-cut .dc-rank-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.chart-app.fs.directors-cut .dc-rank-climb {
+  font-size: var(--text-label);
+  font-weight: 800;
+}
+.chart-app.fs.directors-cut .dc-rank-arrow {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 6px);
+  width: 60px;
+  overflow: visible;
+}
+/* Scene 1's left-hand object: the headliners, as the poster names them. */
+.chart-app.fs.directors-cut .dc-heads {
+  align-self: start;
+  gap: 10px;
+  padding: 22px 24px 20px;
+}
+.chart-app.fs.directors-cut .dc-heads-label {
+  font-size: var(--text-label);
+  font-weight: 800;
+}
+.chart-app.fs.directors-cut .dc-rank-arrow path {
+  fill: none;
+  stroke: var(--color-ink);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Scene 2: the town with the venue lit and its switch, beside the ranking. */
+.chart-app.fs.directors-cut .dc-two {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+@media (min-width: 1100px) {
+  .chart-app.fs.directors-cut .dc-two {
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 76px;
+  }
+}
+.chart-app.fs.directors-cut .dc-town {
+  position: relative;
+}
+.chart-app.fs.directors-cut .dc-town .town-view {
+  height: 400px;
+}
+.chart-app.fs.directors-cut .dc-switch {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  z-index: 3100;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 8px 0 12px;
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: var(--text-label);
+  font-weight: 800;
+  box-shadow: 4px 4px 0 var(--color-ink);
+  cursor: pointer;
+}
+.chart-app.fs.directors-cut .dc-switch:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+.chart-app.fs.directors-cut .dc-switch-swatch {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-ink);
+  background: var(--venue);
+}
+.chart-app.fs.directors-cut .dc-switch[aria-pressed="false"] .dc-switch-swatch {
+  background: var(--color-quiet);
+}
+.chart-app.fs.directors-cut .dc-switch-state {
+  padding: 2px 8px;
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+.chart-app.fs.directors-cut .dc-switch[aria-pressed="false"] .dc-switch-state {
+  background: var(--color-quiet);
+  color: var(--color-ink);
+}
+
+.chart-app.fs.directors-cut .dc-ticket {
+  max-width: 520px;
+}
+.chart-app.fs.directors-cut .dc-poster {
+  max-width: 520px;
+}
+.chart-app.fs.directors-cut .dc-flying {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 3px;
+}
+
+/* Who does what: three backstage passes, hanging from one rail. */
+.chart-app.fs.directors-cut .dc-who,
+.chart-app.fs.directors-cut .dc-tested {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.chart-app.fs.directors-cut .dc-who {
+  overflow-x: clip;
+  padding: 0 14px 14px;
+  margin: 0 -14px;
+}
+.chart-app.fs.directors-cut .dc-passes {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 40px;
+  padding-top: 8px;
+}
+@media (min-width: 900px) {
+  .chart-app.fs.directors-cut .dc-passes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px;
+    padding-top: 0;
+  }
+  .chart-app.fs.directors-cut .dc-passes::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -12px;
+    right: -12px;
+    height: 8px;
+    border-radius: var(--radius-sm);
+    background: var(--color-ink);
+  }
+}
+.chart-app.fs.directors-cut .dc-pass {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.chart-app.fs.directors-cut .dc-lanyard {
+  width: 120px;
+  height: 84px;
+  overflow: visible;
+}
+.chart-app.fs.directors-cut .dc-strap {
+  fill: none;
+  stroke: var(--strap, var(--color-ink));
+  stroke-width: 12;
+}
+.chart-app.fs.directors-cut .dc-clip {
+  fill: color-mix(in srgb, var(--color-ink) 60%, var(--color-surface));
+  stroke: var(--color-ink);
+  stroke-width: 2.5;
+}
+.chart-app.fs.directors-cut .dc-pass-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 340px;
+  margin-top: -4px;
+  padding: 34px 22px 22px;
+  border: 3px solid var(--color-ink);
+  border-top-width: 26px;
+  border-top-color: var(--band, var(--color-ink));
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  box-shadow: 8px 8px 0 var(--color-ink);
+}
+.chart-app.fs.directors-cut .dc-pass-slot {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  width: 34px;
+  height: 10px;
+  border: 2px solid var(--color-ink);
+  border-radius: 6px;
+  background: var(--color-page);
+  translate: -50% 0;
+}
+.chart-app.fs.directors-cut .dc-pass-agent {
+  --strap: var(--color-ink);
+  --band: var(--color-ink);
+  rotate: -2deg;
+}
+.chart-app.fs.directors-cut .dc-pass-qloo {
+  --strap: var(--color-accent);
+  --band: var(--color-accent);
+  rotate: 1.5deg;
+  margin-top: 18px;
+}
+.chart-app.fs.directors-cut .dc-pass-rule {
+  --strap: var(--color-surface);
+  --band: var(--color-quiet);
+  rotate: -1deg;
+  margin-top: 6px;
+}
+.chart-app.fs.directors-cut .dc-pass-event {
+  font-size: var(--text-label);
+  font-weight: 800;
+  color: var(--color-muted);
+}
+.chart-app.fs.directors-cut .dc-pass-role {
+  font-family: var(--font-display);
+  font-size: var(--text-band);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+.chart-app.fs.directors-cut .dc-pass-does {
+  font-size: var(--text-name);
+  font-weight: 800;
+  line-height: 1.15;
+}
+.chart-app.fs.directors-cut .dc-pass-access {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 2px dashed color-mix(in srgb, var(--color-ink) 35%, transparent);
+  font-size: var(--text-label);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+/* What was tested: one sheet, three rubber stamps. */
+.chart-app.fs.directors-cut .dc-verdicts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 30px;
+  padding: 30px 28px 28px;
+  border: 3px solid var(--color-ink);
+  background: var(--color-surface);
+  box-shadow: 10px 10px 0 var(--color-ink);
+}
+@media (min-width: 900px) {
+  .chart-app.fs.directors-cut .dc-verdicts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 36px;
+  }
+}
+.chart-app.fs.directors-cut .dc-verdict {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.chart-app.fs.directors-cut .dc-verdict-stamp {
+  padding: 4px 14px 2px;
+  border: 5px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-size: var(--text-figure);
+  line-height: 1.05;
+  text-transform: uppercase;
+  rotate: -4deg;
+}
+.chart-app.fs.directors-cut .dc-verdict-shown .dc-verdict-stamp {
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+.chart-app.fs.directors-cut .dc-verdict-partly .dc-verdict-stamp {
+  border-style: dashed;
+  rotate: 2deg;
+}
+.chart-app.fs.directors-cut .dc-verdict-not .dc-verdict-stamp {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  rotate: -2deg;
+}
+.chart-app.fs.directors-cut .dc-verdict-number {
+  font-family: var(--font-display);
+  font-size: 64px;
+  line-height: 0.9;
+}
+.chart-app.fs.directors-cut .dc-verdict-line {
+  font-size: var(--text-body);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .chart-app.fs.directors-cut [data-reveal="pending"] .dc-rank-act,
+  .chart-app.fs.directors-cut [data-reveal="pending"] .dc-flying,
+  .chart-app.fs.directors-cut [data-reveal="pending"] .dc-pass,
+  .chart-app.fs.directors-cut [data-reveal="pending"] .dc-verdict-stamp {
+    opacity: 0;
+  }
+  .chart-app.fs.directors-cut [data-reveal="in"] .dc-rank-act {
+    animation: dc-write 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s both;
+  }
+  .chart-app.fs.directors-cut [data-reveal="in"] .dc-flying {
+    animation: dc-fly 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s both;
+  }
+  .chart-app.fs.directors-cut [data-reveal="in"] .dc-pass {
+    animation: dc-swing 0.8s cubic-bezier(0.3, 1.3, 0.5, 1) both;
+    animation-delay: calc(var(--i) * 140ms);
+    transform-origin: 50% 0;
+  }
+  .chart-app.fs.directors-cut [data-reveal="in"] .dc-verdict-stamp {
+    animation: dc-thump 0.36s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+    animation-delay: calc(var(--i) * 260ms + 150ms);
+  }
+}
+@keyframes dc-fly {
+  from {
+    opacity: 0;
+    translate: -320px 160px;
+    rotate: -12deg;
+  }
+}
+@keyframes dc-swing {
+  0% {
+    opacity: 0;
+    transform: rotate(9deg);
+  }
+  55% {
+    opacity: 1;
+    transform: rotate(-4deg);
+  }
+  100% {
+    transform: rotate(0);
+  }
+}
+
+@media (max-width: 599px) {
+  .chart-app.fs.directors-cut .dc-main {
+    gap: 56px;
+  }
+  .chart-app.fs.directors-cut .dc-title,
+  .chart-app.fs.directors-cut .dc-pass-role {
+    font-size: 32px;
+  }
+  .chart-app.fs.directors-cut .dc-rank-wrap {
+    width: calc(100% - 64px);
+    margin-left: 64px;
+  }
+  .chart-app.fs.directors-cut .dc-town .town-view {
+    height: 340px;
+  }
+  .chart-app.fs.directors-cut .dc-verdict-number {
+    font-size: 52px;
+  }
+}
+

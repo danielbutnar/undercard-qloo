@@ -20,11 +20,6 @@ vi.mock("@/app/lab/design-2/_kit/data", () => ({
   labStory: read,
   labTowns: read,
 }));
-vi.mock("@/app/lab/design-2/_kit/how-it-works", () => ({
-  BackstagePasses: () => null,
-  DirectorsCut: () => null,
-  TestedStamps: () => null,
-}));
 vi.mock("@/app/lab/design-2/_kit/card-page", () => ({ CardPage: () => null }));
 
 afterEach(() => {
@@ -34,7 +29,6 @@ afterEach(() => {
 
 describe("the Design 2.0 prototype outside next dev", () => {
   it.each([
-    ["How it works", () => import("@/app/lab/design-2/how-it-works/page")],
     ["the card", () => import("@/app/lab/design-2/card/page")],
     [
       "the card with both climbs",
