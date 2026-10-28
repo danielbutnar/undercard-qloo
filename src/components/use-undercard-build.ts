@@ -116,7 +116,8 @@ export function useUndercardBuild(
     [],
   );
 
-  // M8c: every slot not kept is refilled from the build's rooms, at most 3 Qloo calls.
+  // M8c: every slot not kept is refilled from the build's rooms: at most 3 Qloo calls on a 1.0
+  // build, 5 on a 2.0 build, which first fills what it can from the rankings it holds.
   const redraft = useCallback(async () => {
     const current = stateRef.current;
     if (!current.build || current.refilling || current.redrafting) return;

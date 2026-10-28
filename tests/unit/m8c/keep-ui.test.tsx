@@ -82,7 +82,7 @@ describe("Keep and Redraft the rest (M8c)", () => {
       ).toBe(kept.includes(act));
     expect(
       within(bill).getByText(
-        "Redraft the rest keeps 3 acts and refills the other slots from the same venues, in at most 3 Qloo calls.",
+        "Redraft the rest keeps 3 acts and refills the other slots from the same venues, in at most 5 Qloo calls.",
       ),
     ).toBeTruthy();
     fireEvent.click(

@@ -4,17 +4,26 @@ import {
   type RankedArtist,
   type VenueRef,
 } from "@/lib/assemble-lineup";
+import type { Act } from "@/lib/lineup";
 import { FEE_BAND_IDS, type FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import type { BuildStore } from "./build-store";
 import { controlRanking, recordedControl } from "./control-reads";
 import { QlooError, type QlooClient } from "./qloo";
 import { readerFor } from "./saved-reads";
+import { assemblyFromSaved } from "./venue-switch";
 import type { RateLimiter } from "./rate-limit";
 import { limitedResponse, ndjsonResponse } from "./undercard-build";
 
-/** The most Qloo calls one redraft may make (M8c). */
-export const REDRAFT_CALL_CAP = 3;
+/**
+ * The most Qloo calls one redraft of a 2.0 build may make (Daniel, 2026-10-28): two venues, each
+ * with its matched control, and one to spare, read only for the slots the rankings the build
+ * already holds can't fill.
+ */
+export const REDRAFT_CALL_CAP = 5;
+
+/** A 1.0 build's redraft, one call a venue, as M8c set it. */
+export const ONE_POINT_OH_REDRAFT_CAP = 3;
 
 export const RedraftRequestSchema = z.object({
   buildId: z.string().min(1),
@@ -42,6 +51,7 @@ export async function handleRedraft({
   body,
   limiter,
   ip,
+  cachedQloo = () => null,
 }: {
   festival: Festival;
   qloo: () => QlooClient | null;
@@ -49,6 +59,8 @@ export async function handleRedraft({
   body: unknown;
   limiter: RateLimiter;
   ip: string;
+  /** Reads the Qloo cache only: the rankings a 2.0 build holds, for slots with no call. */
+  cachedQloo?: () => QlooClient | null;
 }): Promise<Response> {
   const refused = (message: string) =>
     ndjsonResponse(async (emit) => {
@@ -81,23 +93,55 @@ export async function handleRedraft({
         ...replace.map((slot) => slot.entityId),
       ]),
     ];
+    const twoPointOh = context.controls !== undefined;
+    const reader = readerFor(saved, client);
+    const cap = twoPointOh ? REDRAFT_CALL_CAP : ONE_POINT_OH_REDRAFT_CAP;
+
+    // Daniel, 2026-10-28: a 2.0 build first fills what it can from the rankings it already holds
+    // (its venue runs and their controls, from the cache only), in the rule's order, at no call.
+    const held: Record<FeeBandId, Act[]> = { mid: [], opener: [] };
+    const cached = twoPointOh ? cachedQloo() : null;
+    const input = cached
+      ? await assemblyFromSaved(saved, festival, cached).catch(() => null)
+      : null;
+    if (input)
+      for (const bandId of FEE_BAND_IDS) {
+        const need = replace.filter((slot) => slot.band === bandId).length;
+        const band = festival.feeBands.find((entry) => entry.id === bandId);
+        if (!need || !band) continue;
+        held[bandId] = assembleLineup({
+          ...input,
+          bands: [{ ...band, slots: 50 }],
+        })
+          .acts.filter((act) => !excluded.includes(act.entityId))
+          .slice(0, need);
+      }
+    const heldCount = held.mid.length + held.opener.length;
+    if (heldCount > 0) {
+      excluded.push(
+        ...[...held.mid, ...held.opener].map((act) => act.entityId),
+      );
+      emit({
+        type: "status",
+        text: `Redrafted ${heldCount} ${heldCount === 1 ? "slot" : "slots"} from the rankings this build already holds: no new Qloo call.`,
+      });
+    }
+    // The slots left open after that.
     const open = (band: FeeBandId) =>
-      replace.filter((slot) => slot.band === band).length;
+      replace.filter((slot) => slot.band === band).length - held[band].length;
     const bands = FEE_BAND_IDS.filter((band) => open(band) > 0).sort(
       (a, b) => open(b) - open(a),
     );
     // The calls go round the bands with open slots, each band's rooms in the build's order. On a
     // 2.0 build (WS13.3) each venue read comes with its matched control, both counted, and a
     // venue with no matched control is passed over: nothing can be booked from it.
-    const twoPointOh = context.controls !== undefined;
-    const reader = readerFor(saved, client);
     const plan: {
       band: FeeBandId;
       venue: VenueRef;
       control?: NonNullable<ReturnType<typeof recordedControl>>;
     }[] = [];
     let planned = 0;
-    for (let round = 0; planned < REDRAFT_CALL_CAP; round++) {
+    for (let round = 0; planned < cap; round++) {
       let listed = false;
       for (const band of bands) {
         const venue = context.anchors[band]?.[round];
@@ -106,7 +150,7 @@ export async function handleRedraft({
         const control = recordedControl(context, band, venue.entityId);
         if (twoPointOh && !control) continue;
         const cost = control ? 2 : 1;
-        if (planned + cost > REDRAFT_CALL_CAP) continue;
+        if (planned + cost > cap) continue;
         plan.push({ band, venue, ...(control ? { control } : {}) });
         planned += cost;
       }
@@ -243,7 +287,7 @@ export async function handleRedraft({
       venueRuns: runs,
     });
     const pairs = FEE_BAND_IDS.flatMap((band) => {
-      const fresh = acts.filter((act) => act.band === band);
+      const fresh = [...held[band], ...acts.filter((act) => act.band === band)];
       return replace
         .filter((slot) => slot.band === band)
         .slice(0, fresh.length)
