@@ -37,6 +37,7 @@ import {
   openPosterLine,
   regionCode,
   KEY_NOTE,
+  KEY_SIGNAL,
   RULE_LINE,
   stampWords,
   TAGLINE_LEAD,
@@ -70,7 +71,6 @@ import {
   SKIP,
   switchLine,
   venueShort,
-  VENUES_STAND_FOR,
   watchCallLine,
   watchLine,
   watchTicksLabel,
@@ -1252,7 +1252,7 @@ export function FestivalScreen({
       />
       {!custom && !watching && (
         <p className="poster-key-note">
-          {KEY_NOTE} {VENUES_STAND_FOR}
+          {KEY_NOTE} {KEY_SIGNAL}
         </p>
       )}
       {!allOpen && (

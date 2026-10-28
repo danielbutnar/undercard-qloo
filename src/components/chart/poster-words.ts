@@ -111,6 +111,10 @@ export const inkLabel = (venue: string, on: boolean, lifted: number) =>
 export const KEY_NOTE =
   "Untick a venue: the lineup re-forms by the same rule, without that venue's fans.";
 
+/** After it, in Daniel's words (2026-10-28): what the venues are, and what they aren't. */
+export const KEY_SIGNAL =
+  "These venues' fans are the signal: the acts won't necessarily play there.";
+
 export const RULE_LINE = `↑ = places it rose in Qloo's ranking with that venue's fans (${MIN_LIFT}+ to qualify); the strongest Qloo match takes each slot`;
 
 /** A band's head on the poster: its Qloo popularity range, the first band saying what it stands for. */

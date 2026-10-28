@@ -57,13 +57,15 @@ describe("the venues, in the town's legend and the poster's key", () => {
     );
   });
 
-  it("says a venue stands for its crowd, not a stage the acts will play", () => {
+  // Daniel, 2026-10-28: the venues' fans are the signal; "stand for the town's taste" is a claim
+  // section 37's limit says isn't shown.
+  it("says the venues' fans are the signal, not a stage the acts will play", () => {
     open();
-    expect(
-      screen.getByRole("region", { name: "Undercard draft" }).textContent,
-    ).toContain(
-      "These venues stand for the town's taste: the acts won't necessarily play there.",
+    const poster = screen.getByRole("region", { name: "Undercard draft" });
+    expect(poster.textContent).toContain(
+      "These venues' fans are the signal: the acts won't necessarily play there.",
     );
+    expect(poster.textContent).not.toContain("stand for the town's taste");
   });
 
   it("gives each venue its count of acts lifted, a zero included", () => {
