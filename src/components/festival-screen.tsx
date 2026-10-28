@@ -1549,6 +1549,14 @@ export function FestivalScreen({
           checks={llm.state.checks}
         />
       )}
+      {/* WS12 item 5: beside the model's picks, the AI's local pick (WS13.5): the model's own
+          knowledge of the town, checked on Qloo, in WS13's box with WS13's rules. */}
+      <LocalPickBox
+        picks={state.localPicks}
+        festival={festival}
+        added={state.added}
+        onToggle={toggleLocal}
+      />
       {counts && withoutSummary(festival, counts) && (
         <p className="model-summary">{withoutSummary(festival, counts)}</p>
       )}
