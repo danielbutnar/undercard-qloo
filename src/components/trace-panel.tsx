@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { TraceCall } from "@/lib/build-events";
 import type { BuildState } from "@/lib/build-state";
 import { callWords } from "@/components/chart/words";
-import { noFanDataCallLine } from "@/lib/agent-words";
+import { noFanDataCallLine, plusRetries, retriesIn } from "@/lib/agent-words";
 import { QLOO_CALL_CAP } from "@/lib/agent-limits";
 import { paramWords } from "@/lib/call-words";
 
@@ -142,12 +142,16 @@ export function TracePanel({
   const building = state.status === "building";
   const busy =
     building || state.refilling !== null || state.redrafting || state.ordering;
-  const buildCalls = state.calls.filter(
+  const buildLines = state.calls.filter(
     (call) =>
       call.tool !== "refill" &&
       call.tool !== "redraft" &&
       call.tool !== "running_order",
-  ).length;
+  );
+  const buildCalls = buildLines.length;
+  // Daniel, 2026-10-28: retries are counted apart from the calls, the client's included.
+  const buildRetries = retriesIn(buildLines);
+  const refillRetries = retriesIn(state.calls) - buildRetries;
   // The first screen shows a saved build: the panel pitches its replay until one runs. A
   // refill's calls list below the pitch.
   const folded =
@@ -157,7 +161,7 @@ export function TracePanel({
   const onlyRefills = state.calls.every(
     (call) => call.tool !== "redraft" && call.tool !== "running_order",
   );
-  const refillCount = `${refillCalls} ${onlyRefills ? "refill " : "more "}${refillCalls === 1 ? "call" : "calls"}`;
+  const refillCount = `${refillCalls} ${onlyRefills ? "refill " : "more "}${refillCalls === 1 ? "call" : "calls"}${plusRetries(refillRetries)}`;
   const refillingName = state.acts.find(
     (act) => act.entityId === state.refilling,
   )?.name;
@@ -191,7 +195,7 @@ export function TracePanel({
             <p className="trace-tally">
               {folded
                 ? refillCount
-                : `${buildCalls} of ${state.build?.replayed && savedCalls ? savedCalls : QLOO_CALL_CAP}${refillCalls > 0 ? ` · ${refillCount}` : ""}`}
+                : `${buildCalls} of ${state.build?.replayed && savedCalls ? savedCalls : QLOO_CALL_CAP}${plusRetries(buildRetries)}${refillCalls > 0 ? ` · ${refillCount}` : ""}`}
             </p>
           )}
         </div>
@@ -245,8 +249,7 @@ export function TracePanel({
         )}
         {state.status === "done" && state.summary && !state.build?.replayed && (
           <p className="trace-line">
-            Built with {state.summary.calls} Qloo calls in{" "}
-            {seconds(state.summary.ms)}.
+            {`Built with ${state.summary.calls} Qloo calls${buildRetries > 0 ? `${plusRetries(buildRetries)},` : ""} in ${seconds(state.summary.ms)}.`}
           </p>
         )}
         {refillingName && (
@@ -327,6 +330,12 @@ export function TracePanel({
         {/* WS13.2: the trace's last line says why the agent stopped reading venues. */}
         {state.stopped && state.calls.length > 0 && (
           <p className="trace-line">{state.stopped.text}</p>
+        )}
+        {/* Daniel, 2026-10-28: a venue a failed call left unchecked, and the bill may be short. */}
+        {state.short && (
+          <p role="status" className="alert">
+            {state.short.text}
+          </p>
         )}
       </div>
     </aside>

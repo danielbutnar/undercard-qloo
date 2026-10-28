@@ -19,6 +19,7 @@ export class RateLimited extends QlooBusy {
     super();
     this.name = "RateLimited";
     this.message = "Qloo answered 429: the re-run stops here.";
+    this.stopsRun = true;
   }
 }
 
@@ -28,6 +29,7 @@ export class OverBudget extends QlooBusy {
     super();
     this.name = "OverBudget";
     this.message = `The window's ${maxCalls} Qloo calls are spent or too few for another town.`;
+    this.stopsRun = true;
   }
 }
 

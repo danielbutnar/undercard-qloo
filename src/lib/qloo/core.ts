@@ -202,9 +202,17 @@ export class QlooCacheMiss extends Error {
 }
 
 export class QlooBusy extends QlooError {
-  constructor() {
+  /**
+   * The busy answers the client retried before it gave up: every retry is counted on the call's
+   * line, a failed call's too (Daniel, 2026-10-28).
+   */
+  readonly retried: number[];
+  /** A re-run's own stop (its first 429, its window spent): the run ends at once (WS13). */
+  stopsRun = false;
+  constructor(retried: readonly number[] = []) {
     super(429, "Qloo is busy right now. Try again in a minute.");
     this.name = "QlooBusy";
+    this.retried = [...retried];
   }
 }
 
@@ -326,7 +334,7 @@ export function createGet({
           response.status,
           `Qloo ${path} answered HTTP ${response.status}`,
         );
-      if (attempt >= retry.maxRetries) throw new QlooBusy();
+      if (attempt >= retry.maxRetries) throw new QlooBusy(retried);
       // Full jitter on an exponential ceiling, and never sooner than Qloo asked.
       const backoff =
         random() * Math.min(retry.maxDelayMs, retry.baseDelayMs * 2 ** attempt);
@@ -334,7 +342,7 @@ export function createGet({
         retryAfterMs(response.headers.get("retry-after"), clock()),
         backoff,
       );
-      if (clock() + delay > deadline) throw new QlooBusy();
+      if (clock() + delay > deadline) throw new QlooBusy(retried);
       retried.push(response.status);
       await sleep(delay);
     }

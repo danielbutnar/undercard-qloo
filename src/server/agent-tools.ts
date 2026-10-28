@@ -19,7 +19,8 @@ import {
 } from "@/lib/control-venue";
 import { controlTownFor } from "@/lib/control-town";
 import { QLOO_CALL_CAP } from "@/lib/agent-limits";
-import { FEE_BAND_IDS, type FeeBandId } from "@/lib/fee-bands";
+import { refusedLine, skippedLine } from "@/lib/agent-words";
+import { FEE_BAND_IDS, type FeeBand, type FeeBandId } from "@/lib/fee-bands";
 import { roomKind } from "@/lib/place-kinds";
 import {
   needsFullName,
@@ -31,7 +32,9 @@ import type { Act, LocationReading } from "@/lib/lineup";
 import { localPickOf, type LocalPick } from "@/lib/local-pick";
 import { foldAccents, foundOnQloo, hasNonAscii } from "@/lib/pick-tests";
 import {
+  QLOO_RETRY,
   QlooBusy,
+  QlooCacheMiss,
   QlooError,
   type QlooCall,
   type QlooClient,
@@ -43,6 +46,24 @@ import {
 
 /** The most Qloo calls one build may make, cached answers included (src/lib/agent-limits.ts). */
 export { QLOO_CALL_CAP };
+
+/**
+ * The agent's own retry (Daniel, 2026-10-28, 19:20): only for a call the client didn't retry (a
+ * 4xx, a network error, a timeout), once, after this wait, never at once.
+ */
+export const RETRY_WAIT_MS = { min: 1_000, max: 2_000 } as const;
+
+/** The agent's retry's wait and clock; tests make them instant. */
+export interface RetryTiming {
+  sleep: (ms: number) => Promise<void>;
+  clock: () => number;
+  random: () => number;
+}
+const REAL_TIMING: RetryTiming = {
+  sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+  clock: Date.now,
+  random: Math.random,
+};
 
 /** Why the planner says it stopped (WS13.2), in finish's input. */
 export const STOP_CLAIMS = [
@@ -77,6 +98,10 @@ export interface AgentState {
   noFanData: Set<string>;
   /** The AI's local picks Qloo's search found (WS13.5): for the buyer to check, never booked. */
   localPicks: LocalPick[];
+  /** Venues a call that failed twice left unchecked, in order (Daniel, 2026-10-28). */
+  unchecked: string[];
+  /** Places find_venues listed that the planner named as not music venues, by entity id. */
+  notMusic: Set<string>;
   finished: {
     anchorVenueIds: string[];
     summary: string;
@@ -101,6 +126,31 @@ const bandProperty = {
 };
 
 /** One tool per Qloo call, plus finish. Strict schemas keep the model's inputs valid. */
+/**
+ * Where the prompt's step 6 and the local_pick tool give the tiers' popularity ranges (Daniel,
+ * 2026-10-28). Read as is, it points to the brief; tierRanges puts in the festival's own.
+ */
+export const TIER_RANGES =
+  "Qloo popularity within the range the brief gives each tier";
+
+const TIER_WORDS: Record<FeeBandId, string> = {
+  mid: "mid-size",
+  opener: "opening",
+};
+
+/** "Qloo popularity 0.80–0.90 for the mid-size tier or 0.55–0.80 for the opening tier". */
+export function tierRanges(bands: readonly FeeBand[]): string {
+  const ranges = FEE_BAND_IDS.flatMap((id) =>
+    bands
+      .filter((band) => band.id === id)
+      .map(
+        (band) =>
+          `${band.minPopularity.toFixed(2)}–${band.maxPopularity.toFixed(2)} for the ${TIER_WORDS[id]} tier`,
+      ),
+  );
+  return `Qloo popularity ${ranges.join(" or ")}`;
+}
+
 export const AGENT_TOOLS: Anthropic.Tool[] = [
   {
     name: "search_artist",
@@ -167,15 +217,18 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
   },
   {
     name: "local_pick",
-    description:
-      "Name one or two acts from the festival's town that you know of from your own knowledge: acts based there who would suit this undercard, each with one line on why. The app searches each on Qloo (GET /search, one Qloo call each) and returns what Qloo knows of it. A local pick is for the buyer to check; it never takes a slot.",
+    description: `Name one or two acts from the festival's town that you know of from your own knowledge and that fit the mid-size or opening tier: ${TIER_RANGES}. Acts based there who would suit this undercard; artist names only, as they are billed, never a phrase or a description; each with one line on why. The app searches each on Qloo (GET /search, one Qloo call each) and returns what Qloo knows of it. A local pick is for the buyer to check; it never takes a slot.`,
     strict: true,
     input_schema: objectSchema({
       picks: {
         type: "array",
         description: "One or two acts from the town.",
         items: objectSchema({
-          name: { type: "string", description: "The act's name." },
+          name: {
+            type: "string",
+            description:
+              "The artist's name as billed, and nothing else: never a phrase or a description.",
+          },
           why: {
             type: "string",
             description: "One line on why it suits this undercard.",
@@ -204,6 +257,22 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
         enum: [...STOP_CLAIMS],
         description:
           "Why you stopped: every band is full, or you tried every music venue find_venues listed.",
+      },
+      not_music_venues: {
+        type: "array",
+        items: objectSchema({
+          entity_id: {
+            type: "string",
+            description: "The place's entity_id from find_venues.",
+          },
+          reason: {
+            type: "string",
+            description:
+              'What the place is instead, to end the buyer\'s line "Skipped <place>: listed by Qloo, but …", for example "a restaurant, not a music room".',
+          },
+        }),
+        description:
+          "Places find_venues listed that you skipped because they aren't music venues (restaurants, cafes, breweries, theaters, arenas), each with your reason. The buyer sees a line for each.",
       },
     }),
   },
@@ -234,6 +303,16 @@ const Inputs = {
     anchor_venue_ids: z.array(z.string()),
     summary: z.string(),
     stopped_because: z.enum(STOP_CLAIMS).optional(),
+    // Required of the model (strict schema); older scripted plans send none.
+    not_music_venues: z
+      .array(
+        z.object({
+          entity_id: z.string().min(1),
+          // Daniel, 2026-10-28 (19:10): a place is skipped only with the planner's reason.
+          reason: z.string().trim().min(1),
+        }),
+      )
+      .optional(),
   }),
 };
 type ToolName = keyof typeof Inputs;
@@ -287,11 +366,13 @@ export function createToolbox({
   qloo,
   emit,
   cap = QLOO_CALL_CAP,
+  timing = REAL_TIMING,
 }: {
   festival: Festival;
   qloo: QlooClient;
   emit: (event: BuildEvent) => void;
   cap?: number;
+  timing?: RetryTiming;
 }) {
   // The crowd's age goes to every artist call as Qloo's age buckets.
   const crowd = ageBuckets(festival.crowdAge.min, festival.crowdAge.max);
@@ -306,11 +387,19 @@ export function createToolbox({
     venueRuns: [],
     noFanData: new Set(),
     localPicks: [],
+    unchecked: [],
+    notMusic: new Set(),
     finished: null,
   };
   const names = new Map<string, string>();
   const tagNames = new Map<string, string>();
   let used = 0;
+  // Daniel, 2026-10-28 (19:20): every retry counted, the client's included; the agent's own
+  // retries stop where the client's do, QLOO_RETRY.budgetMs into the run, so retries never take
+  // it past the route's 120 s.
+  let retries = 0;
+  let busy = false;
+  const retryDeadline = timing.clock() + QLOO_RETRY.budgetMs;
 
   const bandLabel = (band: FeeBandId) =>
     festival.feeBands.find((entry) => entry.id === band)?.label ?? band;
@@ -323,19 +412,22 @@ export function createToolbox({
   const controlsWithout = new Set<string>();
   const controlRankings = new Map<string, Promise<ScoredArtists>>();
 
-  function roomsAbroad(): Promise<QlooEntity[]> {
+  function roomsAbroad(venue: string): Promise<QlooEntity[]> {
     if (!controlTown || !venueTag) return Promise.resolve([]);
     const tag = venueTag;
     const town = controlTown;
     const label = tagNames.get(tag) ?? tag;
     // As find_venues reads a town (M6j): the plain name, then "town, region" when it misses.
     controlRooms ??= (async () => {
-      const summary = `${town.city} places tagged ${label}, to match each venue with a room abroad`;
+      const summary = `${town.city} places tagged ${label}, to find each venue's control: a room in ${town.city} with similar Qloo popularity`;
       const plain = await callQloo(
         "control_venues",
         "/v2/insights",
         summary,
         () => qloo.places({ locationQuery: town.city, tagId: tag }),
+        undefined,
+        undefined,
+        { unchecked: venue, short: true },
       );
       if (!needsFullName(plain, town.region)) return plain;
       const fullName = `${town.city}, ${town.region}`;
@@ -344,6 +436,9 @@ export function createToolbox({
         "/v2/insights",
         `${summary}, asked again as “${fullName}”`,
         () => qloo.places({ locationQuery: fullName, tagId: tag }),
+        undefined,
+        undefined,
+        { unchecked: venue, short: true },
       );
       return placesInRegion([plain, full], town.region).places;
     })();
@@ -364,8 +459,15 @@ export function createToolbox({
     if (!controlTown) return null;
     let rooms: QlooEntity[];
     try {
-      rooms = await roomsAbroad();
-    } catch {
+      rooms = await roomsAbroad(venue.name);
+    } catch (error) {
+      if (error instanceof QlooBusy) throw error;
+      // The control town's search failed twice: this venue wasn't checked (Daniel, 14:10).
+      if (
+        !(error instanceof BudgetSpent) &&
+        !state.unchecked.includes(venue.name)
+      )
+        state.unchecked.push(venue.name);
       return null;
     }
     const range = festival.feeBands.find((entry) => entry.id === band)!;
@@ -381,7 +483,7 @@ export function createToolbox({
             callQloo(
               "control_artists",
               "/v2/insights",
-              `${bandLabel(band)}-band artists for the headliners and ${room.name}, a room in ${controlTown.city} matched to ${venue.name}${ageNote}`,
+              `${bandLabel(band)}-band artists for the headliners and ${room.name}, a room in ${controlTown.city} with similar Qloo popularity, the control for ${venue.name}${ageNote}`,
               () =>
                 qloo.scoredArtists({
                   signalEntityIds: [...headliners, room.entityId],
@@ -401,11 +503,19 @@ export function createToolbox({
                   ? { noFanData: room.name }
                   : {}),
               }),
+              { unchecked: venue.name, short: true },
             ),
           );
         answer = await controlRankings.get(key)!;
-      } catch {
-        // The cap is spent or the call failed: no control, so this run books nothing.
+      } catch (error) {
+        if (error instanceof QlooBusy) throw error;
+        // The cap is spent: no control. A call that failed twice: this venue wasn't checked, and
+        // its line says so (Daniel, 2026-10-28), never a silent "no control".
+        if (
+          !(error instanceof BudgetSpent) &&
+          !state.unchecked.includes(venue.name)
+        )
+          state.unchecked.push(venue.name);
         return null;
       }
       if (
@@ -429,6 +539,49 @@ export function createToolbox({
       };
     }
     return null;
+  }
+
+  /**
+   * The music venues read so far (Daniel, 2026-10-28): how many had fan data, how many of those
+   * were read with their control (only these count toward the two the agent reads before it may
+   * stop), and the listed places not yet tried: neither read, nor known to have no fan data, nor
+   * left unchecked by a failed call, nor named by the planner as not a music venue.
+   */
+  function roomsRead() {
+    const fanData = new Set<string>();
+    const controlled = new Set<string>();
+    for (const run of state.venueRuns) {
+      if (run.control === undefined) continue;
+      fanData.add(run.venue.entityId);
+      if (run.control) controlled.add(run.venue.entityId);
+    }
+    const untried = state.venues.filter(
+      (venue) =>
+        !state.venueRuns.some((run) => run.venue.entityId === venue.entityId) &&
+        !state.noFanData.has(venue.entityId) &&
+        !state.unchecked.includes(venue.name) &&
+        !state.notMusic.has(venue.entityId),
+    );
+    return { fanData: fanData.size, controlled: controlled.size, untried };
+  }
+
+  /**
+   * Why the planner may not stop yet (Daniel, 2026-10-28): fewer than two music venues with fan
+   * data read with their controls, while a listed place is untried and the cap leaves room for a
+   * venue and its control. Null when it may stop.
+   */
+  function refuseStop(): string | null {
+    const { controlled, untried } = roomsRead();
+    if (controlled >= 2 || untried.length === 0 || cap - used < 2) return null;
+    const names = untried.map((venue) => venue.name);
+    // Daniel, 2026-10-28 (19:20): each refusal is a decision line of the run, saved and replayed,
+    // so the comparison can count them.
+    emit({
+      type: "status",
+      text: refusedLine(controlled, names),
+      planner: true,
+    });
+    return `Read at least two music venues with fan data, each with its control, before you finish: ${controlled} so far. Not tried yet: ${names.join(", ")}. If one of them isn't a music venue, name it in not_music_venues, with your reason.`;
   }
 
   // WS13.2: how full each tier is by the rule, so the planner reads until every one is.
@@ -476,7 +629,12 @@ export function createToolbox({
     /** A fuller line for the trace, once the answer is in (M6j's resolved place). */
     describe?: (data: T) => string,
     /** What the answer adds to the call's trace line (Qloo had no fan data; the planner's line). */
-    mark?: (data: T) => Pick<TraceCall, "noFanData" | "why">,
+    mark?: (data: T) => Pick<TraceCall, "noFanData" | "why" | "controlFor">,
+    /**
+     * What the call leaves unchecked if it fails twice (Daniel, 2026-10-28): its trace line says
+     * so, and a venue among them makes the page say the bill may be short.
+     */
+    failure?: { unchecked: string; short: boolean },
   ) {
     if (used >= cap)
       throw new BudgetSpent(
@@ -484,36 +642,77 @@ export function createToolbox({
       );
     const n = ++used;
     const started = Date.now();
-    try {
-      const { data, call } = await request();
-      emit({
-        type: "call",
-        call: {
-          ...traceOf(n, tool, describe ? describe(data) : summary, call),
-          ...mark?.(data),
-        },
-      });
-      return data;
-    } catch (error) {
-      const message = describeFailure(error);
-      console.error(`[undercard] ${tool} (${endpoint}) failed: ${message}`);
-      emit({
-        type: "call",
-        call: {
+    // Daniel, 2026-10-28 (19:20): the client retries a busy answer (429, 5xx) itself, within its
+    // time budget. The agent retries only a call the client didn't (a 4xx, a network error, a
+    // timeout), once, after 1-2 s, while the run's retry time lasts. Every retry rides on the
+    // call's own line and is counted, the client's included.
+    const retried: number[] = [];
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const { data, call } = await request();
+        const line = traceOf(
           n,
           tool,
-          endpoint,
-          summary,
-          params: [],
-          resultCount: null,
-          ms: Date.now() - started,
-          cached: false,
-          error: message,
-        },
-      });
-      // Qloo stayed busy past the build's budget: the whole build stops, not just this tool.
-      if (error instanceof QlooBusy) throw error;
-      throw new ToolMisuse(message);
+          describe ? describe(data) : summary,
+          call,
+        );
+        const all = [...retried, ...(line.retried ?? [])];
+        retries += all.length;
+        emit({
+          type: "call",
+          call: {
+            ...line,
+            ...(all.length ? { retried: all } : {}),
+            ...mark?.(data),
+          },
+        });
+        return data;
+      } catch (error) {
+        const wait =
+          RETRY_WAIT_MS.min +
+          Math.round(timing.random() * (RETRY_WAIT_MS.max - RETRY_WAIT_MS.min));
+        if (
+          attempt === 0 &&
+          !(error instanceof QlooBusy) &&
+          !(error instanceof QlooCacheMiss) &&
+          timing.clock() + wait <= retryDeadline
+        ) {
+          retried.push(error instanceof QlooError ? error.status : 0);
+          await timing.sleep(wait);
+          continue;
+        }
+        const message = describeFailure(error);
+        console.error(`[undercard] ${tool} (${endpoint}) failed: ${message}`);
+        // A busy answer the client gave up on is a failed call like any other: its venue is
+        // unchecked and the bill may be short; it no longer ends the build.
+        if (error instanceof QlooBusy) busy = true;
+        const all = [
+          ...retried,
+          ...(error instanceof QlooBusy ? error.retried : []),
+        ];
+        retries += all.length;
+        if (failure?.short && !state.unchecked.includes(failure.unchecked))
+          state.unchecked.push(failure.unchecked);
+        emit({
+          type: "call",
+          call: {
+            n,
+            tool,
+            endpoint,
+            summary,
+            params: [],
+            resultCount: null,
+            ms: Date.now() - started,
+            cached: false,
+            ...(all.length ? { retried: all } : {}),
+            error: message,
+            ...(failure ? { unchecked: failure.unchecked } : {}),
+          },
+        });
+        // A re-run's own stop (its first 429, its window spent) ends the run at once.
+        if (error instanceof QlooBusy && error.stopsRun) throw error;
+        throw new ToolMisuse(message);
+      }
     }
   }
 
@@ -727,6 +926,7 @@ export function createToolbox({
           ...(lacksFanData(data) ? { noFanData: venue.name } : {}),
           ...(why?.trim() ? { why: why.trim() } : {}),
         }),
+        { unchecked: venue.name, short: true },
       );
       const artists = answer.entities;
       const noFanData = lacksFanData(answer);
@@ -779,15 +979,16 @@ export function createToolbox({
         fan_data: true,
         count: artists.length,
         acts_lifted_5_or_more_places: lifted.length,
-        matched_control: control
-          ? `${control.venue.name} (${control.venue.town})`
+        // Daniel, 2026-10-28: the control is worded as what it is, never "matched".
+        control: control
+          ? `${control.venue.name}, a room in ${control.venue.town} with similar Qloo popularity`
           : null,
         acts_with_local_lift_5_or_more: local.length,
         top_lifted: local.slice(0, 6).map((entry) => entry.artist.name),
         ...(control
           ? {}
           : {
-              note: `No room in ${controlTown?.city ?? "the control town"} had fan data to match ${venue.name} against, so its acts can't be booked: read the next music venue.`,
+              note: `No room in ${controlTown?.city ?? "the control town"} with similar Qloo popularity had fan data to serve as ${venue.name}'s control, so its acts can't be booked: read the next music venue.`,
             }),
         ...progress(),
       };
@@ -833,7 +1034,37 @@ export function createToolbox({
       return { picks: results };
     },
 
-    async finish({ anchor_venue_ids, summary, stopped_because }) {
+    async finish({
+      anchor_venue_ids,
+      summary,
+      stopped_because,
+      not_music_venues,
+    }) {
+      // Daniel, 2026-10-28 (19:10): a place skipped as not a music venue is said, with the
+      // planner's reason, as one of its lines: in the trace, saved with the build, replayed.
+      for (const { entity_id, reason } of not_music_venues ?? []) {
+        const place = state.venues.find(
+          (venue) => venue.entityId === entity_id,
+        );
+        if (!place)
+          throw new ToolMisuse(
+            `Unknown place ${entity_id} in not_music_venues: pick an entity_id from find_venues.`,
+          );
+        if (
+          state.notMusic.has(entity_id) ||
+          state.venueRuns.some((run) => run.venue.entityId === entity_id)
+        )
+          continue;
+        state.notMusic.add(entity_id);
+        emit({
+          type: "status",
+          text: skippedLine(place.name, reason),
+          planner: true,
+        });
+      }
+      // Daniel, 2026-10-28: at least two music venues with fan data before the agent may stop.
+      const more = refuseStop();
+      if (more) throw new ToolMisuse(more);
       // WS13.7: why it stopped, in the planner's own words, is a line of the trace.
       if (summary.trim())
         emit({ type: "status", text: summary.trim(), planner: true });
@@ -885,6 +1116,12 @@ export function createToolbox({
               ages: crowd.buckets,
               ...(locationQuery ? { locationQuery } : {}),
             }),
+          undefined,
+          undefined,
+          {
+            unchecked: `the location reading for ${band.id === "mid" ? "mid-size" : "opening"} acts`,
+            short: false,
+          },
         );
       try {
         const [alone, located] = await Promise.all([ask(), ask(town)]);
@@ -935,13 +1172,32 @@ export function createToolbox({
     }
   }
 
+  // Daniel, 2026-10-28: local_pick gives the festival's own tier ranges.
+  const tools = AGENT_TOOLS.map((tool) =>
+    tool.name === "local_pick" && tool.description
+      ? {
+          ...tool,
+          description: tool.description.replace(
+            TIER_RANGES,
+            tierRanges(festival.feeBands),
+          ),
+        }
+      : tool,
+  );
+
   return {
-    tools: AGENT_TOOLS,
+    tools,
     run,
     readLocation,
     state,
     callsUsed: () => used,
+    /** Retries in the run so far, the client's included (Daniel, 2026-10-28). */
+    retriesUsed: () => retries,
+    /** Whether a call failed on a busy Qloo the client gave up on. */
+    sawBusy: () => busy,
     cap,
+    roomsRead,
+    refuseStop,
   };
 }
 

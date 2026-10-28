@@ -8,7 +8,7 @@ import type { Act } from "@/lib/lineup";
 import { FEE_BAND_IDS, type FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import type { BuildStore } from "./build-store";
-import { controlRanking, recordedControl } from "./control-reads";
+import { controlRanking, recordedControl, retriedOf } from "./control-reads";
 import { QlooError, type QlooClient } from "./qloo";
 import { readerFor } from "./saved-reads";
 import { assemblyFromSaved } from "./venue-switch";
@@ -212,7 +212,7 @@ export async function handleRedraft({
               n: m,
               tool: "redraft",
               endpoint: read.call?.path ?? "/v2/insights",
-              summary: `Redraft: ${band.label}-band artists for the headliners and ${control.name}, a room in ${control.town} matched to ${venue.name}, minus the board`,
+              summary: `Redraft: ${band.label}-band artists for the headliners and ${control.name}, a room in ${control.town} with similar Qloo popularity, the control for ${venue.name}, minus the board`,
               params: (read.call?.params ?? []).map(([key, value]) => ({
                 key,
                 value: readable(value),
@@ -220,6 +220,7 @@ export async function handleRedraft({
               resultCount: read.call?.resultCount ?? null,
               ms: read.call?.ms ?? 0,
               cached: read.call?.cached ?? false,
+              ...retriedOf(read.call, read.error),
               controlFor: venue.name,
               ...(read.call ? {} : { error: "The Qloo request failed." }),
             },
@@ -247,6 +248,7 @@ export async function handleRedraft({
             resultCount: result.call.resultCount,
             ms: result.call.ms,
             cached: result.call.cached,
+            ...retriedOf(result.call),
           },
         });
       } catch (error) {
@@ -261,6 +263,7 @@ export async function handleRedraft({
             resultCount: null,
             ms: 0,
             cached: false,
+            ...retriedOf(null, error),
             error:
               error instanceof QlooError
                 ? error.message

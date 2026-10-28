@@ -105,6 +105,16 @@ export const finish = (venues: string[]): Turn => [
   },
 ];
 
+/**
+ * The agent's own retry, instant in tests (Daniel, 2026-10-28, 19:20): its 1-2 s wait is
+ * recorded, not slept; so is the client's own backoff.
+ */
+export const INSTANT = {
+  sleep: async () => {},
+  clock: Date.now,
+  random: () => 0.5,
+};
+
 /** A toolbox on the synthetic Qloo, with every event it emits and every request it sends. */
 export function toolboxFor(
   festival: Festival = LARKSPUR_FESTIVAL,
@@ -115,8 +125,14 @@ export function toolboxFor(
   const events: BuildEvent[] = [];
   const toolbox = createToolbox({
     festival,
-    qloo: createQlooClient({ apiKey: "test-key", cache, fetch: fake.fetch }),
+    qloo: createQlooClient({
+      apiKey: "test-key",
+      cache,
+      fetch: fake.fetch,
+      sleep: INSTANT.sleep,
+    }),
     emit: (event) => events.push(event),
+    timing: INSTANT,
   });
   const calls = () =>
     events.flatMap((event) => (event.type === "call" ? [event.call] : []));
@@ -149,9 +165,11 @@ export async function runAgent(
       apiKey: "test-key",
       cache: createMemoryCache(),
       fetch: fake.fetch,
+      sleep: INSTANT.sleep,
     }),
     model,
     emit: (event) => events.push(event),
+    timing: INSTANT,
   });
   const calls: TraceCall[] = events.flatMap((event) =>
     event.type === "call" ? [event.call] : [],

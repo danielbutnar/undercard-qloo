@@ -173,6 +173,7 @@ async function replay(
   }
   sayNotes((at) => at >= saved.trace.length);
   if (saved.stopped) emit({ type: "stopped", ...saved.stopped });
+  if (saved.short) emit({ type: "short", ...saved.short });
   emit({ type: "lineup", lineup: saved.lineup });
   if (saved.localPicks?.length)
     emit({ type: "local-pick", picks: saved.localPicks });
@@ -333,6 +334,7 @@ export async function recordRun({
         ...(result.stopped ? { stopped: result.stopped } : {}),
         ...(result.localPicks ? { localPicks: result.localPicks } : {}),
         ...(result.plan ? { plan: result.plan } : {}),
+        ...(result.short ? { short: result.short } : {}),
       }
     : null;
   return { result, build, seen };
