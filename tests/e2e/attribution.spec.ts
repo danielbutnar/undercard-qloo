@@ -21,10 +21,10 @@ const shares = (line: string) =>
 
 const bill = (page: Page) =>
   page.getByRole("region", { name: "Undercard draft" });
+// The poster's key is the venue switch since WS12 item 1 (the switch panel went): each venue the
+// build read, a switch for its fans, with the acts they lifted.
 const rooms = (page: Page) =>
-  page.getByRole("region", {
-    name: "Boise venues whose fans shaped this lineup",
-  });
+  page.getByRole("group", { name: "Venue fans used for this draft" });
 
 async function openCard(page: Page, name: string) {
   await bill(page).getByRole("button", { name, exact: true }).first().click();
@@ -108,7 +108,7 @@ test.describe("at 1440x900", () => {
   }) => {
     await page.goto("/");
     const toggle = rooms(page).getByRole("button", {
-      name: /^Cottonwood Social Hall: on/,
+      name: /^Cottonwood Social Hall's fans: on/,
     });
     await expect(toggle).toBeEnabled({ timeout: 15_000 });
     await toggle.click();
@@ -119,7 +119,10 @@ test.describe("at 1440x900", () => {
     await card.getByRole("button", { name: "Close the card" }).click();
     await expect(card).toHaveCount(0);
 
-    await rooms(page).getByRole("button", { name: "All venues on" }).click();
+    await bill(page)
+      .getByRole("button", { name: "All venues on" })
+      .first()
+      .click();
     await expect(
       (await openCard(page, "Marisol Vey")).locator(".card-split"),
     ).toBeVisible();

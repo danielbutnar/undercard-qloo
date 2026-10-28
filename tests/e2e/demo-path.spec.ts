@@ -18,19 +18,25 @@ const band = (page: Page, name: RegExp) =>
   bill(page).getByRole("region", { name });
 const traceRows = (page: Page) =>
   page.getByRole("list", { name: "Qloo calls" }).locator(":scope > li");
+// The poster's key is the venue switch since WS12 item 1 (the switch panel went): each venue the
+// build read, a switch for its fans, with the acts they lifted.
 const rooms = (page: Page) =>
-  page.getByRole("region", {
-    name: "Boise venues whose fans shaped this lineup",
-  });
+  page.getByRole("group", { name: "Venue fans used for this draft" });
 // Each act's mark, read out in words (the + and the room's initials are hidden from it).
 const MARK =
   /With .+'s fans added: (\d+(st|nd|rd|th) in Qloo's ranking, (up \d+ places|new from outside)|up \d+ places in Qloo's ranking|new in Qloo's ranking, from outside)/;
 
-/** The acts each room lifted, from the rail: their sum is the acts on the bill. */
+/** The acts each venue lifted, from the poster's key: their sum is the acts on the bill. */
 async function liftedTotal(page: Page): Promise<number> {
-  const text = (await rooms(page).getByRole("list").textContent()) ?? "";
-  return [...text.matchAll(/(\d+) (?:acts? lifted|lifted none)/g)].reduce(
-    (total, match) => total + Number(match[1]),
+  const labels = await page
+    .getByRole("group", { name: "Venue fans used for this draft" })
+    .locator("[aria-label]")
+    .evaluateAll((items) =>
+      items.map((item) => item.getAttribute("aria-label") ?? ""),
+    );
+  return labels.reduce(
+    (total, label) =>
+      total + Number(/: (?:on, )?(\d+) acts?/.exec(label)?.[1] ?? 0),
     0,
   );
 }
@@ -124,8 +130,8 @@ test.describe("demo path", () => {
         .getByRole("button", { name: /\. Show this venue$/ })
         .first(),
     ).toBeVisible();
-    await expect(rooms(page)).toContainText(
-      "These venues stand for the town's taste: the acts won't necessarily play there.",
+    await expect(bill(page)).toContainText(
+      "These venues' fans are the signal: the acts won't necessarily play there.",
     );
     expect(await liftedTotal(page)).toBe(10);
 
@@ -380,14 +386,18 @@ test.describe("demo path", () => {
 
     const switcher = rooms(page);
     const first = switcher
-      .getByRole("button", { name: /: on, \d+ acts? lifted$/ })
+      .getByRole("button", { name: /'s fans: on, [1-9]\d* acts?\./ })
       .first();
     await expect(first).toBeEnabled({ timeout: 15_000 });
-    const venue = (await first.getAttribute("aria-label"))!.split(":")[0];
+    const venue = (await first.getAttribute("aria-label"))!.split(
+      "'s fans:",
+    )[0];
     await first.click();
 
     await expect(
-      switcher.getByRole("button", { name: `${venue}: off, lifted none` }),
+      switcher.getByRole("button", {
+        name: `${venue}'s fans: off. Switch them on`,
+      }),
     ).toHaveAttribute("aria-pressed", "false");
     await expect(bill(page).getByText(/^What if /)).toBeVisible();
     const reformed = await names();
