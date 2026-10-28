@@ -10,6 +10,7 @@ import {
   type QlooClientOptions,
 } from "./qloo";
 import type { QlooCache } from "./qloo-cache";
+import { readerFor } from "./saved-reads";
 
 /**
  * The logic of scripts/attribution-warm.ts (WS7): Qloo's split for every checked town's saved
@@ -108,6 +109,8 @@ export interface WarmRow {
   festivalId: string;
   buildId: string;
   call: ExplainCall;
+  /** The cache prefix the build records (a 2.0 build's own), absent for the 1.0 builds'. */
+  cachePrefix?: string;
   /** The cache already holds this call's answer: no call needed. */
   cached: boolean;
 }
@@ -127,9 +130,11 @@ export async function warmPlan(
   builds: readonly SavedBuild[],
   cache: QlooCache,
 ): Promise<WarmRow[]> {
-  const qloo = cacheOnly(cache);
+  const plain = cacheOnly(cache);
   const rows: WarmRow[] = [];
-  for (const build of builds)
+  for (const build of builds) {
+    // A 2.0 build's split is read and warmed under its own prefix (src/server/saved-reads.ts).
+    const qloo = readerFor(build, plain);
     for (const call of explainCalls(build)) {
       let cached = true;
       try {
@@ -142,9 +147,11 @@ export async function warmPlan(
         festivalId: build.festivalId,
         buildId: build.id,
         call,
+        ...(build.cachePrefix ? { cachePrefix: build.cachePrefix } : {}),
         cached,
       });
     }
+  }
   return rows;
 }
 
@@ -247,6 +254,7 @@ export async function warmLive({
       cache,
       baseUrl,
       fetch: capped,
+      ...(row.cachePrefix ? { prefix: row.cachePrefix } : {}),
       ...client,
     });
     try {
@@ -262,7 +270,10 @@ export async function warmLive({
       // will read it; one that isn't there stops the run before another call is spent.
       let stored = true;
       try {
-        await cacheOnly(cache).explain(row.call);
+        const reader = cacheOnly(cache);
+        await (
+          row.cachePrefix ? reader.withPrefix(row.cachePrefix) : reader
+        ).explain(row.call);
       } catch (error) {
         if (!(error instanceof QlooCacheMiss)) throw error;
         stored = false;
@@ -429,4 +440,21 @@ export async function seedFromSaved({
     }
   }
   return report;
+}
+
+/**
+ * The builds to warm, named by id (BUILDS=<file>), read from the store as they are: the 29 re-run
+ * builds before their pointers move (Daniel, 2026-10-28). A missing one stops the plan, by name.
+ */
+export async function buildsById(
+  store: Pick<BuildStore, "byId">,
+  ids: readonly string[],
+): Promise<SavedBuild[]> {
+  const builds = await Promise.all(ids.map((id) => store.byId(id)));
+  const missing = ids.filter((_, index) => !builds[index]);
+  if (missing.length)
+    throw new Error(
+      `No saved build for ${missing.join(", ")}: nothing planned.`,
+    );
+  return builds as SavedBuild[];
 }

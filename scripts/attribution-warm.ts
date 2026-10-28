@@ -14,6 +14,8 @@
 //   LIVE=1 MAX_CALLS=<n>   makes the calls the cache doesn't hold, one at a time. Every HTTP
 //                          attempt, retries included, counts against <n>, and the run stops before
 //                          an attempt past it; it doesn't start if the plan alone needs more.
+//   BUILDS=<file>          plans the builds a JSON list of ids names, in place of each festival's
+//                          pinned latest build, each under the cache prefix it records.
 // It prints festival ids and counts only, never Qloo data. From the repository root:
 //   node --env-file=.env.local --experimental-transform-types
 //     --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON
@@ -25,6 +27,7 @@ import { FEE_BAND_IDS, type FeeBandId } from "@/lib/fee-bands";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { checkedFestival } from "@/lib/towns";
 import {
+  buildsById,
   pinnedBuilds,
   readOnlyCache,
   seedFromSaved,
@@ -47,11 +50,19 @@ const PINNED =
 const EXPLAIN_DIR = process.env.EXPLAIN_DIR ?? ".design/explainability";
 const print = (value: unknown) => console.log(JSON.stringify(value));
 
-const builds = await pinnedBuilds({
-  store: createBuildStore(readOnly),
-  festivalIds: CHECKED_TOWNS.map((town) => checkedFestival(town).id),
-  pinned: JSON.parse(readFileSync(PINNED, "utf8")),
-});
+// BUILDS=<file>: a JSON list of build ids to warm in place of each festival's pinned latest
+// build, such as the 29 re-run builds before their pointers move (Daniel, 2026-10-28). Each
+// build's split is planned, warmed and read under the cache prefix it records.
+const builds = process.env.BUILDS
+  ? await buildsById(
+      createBuildStore(readOnly),
+      JSON.parse(readFileSync(process.env.BUILDS, "utf8")),
+    )
+  : await pinnedBuilds({
+      store: createBuildStore(readOnly),
+      festivalIds: CHECKED_TOWNS.map((town) => checkedFestival(town).id),
+      pinned: JSON.parse(readFileSync(PINNED, "utf8")),
+    });
 const boise = builds.find((build) => build.festivalId === SAGEBRUSH_SOUND.id);
 if (!boise) throw new Error("Boise's build isn't among the pinned builds.");
 
