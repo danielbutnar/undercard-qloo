@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation";
+import { labEnabled } from "@/lib/lab";
 import type { Metadata } from "next";
 import { FestivalScreen } from "@/components/festival-screen";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
@@ -15,6 +17,7 @@ export const metadata: Metadata = { title: "Design 2.0 · the landing" };
  * setlist, the door check and the page's last line.
  */
 export default async function Design2Landing() {
+  if (!labEnabled()) notFound();
   const [bill, towns, story] = await Promise.all([
     labFirstBill(),
     labTowns(),

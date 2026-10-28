@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation";
+import { labEnabled } from "@/lib/lab";
 import type { Metadata } from "next";
 import { CardPage } from "../../_kit/card-page";
 import "../../design-2.css";
@@ -8,5 +10,6 @@ export const metadata: Metadata = {
 
 /** WS12 step 0, item 3: the finished card with the line WS13.3's second climb fills (dev only). */
 export default function Design2CardControl() {
+  if (!labEnabled()) notFound();
   return <CardPage control />;
 }

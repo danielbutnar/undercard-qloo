@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation";
+import { labEnabled } from "@/lib/lab";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -24,6 +26,7 @@ export const metadata: Metadata = { title: "Design 2.0 · How it works" };
  * from the saved Boise build, and the act it follows is the one that leads that build.
  */
 export default async function Design2HowItWorks() {
+  if (!labEnabled()) notFound();
   const [bill, story] = await Promise.all([labFirstBill(), labStory()]);
   return (
     <div className="chart-app stage-bg fs d2 d2-hiw">
