@@ -7,6 +7,7 @@ import {
 import { FEE_BAND_IDS, type FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import type { FirstBill } from "@/lib/first-bill";
+import { creditLines } from "@/lib/credit-split";
 import type { BuildStore, SavedBuild } from "./build-store";
 import { serverBuildStore } from "./deps";
 import { createQlooClient, QlooCacheMiss } from "./qloo";
@@ -143,7 +144,13 @@ export async function withSplits(
   try {
     const saved = await store.byId(bill.build.id);
     if (!saved || saved.festivalId !== festival.id) return bill;
-    const splits = splitLines(await attributionFor(saved, cache));
+    const raw = await attributionFor(saved, cache);
+    const splits = splitLines(raw);
+    // WS13.10: where another venue's share is strictly larger, the card says why the credit stands.
+    for (const [entityId, credit] of Object.entries(
+      creditLines(saved.lineup.acts, raw),
+    ))
+      if (splits[entityId]) splits[entityId] = { ...splits[entityId], credit };
     return Object.keys(splits).length > 0 ? { ...bill, splits } : bill;
   } catch {
     return bill;

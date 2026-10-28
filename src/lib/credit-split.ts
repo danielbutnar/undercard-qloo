@@ -77,10 +77,24 @@ export function creditCounts(
   return { total, byTown, byTier };
 }
 
-/** Draft (a) for Daniel: the credit stays, and one clause says why. */
-export const creditClause = (act: Act, largest: Pick<SplitPart, "name">) =>
-  `The card credits ${act.anchorVenue.name} because its fans alone moved this act most; with the venues asked together, Qloo traces more of its match to ${largest.name}.`;
+/**
+ * The card's line where another venue's share is strictly larger (Daniel's choice of 2026-10-28,
+ * his words): the credit stands, and the line says why. An exact tie gets none.
+ */
+export const creditLine = (act: Act, largest: Pick<SplitPart, "name">) =>
+  `Credited to ${act.anchorVenue.name}: its fans alone lifted this act onto the bill. Asked about all the venues together, Qloo traces more of the match to ${largest.name}.`;
 
-/** Draft (b) for Daniel: the credit follows the split, and the climb keeps its venue. */
-export const splitCredit = (act: Act, largest: Pick<SplitPart, "name">) =>
-  `Credited to ${largest.name}, the venue Qloo's split leans on most; its climb came with ${act.anchorVenue.name}'s fans added.`;
+/** The credit line for each act whose credited venue has a strictly smaller share, by id. */
+export function creditLines(
+  acts: readonly Act[],
+  splits: ActSplits,
+): Record<string, string> {
+  const lines: Record<string, string> = {};
+  for (const act of acts) {
+    const split = splits[act.entityId];
+    const check = split ? creditAgainstSplit(act, split) : null;
+    if (check?.agrees === false && check.largest)
+      lines[act.entityId] = creditLine(act, check.largest);
+  }
+  return lines;
+}

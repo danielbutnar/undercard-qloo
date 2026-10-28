@@ -3,12 +3,7 @@
 // Daniel: (a) one clause saying why, (b) the credit following the split. Invented data only.
 import { describe, expect, it } from "vitest";
 import type { ActSplit } from "@/lib/attribution-line";
-import {
-  creditAgainstSplit,
-  creditClause,
-  creditCounts,
-  splitCredit,
-} from "@/lib/credit-split";
+import { creditAgainstSplit, creditCounts } from "@/lib/credit-split";
 import type { Act } from "@/lib/lineup";
 
 const act = (entityId: string, band: "mid" | "opener", venue: string): Act => ({
@@ -96,22 +91,7 @@ describe("credit against Qloo's split (WS13.10)", () => {
   });
 });
 
-describe("the two wordings for Daniel (WS13.10)", () => {
-  const credited = act("a", "mid", "nx");
-  const largest = { entityId: "vac", name: "V418" };
-
-  it("(a) keeps the credit and says why in one clause", () => {
-    expect(creditClause(credited, largest)).toBe(
-      "The card credits Venue 227 because its fans alone moved this act most; with the venues asked together, Qloo traces more of its match to V418.",
-    );
-  });
-
-  it("(b) moves the credit to Qloo's largest venue share, and keeps the climb's venue", () => {
-    expect(splitCredit(credited, largest)).toBe(
-      "Credited to V418, the venue Qloo's split leans on most; its climb came with Venue 227's fans added.",
-    );
-  });
-});
+// Daniel chose on 2026-10-28: his wording is tested in credit-line.test.tsx.
 
 describe("the cache-only count over saved builds (WS13.10)", () => {
   it("reads each build's split from the cache, never Qloo, and counts the cards crediting another venue", async () => {
