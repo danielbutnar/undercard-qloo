@@ -202,18 +202,21 @@ export async function runUndercardAgent({
   const input = assemblyOf(festival, toolbox.state);
   const { acts: booked, shortfall } = assembleLineup(input);
   const missing = shortfall.mid + shortfall.opener;
-  // WS13.2: the trace's last line says why the agent stopped reading venues.
+  const reading = toolbox.callsUsed();
+  // WS13.4: Qloo's location signal, a second reading on the booked acts, inside the cap.
+  const located = await toolbox.readLocation(booked);
+  // WS13.2: the trace's last line says why the agent stopped reading venues, with the trace's
+  // own total: the location reads are counted after the venues (Daniel, 2026-10-28).
   const rooms = toolbox.roomsRead();
   const stopped = stopOf({
     open: shortfall,
-    calls: toolbox.callsUsed(),
+    calls: reading,
+    located: toolbox.callsUsed() - reading,
     cap: toolbox.cap,
     city: festival.city,
     claimed: toolbox.state.finished?.stoppedBecause,
     rooms: { fanData: rooms.fanData, allTried: rooms.untried.length === 0 },
   });
-  // WS13.4: Qloo's location signal, a second reading on the booked acts, inside the cap.
-  const located = await toolbox.readLocation(booked);
   const acts = booked.map((act) => {
     const location = located.get(act.entityId);
     return location ? { ...act, location } : act;

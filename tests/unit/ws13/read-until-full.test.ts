@@ -136,6 +136,7 @@ describe("the trace's last line says why the agent stopped (WS13.2)", () => {
         text: stopLine({
           reason: "full",
           calls: reading.length,
+          located: calls.length - reading.length,
           cap: QLOO_CALL_CAP,
           city: LARKSPUR_FESTIVAL.city,
           open: { mid: 0, opener: 0 },
