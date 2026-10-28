@@ -863,6 +863,94 @@ Written on 2026-10-24, before any of its calls (Daniel's plan of 23 October, sec
 
 The 29 builds share their headliners, crowd age and tiers, so the headliners-only rankings are 2 calls. The dry run plans 284 calls before any skip, about 325 in all, plus about 15 for (5).
 
+**Result, 2026-10-28 (06:55 to 07:08 UTC, 08:55 to 09:08 Bucharest): bar met, 244 of the 290 acts at a local lift of 5 places or more (the bar was 145); 253 at 3 or more. So, by section 37's rule, Undercard 2.0's bar is 5 places.** 246 Qloo requests from scripts/control-test-37.ts, one at a time, every one answered, none retried; the dry run planned 285 before any skip. Every ranking was read in this run by the script's own client, which read nothing from the server's Qloo cache and wrote nothing to it.
+
+| Town | Control town | Acts | Local lift ≥ 5 | Local lift ≥ 3 | Still climb ≥ 5 that day | No scored control |
+|---|---|---|---|---|---|---|
+| Boise | Bucharest | 10 | 6 | 7 | 10 | 0 |
+| Austin | Berlin | 10 | 9 | 9 | 10 | 0 |
+| Denver | Hamburg | 10 | 10 | 10 | 10 | 0 |
+| Nashville | Oslo | 10 | 10 | 10 | 10 | 0 |
+| Raleigh | Reykjavík | 10 | 9 | 9 | 10 | 0 |
+| Chicago | Cluj-Napoca | 10 | 6 | 7 | 10 | 0 |
+| Seattle | Tallinn | 10 | 6 | 7 | 10 | 0 |
+| Minneapolis | Montreal | 10 | 9 | 9 | 10 | 0 |
+| Duluth | Hamburg | 10 | 9 | 9 | 10 | 0 |
+| Kansas City | Montreal | 10 | 7 | 8 | 10 | 0 |
+| Asheville | Berlin | 10 | 9 | 9 | 10 | 0 |
+| Bozeman | Bucharest | 10 | 9 | 10 | 10 | 0 |
+| Burlington | Calgary | 10 | 6 | 7 | 10 | 0 |
+| Calgary | Chicago | 10 | 10 | 10 | 10 | 0 |
+| Toronto | Utrecht | 10 | 10 | 10 | 10 | 0 |
+| Montreal | Nashville | 10 | 8 | 8 | 10 | 0 |
+| Reykjavík | Rotterdam | 10 | 8 | 8 | 10 | 0 |
+| Oslo | Paris | 10 | 7 | 8 | 10 | 0 |
+| Aarhus | Asheville | 10 | 9 | 9 | 10 | 0 |
+| Tallinn | Toronto | 10 | 9 | 9 | 10 | 0 |
+| Berlin | Boise | 10 | 9 | 10 | 10 | 0 |
+| Hamburg | Kansas City | 10 | 10 | 10 | 10 | 0 |
+| Utrecht | Vienna | 10 | 6 | 7 | 10 | 0 |
+| Rotterdam | Seattle | 10 | 9 | 9 | 10 | 0 |
+| Paris | Raleigh | 10 | 10 | 10 | 10 | 0 |
+| Vienna | Wrexham | 10 | 10 | 10 | 10 | 0 |
+| Bucharest | Burlington | 10 | 7 | 7 | 10 | 0 |
+| Cluj-Napoca | Denver | 10 | 10 | 10 | 10 | 0 |
+| Wrexham | Aarhus | 10 | 7 | 7 | 10 | 0 |
+| All 29 | | 290 | 244 | 253 | 290 | 0 |
+
+| Fee range | Acts | Local lift ≥ 5 | Local lift ≥ 3 |
+|---|---|---|---|
+| Mid-size range | 116 | 98 | 105 |
+| Opening range | 174 | 146 | 148 |
+
+**What it says.**
+- **The bar.** At least half of the 290 acts reach a local lift of 5 places: 244 of 290, 84.1%.
+- **Controls without fan data.** Skipped for the next closest in popularity: 32 matched controls (11 different rooms), 32 because Qloo warned the room wasn't scored and 0 because, with no warning, its ranking was the headliners-only one. Venue runs that found no room with fan data in their control town: 0, in 0 control towns. Acts with no control: 0; they have no local lift and count as not reaching the bar.
+- **The drift, a description.** On the run's day, 290 of the 290 acts still climb at least 5 places with their town's venue, against all of them when their builds were made (17 and 18 October). It changes neither the bar nor the product's rule.
+- **Also counted.** Venue runs, each matched in its own fee range: 125. Town venues' popularity, each venue once: from their own town's find_venues that day 68, from /entities 0, from neither 0 (their control town's rooms tried in Qloo's own order). Venue runs whose town venue had no fan data on the run's day: 29 by Qloo's warning, 0 by a ranking equal to the headliners-only one; their 0 acts keep that day's climb and count against the bar (0 of them would reach a local lift of 5 by the arithmetic alone).
+
+By the outcomes written before the run: the bar is met, so the evidence page's SHOWN stamp gives the share at 5 places (244 of 290, 84.1%), and Undercard 2.0 books an act only if its local lift is at least 5 places and it still climbs at least 5 places with the town's venue (WS13.3's constant: 5).
+
+**Side check (section 37's reading 5), not part of the bar.** For 3 of 3 towns, each venue's control was read in section 34's control town as well as section 37's, by the same room rule. 13 Qloo requests of its own, the main run's answers read, not asked again.
+
+| Town | Control town (section 37) | Control town (section 34) | Acts | Local lift ≥ 5, section 37's | Local lift ≥ 5, section 34's | Local lift ≥ 3, section 37's | Local lift ≥ 3, section 34's |
+|---|---|---|---|---|---|---|---|
+| Montreal | Nashville | Oslo | 10 | 8 | 7 | 8 | 8 |
+| Tallinn | Toronto | Utrecht | 10 | 9 | 9 | 9 | 9 |
+| Bucharest | Burlington | Calgary | 10 | 7 | 7 | 7 | 7 |
+
+| Town | Fee range | Local lift, section 37's control | Local lift, section 34's control |
+|---|---|---|---|
+| Montreal | Mid-size range | 6 | 14 |
+| Montreal | Mid-size range | 2 | 3 |
+| Montreal | Mid-size range | 33 | 1 |
+| Montreal | Mid-size range | 46 | 40 |
+| Montreal | Opening range | 10 | 5 |
+| Montreal | Opening range | 33 | 22 |
+| Montreal | Opening range | 9 | 24 |
+| Montreal | Opening range | 31 | -1 |
+| Montreal | Opening range | -2 | 14 |
+| Montreal | Opening range | 35 | 35 |
+| Tallinn | Mid-size range | 48 | 48 |
+| Tallinn | Mid-size range | 48 | 25 |
+| Tallinn | Mid-size range | 46 | 46 |
+| Tallinn | Mid-size range | 46 | 8 |
+| Tallinn | Opening range | 19 | 17 |
+| Tallinn | Opening range | 25 | 27 |
+| Tallinn | Opening range | 7 | 12 |
+| Tallinn | Opening range | 7 | 23 |
+| Tallinn | Opening range | -27 | -22 |
+| Tallinn | Opening range | 17 | 17 |
+| Bucharest | Mid-size range | 21 | 0 |
+| Bucharest | Mid-size range | 33 | 13 |
+| Bucharest | Mid-size range | 41 | 41 |
+| Bucharest | Mid-size range | 17 | 10 |
+| Bucharest | Opening range | 2 | 36 |
+| Bucharest | Opening range | 22 | 5 |
+| Bucharest | Opening range | 18 | 30 |
+| Bucharest | Opening range | -6 | -2 |
+| Bucharest | Opening range | -9 | -9 |
+| Bucharest | Opening range | 14 | 33 |
 
 ## 38. An outside yardstick at real festivals, written before any call
 
