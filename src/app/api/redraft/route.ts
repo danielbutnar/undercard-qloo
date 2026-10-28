@@ -3,13 +3,15 @@ import {
   jsonBody,
   serverBuildStore,
   serverLimiter,
+  serverCachedQloo,
   serverQloo,
 } from "@/server/deps";
 import { clientIp } from "@/server/rate-limit";
 import { handleRedraft } from "@/server/redraft";
 import { ndjsonResponse } from "@/server/undercard-build";
 
-// A redraft makes at most 3 Qloo calls (M8c).
+// A redraft makes at most 3 Qloo calls on a 1.0 build, 5 on a 2.0 build, none for the slots the
+// build's own rankings fill.
 export const maxDuration = 60;
 
 export async function POST(request: Request): Promise<Response> {
@@ -27,6 +29,7 @@ export async function POST(request: Request): Promise<Response> {
   return handleRedraft({
     festival,
     qloo: serverQloo,
+    cachedQloo: serverCachedQloo,
     store: serverBuildStore(),
     body,
     limiter: serverLimiter(),

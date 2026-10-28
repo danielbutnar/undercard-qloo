@@ -47,7 +47,8 @@ const callsOf = (events: BuildEvent[]) =>
   events.flatMap((event) => (event.type === "call" ? [event.call] : []));
 
 describe("redraft the rest (M8c)", () => {
-  it("refills every slot not kept, with acts not on the board, in at most 3 Qloo calls", async () => {
+  // A 2.0 build (Daniel, 2026-10-28): two venues, each with its matched control, within 5 calls.
+  it("refills every slot not kept, with acts not on the board, in at most 5 Qloo calls", async () => {
     const saved = await savedBuild();
     const acts = saved.lineup.acts;
     const kept = [acts[0], acts[4], acts[5]].map((act) => act.entityId);
@@ -58,9 +59,9 @@ describe("redraft the rest (M8c)", () => {
       replace: rest.map((act) => ({ entityId: act.entityId, band: act.band })),
       excludeIds: acts.map((act) => act.entityId),
     });
-    expect(REDRAFT_CALL_CAP).toBe(3);
-    expect(callsOf(events).length).toBeLessThanOrEqual(3);
-    expect(requests.length).toBeLessThanOrEqual(3);
+    expect(REDRAFT_CALL_CAP).toBe(5);
+    expect(callsOf(events).length).toBeLessThanOrEqual(5);
+    expect(requests.length).toBeLessThanOrEqual(5);
     const redraft = events.find((event) => event.type === "redraft");
     expect(redraft).toBeTruthy();
     if (redraft?.type !== "redraft") return;
