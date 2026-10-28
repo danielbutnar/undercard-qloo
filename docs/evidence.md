@@ -854,6 +854,16 @@ Written on 2026-10-24, before any of its calls (Daniel's plan of 23 October, sec
 - **The drift, described, not a bar.** On the run's day the run also reads each tier's headliners-only ranking for each town (2 calls a town, 58 in all) and reports how many of the 290 acts still climb at least 5 places with their town venue that day, so Qloo's drift since 17 October shows beside the result. The count is a description: it changes neither the bar nor the product's rule. With it the run costs about 380 Qloo calls, still one window.
 - **The saved builds' cache stays as it is.** No answer the run receives is written to the server's Qloo cache, whose entries the saved 1.0 builds' replays and venue switch are rebuilt from: the run's client keeps its own memory cache, reading nothing from the server's cache and writing nothing to it, and its raw answers go to .design/ only. Before the window the 29 latest pointers and Boise's What-if lineups (GET /api/venue-switch for Sagebrush Sound) are recorded; after it both are checked unchanged, and any change is reported before anything else.
 
+**Added on 2026-10-28, before any call (the script's dry run).** Five readings, written down before the window.
+- (1) The control town is the parenthetical's: the next of the 29 checked towns in alphabetical order that is in another country, with no anchor-count clause, since section 37 takes one music room from it per venue (section 34's clause existed to swap whole sets of anchor venues). Bucharest's is Burlington, Montreal's Nashville and Tallinn's Toronto (section 34's table has Calgary, Oslo and Utrecht).
+- (2) A control has no fan data if Qloo warns it wasn't scored or, where Qloo gives no warning, if its ranking equals the same day's headliners-only ranking for that tier, entity for entity and in order (the app's own rule, src/lib/fan-data.ts). Either way it is skipped for the next closest in popularity, ties by name. If no music room in the control town has fan data, the act has no control and counts as not reaching the bar; the count is reported.
+- (3) A saved build doesn't keep its venues' popularity, so each town venue's comes from its own town's find_venues answer on the run's day, or from /entities where that answer no longer lists it. If neither gives a popularity, the control is the control town's first music room in Qloo's own order; the count is reported.
+- (4) A town venue that is unscored on the run's day keeps its acts' same-day climb as measured (zero when its ranking equals the headliners-only one), so those acts count against the bar; the count is reported.
+- (5) A side check, not part of the bar: for Bucharest, Montreal and Tallinn, each venue's control is also read from section 34's control town (Calgary, Oslo, Utrecht) by the same room rule, and those acts' local lifts are reported both ways.
+
+The 29 builds share their headliners, crowd age and tiers, so the headliners-only rankings are 2 calls. The dry run plans 284 calls before any skip, about 325 in all, plus about 15 for (5).
+
+
 ## 38. An outside yardstick at real festivals, written before any call
 
 Written on 2026-10-24, before any of its calls (Daniel's plan of 23 October, section WS14, and his answers of 24 October). The bars don't change after the results are in. Counts only in this file; names stay in .design/.
