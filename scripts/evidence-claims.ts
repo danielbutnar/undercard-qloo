@@ -133,7 +133,7 @@ export const CLAIMS: readonly Entry[] = [
     phrase: "at least {five} places above the headliners-only ranking",
     equals: rule("min-lift"),
   },
-  { file: README, phrase: "in at most {3} calls", equals: rule("refill-cap") },
+  { file: README, phrase: "in at most {5} calls", equals: rule("refill-cap") },
   {
     file: README,
     phrase: "at most {28} times per build",
@@ -161,7 +161,7 @@ export const CLAIMS: readonly Entry[] = [
   },
   {
     file: README,
-    phrase: "refills its slot with at most {3} more Qloo calls",
+    phrase: "refills its slot with at most {5} more Qloo calls",
     equals: rule("refill-cap"),
   },
   {
@@ -237,7 +237,7 @@ export const CLAIMS: readonly Entry[] = [
   },
   {
     file: STORY,
-    phrase: "in at most {three} Qloo calls",
+    phrase: "in at most {five} Qloo calls",
     equals: rule("refill-cap"),
   },
   { file: STORY, phrase: "a build stops at {28}", equals: rule("call-cap") },

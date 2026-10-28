@@ -17,7 +17,7 @@ The demo festival, Sagebrush Sound (Boise, Idaho; 3,000 capacity; crowd aged 25â
 - The page opens on the draft bill: the headliners over 4 Mid and 6 Opener acts, each with its room's mark.
 - **Watch the agent build it** replays every Qloo call, with its parameters and result count, and the planner's own lines between them.
 - An act's card shows Qloo's affinity, its popularity percentile in the band, a "Why Boise" line and two tags shared with the headliners.
-- **Unavailable** refills the slot from the same band in at most three Qloo calls.
+- **Unavailable** refills the slot from the same band in at most five Qloo calls.
 - **Without Qloo** reprints the bill with the model's own picks. The model alone runs at high effort, above the planner's medium, and still can't see Boise's rooms: each pick carries its reason, with no room and no fee-band check.
 
 ## Qloo calls used, and why
