@@ -981,6 +981,16 @@ Written on 2026-10-24, before any of its calls (Daniel's plan of 23 October, sec
 
 **Added on 2026-10-24, before any call and any data (Daniel's answers of that day).** As in section 37, no answer this test receives overwrites the server's Qloo cache entries the saved 1.0 builds read: its runs use their own key prefix or write nothing, and keep raw answers in .design/ only. After each window the 29 latest pointers and Boise's What-if lineups are checked unchanged.
 
+**Added on 2026-10-28, before any call (Daniel's answers of that day).** Four readings of the text above, settled before the script's first call:
+- **A hit** is any act on the festival's lineup except its headliners, matched by its Qloo entity id. The bars use this count; the narrower count, only the record's N booked undercard acts, is reported beside it.
+- **C runs the agent with the control town as the town**, so each of its venues is matched with its own control, never with itself.
+- **The same brief for all three.** A, B and C answer the same default brief (a crowd of 25 to 34, a capacity of 3,000, 4 mid-size and 6 opening slots, named "Your festival"), so the model alone never sees the real festival's name.
+- **N of 12.** For the four festivals whose record holds 12 booked undercard acts, all three shortlists are capped at 10, so the three stay the same size.
+
+The model calls (B's, and the planner's turns in A and C) go one at a time, with no SDK retries, and the run stops at the first rate-limit answer from the model as well as from Qloo. Before the probe, Daniel gets the expected model spend; the run stops for his word if the actual spend passes 1.5 times that.
+
+**A known limit.** From the headliners and the town, the model alone may recall a real lineup from its training. That would favour B, so it works against A, not for it.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
