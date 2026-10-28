@@ -13,6 +13,13 @@ import type { LocalPick } from "./local-pick";
  * setlist. WS13 writes them; where they sit on a page is WS12's.
  */
 
+/**
+ * A place the planner skipped as not a music venue, with its reason (Daniel, 2026-10-28, 19:10):
+ * one of the planner's lines, so the trace, the saved build and the setlist all say it.
+ */
+export const skippedLine = (place: string, reason: string) =>
+  `Skipped ${place}: listed by Qloo, but ${reason.trim()}`;
+
 /** A venue read's line, when Qloo had no fan data for the venue (WS13.1). */
 export const noFanDataCallLine = (venue: string) =>
   `Qloo had no fan data for ${venue}: the agent skips it.`;

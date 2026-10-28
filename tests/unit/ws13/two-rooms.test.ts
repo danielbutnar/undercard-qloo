@@ -27,7 +27,10 @@ const finish = (notMusic: string[] = []): ToolCall[] => [
       anchor_venue_ids: [],
       summary: "Done reading.",
       stopped_because: "every_band_full",
-      not_music_venues: notMusic,
+      not_music_venues: notMusic.map((id) => ({
+        entity_id: id,
+        reason: "a restaurant, not a music room",
+      })),
     },
   },
 ];

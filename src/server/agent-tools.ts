@@ -19,6 +19,7 @@ import {
 } from "@/lib/control-venue";
 import { controlTownFor } from "@/lib/control-town";
 import { QLOO_CALL_CAP } from "@/lib/agent-limits";
+import { skippedLine } from "@/lib/agent-words";
 import { FEE_BAND_IDS, type FeeBand, type FeeBandId } from "@/lib/fee-bands";
 import { roomKind } from "@/lib/place-kinds";
 import {
@@ -239,9 +240,19 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
       },
       not_music_venues: {
         type: "array",
-        items: { type: "string" },
+        items: objectSchema({
+          entity_id: {
+            type: "string",
+            description: "The place's entity_id from find_venues.",
+          },
+          reason: {
+            type: "string",
+            description:
+              'What the place is instead, to end the buyer\'s line "Skipped <place>: listed by Qloo, but …", for example "a restaurant, not a music room".',
+          },
+        }),
         description:
-          "Entity ids of places find_venues listed that you skipped because they aren't music venues: restaurants, cafes, breweries, theaters, arenas.",
+          "Places find_venues listed that you skipped because they aren't music venues (restaurants, cafes, breweries, theaters, arenas), each with your reason. The buyer sees a line for each.",
       },
     }),
   },
@@ -273,7 +284,15 @@ const Inputs = {
     summary: z.string(),
     stopped_because: z.enum(STOP_CLAIMS).optional(),
     // Required of the model (strict schema); older scripted plans send none.
-    not_music_venues: z.array(z.string()).optional(),
+    not_music_venues: z
+      .array(
+        z.object({
+          entity_id: z.string().min(1),
+          // Daniel, 2026-10-28 (19:10): a place is skipped only with the planner's reason.
+          reason: z.string().trim().min(1),
+        }),
+      )
+      .optional(),
   }),
 };
 type ToolName = keyof typeof Inputs;
@@ -526,7 +545,7 @@ export function createToolbox({
   function mustReadMore(): string | null {
     const { controlled, untried } = roomsRead();
     if (controlled >= 2 || untried.length === 0 || cap - used < 2) return null;
-    return `Read at least two music venues with fan data, each with its control, before you finish: ${controlled} so far. Not tried yet: ${untried.map((venue) => venue.name).join(", ")}. If one of them isn't a music venue, name it in not_music_venues.`;
+    return `Read at least two music venues with fan data, each with its control, before you finish: ${controlled} so far. Not tried yet: ${untried.map((venue) => venue.name).join(", ")}. If one of them isn't a music venue, name it in not_music_venues, with your reason.`;
   }
 
   // WS13.2: how full each tier is by the rule, so the planner reads until every one is.
@@ -966,7 +985,28 @@ export function createToolbox({
       stopped_because,
       not_music_venues,
     }) {
-      for (const id of not_music_venues ?? []) state.notMusic.add(id);
+      // Daniel, 2026-10-28 (19:10): a place skipped as not a music venue is said, with the
+      // planner's reason, as one of its lines: in the trace, saved with the build, replayed.
+      for (const { entity_id, reason } of not_music_venues ?? []) {
+        const place = state.venues.find(
+          (venue) => venue.entityId === entity_id,
+        );
+        if (!place)
+          throw new ToolMisuse(
+            `Unknown place ${entity_id} in not_music_venues: pick an entity_id from find_venues.`,
+          );
+        if (
+          state.notMusic.has(entity_id) ||
+          state.venueRuns.some((run) => run.venue.entityId === entity_id)
+        )
+          continue;
+        state.notMusic.add(entity_id);
+        emit({
+          type: "status",
+          text: skippedLine(place.name, reason),
+          planner: true,
+        });
+      }
       // Daniel, 2026-10-28: at least two music venues with fan data before the agent may stop.
       const more = mustReadMore();
       if (more) throw new ToolMisuse(more);
