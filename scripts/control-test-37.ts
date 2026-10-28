@@ -7,7 +7,8 @@
 //
 // The run's client keeps its own memory only: it reads nothing from the server's Qloo cache and
 // writes nothing to it. Raw answers go to <main folder>/.design/evidence-37/ (git-ignored), with
-// result.json; the console gets counts and town names only.
+// result.json and result.md (scripts/control-test-37-result.md, filled: counts only, for
+// section 37); the console gets counts and town names only.
 //
 //   (default, or DRY=1)     calls nothing, writes nothing: the planned calls per town and in all.
 //   LIVE=1 MAX_CALLS=<n>    at most n requests, one at a time, spaced SPACING_MS apart (1200 by
@@ -75,5 +76,9 @@ const { code } = await runControlTest37({
     mkdirSync(OUT, { recursive: true });
     writeFileSync(join(OUT, name), text);
   },
+  template: readFileSync(
+    new URL("./control-test-37-result.md", import.meta.url),
+    "utf8",
+  ),
 });
 process.exitCode = code;
