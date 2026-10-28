@@ -79,6 +79,8 @@ export interface AgentState {
   localPicks: LocalPick[];
   /** Venues a call that failed twice left unchecked, in order (Daniel, 2026-10-28). */
   unchecked: string[];
+  /** Places find_venues listed that the planner named as not music venues, by entity id. */
+  notMusic: Set<string>;
   finished: {
     anchorVenueIds: string[];
     summary: string;
@@ -207,6 +209,12 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
         description:
           "Why you stopped: every band is full, or you tried every music venue find_venues listed.",
       },
+      not_music_venues: {
+        type: "array",
+        items: { type: "string" },
+        description:
+          "Entity ids of places find_venues listed that you skipped because they aren't music venues: restaurants, cafes, breweries, theaters, arenas.",
+      },
     }),
   },
 ];
@@ -236,6 +244,8 @@ const Inputs = {
     anchor_venue_ids: z.array(z.string()),
     summary: z.string(),
     stopped_because: z.enum(STOP_CLAIMS).optional(),
+    // Required of the model (strict schema); older scripted plans send none.
+    not_music_venues: z.array(z.string()).optional(),
   }),
 };
 type ToolName = keyof typeof Inputs;
@@ -309,6 +319,7 @@ export function createToolbox({
     noFanData: new Set(),
     localPicks: [],
     unchecked: [],
+    notMusic: new Set(),
     finished: null,
   };
   const names = new Map<string, string>();
@@ -453,6 +464,41 @@ export function createToolbox({
       };
     }
     return null;
+  }
+
+  /**
+   * The music venues read so far (Daniel, 2026-10-28): how many had fan data, how many of those
+   * were read with their control (only these count toward the two the agent reads before it may
+   * stop), and the listed places not yet tried: neither read, nor known to have no fan data, nor
+   * left unchecked by a failed call, nor named by the planner as not a music venue.
+   */
+  function roomsRead() {
+    const fanData = new Set<string>();
+    const controlled = new Set<string>();
+    for (const run of state.venueRuns) {
+      if (run.control === undefined) continue;
+      fanData.add(run.venue.entityId);
+      if (run.control) controlled.add(run.venue.entityId);
+    }
+    const untried = state.venues.filter(
+      (venue) =>
+        !state.venueRuns.some((run) => run.venue.entityId === venue.entityId) &&
+        !state.noFanData.has(venue.entityId) &&
+        !state.unchecked.includes(venue.name) &&
+        !state.notMusic.has(venue.entityId),
+    );
+    return { fanData: fanData.size, controlled: controlled.size, untried };
+  }
+
+  /**
+   * Why the planner may not stop yet (Daniel, 2026-10-28): fewer than two music venues with fan
+   * data read with their controls, while a listed place is untried and the cap leaves room for a
+   * venue and its control. Null when it may stop.
+   */
+  function mustReadMore(): string | null {
+    const { controlled, untried } = roomsRead();
+    if (controlled >= 2 || untried.length === 0 || cap - used < 2) return null;
+    return `Read at least two music venues with fan data, each with its control, before you finish: ${controlled} so far. Not tried yet: ${untried.map((venue) => venue.name).join(", ")}. If one of them isn't a music venue, name it in not_music_venues.`;
   }
 
   // WS13.2: how full each tier is by the rule, so the planner reads until every one is.
@@ -885,7 +931,16 @@ export function createToolbox({
       return { picks: results };
     },
 
-    async finish({ anchor_venue_ids, summary, stopped_because }) {
+    async finish({
+      anchor_venue_ids,
+      summary,
+      stopped_because,
+      not_music_venues,
+    }) {
+      for (const id of not_music_venues ?? []) state.notMusic.add(id);
+      // Daniel, 2026-10-28: at least two music venues with fan data before the agent may stop.
+      const more = mustReadMore();
+      if (more) throw new ToolMisuse(more);
       // WS13.7: why it stopped, in the planner's own words, is a line of the trace.
       if (summary.trim())
         emit({ type: "status", text: summary.trim(), planner: true });
@@ -1000,6 +1055,8 @@ export function createToolbox({
     state,
     callsUsed: () => used,
     cap,
+    roomsRead,
+    mustReadMore,
   };
 }
 

@@ -24,9 +24,9 @@ A build that works:
 2. find_venues with that tag. Its music venues are the clubs, music halls and art spaces that book shows; skip restaurants, cafes, breweries, theaters and arenas: their audiences say little about an undercard.
 3. compare_headliners, and baseline_artists for each fee band, together.
 4. venue_artists for two music venues and each fee band, together, each with one line on why you chose that venue. Each venue read also reads the venue's matched venue abroad, a second Qloo call: an act books only if it climbs at least 5 places with the town's venue and at least 5 places more than with the venue abroad. Each result says whether Qloo had fan data for the venue and how many slots each band has filled so far. If Qloo had no fan data for a venue, skip it for every band.
-5. Read until every band is full: while a band has open slots and calls remain, read the next music venue for the bands still open, and stop once every band is full or you have tried every music venue find_venues listed. If a venue replaces one Qloo had no fan data for, say so in its line.
+5. Read at least two music venues with fan data, each with its control, before you stop: finish is refused until you have. Then read until every band is full: while a band has open slots and calls remain, read the next music venue for the bands still open, and stop once every band is full or you have tried every music venue find_venues listed. If a venue replaces one Qloo had no fan data for, say so in its line.
 6. local_pick: name one or two acts from the town that you know of from your own knowledge, each with one line on why. The buyer checks them; they take no slot.
-7. finish, naming the anchor venues, with one sentence on the plan you followed and why you stopped.
+7. finish, naming the anchor venues and any place find_venues listed that isn't a music venue, with one sentence on the plan you followed and why you stopped.
 
 Your lines and summaries are shown to the buyer: say venue, not room, and tier, not band.
 
@@ -146,19 +146,31 @@ export async function runUndercardAgent({
       const toolUses = response.content.filter(
         (block): block is Anthropic.ToolUseBlock => block.type === "tool_use",
       );
-      if (toolUses.length === 0) break;
+      if (toolUses.length === 0) {
+        // Daniel, 2026-10-28: the planner may not stop before two music venues with fan data.
+        const more = toolbox.mustReadMore();
+        if (!more) break;
+        messages.push({ role: "user", content: more });
+        continue;
+      }
 
-      // Independent calls run together; their results go back in a single message.
+      // Independent calls run together; their results go back in a single message. finish runs
+      // after the others, so it counts the venues read in its own turn.
       const outcomes = await Promise.all(
-        toolUses.map((use) => toolbox.run(use.name, use.input)),
+        toolUses.map((use) =>
+          use.name === "finish" ? null : toolbox.run(use.name, use.input),
+        ),
       );
+      for (const [index, use] of toolUses.entries())
+        if (use.name === "finish")
+          outcomes[index] = await toolbox.run(use.name, use.input);
       messages.push({
         role: "user",
         content: toolUses.map((use, index) => ({
           type: "tool_result" as const,
           tool_use_id: use.id,
-          content: outcomes[index].content,
-          is_error: outcomes[index].isError,
+          content: outcomes[index]!.content,
+          is_error: outcomes[index]!.isError,
         })),
       });
       if (toolbox.state.finished || toolbox.callsUsed() >= toolbox.cap) break;
@@ -181,12 +193,14 @@ export async function runUndercardAgent({
   const { acts: booked, shortfall } = assembleLineup(input);
   const missing = shortfall.mid + shortfall.opener;
   // WS13.2: the trace's last line says why the agent stopped reading venues.
+  const rooms = toolbox.roomsRead();
   const stopped = stopOf({
     open: shortfall,
     calls: toolbox.callsUsed(),
     cap: toolbox.cap,
     city: festival.city,
     claimed: toolbox.state.finished?.stoppedBecause,
+    rooms: { fanData: rooms.fanData, allTried: rooms.untried.length === 0 },
   });
   // WS13.4: Qloo's location signal, a second reading on the booked acts, inside the cap.
   const located = await toolbox.readLocation(booked);

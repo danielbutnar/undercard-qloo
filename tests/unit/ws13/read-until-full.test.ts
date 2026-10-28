@@ -15,6 +15,7 @@ import { fakeFetch, syntheticQloo } from "../m2/fake-qloo";
 import { readEvents } from "../m3/scripted";
 import {
   DINER,
+  FORT,
   HALL,
   LANTERN,
   LARKSPUR_FESTIVAL,
@@ -110,12 +111,14 @@ describe("each venue read says how full each tier is (WS13.2)", () => {
 });
 
 describe("the trace's last line says why the agent stopped (WS13.2)", () => {
-  it("full: the next room after a venue with no fan data filled every tier", async () => {
+  it("full: the rooms after a venue with no fan data filled every tier", async () => {
+    // Daniel, 28 October: two music venues with fan data are read before the agent may stop.
     const { model } = scriptedModel([
       ...OPENING,
       [read("mid", HALL), read("opener", HALL)],
       [read("mid", LANTERN), read("opener", LANTERN)],
-      finishBecause([LANTERN], "every_band_full"),
+      [read("mid", FORT), read("opener", FORT)],
+      finishBecause([LANTERN, FORT], "every_band_full"),
     ]);
     const { result, events, calls } = await runAgent(model);
     expect(result.complete).toBe(true);
@@ -145,6 +148,23 @@ describe("the trace's last line says why the agent stopped (WS13.2)", () => {
   });
 
   it("rooms: every music room was tried and slots stay open", async () => {
+    // Qloo has no fan data for any place in Larkspur here: it leaves the Lantern Room and Fort
+    // Street Ballroom out of the signal too, ranks the headliners' own list and says so.
+    const noFanData = (url: URL) => {
+      const signal = url.searchParams.get("signal.interests.entities") ?? "";
+      const venue = [LANTERN, FORT].find((id) => signal.endsWith(id));
+      if (!venue || url.searchParams.get("filter.type") !== "urn:entity:artist")
+        return syntheticQloo(url);
+      const alone = new URL(url);
+      alone.searchParams.set(
+        "signal.interests.entities",
+        signal.split(",").slice(0, 2).join(","),
+      );
+      return {
+        ...(syntheticQloo(alone) as object),
+        warnings: [{ type: "not_found", "signal.interests.entities": [venue] }],
+      };
+    };
     const { model } = scriptedModel([
       ...OPENING,
       [
@@ -153,19 +173,25 @@ describe("the trace's last line says why the agent stopped (WS13.2)", () => {
         read("mid", DINER),
         read("opener", DINER),
       ],
+      [
+        read("mid", LANTERN),
+        read("opener", LANTERN),
+        read("mid", FORT),
+        read("opener", FORT),
+      ],
       finishBecause([], "tried_every_music_room"),
     ]);
-    const { events } = await runAgent(model);
+    const { events } = await runAgent(model, undefined, noFanData);
     const stopped = events.find((event) => event.type === "stopped");
     expect(stopped).toMatchObject({ reason: "rooms" });
     expect(stopped?.type === "stopped" && stopped.text).toBe(
-      stopLine({
+      `${stopLine({
         reason: "rooms",
-        calls: 11,
+        calls: 15,
         cap: QLOO_CALL_CAP,
         city: LARKSPUR_FESTIVAL.city,
         open: { mid: 4, opener: 6 },
-      }),
+      })} No music venue in Larkspur had fan data.`,
     );
   });
 

@@ -67,6 +67,24 @@ export function stopLine({
 }
 
 /**
+ * Said after the stop line when fewer than two music venues with fan data were read (Daniel,
+ * 2026-10-28): of the town when every music venue it listed was tried, else of the reading.
+ */
+export function fewRoomsLine(
+  city: string,
+  { fanData, allTried }: { fanData: number; allTried: boolean },
+): string | null {
+  if (fanData >= 2) return null;
+  if (allTried)
+    return fanData === 1
+      ? `Only one music venue in ${city} had fan data.`
+      : `No music venue in ${city} had fan data.`;
+  return fanData === 1
+    ? "Only one music venue with fan data was read."
+    : "No music venue with fan data was read.";
+}
+
+/**
  * Why a run stopped, from what is true, not only what the planner says: every tier full by the
  * rule; else the cap spent; else the planner's word that it tried every music venue; else it
  * stopped early.
@@ -77,12 +95,15 @@ export function stopOf({
   cap,
   city,
   claimed,
+  rooms,
 }: {
   open: Record<FeeBandId, number>;
   calls: number;
   cap: number;
   city: string;
   claimed?: "every_band_full" | "tried_every_music_room";
+  /** Music venues read with fan data, and whether every one listed was tried (Daniel, 2026-10-28). */
+  rooms?: { fanData: number; allTried: boolean };
 }): StopLine {
   const reason: StopReason = FEE_BAND_IDS.every((band) => open[band] === 0)
     ? "full"
@@ -91,7 +112,9 @@ export function stopOf({
       : claimed === "tried_every_music_room"
         ? "rooms"
         : "planner";
-  return { reason, text: stopLine({ reason, calls, cap, city, open }) };
+  const few = rooms ? fewRoomsLine(city, rooms) : null;
+  const line = stopLine({ reason, calls, cap, city, open });
+  return { reason, text: few ? `${line} ${few}` : line };
 }
 
 /** The card's line for Qloo's location signal (WS13.4): a second reading, never the basis. */
