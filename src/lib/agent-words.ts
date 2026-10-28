@@ -1,3 +1,4 @@
+import { QLOO_CALL_CAP } from "./agent-limits";
 import { FEE_BAND_IDS, type FeeBand, type FeeBandId } from "./fee-bands";
 import {
   formatAffinity,
@@ -149,3 +150,14 @@ export const agentLineFor = ({
   call: { why?: string } | null;
   note: string | null;
 }): string | null => call?.why ?? note ?? null;
+
+/** Under Watch on every town (WS13.8): a fresh run of the AI agent, rate-limited. */
+export const RUN_IT_LIVE = "Run it live";
+
+/** What a live run is and costs, under its button. */
+export const runItLiveSub = (city: string) =>
+  `The AI agent drafts ${city} again now, with up to ${QLOO_CALL_CAP} Qloo calls. Live runs are limited each day.`;
+
+/** Once a live run ends: its time and its Qloo calls. */
+export const liveRunFacts = ({ calls, ms }: { calls: number; ms: number }) =>
+  `This live run took ${(ms / 1000).toFixed(1)} s and ${calls} Qloo ${calls === 1 ? "call" : "calls"}.`;

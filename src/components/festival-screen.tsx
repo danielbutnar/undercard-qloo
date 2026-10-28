@@ -82,7 +82,12 @@ import { namesVenue } from "@/lib/venue-call";
 import { useWatch, type WatchPhase } from "@/components/use-watch";
 import { QLOO_CALL_CAP } from "@/lib/agent-limits";
 import { LocalPickBox } from "@/components/local-pick-box";
-import { agentLineFor } from "@/lib/agent-words";
+import {
+  agentLineFor,
+  liveRunFacts,
+  RUN_IT_LIVE,
+  runItLiveSub,
+} from "@/lib/agent-words";
 import type { TraceCall } from "@/lib/build-events";
 import { firstBoard } from "@/lib/build-state";
 import {
@@ -1198,6 +1203,30 @@ export function FestivalScreen({
               onScreen: savedOnScreen || ownRun,
             })}
       </p>
+      {/* WS13.8: a live run under Watch on every town with a saved build; rate-limited. Once
+          it ends it states its time and its Qloo calls; a refused run says why. */}
+      {!custom && state.build && !watching && state.status !== "building" && (
+        <div className="fs-live">
+          {/* After a refusal (the day's live runs are used), the reason takes its place. */}
+          {!state.refusal && (
+            <button
+              type="button"
+              onClick={() => runBuild({ fresh: true })}
+              disabled={busy}
+              className="link"
+            >
+              {RUN_IT_LIVE}
+            </button>
+          )}
+          <p className="watch-sub">
+            {state.refusal
+              ? state.refusal
+              : state.build.replayed === false && state.summary
+                ? liveRunFacts(state.summary)
+                : runItLiveSub(festival.city)}
+          </p>
+        </div>
+      )}
     </div>
   );
 
