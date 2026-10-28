@@ -124,7 +124,8 @@ describe("handleUndercardBuild (POST /api/undercard)", () => {
     });
     const events = await readEvents(response);
     const types = events.map((event) => event.type);
-    expect(types.filter((type) => type === "call")).toHaveLength(9);
+    // Its plan's 9 calls, then Qloo's location signal for each tier's acts (WS13.4).
+    expect(types.filter((type) => type === "call")).toHaveLength(13);
     expect(types.indexOf("lineup")).toBeGreaterThan(types.lastIndexOf("call"));
     expect(types.at(-1)).toBe("done");
     const lineup = events.find((event) => event.type === "lineup");

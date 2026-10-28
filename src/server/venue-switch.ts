@@ -5,6 +5,7 @@ import {
   lineupWith,
   venueSwitch,
   venuesOf,
+  withReadings,
   type VenueSwitchData,
 } from "@/lib/venue-switch";
 import type { FirstBill } from "@/lib/first-bill";
@@ -140,7 +141,10 @@ export async function readVenueSwitch({
   const every = new Set(venuesOf(input).map((venue) => venue.entityId));
   if (!sameLineup(lineupWith(input, every).acts, saved.lineup.acts))
     return null;
-  return { buildId: saved.id, ...venueSwitch(input) };
+  return {
+    buildId: saved.id,
+    ...withReadings(venueSwitch(input), saved.lineup.acts),
+  };
 }
 
 /**

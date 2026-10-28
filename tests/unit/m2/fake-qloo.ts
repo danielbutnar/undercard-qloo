@@ -211,6 +211,23 @@ export function syntheticQloo(url: URL): unknown {
       })),
     );
   }
+  // WS13.4: given acts among themselves (filter.results.entities). The headliners alone score
+  // every act; with Qloo's location signal it answers every other one, a little higher.
+  if (
+    url.pathname === "/v2/insights" &&
+    p["filter.type"] === "urn:entity:artist" &&
+    p["filter.results.entities"]
+  ) {
+    const located = p["signal.location.query"] !== undefined;
+    return insightsBody(
+      p["filter.results.entities"].split(",").flatMap((id, k) => {
+        if (located && k % 2 === 1) return [];
+        const n = Number(id.slice(-12));
+        const affinity = (located ? 0.92 : 0.86) - k * 0.01;
+        return [insightsEntity(n, `Act ${n}`, 0.8, affinity)];
+      }),
+    );
+  }
   if (
     url.pathname === "/v2/insights" &&
     p["filter.type"] === "urn:entity:artist"

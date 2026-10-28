@@ -139,8 +139,9 @@ export async function opened(
 export async function runAgent(
   model: AgentModel,
   festival: Festival = LARKSPUR_FESTIVAL,
+  route: (url: URL) => unknown = syntheticQloo,
 ) {
-  const fake = fakeFetch(syntheticQloo);
+  const fake = fakeFetch(route);
   const events: BuildEvent[] = [];
   const result = await runUndercardAgent({
     festival,

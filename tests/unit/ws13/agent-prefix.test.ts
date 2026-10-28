@@ -126,6 +126,7 @@ describe("a 2.0 build's own cache prefix (WS13)", () => {
     expect(data).not.toBeNull();
     const every = new Set(data!.venues.map((venue) => venue.entityId));
     expect(every.has(HALL)).toBe(true);
+    // Every venue on is the saved lineup, second readings (WS13.4) and all.
     expect(switchedLineup(data!, every).acts).toEqual(saved!.lineup.acts);
   });
 });

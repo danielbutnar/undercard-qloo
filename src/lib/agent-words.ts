@@ -1,4 +1,6 @@
 import { FEE_BAND_IDS, type FeeBandId } from "./fee-bands";
+import { formatAffinity } from "./format";
+import type { LocationReading } from "./lineup";
 
 /*
  * Agent 2.0's words (WS13): the lines its new trace data gives the Qloo calls list, Watch and the
@@ -85,3 +87,7 @@ export function stopOf({
         : "planner";
   return { reason, text: stopLine({ reason, calls, cap, city, open }) };
 }
+
+/** The card's line for Qloo's location signal (WS13.4): a second reading, never the basis. */
+export const locationLine = ({ town, withSignal, without }: LocationReading) =>
+  `Second reading, outside the rule: with Qloo's location signal for ${town}, affinity ${formatAffinity(withSignal)} (${formatAffinity(without)} without).`;

@@ -13,6 +13,7 @@ import {
 } from "@/components/chart/poster-words";
 import { whySentence } from "@/components/chart/why";
 import { ordinal, venueShort } from "@/components/chart/words";
+import { locationLine } from "@/lib/agent-words";
 import type { SplitLine } from "@/lib/attribution-line";
 import type { FeeBand } from "@/lib/fee-bands";
 import {
@@ -240,6 +241,10 @@ export function ActCard({
           )}
           <span className="card-split-full">{split.line}</span>
         </p>
+      )}
+      {/* WS13.4: Qloo's location signal, a second reading, only where Qloo answered it. */}
+      {act.location && (
+        <p className="card-split">{locationLine(act.location)}</p>
       )}
       {act.anchorVenue.kind && (
         <p className="card-kind">

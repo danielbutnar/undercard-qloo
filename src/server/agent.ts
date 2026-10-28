@@ -168,9 +168,8 @@ export async function runUndercardAgent({
   }
 
   const input = assemblyOf(festival, toolbox.state);
-  const { acts, shortfall } = assembleLineup(input);
+  const { acts: booked, shortfall } = assembleLineup(input);
   const missing = shortfall.mid + shortfall.opener;
-  const lineup = acts.length > 0 ? { festivalId: festival.id, acts } : null;
   // WS13.2: the trace's last line says why the agent stopped reading venues.
   const stopped = stopOf({
     open: shortfall,
@@ -179,6 +178,13 @@ export async function runUndercardAgent({
     city: festival.city,
     claimed: toolbox.state.finished?.stoppedBecause,
   });
+  // WS13.4: Qloo's location signal, a second reading on the booked acts, inside the cap.
+  const located = await toolbox.readLocation(booked);
+  const acts = booked.map((act) => {
+    const location = located.get(act.entityId);
+    return location ? { ...act, location } : act;
+  });
+  const lineup = acts.length > 0 ? { festivalId: festival.id, acts } : null;
   emit({ type: "stopped", ...stopped });
   if (lineup) emit({ type: "lineup", lineup });
   if (missing > 0) {

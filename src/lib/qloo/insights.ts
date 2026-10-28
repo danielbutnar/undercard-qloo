@@ -145,17 +145,21 @@ export function rankAmongEndpoint(get: QlooGet) {
     signalEntityIds,
     amongIds,
     ages = [],
+    locationQuery,
   }: {
     signalEntityIds: string[];
     amongIds: string[];
     /** Qloo age buckets for signal.demographics.age, such as 25_to_29. */
     ages?: readonly string[];
+    /** Qloo's location signal (signal.location.query), as section 34's Control B sent it. */
+    locationQuery?: string;
   }) {
     const params: Record<string, string | number> = {
       "filter.type": "urn:entity:artist",
       "signal.interests.entities": signalEntityIds.join(","),
-      "filter.results.entities": amongIds.join(","),
     };
+    if (locationQuery) params["signal.location.query"] = locationQuery;
+    params["filter.results.entities"] = amongIds.join(",");
     if (ages.length) params["signal.demographics.age"] = ages.join(",");
     params.take = amongIds.length;
     return get("/v2/insights", params, (body) =>

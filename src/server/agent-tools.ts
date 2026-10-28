@@ -19,6 +19,7 @@ import {
   resolvedName,
 } from "@/lib/town-resolution";
 import type { Festival } from "@/lib/festival";
+import type { Act, LocationReading } from "@/lib/lineup";
 import {
   QlooBusy,
   QlooError,
@@ -292,11 +293,12 @@ export function createToolbox({
     return [a, b];
   }
 
-  // Entity ids in a parameter value read better as names in the trace panel.
+  // Entity ids in a parameter value read better as names in the trace panel. A value that is
+  // already words ("Boise, Idaho") keeps its single spaces.
   const readable = (value: string) =>
     value
       .split(",")
-      .map((part) => names.get(part) ?? part)
+      .map((part) => names.get(part.trim()) ?? part.trim())
       .join(", ");
 
   async function callQloo<T>(
@@ -602,6 +604,71 @@ export function createToolbox({
     },
   };
 
+  /**
+   * WS13.4: Qloo's location signal as a second reading for the lineup's acts, never the booking
+   * basis. Per tier, the tier's acts among themselves for the headliners alone and with
+   * signal.location.query set to the town (Qloo scores each call on its own scale, so both read
+   * the same acts), as section 34's Control B measured it. Two calls a tier while the cap allows;
+   * an act Qloo leaves out of either answer, or a call that fails, gives no reading.
+   */
+  async function readLocation(
+    acts: readonly Act[],
+  ): Promise<Map<string, LocationReading>> {
+    const readings = new Map<string, LocationReading>();
+    const town = festival.region.trim()
+      ? `${festival.city}, ${festival.region}`
+      : festival.city;
+    const pair = festival.headliners.flatMap(
+      (name) => state.headliners.get(name.toLowerCase())?.entityId ?? [],
+    );
+    if (pair.length < 2) return readings;
+    for (const band of festival.feeBands) {
+      const among = acts
+        .filter((act) => act.band === band.id)
+        .map((act) => act.entityId);
+      if (among.length === 0 || cap - used < 2) continue;
+      for (const id of among)
+        names.set(id, acts.find((act) => act.entityId === id)!.name);
+      const ask = (locationQuery?: string) =>
+        callQloo(
+          "location_signal",
+          "/v2/insights",
+          locationQuery
+            ? `${bandLabel(band.id)}-band lineup acts for the headliners and Qloo's location signal for ${locationQuery}${ageNote}`
+            : `${bandLabel(band.id)}-band lineup acts for the headliners alone, to compare${ageNote}`,
+          () =>
+            qloo.rankAmong({
+              signalEntityIds: pair,
+              amongIds: among,
+              ages: crowd.buckets,
+              ...(locationQuery ? { locationQuery } : {}),
+            }),
+        );
+      try {
+        const [alone, located] = await Promise.all([ask(), ask(town)]);
+        const without = new Map(
+          alone.map((artist) => [artist.entityId, artist.affinity]),
+        );
+        for (const artist of located) {
+          const before = without.get(artist.entityId);
+          if (
+            artist.affinity !== null &&
+            before !== null &&
+            before !== undefined
+          )
+            readings.set(artist.entityId, {
+              town,
+              withSignal: artist.affinity,
+              without: before,
+            });
+        }
+      } catch {
+        // A second reading only: a failed call leaves the tier without one.
+      }
+    }
+    return readings;
+  }
+
   async function run(name: string, input: unknown): Promise<ToolOutcome> {
     if (!(name in Inputs))
       return { content: `Unknown tool ${name}.`, isError: true };
@@ -626,7 +693,14 @@ export function createToolbox({
     }
   }
 
-  return { tools: AGENT_TOOLS, run, state, callsUsed: () => used, cap };
+  return {
+    tools: AGENT_TOOLS,
+    run,
+    readLocation,
+    state,
+    callsUsed: () => used,
+    cap,
+  };
 }
 
 export type Toolbox = ReturnType<typeof createToolbox>;
