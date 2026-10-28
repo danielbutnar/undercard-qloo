@@ -297,7 +297,8 @@ describe("what each town's replay gives", () => {
     expect(value({ kind: "rule", of: "min-lift" })).toBe(5);
     // Agent 2.0's cap (WS13; Daniel, 2026-10-24); the README and the story still say 12.
     expect(value({ kind: "rule", of: "call-cap" })).toBe(28);
-    expect(value({ kind: "rule", of: "refill-cap" })).toBe(3);
+    // A 2.0 build's refill (Daniel, 2026-10-28); README and the story follow in the same merge.
+    expect(value({ kind: "rule", of: "refill-cap" })).toBe(5);
     expect(value({ kind: "fee-range", end: "bottom" })).toBeCloseTo(55, 6);
     expect(value({ kind: "fee-range", end: "top" })).toBeCloseTo(92, 6);
     expect(value({ kind: "checked-towns" })).toBe(29);

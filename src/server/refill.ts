@@ -7,11 +7,19 @@ import type { BuildStore } from "./build-store";
 import { controlRanking, recordedControl } from "./control-reads";
 import { QlooError, type QlooClient } from "./qloo";
 import { readerFor } from "./saved-reads";
+import { assemblyFromSaved } from "./venue-switch";
 import type { RateLimiter } from "./rate-limit";
 import { limitedResponse, ndjsonResponse } from "./undercard-build";
 
-/** The most Qloo calls one refill may make (SPEC.md, M3). */
-export const REFILL_CALL_CAP = 3;
+/**
+ * The most Qloo calls one refill of a 2.0 build may make (Daniel, 2026-10-28): two venues, each
+ * with its matched control, and one to spare. It reads them only when no act in the rankings the
+ * build already holds passes the bar.
+ */
+export const REFILL_CALL_CAP = 5;
+
+/** A 1.0 build's refill, one call a venue, as M3 set it (SPEC.md). */
+export const ONE_POINT_OH_REFILL_CAP = 3;
 
 export const RefillRequestSchema = z.object({
   buildId: z.string().min(1),
@@ -29,7 +37,9 @@ export const RefillRequestSchema = z.object({
  * POST /api/refill: books a replacement for an unavailable act in the same fee band. It asks
  * Qloo for the band's artists seeded by the headliners and an anchor venue, with every act on
  * the board in filter.exclude.entities, and keeps the first act that venue lifts past the bar.
- * The act's own anchor venue goes first, then the build's other anchors, at most 3 calls.
+ * The act's own anchor venue goes first, then the build's other anchors: at most 3 calls on a 1.0
+ * build. A 2.0 build first takes an act that passes the bar in the rankings it already holds,
+ * with no call; failing that, each venue beside its matched control, at most 5 calls.
  * Refills are rate-limited per IP and per day.
  */
 export async function handleRefill({
@@ -39,6 +49,7 @@ export async function handleRefill({
   body,
   limiter,
   ip,
+  cachedQloo = () => null,
 }: {
   festival: Festival;
   qloo: () => QlooClient | null;
@@ -46,6 +57,8 @@ export async function handleRefill({
   body: unknown;
   limiter: RateLimiter;
   ip: string;
+  /** Reads the Qloo cache only: the rankings a 2.0 build holds, for a refill with no call. */
+  cachedQloo?: () => QlooClient | null;
 }): Promise<Response> {
   const refused = (message: string) =>
     ndjsonResponse(async (emit) => {
@@ -89,10 +102,35 @@ export async function handleRefill({
       ...new Set([...headlinerIds, ...excludeIds, unavailableId]),
     ];
     // WS13.3: a 2.0 build refills by the 2.0 rule, each venue read beside its matched control,
-    // both with the board left out, in the build's own prefix and inside the same 3 calls.
+    // both with the board left out, in the build's own prefix.
     const twoPointOh = context.controls !== undefined;
     const reader = readerFor(saved, client);
     const venues = venueOrder(context.anchors, bandId, anchorVenueId);
+    const cap = twoPointOh ? REFILL_CALL_CAP : ONE_POINT_OH_REFILL_CAP;
+
+    // Daniel, 2026-10-28: before any call, an act that already passes the bar in the rankings the
+    // build holds (the venue runs and their controls, from the cache only) takes the slot.
+    const cached = twoPointOh ? cachedQloo() : null;
+    if (cached) {
+      const held = await assemblyFromSaved(saved, festival, cached).catch(
+        () => null,
+      );
+      const next = held
+        ? assembleLineup({
+            ...held,
+            bands: [{ ...band, slots: 50 }],
+          }).acts.find((act) => !excluded.includes(act.entityId))
+        : undefined;
+      if (next) {
+        emit({
+          type: "status",
+          text: "Refilled from the rankings this build already holds: no new Qloo call.",
+        });
+        emit({ type: "refill", replaces: unavailableId, act: next });
+        emit({ type: "done", calls: 0, ms: Date.now() - started });
+        return;
+      }
+    }
     const names = new Map<string, string>([
       ...context.headliners.map((headliner): [string, string] => [
         headliner.entityId,
@@ -117,7 +155,7 @@ export async function handleRefill({
       const control = recordedControl(context, bandId, venue.entityId);
       // No matched control on a 2.0 build: nothing can be booked from this venue.
       if (twoPointOh && !control) continue;
-      if (calls + (control ? 2 : 1) > REFILL_CALL_CAP) break;
+      if (calls + (control ? 2 : 1) > cap) break;
       const n = ++calls;
       const why = reason ? ` (${UNAVAILABLE_REASONS[reason]})` : "";
       const summary = `Refill${why}: ${band.label}-band artists for the headliners and ${venue.name}, minus the board`;

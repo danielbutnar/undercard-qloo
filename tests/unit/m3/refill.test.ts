@@ -5,7 +5,7 @@ import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { createBuildStore, type SavedBuild } from "@/server/build-store";
 import { createMemoryCache } from "@/server/qloo-cache";
 import { createQlooClient } from "@/server/qloo";
-import { handleRefill, REFILL_CALL_CAP } from "@/server/refill";
+import { handleRefill, ONE_POINT_OH_REFILL_CAP } from "@/server/refill";
 import { createMemoryLimiter } from "@/server/rate-limit";
 import { fakeFetch, params, syntheticId, syntheticQloo } from "../m2/fake-qloo";
 import { LANTERN, readEvents, syntheticServer } from "./scripted";
@@ -120,7 +120,7 @@ describe("refill", () => {
     );
   });
 
-  it(`stops after ${REFILL_CALL_CAP} Qloo calls when no venue lifts a replacement`, async () => {
+  it(`stops after ${ONE_POINT_OH_REFILL_CAP} Qloo calls on a 1.0 build when no venue lifts a replacement`, async () => {
     const { saved } = await savedBuild();
     // Four anchor venues, and a Qloo that ignores venues: nothing is ever lifted.
     const venues = [201, 202, 203, 204].map((n) => ({
@@ -156,7 +156,7 @@ describe("refill", () => {
       excludeIds: [gone.entityId],
     });
 
-    expect(REFILL_CALL_CAP).toBe(3);
+    expect(ONE_POINT_OH_REFILL_CAP).toBe(3);
     expect(requests).toHaveLength(3);
     expect(callsOf(events)).toHaveLength(3);
     expect(refillOf(events)).toBeUndefined();
