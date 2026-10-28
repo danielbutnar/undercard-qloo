@@ -105,16 +105,17 @@ describe("DRY: the plan, with no call", () => {
     expect(
       planCalls(FESTIVALS, TOWNS).map((row) => [row.city, row.calls]),
     ).toEqual([
-      // Birch's and Alder's rooms, both tiers for the headliners alone, three venue runs,
-      // and at most a control each.
+      // Birch's and Alder's rooms, the /entities check of Alder's venues, both tiers for the
+      // headliners alone, three venue runs, and at most a control each.
       [
         "Alder",
         {
           findVenues: 2,
+          entities: 1,
           headlinersOnly: 2,
           venues: 3,
           controlsAtMost: 3,
-          total: 10,
+          total: 11,
         },
       ],
       // Cedar's rooms (Birch's were planned for Alder), one venue run, one control.
@@ -122,6 +123,7 @@ describe("DRY: the plan, with no call", () => {
         "Birch",
         {
           findVenues: 1,
+          entities: 0,
           headlinersOnly: 0,
           venues: 1,
           controlsAtMost: 1,
@@ -132,6 +134,7 @@ describe("DRY: the plan, with no call", () => {
         "Cedar",
         {
           findVenues: 0,
+          entities: 0,
           headlinersOnly: 0,
           venues: 1,
           controlsAtMost: 1,
@@ -161,10 +164,11 @@ describe("DRY: the plan, with no call", () => {
     expect(outcome.lines.find((line) => line.dry === true)).toMatchObject({
       towns: 3,
       findVenues: 3,
+      entities: 1,
       headlinersOnly: 2,
       venues: 5,
       controlsAtMost: 5,
-      total: 15,
+      total: 16,
     });
     expect(outcome.lines.find((line) => "checks" in line)).toMatchObject({
       checks: {
@@ -221,6 +225,49 @@ describe("LIVE: at most MAX_CALLS, stopping at the first 429, and RESUME", () =>
     );
   });
 
+  it("checks /entities and the ranking warnings within the first calls, and says what it saw when it stops", async () => {
+    const world = worldFetch();
+    const outcome = await run({
+      settings: { ...LIVE, maxCalls: 8 },
+      fetch: world.fetch,
+    });
+    // The 3rd request looks up the first festival's venues by id, whatever find_venues said.
+    expect(world.requests[2].pathname).toBe("/entities");
+    expect(world.requests[2].searchParams.get("entity_ids")).toBe("v-a2,v-a1");
+    expect(outcome.lines.find((line) => "stopped" in line)).toMatchObject({
+      stopped: "max calls",
+      // Requests 4 to 8 are rankings: the headliners alone in both tiers, Alder Club, Birch
+      // Bar (warned, and the headliners' own ranking), Birch Cellar.
+      rankingCalls: 5,
+      rankingWarnings: 1,
+      rankingsEqualToHeadlinersOnly: 1,
+      entitiesLookups: 1,
+      entitiesAsked: 2,
+      entitiesWithPopularity: 1,
+      entitiesReturnPopularity: true,
+    });
+  });
+
+  it("says when /entities gave no popularity", async () => {
+    const world = worldFetch((url) =>
+      url.pathname === "/entities"
+        ? new Response(JSON.stringify({ success: true, results: [] }), {
+            status: 200,
+          })
+        : undefined,
+    );
+    const outcome = await run({
+      settings: { ...LIVE, maxCalls: 3 },
+      fetch: world.fetch,
+    });
+    expect(outcome.lines.find((line) => "stopped" in line)).toMatchObject({
+      rankingCalls: 0,
+      entitiesLookups: 1,
+      entitiesWithPopularity: 0,
+      entitiesReturnPopularity: false,
+    });
+  });
+
   it("stops before an attempt past MAX_CALLS, keeping what it has and saying where it stopped", async () => {
     const world = worldFetch();
     const outcome = await run({
@@ -261,7 +308,7 @@ describe("LIVE: at most MAX_CALLS, stopping at the first 429, and RESUME", () =>
       town: "Birch",
       townsDone: 1,
       // Birch Bar's two answers, in the mid and opening ranges, said it wasn't found.
-      notFoundWarnings: 2,
+      rankingWarnings: 2,
     });
     expect(record.answers()).toHaveLength(14);
 

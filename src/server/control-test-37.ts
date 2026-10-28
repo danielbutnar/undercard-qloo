@@ -9,7 +9,6 @@ import {
   matchControl,
   noFanData,
   placeIn,
-  sameRanking,
   type NoFanData,
   RANKED_PLACES,
   type Room,
@@ -202,8 +201,19 @@ function read<T>(schema: z.ZodType<T>, body: unknown, what: string): T {
   return parsed.data;
 }
 
+/** The popularity /entities gave each place it knows, by entity id. */
+export function popularitiesOf(body: unknown): Map<string, number> {
+  return new Map(
+    read(EntitiesBody, body, "places by id").results.flatMap((entity) =>
+      typeof entity.popularity === "number"
+        ? [[entity.entity_id, entity.popularity] as const]
+        : [],
+    ),
+  );
+}
+
 /** The entity ids of a ranking, in Qloo's order. */
-function rankingOf(body: unknown): string[] {
+export function rankingOf(body: unknown): string[] {
   return read(RankingBody, body, "a ranking").results.entities.map(
     (entity) => entity.entity_id,
   );
@@ -366,6 +376,14 @@ export async function runFestival(
   ask: Ask,
   own: FestivalInput,
   control: FestivalInput,
+  {
+    /**
+     * Look every venue the build read up on /entities right after find_venues, whatever
+     * find_venues lists: the run's first festival does, so its first calls show whether /entities
+     * gives a place's popularity. The answer also serves as the fallback.
+     */
+    probeEntities = false,
+  }: { probeEntities?: boolean } = {},
 ): Promise<FestivalResult> {
   const { build, festival } = own;
   const headliners = build.context.headliners.map((entry) => entry.entityId);
@@ -378,6 +396,16 @@ export async function runFestival(
   const ownAnswers = (await findVenues(ask, own.town, venueTagOf(build)))
     .answers;
 
+  const venueIds = [...new Set(runs.map((run) => run.venue.entityId))];
+  const fromEntities = new Map<string, number>();
+  const lookUp = async (ids: string[]) => {
+    for (const [id, value] of popularitiesOf(
+      await ask("/entities", entitiesParams(ids)),
+    ))
+      fromEntities.set(id, value);
+  };
+  if (probeEntities && venueIds.length) await lookUp(venueIds);
+
   const popularity = new Map<
     string,
     { value: number; from: "find_venues" | "entities" }
@@ -388,20 +416,11 @@ export async function runFestival(
         value: room.popularity,
         from: "find_venues",
       });
-  const missing = [...new Set(runs.map((run) => run.venue.entityId))].filter(
-    (id) => !popularity.has(id),
-  );
-  if (missing.length) {
-    const found = read(
-      EntitiesBody,
-      await ask("/entities", entitiesParams(missing)),
-      "places by id",
-    ).results;
-    for (const id of missing) {
-      const value = found.find((entity) => entity.entity_id === id)?.popularity;
-      if (typeof value === "number")
-        popularity.set(id, { value, from: "entities" });
-    }
+  const missing = venueIds.filter((id) => !popularity.has(id));
+  if (missing.length && !probeEntities) await lookUp(missing);
+  for (const id of missing) {
+    const value = fromEntities.get(id);
+    if (value !== undefined) popularity.set(id, { value, from: "entities" });
   }
 
   const bandOf = (id: FeeBandId) => {

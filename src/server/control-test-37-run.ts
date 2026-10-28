@@ -1,5 +1,6 @@
 import { ageBuckets } from "@/lib/ages";
 import type { CheckedTown } from "@/lib/checked-towns";
+import { sameRanking } from "@/lib/control-venue";
 import type { FeeBandId } from "@/lib/fee-bands";
 import {
   createRunClient,
@@ -7,11 +8,14 @@ import {
   SPACING_MS,
   type Attempt,
   type RunRecord,
+  type SavedAnswer,
 } from "./control-test-37-client";
 import {
   callKey,
   controlFestivalFor,
   placesParams,
+  popularitiesOf,
+  rankingOf,
   rankingParams,
   readFestivals,
   runFestival,
@@ -78,6 +82,8 @@ export interface PlanRow {
   acts: number;
   calls: {
     findVenues: number;
+    /** The first festival's /entities check of its venues. */
+    entities: number;
     headlinersOnly: number;
     venues: number;
     /** One control per venue run, before any skip; fewer where a control is a call made already. */
@@ -107,8 +113,9 @@ export function planCalls(
 ): PlanRow[] {
   const planned = new Set<string>();
   const fresh = (key: string) => !planned.has(key) && !!planned.add(key);
-  return festivals.map((own) => {
+  return festivals.map((own, index) => {
     const control = controlFestivalFor(festivals, towns, own);
+    const entities = index === 0 ? 1 : 0;
     const { build, festival } = own;
     const headliners = build.context.headliners.map((entry) => entry.entityId);
     const ages = ageBuckets(
@@ -158,10 +165,11 @@ export function planCalls(
       acts: build.lineup.acts.length,
       calls: {
         findVenues,
+        entities,
         headlinersOnly,
         venues,
         controlsAtMost: runs.length,
-        total: findVenues + headlinersOnly + venues + runs.length,
+        total: findVenues + entities + headlinersOnly + venues + runs.length,
       },
     };
   });
@@ -231,6 +239,68 @@ export function checksOf(festivals: readonly FestivalInput[]) {
         ).length,
       0,
     ),
+  };
+}
+
+const readable = <T>(read: () => T, fallback: T): T => {
+  try {
+    return read();
+  } catch {
+    return fallback;
+  }
+};
+
+/**
+ * What the answers so far show about the two things the rules lean on (section 37's addition of
+ * 2026-10-28): whether ranking answers carry Qloo's not-scored warning, beside how many rankings
+ * with a venue or room added equal the headliners-only one; and whether /entities gives a place's
+ * popularity (null before any lookup).
+ */
+export function firstChecks(answers: readonly SavedAnswer[]) {
+  const rankings = answers.filter(
+    (answer) =>
+      answer.path === "/v2/insights" &&
+      answer.params["filter.type"] === "urn:entity:artist",
+  );
+  const alone = rankings.filter(
+    (answer) =>
+      answer.params["signal.interests.entities"] ===
+      answer.params["filter.exclude.entities"],
+  );
+  const sameCall = (a: SavedAnswer, b: SavedAnswer) =>
+    [
+      "filter.popularity.min",
+      "filter.popularity.max",
+      "filter.exclude.entities",
+      "signal.demographics.age",
+    ].every((key) => a.params[key] === b.params[key]);
+  const ids = (answer: SavedAnswer) =>
+    readable(() => rankingOf(answer.body), []);
+  const equal = rankings.filter((answer) => {
+    if (alone.includes(answer)) return false;
+    const base = alone.find((entry) => sameCall(entry, answer));
+    return base !== undefined && sameRanking(ids(answer), ids(base));
+  });
+  const lookups = answers.filter((answer) => answer.path === "/entities");
+  const withPopularity = lookups.reduce(
+    (sum, answer) => sum + readable(() => popularitiesOf(answer.body).size, 0),
+    0,
+  );
+  return {
+    rankingCalls: rankings.length,
+    rankingWarnings: rankings.filter(
+      (answer) => unscoredInputs(answer.body).length > 0,
+    ).length,
+    rankingsEqualToHeadlinersOnly: equal.length,
+    entitiesLookups: lookups.length,
+    entitiesAsked: lookups.reduce(
+      (sum, answer) =>
+        sum +
+        (answer.params.entity_ids ?? "").split(",").filter(Boolean).length,
+      0,
+    ),
+    entitiesWithPopularity: withPopularity,
+    entitiesReturnPopularity: lookups.length ? withPopularity > 0 : null,
   };
 }
 
@@ -426,6 +496,7 @@ export async function runControlTest37({
   const totals = {
     towns: plan.length,
     findVenues: sum("findVenues"),
+    entities: sum("entities"),
     headlinersOnly: sum("headlinersOnly"),
     venues: sum("venues"),
     controlsAtMost: sum("controlsAtMost"),
@@ -458,13 +529,14 @@ export async function runControlTest37({
   });
   const results: FestivalResult[] = [];
   let stopped: StopInfo | null = null;
-  for (const own of festivals) {
+  for (const [index, own] of festivals.entries()) {
     const before = client.counts();
     try {
       const result = await runFestival(
         client.ask,
         own,
         controlFestivalFor(festivals, towns, own),
+        { probeEntities: index === 0 },
       );
       results.push(result);
       const after = client.counts();
@@ -513,6 +585,7 @@ export async function runControlTest37({
         },
         window: { first: times[0] ?? null, last: times.at(-1) ?? null },
         summary,
+        checks: firstChecks(record.answers()),
         festivals: results.map(omitRankings),
       },
       null,
@@ -543,13 +616,11 @@ export async function runControlTest37({
       townsDone: results.length,
       requestsThisRun: client.counts().attempts,
       answersSaved: record.answers().length,
-      notFoundWarnings: record
-        .answers()
-        .filter((answer) => unscoredInputs(answer.body).length > 0).length,
+      ...firstChecks(record.answers()),
       next: "RESUME=1 with a new MAX_CALLS carries on without repeating a call",
     });
     return { code: 2, summary };
   }
-  log({ summary });
+  log({ summary, checks: firstChecks(record.answers()) });
   return { code: 0, summary };
 }
