@@ -279,10 +279,10 @@
   }
 }
 
-/* WS13.8: Run it live sits under Watch on a laptop. Narrower, Watch sits over the poster and the
-   first act needs the room before any scroll (WS8): there the Qloo calls list keeps "Run the
-   agent live instead" until WS12 places the live run for phones. */
-@media (max-width: 1099px) {
+/* WS13.8: Run it live sits under Watch on a laptop taller than 720 px. Narrower, or on a short
+   laptop, WS8's first screen has no room to spare (the first act, the town's signs): there the
+   Qloo calls list keeps "Run the agent live instead" until WS12 places the live run. */
+@media (max-width: 1099px), (max-height: 720px) {
   .chart-app.fs .fs-live {
     display: none;
   }
