@@ -996,6 +996,8 @@ The model calls (B's, and the planner's turns in A and C) go one at a time, with
 
 **A known limit.** From the headliners and the town, the model alone may recall a real lineup from its training. That would favour B, so it works against A, not for it.
 
+**Added on 2026-10-28, before any call (Daniel's answers of 19:00 and 23:10).** In A and C the location reads are skipped: the agent makes them only after the lineup is assembled, so they can't change a shortlist, and each still counts against the run's 28 calls as built. The local picks are kept, and sent as built: in one of the 29 towns' re-runs (Aarhus) a local pick came inside the venue loop, after the last venue read and before that venue's control read. The agent measured is integration 7f0d154, the agent of the 29 re-runs; section 38's script runs from branch s38 at e32233d and records the commit of each window. The ceiling: at most 2,096 Qloo calls (about 1,172 expected), 33 calls to the model alone and at most 1,056 planner turns, with about $10.99 of model spend expected; the run stops for Daniel's word if the spend passes $16.48.
+
 ## 22. Who decides what, and what a thin town gets
 
 A description of the code, not a measurement, so the method page can point to it.
