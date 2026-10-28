@@ -720,7 +720,11 @@ Binding until 05:45 Bucharest on Saturday 31 October (03:45 UTC). Until Wednesda
 - [ ] WS13: items 1, 2 and 4-10 running; item 3 unblocked with the bar at 5 (28 October); item 11 last
 - [x] Section 37 accepted by Daniel (28 October); in one sentence and its limit in docs/evidence.md (dadfd0a); How it works gives it SHOWN with that sentence
 - [x] WS12's direction approved (ink stamps with the venue colour on the stub, the phone's ticket on the first act, the short layout from 760 px tall) with four fixes; items 1-10 started
-- [ ] Re-runs: the four demo towns' 2.0 bills beside 1.0, with each tier's fill, to Daniel before any pointer moves
+- [x] Re-runs: the four demo towns' 2.0 bills beside 1.0, with each tier's fill, to Daniel before any pointer moves (28 October, 14:41 to 14:46 UTC, from integration e783d65, one town at a time: 68 Qloo calls, none failed or busy, no redo; 26 to 38 s a run; every tier full in both; pointers 29 of 29 and Boise's hash unchanged before and after; qloo:rerun1: 0 → 68 keys, qloo:v2: and qloo:a2: unchanged; the comparison in .design/orchestrator/four-towns-2026-10-28.md)
+- [ ] Re-runs: the other 25 towns in a window Daniel names, one at a time (TOWNS=<city>), a town with any failed or busy call redone; then the pointer moves on his yes, with the demo path's step 4 in that commit
+- [ ] WS13: the hidden stopped call, before the 2.0 deploy (a failed or busy call retried once; then the trace names the venue not checked and the page says the bill may be short; tested with a fake that fails a control call)
+- [x] Section 38's dated addition before any call: the four readings and the known limit (3d241d3)
+- [ ] Section 38's script: Daniel's changes of 28 October (the expected model spend before the probe and a 1.5 times ceiling, model calls one at a time with no SDK retries, a stop at the first model rate-limit answer, N = 12 capped at 10); its windows proposed after the 29 re-runs
 - [ ] Section 38: its script as soon as WS13.3 lands, windows proposed to Daniel, stopping at the first rate-limit or quota answer
 - [ ] The site's evidence page: section 37's sentence and limit (with WS14.3)
 - [ ] After the reset: WS13 and WS12 in parallel (WS12 sends step 0's screenshots first); section 37 first (one window Daniel names), then the bar, then WS13.3 and the re-runs, then section 38 (windows of at most 600 calls); then WS15 and WS16
