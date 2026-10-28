@@ -127,9 +127,15 @@ describe("refill", () => {
       entityId: syntheticId(n),
       name: `Synthetic Room ${n}`,
     }));
+    // A 1.0 build's refill, one call a venue (a 2.0 build's reads each venue beside its matched
+    // control inside the same 3 calls: tests/unit/ws13/refill-bar.test.ts).
     const flat = {
       ...saved,
-      context: { ...saved.context, anchors: { mid: venues, opener: venues } },
+      context: {
+        ...saved.context,
+        anchors: { mid: venues, opener: venues },
+        controls: undefined,
+      },
     };
     const ignoreVenue = (url: URL) => {
       const signal = url.searchParams.get("signal.interests.entities");
