@@ -32,12 +32,14 @@ const known = (value: number | null | undefined): value is number =>
 /**
  * The control town's rooms in the order the rule tries them: closest Qloo popularity to the
  * venue's first, ties by name, then by entity id so the order never depends on Qloo's. A room
- * without a popularity is never a candidate.
+ * without a popularity is never a candidate. With no popularity for the venue, every room in
+ * Qloo's own order.
  */
 export function controlCandidates<R extends Room>(
   rooms: readonly R[],
-  popularity: number,
+  popularity: number | null,
 ): R[] {
+  if (popularity === null) return [...rooms];
   return rooms
     .flatMap((room) =>
       known(room.popularity)

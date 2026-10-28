@@ -92,6 +92,8 @@ export function answerFor(
   path: string,
   params: Record<string, string>,
   unscored: readonly string[] = DEFAULT_UNSCORED,
+  /** false: /entities knows no popularity. */
+  { entities = true }: { entities?: boolean } = {},
 ): unknown {
   if (path === "/v2/insights" && params["filter.type"] === "urn:entity:place")
     return {
@@ -139,7 +141,9 @@ export function answerFor(
       success: true,
       results: params.entity_ids
         .split(",")
-        .flatMap((id) => (ENTITY_ROOMS[id] ? [ENTITY_ROOMS[id]] : []))
+        .flatMap((id) =>
+          entities && ENTITY_ROOMS[id] ? [ENTITY_ROOMS[id]] : [],
+        )
         .map((entry) => ({
           entity_id: entry.id,
           name: entry.name,
@@ -157,7 +161,10 @@ const keyOf = (path: string, params: Record<string, string | number>) =>
   )}`;
 
 /** An ask that answers each distinct call once, as the run's memory does, and counts the calls. */
-export function memoAsk(unscored: readonly string[] = DEFAULT_UNSCORED) {
+export function memoAsk(
+  unscored: readonly string[] = DEFAULT_UNSCORED,
+  options: { entities?: boolean } = {},
+) {
   const memory = new Map<string, unknown>();
   const calls: { path: string; params: Record<string, string> }[] = [];
   const ask = async (path: string, params: Record<string, string | number>) => {
@@ -167,7 +174,7 @@ export function memoAsk(unscored: readonly string[] = DEFAULT_UNSCORED) {
         Object.entries(params).map(([k, v]) => [k, String(v)]),
       );
       calls.push({ path, params: flat });
-      memory.set(key, answerFor(path, flat, unscored));
+      memory.set(key, answerFor(path, flat, unscored, options));
     }
     return memory.get(key);
   };

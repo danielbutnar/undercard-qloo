@@ -263,7 +263,6 @@ describe("section 37's run, on a synthetic world", () => {
       atBar: 1,
       atFallback: 2,
       noScoredControl: 1,
-      noVenuePopularity: 0,
       // Birch Bar warned twice for Alder and once for Cedar; Cedar Yard's and Cedar Room's mid
       // rankings and Birch Loft's opening ranking are the headliners' own.
       controlsSkipped: 6,
@@ -274,7 +273,9 @@ describe("section 37's run, on a synthetic world", () => {
       controlTownsWithoutFanData: 1,
       stillClimb: 4,
       venueRuns: 5,
-      popularityFromEntities: 1,
+      // Distinct venues: Alder Club, Birch Cellar and Cedar Room from their own towns'
+      // find_venues, Alder Hall from /entities.
+      popularitySources: { find_venues: 3, entities: 1, none: 0 },
       venuesUnscoredToday: 0,
       venuesLikeHeadliners: 0,
     });
@@ -311,6 +312,35 @@ describe("section 37's run, on a synthetic world", () => {
       mid: { acts: 3, atBar: 1, atFallback: 2 },
       opener: { acts: 2, atBar: 0, atFallback: 0 },
     });
+  });
+
+  it("with no popularity for a venue from either source, tries the control town's rooms in Qloo's own order", async () => {
+    const { ask, calls } = memoAsk(undefined, { entities: false });
+    const results = await runAll(ask);
+    const hall = results[0].venueRuns[1];
+    expect({
+      venue: hall.venue.entityId,
+      popularity: hall.venue.popularity,
+      from: hall.venue.popularityFrom,
+      control: hall.control?.entityId,
+      skipped: hall.skipped.map((room) => room.entityId),
+    }).toEqual({
+      venue: "v-a1",
+      popularity: null,
+      from: null,
+      // Birch's answer lists Birch Bar first (warned, skipped), then Birch Cellar.
+      control: "v-b2",
+      skipped: ["v-b1"],
+    });
+    // Alder Hall's act: 1st with it, 31st with Birch Cellar.
+    expect(results[0].acts[1]).toMatchObject({ localLift: 30 });
+    expect(summarise(results, { towns: 3 }).popularitySources).toEqual({
+      find_venues: 3,
+      entities: 0,
+      none: 1,
+    });
+    // No call beyond the one /entities lookup that came back without a popularity.
+    expect(calls.filter((call) => call.path === "/entities")).toHaveLength(1);
   });
 
   it("leaves the bar unset until every town is measured", async () => {

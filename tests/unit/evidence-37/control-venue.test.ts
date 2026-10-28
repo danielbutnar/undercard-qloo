@@ -57,6 +57,15 @@ describe("controlCandidates", () => {
     expect(ids(controlCandidates(rooms, 0.9))).toEqual(["r4"]);
   });
 
+  it("with no popularity for the venue, keeps Qloo's own order, every room in it", () => {
+    const rooms = [
+      room("r3", "Cellar", 0.2),
+      room("r1", "Annex"),
+      room("r2", "Boathouse", 0.9),
+    ];
+    expect(ids(controlCandidates(rooms, null))).toEqual(["r3", "r1", "r2"]);
+  });
+
   it("doesn't change the rooms it is given", () => {
     const rooms = [room("r1", "Annex", 0.1), room("r2", "Boathouse", 0.9)];
     controlCandidates(rooms, 0.95);

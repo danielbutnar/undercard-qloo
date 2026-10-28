@@ -302,14 +302,17 @@ export interface RoomRef {
 export interface VenueRunResult {
   band: FeeBandId;
   venue: RoomRef & {
-    /** Where the venue's popularity came from: its town's find_venues, or /entities. */
+    /**
+     * Where the venue's popularity came from: its town's find_venues, or /entities; null when
+     * neither gave one, and the control town's rooms were tried in Qloo's own order.
+     */
     popularityFrom: "find_venues" | "entities" | null;
   };
   /** The matched control: the closest room with fan data in the control town; null when none. */
   control: RoomRef | null;
   /** Closer rooms with no fan data, skipped for the next, each with why. */
   skipped: (RoomRef & { because: NoFanData })[];
-  /** The rooms the rule could try: the control town's rooms with a popularity. */
+  /** The rooms the rule could try, in its order. */
   candidates: number;
   /** The venue's own answer that day reported it not found. */
   venueUnscored: boolean;
@@ -323,8 +326,7 @@ export interface VenueRunResult {
   withControl: string[] | null;
 }
 
-export type NoLiftReason =
-  "no scored control" | "no popularity for the venue" | "no venue run";
+export type NoLiftReason = "no scored control" | "no venue run";
 
 export interface ActResult {
   entityId: string;
@@ -424,9 +426,7 @@ export async function runFestival(
   for (const { band, venue } of runs) {
     const withVenue = await rank(band, venue.entityId);
     const known = popularity.get(venue.entityId);
-    const candidates = known
-      ? controlCandidates(controlRooms, known.value)
-      : [];
+    const candidates = controlCandidates(controlRooms, known?.value ?? null);
     const rankings = new Map<string, string[]>();
     const reasons = new Map<string, NoFanData>();
     const { control: matched, skipped } = await matchControl(
@@ -477,11 +477,9 @@ export async function runFestival(
     const alone = headlinersOnly.get(act.band) ?? [];
     const noLiftBecause: NoLiftReason | null = !run
       ? "no venue run"
-      : run.venue.popularity === null
-        ? "no popularity for the venue"
-        : run.withControl === null
-          ? "no scored control"
-          : null;
+      : run.withControl === null
+        ? "no scored control"
+        : null;
     return {
       entityId: act.entityId,
       name: act.name,
@@ -541,10 +539,10 @@ export interface Summary extends Counts {
   /** The different rooms among them. */
   roomsSkipped: number;
   noScoredControl: number;
-  noVenuePopularity: number;
   /** The drift, a description: acts that still climb at least 5 with their venue that day. */
   stillClimb: number;
-  popularityFromEntities: number;
+  /** Where the town venues' popularity came from, each venue of each festival once. */
+  popularitySources: { find_venues: number; entities: number; none: number };
   venuesUnscoredToday: number;
   venuesLikeHeadliners: number;
   barMet: boolean | null;
@@ -560,6 +558,19 @@ function counts(acts: readonly ActResult[]): Counts {
       (act) => (act.localLift ?? -Infinity) >= LOCAL_LIFT_FALLBACK,
     ).length,
   };
+}
+
+function popularitySourcesOf(results: readonly FestivalResult[]) {
+  const sources = { find_venues: 0, entities: 0, none: 0 };
+  for (const result of results) {
+    const seen = new Set<string>();
+    for (const run of result.venueRuns) {
+      if (seen.has(run.venue.entityId)) continue;
+      seen.add(run.venue.entityId);
+      sources[run.venue.popularityFrom ?? "none"]++;
+    }
+  }
+  return sources;
 }
 
 const stillClimbs = (acts: readonly ActResult[]) =>
@@ -615,13 +626,8 @@ export function summarise(
       runs.flatMap((run) => run.skipped.map((room) => room.entityId)),
     ).size,
     noScoredControl: withNoControl(acts),
-    noVenuePopularity: acts.filter(
-      (act) => act.noLiftBecause === "no popularity for the venue",
-    ).length,
     stillClimb: stillClimbs(acts),
-    popularityFromEntities: runs.filter(
-      (run) => run.venue.popularityFrom === "entities",
-    ).length,
+    popularitySources: popularitySourcesOf(results),
     venuesUnscoredToday: runs.filter((run) => run.venueUnscored).length,
     venuesLikeHeadliners: runs.filter((run) => run.venueLikeHeadliners).length,
     barMet: complete ? all.atBar >= BAR_ACTS : null,

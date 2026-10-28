@@ -330,8 +330,9 @@ export function resultValues({
     venueRunsWithoutControl: summary.venueRunsWithoutControl,
     roomsSkipped: summary.roomsSkipped,
     venueRuns: summary.venueRuns,
-    popularityFromEntities: summary.popularityFromEntities,
-    noVenuePopularity: summary.noVenuePopularity,
+    popularityFromFindVenues: summary.popularitySources.find_venues,
+    popularityFromEntities: summary.popularitySources.entities,
+    popularityFromNeither: summary.popularitySources.none,
     venuesUnscoredToday: summary.venuesUnscoredToday,
     venuesLikeHeadliners: summary.venuesLikeHeadliners,
     townRows: summary.byTown
