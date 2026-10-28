@@ -20,7 +20,10 @@ import {
   placesInRegion,
   type PlaceWhere,
 } from "@/lib/town-resolution";
-import type { SavedBuild } from "./build-store";
+import { checkedFestival } from "@/lib/towns";
+import { pinnedBuilds, readOnlyCache } from "./attribution-warm";
+import { createBuildStore, type SavedBuild } from "./build-store";
+import type { QlooCache } from "./qloo-cache";
 
 /**
  * The logic of scripts/control-test-37.ts: docs/evidence.md section 37, the control test across
@@ -51,11 +54,48 @@ export type Ask = (
   params: Record<string, string | number>,
 ) => Promise<unknown>;
 
+/** A call's identity, as the app's cache keys it: the path and its sorted parameters. */
+export function callKey(
+  path: string,
+  params: Record<string, string | number>,
+): string {
+  const entries = Object.entries(params)
+    .map(([key, value]): [string, string] => [key, String(value)])
+    .sort();
+  return `${path}?${new URLSearchParams(entries).toString()}`;
+}
+
 /** A checked town's festival: its town, the brief, and its saved build (the latest pointer's). */
 export interface FestivalInput {
   town: CheckedTown;
   festival: Festival;
   build: SavedBuild;
+}
+
+/**
+ * Each town's festival with its latest saved build, read from the store through a read-only
+ * cache; every build must be the one pinned in .design/pinned-builds/, or nothing runs. The
+ * store's own keys are the only ones read.
+ */
+export async function readFestivals({
+  serverCache,
+  towns,
+  pinned,
+}: {
+  serverCache: QlooCache;
+  towns: readonly CheckedTown[];
+  pinned: unknown;
+}): Promise<FestivalInput[]> {
+  const festivals = towns.map((town) => ({
+    town,
+    festival: checkedFestival(town),
+  }));
+  const builds = await pinnedBuilds({
+    store: createBuildStore(readOnlyCache(serverCache)),
+    festivalIds: festivals.map((entry) => entry.festival.id),
+    pinned,
+  });
+  return festivals.map((entry, index) => ({ ...entry, build: builds[index] }));
 }
 
 /**
