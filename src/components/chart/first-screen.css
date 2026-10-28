@@ -279,10 +279,11 @@
   }
 }
 
-/* WS13.8: Run it live sits under Watch on a laptop taller than 720 px. Narrower, or on a short
-   laptop, WS8's first screen has no room to spare (the first act, the town's signs): there the
-   Qloo calls list keeps "Run the agent live instead" until WS12 places the live run. */
-@media (max-width: 1099px), (max-height: 720px) {
+/* WS13.8: Run it live sits under Watch on a laptop taller than 760 px, WS12's short layout line.
+   Narrower, or shorter, the first screen has no room to spare (the first act, the town's signs):
+   there the live run starts from WS12's setlist ("Play it live", through useLiveRun) and from the
+   Qloo calls list's "Run the agent live instead". */
+@media (max-width: 1099px), (max-height: 760px) {
   .chart-app.fs .fs-live {
     display: none;
   }

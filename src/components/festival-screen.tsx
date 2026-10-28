@@ -82,6 +82,7 @@ import { namesVenue } from "@/lib/venue-call";
 import { useWatch, type WatchPhase } from "@/components/use-watch";
 import { QLOO_CALL_CAP } from "@/lib/agent-limits";
 import { LocalPickBox } from "@/components/local-pick-box";
+import { LiveRunProvider, useLiveRun } from "@/components/live-run";
 import {
   agentLineFor,
   liveRunFacts,
@@ -1208,16 +1209,7 @@ export function FestivalScreen({
       {!custom && state.build && !watching && state.status !== "building" && (
         <div className="fs-live">
           {/* After a refusal (the day's live runs are used), the reason takes its place. */}
-          {!state.refusal && (
-            <button
-              type="button"
-              onClick={() => runBuild({ fresh: true })}
-              disabled={busy}
-              className="link"
-            >
-              {RUN_IT_LIVE}
-            </button>
-          )}
+          {!state.refusal && <RunItLiveButton />}
           <p className="watch-sub">
             {state.refusal
               ? state.refusal
@@ -1516,214 +1508,237 @@ export function FestivalScreen({
     </section>
   );
 
+  // WS13.8: the live run, for any component under the screen (WS12's setlist among them).
+  const liveRun = {
+    runLive: () => runBuild({ fresh: true }),
+    available: !busy && !watching && state.refusal === null,
+  };
+
   return (
-    <div className={`chart-app stage-bg fs ${without ? "is-without" : ""}`}>
-      <header className="topbar fs-top">
-        <Link
-          href="/"
-          className="logo fs-word"
-          aria-label="Undercard, back to Sagebrush Sound"
-        >
-          Undercard
-        </Link>
-        <p className="fs-tagline">
-          {TAGLINE_LEAD} {TAGLINE_QLOO}
-        </p>
-        <nav aria-label="Other screens" className="nav">
-          {checked && (
-            <button type="button" onClick={checked.onBack}>
-              Pick another town
-            </button>
-          )}
-          <Link href="/method">How it works</Link>
-          <Link href="/your-festival">Your festival</Link>
-        </nav>
-      </header>
-
-      <main ref={board} className="fs-main">
-        <div
-          className={`fs-grid ${
-            wide && ((cardInTown && openAct) || (venueCard && !openAct))
-              ? "has-panel"
-              : ""
-          }`}
-        >
-          <section aria-label="What Undercard does" className="fs-lead">
-            <p className="fs-title">{LEAD_TITLE}</p>
-            <p className="fs-line">
-              <mark>{lead.mark}</mark> {lead.rest}
-            </p>
-            {/* A town Qloo can't find, or too thin to read: running it again can't help, so its
-                notice and the checked towns take the run button's place, under what happened. */}
-            {thinTown && notice}
-          </section>
-
-          {/* The town picker: under the lead on a laptop; on a phone after the poster, so the first
-              act shows before any scroll with Watch (WS8, brief item 22). */}
-          {!custom && !checked && onShow.length >= 2 && (
-            <nav aria-label="Same brief, other towns" className="fs-towns">
-              <span className="fs-towns-label">Pick a town</span>
-              <ul>
-                {onShow.map((town) => {
-                  const code = regionCode(town.festival.region);
-                  return (
-                    <li key={town.slug}>
-                      <Link
-                        href={townHref(town.slug)}
-                        aria-current={
-                          town.slug === current ? "page" : undefined
-                        }
-                        className="fs-town-chip"
-                      >
-                        {town.festival.city}
-                        {code && (
-                          <span className="fs-town-code" aria-hidden>
-                            {" "}
-                            {code}
-                          </span>
-                        )}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-              <Link
-                href="/your-festival"
-                className="fs-town-chip fs-town-yours"
-              >
-                Your town
-                <svg viewBox="0 0 16 16" aria-hidden>
-                  <path d="M2 8 H13 M9 4 L13 8 L9 12" />
-                </svg>
-              </Link>
-            </nav>
-          )}
-
-          {!thinTown && watchButton}
-
-          <section
-            aria-label={without ? "The festival" : "Undercard draft"}
-            className={`fs-poster ${watching ? "is-watching" : ""} ${watch.phase === "reveal" ? "is-revealing" : ""}`}
+    <LiveRunProvider value={liveRun}>
+      <div className={`chart-app stage-bg fs ${without ? "is-without" : ""}`}>
+        <header className="topbar fs-top">
+          <Link
+            href="/"
+            className="logo fs-word"
+            aria-label="Undercard, back to Sagebrush Sound"
           >
-            {!custom && <ModeTabs mode={mode} onChange={changeMode} />}
-            <div className="poster-sheet">
-              <p className="poster-stamp">
-                <span className="stamp-long">
-                  {stampWords(custom !== undefined)}
-                </span>
-                <span className="stamp-short">
-                  {stampWords(custom !== undefined, true)}
-                </span>
+            Undercard
+          </Link>
+          <p className="fs-tagline">
+            {TAGLINE_LEAD} {TAGLINE_QLOO}
+          </p>
+          <nav aria-label="Other screens" className="nav">
+            {checked && (
+              <button type="button" onClick={checked.onBack}>
+                Pick another town
+              </button>
+            )}
+            <Link href="/method">How it works</Link>
+            <Link href="/your-festival">Your festival</Link>
+          </nav>
+        </header>
+
+        <main ref={board} className="fs-main">
+          <div
+            className={`fs-grid ${
+              wide && ((cardInTown && openAct) || (venueCard && !openAct))
+                ? "has-panel"
+                : ""
+            }`}
+          >
+            <section aria-label="What Undercard does" className="fs-lead">
+              <p className="fs-title">{LEAD_TITLE}</p>
+              <p className="fs-line">
+                <mark>{lead.mark}</mark> {lead.rest}
               </p>
-              <h1 className="poster-name">{festival.name}</h1>
-              <p className="facts">{factsLine(festival)}</p>
-              <span className="poster-rule-line" aria-hidden />
-              <HeadlinerList
-                headliners={festival.headliners}
-                images={firstBill?.headlinerImages}
-                ids={headlinerIds}
-              />
-              {/* Under the headliners (WS8, item 12a): who they are, and that Undercard drafted
+              {/* A town Qloo can't find, or too thin to read: running it again can't help, so its
+                notice and the checked towns take the run button's place, under what happened. */}
+              {thinTown && notice}
+            </section>
+
+            {/* The town picker: under the lead on a laptop; on a phone after the poster, so the first
+              act shows before any scroll with Watch (WS8, brief item 22). */}
+            {!custom && !checked && onShow.length >= 2 && (
+              <nav aria-label="Same brief, other towns" className="fs-towns">
+                <span className="fs-towns-label">Pick a town</span>
+                <ul>
+                  {onShow.map((town) => {
+                    const code = regionCode(town.festival.region);
+                    return (
+                      <li key={town.slug}>
+                        <Link
+                          href={townHref(town.slug)}
+                          aria-current={
+                            town.slug === current ? "page" : undefined
+                          }
+                          className="fs-town-chip"
+                        >
+                          {town.festival.city}
+                          {code && (
+                            <span className="fs-town-code" aria-hidden>
+                              {" "}
+                              {code}
+                            </span>
+                          )}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <Link
+                  href="/your-festival"
+                  className="fs-town-chip fs-town-yours"
+                >
+                  Your town
+                  <svg viewBox="0 0 16 16" aria-hidden>
+                    <path d="M2 8 H13 M9 4 L13 8 L9 12" />
+                  </svg>
+                </Link>
+              </nav>
+            )}
+
+            {!thinTown && watchButton}
+
+            <section
+              aria-label={without ? "The festival" : "Undercard draft"}
+              className={`fs-poster ${watching ? "is-watching" : ""} ${watch.phase === "reveal" ? "is-revealing" : ""}`}
+            >
+              {!custom && <ModeTabs mode={mode} onChange={changeMode} />}
+              <div className="poster-sheet">
+                <p className="poster-stamp">
+                  <span className="stamp-long">
+                    {stampWords(custom !== undefined)}
+                  </span>
+                  <span className="stamp-short">
+                    {stampWords(custom !== undefined, true)}
+                  </span>
+                </p>
+                <h1 className="poster-name">{festival.name}</h1>
+                <p className="facts">{factsLine(festival)}</p>
+                <span className="poster-rule-line" aria-hidden />
+                <HeadlinerList
+                  headliners={festival.headliners}
+                  images={firstBill?.headlinerImages}
+                  ids={headlinerIds}
+                />
+                {/* Under the headliners (WS8, item 12a): who they are, and that Undercard drafted
                   the rest; Without Qloo, nothing below them is the agent's. */}
-              <p className="poster-headliners-note">
-                {without
-                  ? headlinersBooked(festival)
-                  : headlinersNote(festival, state.acts.length > 0)}
-              </p>
-              <span className="poster-rule-line" aria-hidden />
-              {without ? withoutPoster : withPoster}
-              {/* Prompt 4's count of each check, on both sides of the tabs. */}
-              {!custom && <WithoutQlooChecksLine />}
-              <ImageCredit images={creditImages} />
-              <p className="poster-foot">
-                {footnote(festival, anyNew && !without)}
-              </p>
-            </div>
-          </section>
+                <p className="poster-headliners-note">
+                  {without
+                    ? headlinersBooked(festival)
+                    : headlinersNote(festival, state.acts.length > 0)}
+                </p>
+                <span className="poster-rule-line" aria-hidden />
+                {without ? withoutPoster : withPoster}
+                {/* Prompt 4's count of each check, on both sides of the tabs. */}
+                {!custom && <WithoutQlooChecksLine />}
+                <ImageCredit images={creditImages} />
+                <p className="poster-foot">
+                  {footnote(festival, anyNew && !without)}
+                </p>
+              </div>
+            </section>
 
-          <section aria-label="Your town" className="fs-town">
-            <p className="fs-legend">
-              <strong>{legend.title}.</strong> {legend.text}
-            </p>
-            <TownScene
-              seedKey={festival.id}
-              venues={sceneVenues}
-              selected={
-                !watching && !without
-                  ? (openAct?.anchorVenue.entityId ?? pickedVenue)
-                  : null
-              }
-              focusOn={
-                watching
-                  ? watch.phase === "climbing"
-                    ? (step?.venue?.entityId ?? null)
+            <section aria-label="Your town" className="fs-town">
+              <p className="fs-legend">
+                <strong>{legend.title}.</strong> {legend.text}
+              </p>
+              <TownScene
+                seedKey={festival.id}
+                venues={sceneVenues}
+                selected={
+                  !watching && !without
+                    ? (openAct?.anchorVenue.entityId ?? pickedVenue)
                     : null
-                  : without
-                    ? null
-                    : cardInTown && openAct
-                      ? openAct.anchorVenue.entityId
-                      : wide
-                        ? pickedVenue
-                        : null
-              }
-              onPick={pickVenue}
-              without={without}
-              dim={watching}
-              pulses={pulses}
-              overlay={sceneOverlay}
-              reserve={
-                wide
-                  ? {
-                      corner: { w: 420, h: 104 },
-                      ...(watching ? { top: 150 } : {}),
-                      ...((cardInTown && openAct) || (venueCard && !openAct)
-                        ? { right: 404 }
-                        : {}),
-                    }
-                  : {}
-              }
-            />
-          </section>
-          <FlyingActs flights={flights} />
-        </div>
-
-        <div className="fs-below">
-          {!thinTown && notice}
-          <div className="fs-panels">
-            {/* While Watch plays the switch steps aside: the lineup it counts is being re-drawn. */}
-            {!without && !custom && !watching && allVenues.length > 0 && (
-              <VenueSwitch
-                city={festival.city}
-                venues={venueLines.map((venue) => ({
-                  ...venue,
-                  noFanData: fanless.includes(venue.entityId),
-                }))}
-                off={switcher.off}
-                status={switcher.status}
-                onToggle={(id) => {
-                  setOpenId(null);
-                  switcher.toggle(id);
-                }}
-                onReset={switcher.reset}
-                filled={bookedActs.length}
-                slots={slots}
-                placesListed={placesListed}
-                editable={!watching && !busy && !without}
+                }
+                focusOn={
+                  watching
+                    ? watch.phase === "climbing"
+                      ? (step?.venue?.entityId ?? null)
+                      : null
+                    : without
+                      ? null
+                      : cardInTown && openAct
+                        ? openAct.anchorVenue.entityId
+                        : wide
+                          ? pickedVenue
+                          : null
+                }
+                onPick={pickVenue}
+                without={without}
+                dim={watching}
+                pulses={pulses}
+                overlay={sceneOverlay}
+                reserve={
+                  wide
+                    ? {
+                        corner: { w: 420, h: 104 },
+                        ...(watching ? { top: 150 } : {}),
+                        ...((cardInTown && openAct) || (venueCard && !openAct)
+                          ? { right: 404 }
+                          : {}),
+                      }
+                    : {}
+                }
               />
-            )}
-            {!without && <RuleKey bands={festival.feeBands} positioning />}
-            {!without && (
-              <TracePanel
-                state={state}
-                savedCalls={firstBill?.calls}
-                replay={!custom}
-                onBuild={runBuild}
-                button={false}
-              />
-            )}
+            </section>
+            <FlyingActs flights={flights} />
           </div>
-        </div>
-      </main>
-    </div>
+
+          <div className="fs-below">
+            {!thinTown && notice}
+            <div className="fs-panels">
+              {/* While Watch plays the switch steps aside: the lineup it counts is being re-drawn. */}
+              {!without && !custom && !watching && allVenues.length > 0 && (
+                <VenueSwitch
+                  city={festival.city}
+                  venues={venueLines.map((venue) => ({
+                    ...venue,
+                    noFanData: fanless.includes(venue.entityId),
+                  }))}
+                  off={switcher.off}
+                  status={switcher.status}
+                  onToggle={(id) => {
+                    setOpenId(null);
+                    switcher.toggle(id);
+                  }}
+                  onReset={switcher.reset}
+                  filled={bookedActs.length}
+                  slots={slots}
+                  placesListed={placesListed}
+                  editable={!watching && !busy && !without}
+                />
+              )}
+              {!without && <RuleKey bands={festival.feeBands} positioning />}
+              {!without && (
+                <TracePanel
+                  state={state}
+                  savedCalls={firstBill?.calls}
+                  replay={!custom}
+                  onBuild={runBuild}
+                  button={false}
+                />
+              )}
+            </div>
+          </div>
+        </main>
+      </div>
+    </LiveRunProvider>
+  );
+}
+
+/** "Run it live" under Watch (WS13.8): it starts the live run any component here can start. */
+function RunItLiveButton() {
+  const { runLive, available } = useLiveRun();
+  return (
+    <button
+      type="button"
+      onClick={runLive}
+      disabled={!available}
+      className="link"
+    >
+      {RUN_IT_LIVE}
+    </button>
   );
 }
