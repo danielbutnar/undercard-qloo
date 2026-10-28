@@ -86,6 +86,7 @@ import { LiveRunProvider, useLiveRun } from "@/components/live-run";
 import {
   agentLineFor,
   liveRunFacts,
+  retriesIn,
   RUN_IT_LIVE,
   runItLiveSub,
 } from "@/lib/agent-words";
@@ -1214,7 +1215,10 @@ export function FestivalScreen({
             {state.refusal
               ? state.refusal
               : state.build.replayed === false && state.summary
-                ? liveRunFacts(state.summary)
+                ? liveRunFacts({
+                    ...state.summary,
+                    retries: retriesIn(state.calls),
+                  })
                 : runItLiveSub(festival.city)}
           </p>
         </div>

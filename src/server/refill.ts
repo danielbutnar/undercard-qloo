@@ -4,7 +4,7 @@ import { FEE_BAND_IDS } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import { UNAVAILABLE_REASON_IDS, UNAVAILABLE_REASONS } from "@/lib/unavailable";
 import type { BuildStore } from "./build-store";
-import { controlRanking, recordedControl } from "./control-reads";
+import { controlRanking, recordedControl, retriedOf } from "./control-reads";
 import { QlooError, type QlooClient } from "./qloo";
 import { readerFor } from "./saved-reads";
 import { assemblyFromSaved } from "./venue-switch";
@@ -185,6 +185,7 @@ export async function handleRefill({
             resultCount: result.call.resultCount,
             ms: result.call.ms,
             cached: result.call.cached,
+            ...retriedOf(result.call),
           },
         });
       } catch (error) {
@@ -203,6 +204,7 @@ export async function handleRefill({
             resultCount: null,
             ms: 0,
             cached: false,
+            ...retriedOf(null, error),
             error: message,
           },
         });
@@ -244,6 +246,7 @@ export async function handleRefill({
                 resultCount: read.call.resultCount,
                 ms: read.call.ms,
                 cached: read.call.cached,
+                ...retriedOf(read.call),
                 controlFor: venue.name,
               }
             : {
@@ -255,6 +258,7 @@ export async function handleRefill({
                 resultCount: null,
                 ms: 0,
                 cached: false,
+                ...retriedOf(null, read.error),
                 error:
                   read.error instanceof QlooError
                     ? read.error.message

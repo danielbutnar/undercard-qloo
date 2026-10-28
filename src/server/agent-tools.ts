@@ -32,7 +32,9 @@ import type { Act, LocationReading } from "@/lib/lineup";
 import { localPickOf, type LocalPick } from "@/lib/local-pick";
 import { foldAccents, foundOnQloo, hasNonAscii } from "@/lib/pick-tests";
 import {
+  QLOO_RETRY,
   QlooBusy,
+  QlooCacheMiss,
   QlooError,
   type QlooCall,
   type QlooClient,
@@ -44,6 +46,24 @@ import {
 
 /** The most Qloo calls one build may make, cached answers included (src/lib/agent-limits.ts). */
 export { QLOO_CALL_CAP };
+
+/**
+ * The agent's own retry (Daniel, 2026-10-28, 19:20): only for a call the client didn't retry (a
+ * 4xx, a network error, a timeout), once, after this wait, never at once.
+ */
+export const RETRY_WAIT_MS = { min: 1_000, max: 2_000 } as const;
+
+/** The agent's retry's wait and clock; tests make them instant. */
+export interface RetryTiming {
+  sleep: (ms: number) => Promise<void>;
+  clock: () => number;
+  random: () => number;
+}
+const REAL_TIMING: RetryTiming = {
+  sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+  clock: Date.now,
+  random: Math.random,
+};
 
 /** Why the planner says it stopped (WS13.2), in finish's input. */
 export const STOP_CLAIMS = [
@@ -346,11 +366,13 @@ export function createToolbox({
   qloo,
   emit,
   cap = QLOO_CALL_CAP,
+  timing = REAL_TIMING,
 }: {
   festival: Festival;
   qloo: QlooClient;
   emit: (event: BuildEvent) => void;
   cap?: number;
+  timing?: RetryTiming;
 }) {
   // The crowd's age goes to every artist call as Qloo's age buckets.
   const crowd = ageBuckets(festival.crowdAge.min, festival.crowdAge.max);
@@ -372,6 +394,12 @@ export function createToolbox({
   const names = new Map<string, string>();
   const tagNames = new Map<string, string>();
   let used = 0;
+  // Daniel, 2026-10-28 (19:20): every retry counted, the client's included; the agent's own
+  // retries stop where the client's do, QLOO_RETRY.budgetMs into the run, so retries never take
+  // it past the route's 120 s.
+  let retries = 0;
+  let busy = false;
+  const retryDeadline = timing.clock() + QLOO_RETRY.budgetMs;
 
   const bandLabel = (band: FeeBandId) =>
     festival.feeBands.find((entry) => entry.id === band)?.label ?? band;
@@ -614,8 +642,10 @@ export function createToolbox({
       );
     const n = ++used;
     const started = Date.now();
-    // Daniel, 2026-10-28: a failed or busy call is tried once more before the run moves on; the
-    // retry rides on the call's own line, as the client's own retries do.
+    // Daniel, 2026-10-28 (19:20): the client retries a busy answer (429, 5xx) itself, within its
+    // time budget. The agent retries only a call the client didn't (a 4xx, a network error, a
+    // timeout), once, after 1-2 s, while the run's retry time lasts. Every retry rides on the
+    // call's own line and is counted, the client's included.
     const retried: number[] = [];
     for (let attempt = 0; ; attempt++) {
       try {
@@ -626,24 +656,41 @@ export function createToolbox({
           describe ? describe(data) : summary,
           call,
         );
+        const all = [...retried, ...(line.retried ?? [])];
+        retries += all.length;
         emit({
           type: "call",
           call: {
             ...line,
-            ...(retried.length
-              ? { retried: [...retried, ...(line.retried ?? [])] }
-              : {}),
+            ...(all.length ? { retried: all } : {}),
             ...mark?.(data),
           },
         });
         return data;
       } catch (error) {
-        if (attempt === 0) {
+        const wait =
+          RETRY_WAIT_MS.min +
+          Math.round(timing.random() * (RETRY_WAIT_MS.max - RETRY_WAIT_MS.min));
+        if (
+          attempt === 0 &&
+          !(error instanceof QlooBusy) &&
+          !(error instanceof QlooCacheMiss) &&
+          timing.clock() + wait <= retryDeadline
+        ) {
           retried.push(error instanceof QlooError ? error.status : 0);
+          await timing.sleep(wait);
           continue;
         }
         const message = describeFailure(error);
         console.error(`[undercard] ${tool} (${endpoint}) failed: ${message}`);
+        // A busy answer the client gave up on is a failed call like any other: its venue is
+        // unchecked and the bill may be short; it no longer ends the build.
+        if (error instanceof QlooBusy) busy = true;
+        const all = [
+          ...retried,
+          ...(error instanceof QlooBusy ? error.retried : []),
+        ];
+        retries += all.length;
         if (failure?.short && !state.unchecked.includes(failure.unchecked))
           state.unchecked.push(failure.unchecked);
         emit({
@@ -657,13 +704,13 @@ export function createToolbox({
             resultCount: null,
             ms: Date.now() - started,
             cached: false,
-            retried,
+            ...(all.length ? { retried: all } : {}),
             error: message,
             ...(failure ? { unchecked: failure.unchecked } : {}),
           },
         });
-        // Qloo stayed busy past the build's budget: the whole build stops, not just this tool.
-        if (error instanceof QlooBusy) throw error;
+        // A re-run's own stop (its first 429, its window spent) ends the run at once.
+        if (error instanceof QlooBusy && error.stopsRun) throw error;
         throw new ToolMisuse(message);
       }
     }
@@ -1144,6 +1191,10 @@ export function createToolbox({
     readLocation,
     state,
     callsUsed: () => used,
+    /** Retries in the run so far, the client's included (Daniel, 2026-10-28). */
+    retriesUsed: () => retries,
+    /** Whether a call failed on a busy Qloo the client gave up on. */
+    sawBusy: () => busy,
     cap,
     roomsRead,
     refuseStop,

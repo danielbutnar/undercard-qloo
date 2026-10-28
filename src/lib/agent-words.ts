@@ -57,15 +57,24 @@ function openWords(open: Record<FeeBandId, number>): string {
   return `${parts.join(" and ")} ${total === 1 ? "stays" : "stay"} open`;
 }
 
+/** ", plus 1 retry" or ", plus 2 retries"; nothing when there were none (Daniel, 2026-10-28). */
+export const plusRetries = (retries: number) =>
+  retries > 0 ? `, plus ${retries} ${retries === 1 ? "retry" : "retries"}` : "";
+
+/** The retries on a list of calls' lines, the client's included. */
+export const retriesIn = (calls: readonly { retried?: readonly number[] }[]) =>
+  calls.reduce((sum, call) => sum + (call.retried?.length ?? 0), 0);
+
 /**
- * The trace's last line (WS13.2): why the agent stopped, with the slots still open. A count it
- * gives is the trace's own total (Daniel, 2026-10-28): the calls when the agent stopped reading
- * venues, then the reads of Qloo's location signal that followed, and their sum.
+ * The trace's last line (WS13.2): why the agent stopped, with the slots still open. Every reason
+ * states the trace's own total (Daniel, 2026-10-28): the calls when the agent stopped reading
+ * venues, then the reads of Qloo's location signal that followed, their sum, and the retries.
  */
 export function stopLine({
   reason,
   calls,
   located = 0,
+  retries = 0,
   cap,
   city,
   open,
@@ -75,23 +84,25 @@ export function stopLine({
   calls: number;
   /** Reads of Qloo's location signal after that (WS13.4), inside the cap. */
   located?: number;
+  /** Retries of all those calls, the client's included. */
+  retries?: number;
   cap: number;
   city: string;
   open: Record<FeeBandId, number>;
 }): string {
   const count =
     located > 0
-      ? `after ${calls} of its ${cap} Qloo calls, then ${located} ${located === 1 ? "read" : "reads"} of Qloo's location signal for the cards (${calls + located} in all)`
-      : `after ${calls} of its ${cap} Qloo calls`;
+      ? `after ${calls} of its ${cap} Qloo calls, then ${located} ${located === 1 ? "read" : "reads"} of Qloo's location signal for the cards (${calls + located} in all${plusRetries(retries)})`
+      : `after ${calls} of its ${cap} Qloo calls${plusRetries(retries)}`;
   switch (reason) {
     case "full":
       return `The agent stopped reading venues: every tier is full, ${count}.`;
     case "rooms":
-      return `The agent stopped after trying every music venue Qloo listed in ${city}: ${openWords(open)}.`;
+      return `The agent stopped once it had tried every music venue Qloo listed in ${city}, ${count}: ${openWords(open)}.`;
     case "cap":
-      return `The agent stopped at its cap of ${cap} Qloo calls: ${openWords(open)}.`;
+      return `The agent stopped at its cap of ${cap} Qloo calls${plusRetries(retries)}: ${openWords(open)}.`;
     case "planner":
-      return `The agent stopped before every tier was full: ${openWords(open)}.`;
+      return `The agent stopped before every tier was full, ${count}: ${openWords(open)}.`;
   }
 }
 
@@ -122,6 +133,7 @@ export function stopOf({
   open,
   calls,
   located,
+  retries,
   cap,
   city,
   claimed,
@@ -130,6 +142,7 @@ export function stopOf({
   open: Record<FeeBandId, number>;
   calls: number;
   located?: number;
+  retries?: number;
   cap: number;
   city: string;
   claimed?: "every_band_full" | "tried_every_music_room";
@@ -144,7 +157,7 @@ export function stopOf({
         ? "rooms"
         : "planner";
   const few = rooms ? fewRoomsLine(city, rooms) : null;
-  const line = stopLine({ reason, calls, located, cap, city, open });
+  const line = stopLine({ reason, calls, located, retries, cap, city, open });
   return { reason, text: few ? `${line} ${few}` : line };
 }
 
@@ -221,9 +234,17 @@ export const RUN_IT_LIVE = "Run it live";
 export const runItLiveSub = (city: string) =>
   `The AI agent drafts ${city} again now, with up to ${QLOO_CALL_CAP} Qloo calls. Live runs are limited each day.`;
 
-/** Once a live run ends: its time and its Qloo calls. */
-export const liveRunFacts = ({ calls, ms }: { calls: number; ms: number }) =>
-  `This live run took ${(ms / 1000).toFixed(1)} s and ${calls} Qloo ${calls === 1 ? "call" : "calls"}.`;
+/** Once a live run ends: its time and its Qloo calls, with their retries (Daniel, 2026-10-28). */
+export const liveRunFacts = ({
+  calls,
+  ms,
+  retries = 0,
+}: {
+  calls: number;
+  ms: number;
+  retries?: number;
+}) =>
+  `This live run took ${(ms / 1000).toFixed(1)} s and ${calls} Qloo ${calls === 1 ? "call" : "calls"}${plusRetries(retries)}.`;
 
 const climbWord = (places: number) =>
   places > 0 ? `↑${places}` : places < 0 ? `↓${-places}` : null;

@@ -50,7 +50,10 @@ const PLAN: Turn[] = [
 const HALL = syntheticId(401);
 const FRESH = 9999;
 
-async function twoPointOh() {
+async function twoPointOh(
+  wrap: (route: (url: URL) => unknown) => (url: URL) => unknown = (route) =>
+    route,
+) {
   const cache = createMemoryCache();
   const store = createBuildStore(cache);
   const qloo = createQlooClient({
@@ -122,7 +125,8 @@ async function twoPointOh() {
   const live = createQlooClient({
     apiKey: "k",
     cache: createMemoryCache(),
-    fetch: fakeFetch(route).fetch,
+    fetch: fakeFetch(wrap(route)).fetch,
+    sleep: async () => {},
   });
   return { saved, store, cached, live, taken };
 }
@@ -139,6 +143,43 @@ const expectFresh = (act: {
     act.localLift!.venueClimb - act.localLift!.controlClimb,
   ).toBeGreaterThanOrEqual(LOCAL_LIFT_BAR);
 };
+
+describe("a refill's retries (Daniel, 2026-10-28, 19:20)", () => {
+  it("are on its call's line, counted, never silent", async () => {
+    // Qloo is busy once, for the refill's first call; the client retries it.
+    let first = true;
+    const { saved, store, cached, live, taken } = await twoPointOh(
+      (route) => (url) => {
+        if (first) {
+          first = false;
+          return new Response("{}", { status: 429 });
+        }
+        return route(url);
+      },
+    );
+    const gone = saved.lineup.acts.find((act) => act.band === "mid")!;
+    const events = await readEvents(
+      handleRefill({
+        festival: LARKSPUR_FESTIVAL,
+        limiter: createMemoryLimiter(),
+        ip: "203.0.113.7",
+        qloo: () => live,
+        cachedQloo: () => cached,
+        store,
+        body: {
+          buildId: saved.id,
+          unavailableId: gone.entityId,
+          band: "mid",
+          anchorVenueId: LANTERN,
+          excludeIds: taken,
+        },
+      }),
+    );
+    const made = calls(events);
+    expect(made[0].retried).toEqual([429]);
+    expect(made.flatMap((call) => call.retried ?? [])).toEqual([429]);
+  });
+});
 
 describe("the second venue (Daniel, 2026-10-28, 13:25)", () => {
   it("a refill reads the second venue and its control when the first gives no act that passes", async () => {

@@ -14,6 +14,7 @@ import {
   createToolbox,
   TIER_RANGES,
   tierRanges,
+  type RetryTiming,
 } from "./agent-tools";
 import type { AgentModel } from "./ai";
 import type { BuildContext } from "./build-store";
@@ -105,14 +106,17 @@ export async function runUndercardAgent({
   qloo,
   model,
   emit,
+  timing,
 }: {
   festival: Festival;
   qloo: QlooClient;
   model: AgentModel;
   emit: (event: BuildEvent) => void;
+  /** The agent's own retry's wait and clock (tests make them instant). */
+  timing?: RetryTiming;
 }): Promise<AgentResult> {
   const started = Date.now();
-  const toolbox = createToolbox({ festival, qloo, emit });
+  const toolbox = createToolbox({ festival, qloo, emit, timing });
   const messages: Anthropic.MessageParam[] = [
     { role: "user", content: festivalBrief(festival) },
   ];
@@ -212,6 +216,7 @@ export async function runUndercardAgent({
     open: shortfall,
     calls: reading,
     located: toolbox.callsUsed() - reading,
+    retries: toolbox.retriesUsed(),
     cap: toolbox.cap,
     city: festival.city,
     claimed: toolbox.state.finished?.stoppedBecause,
@@ -234,13 +239,19 @@ export async function runUndercardAgent({
   const localPicks = toolbox.state.localPicks;
   if (localPicks.length > 0) emit({ type: "local-pick", picks: localPicks });
   if (missing > 0) {
-    emit({
-      type: "error",
-      message:
-        acts.length === 0
-          ? "The agent stopped before Qloo had returned enough to book anyone."
-          : `Only ${acts.length} of ${acts.length + missing} slots found an act that a ${festival.city} venue lifts.`,
-    });
+    // Daniel, 2026-10-28 (19:20): a busy Qloo no longer ends a build on its own; only when no
+    // act could be booked at all does the run end on Qloo's busy notice, as before.
+    emit(
+      acts.length === 0 && toolbox.sawBusy()
+        ? { type: "error", code: "qloo-busy", message: new QlooBusy().message }
+        : {
+            type: "error",
+            message:
+              acts.length === 0
+                ? "The agent stopped before Qloo had returned enough to book anyone."
+                : `Only ${acts.length} of ${acts.length + missing} slots found an act that a ${festival.city} venue lifts.`,
+          },
+    );
   }
   finish();
   return {

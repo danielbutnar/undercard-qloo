@@ -232,7 +232,7 @@ describe("the trace's last line says why the agent stopped (WS13.2)", () => {
     expect(
       stopLine({ ...base, reason: "rooms", open: { mid: 1, opener: 2 } }),
     ).toBe(
-      "The agent stopped after trying every music venue Qloo listed in Larkspur: 1 mid-size slot and 2 opening slots stay open.",
+      "The agent stopped once it had tried every music venue Qloo listed in Larkspur, after 15 of its 28 Qloo calls: 1 mid-size slot and 2 opening slots stay open.",
     );
     expect(
       stopLine({ ...base, reason: "cap", open: { mid: 0, opener: 1 } }),
@@ -242,7 +242,7 @@ describe("the trace's last line says why the agent stopped (WS13.2)", () => {
     expect(
       stopLine({ ...base, reason: "planner", open: { mid: 2, opener: 0 } }),
     ).toBe(
-      "The agent stopped before every tier was full: 2 mid-size slots stay open.",
+      "The agent stopped before every tier was full, after 15 of its 28 Qloo calls: 2 mid-size slots stay open.",
     );
   });
 
