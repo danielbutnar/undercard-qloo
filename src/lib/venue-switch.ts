@@ -116,6 +116,26 @@ export function venueSwitch(input: AssemblyInput): VenueSwitchData {
   return { venues, entries, lineups };
 }
 
+/**
+ * The saved acts' second readings (WS13.4, Qloo's location signal) on their entries: the same act
+ * with the same venue is the same reading in every combination, which the rule never reads.
+ */
+export function withReadings(
+  data: VenueSwitchData,
+  saved: readonly Act[],
+): VenueSwitchData {
+  const entries = { ...data.entries };
+  for (const act of saved) {
+    const entry = entries[entryKey(act)];
+    if (entry && act.location)
+      entries[entryKey(act)] = {
+        ...entry,
+        act: { ...entry.act, location: act.location },
+      };
+  }
+  return { ...data, entries };
+}
+
 /** The lineup for the venues in `on`, from the worked-out combinations. */
 export function switchedLineup(
   data: VenueSwitchData,

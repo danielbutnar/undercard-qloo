@@ -1,5 +1,7 @@
+import { LOCAL_PICK_ADDED } from "./agent-words";
 import type { FeeBand } from "./fee-bands";
 import type { Act } from "./lineup";
+import type { LocalPick } from "./local-pick";
 import { UNAVAILABLE_REASONS, type Replacement } from "./unavailable";
 
 const COLUMNS = [
@@ -21,12 +23,14 @@ function cell(value: string): string {
 
 /**
  * The lineup as CSV (RFC 4180, CRLF line ends), bands in the buyer's order. A replacement's
- * row names the act whose slot it took and why that act dropped out.
+ * row names the act whose slot it took and why that act dropped out. The AI's local picks the
+ * buyer added (WS13.5) follow, each marked as the buyer's own addition.
  */
 export function lineupCsv(
   acts: readonly Act[],
   bands: readonly FeeBand[],
   replaced: Readonly<Record<string, Replacement>> = {},
+  added: readonly LocalPick[] = [],
 ): string {
   const rows = bands.flatMap((band) =>
     acts
@@ -44,8 +48,19 @@ export function lineupCsv(
           : "",
       ]),
   );
+  const additions = added.map((pick) => [
+    pick.name,
+    bands.find((band) => band.id === pick.band)?.label ?? "",
+    "",
+    pick.popularity.toFixed(2),
+    "",
+    LOCAL_PICK_ADDED,
+    "",
+    "",
+  ]);
   return (
-    [COLUMNS, ...rows].map((row) => row.map(cell).join(",")).join("\r\n") +
-    "\r\n"
+    [COLUMNS, ...rows, ...additions]
+      .map((row) => row.map(cell).join(","))
+      .join("\r\n") + "\r\n"
   );
 }

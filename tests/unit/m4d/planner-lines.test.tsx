@@ -83,11 +83,16 @@ describe("the planner's lines", () => {
     const { store, build } = server();
     await readEvents(build(true));
     const saved = (await store.latest(SAGEBRUSH_SOUND.id))!;
-    expect(saved.notes?.map((note) => note.text)).toEqual(LINES);
+    // Its lines, then finish's summary, the reason it stopped in its own words (WS13.7).
+    expect(saved.notes?.map((note) => note.text)).toEqual([
+      ...LINES,
+      "Two music venues, both tiers.",
+    ]);
     expect(saved.notes?.[0].at).toBe(0);
+    // In the order said; finish's summary comes with the turn's own line (WS13.7).
     for (const [index, note] of (saved.notes ?? []).entries())
       if (index > 0)
-        expect(note.at).toBeGreaterThan(saved.notes![index - 1].at);
+        expect(note.at).toBeGreaterThanOrEqual(saved.notes![index - 1].at);
   });
 
   it("replay in the order the live build said them", async () => {
@@ -95,7 +100,7 @@ describe("the planner's lines", () => {
     const live = sequence(await readEvents(build(true)));
     const replay = sequence(await readEvents(build(false)));
     expect(replay).toEqual(live);
-    expect(replay.filter((step) => step.startsWith("says"))).toHaveLength(5);
+    expect(replay.filter((step) => step.startsWith("says"))).toHaveLength(6);
   });
 
   it("are optional, so a build saved before them still parses and replays", async () => {

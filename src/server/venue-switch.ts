@@ -5,6 +5,7 @@ import {
   lineupWith,
   venueSwitch,
   venuesOf,
+  withReadings,
   type VenueSwitchData,
 } from "@/lib/venue-switch";
 import type { FirstBill } from "@/lib/first-bill";
@@ -13,6 +14,7 @@ import type { BuildStore, SavedBuild } from "./build-store";
 import { serverBuildStore, serverCachedQloo } from "./deps";
 import { QlooCacheMiss, type QlooClient } from "./qloo";
 import { syntheticMode } from "./qloo-cache";
+import { readerFor, savedRanking } from "./saved-reads";
 
 // The labels a venue's trace line can carry after its name (M6l, M6o; src/lib/place-kinds.ts).
 const KINDS = [
@@ -42,6 +44,7 @@ export async function assemblyFromSaved(
   qloo: QlooClient,
 ): Promise<AssemblyInput | null> {
   const { context } = saved;
+  const reader = readerFor(saved, qloo);
   const pair = context.headliners.map((headliner) => headliner.entityId);
   const runs: { band: FeeBand; venue: VenueRef }[] = [];
   for (const call of saved.trace) {
@@ -67,19 +70,42 @@ export async function assemblyFromSaved(
   let venueRuns: VenueRun[];
   try {
     venueRuns = await Promise.all(
-      runs.map(async ({ band, venue }) => ({
-        venue,
-        band: band.id,
-        artists: (
-          await qloo.artists({
-            signalEntityIds: [...pair, venue.entityId],
-            popularityMin: band.minPopularity,
-            popularityMax: band.maxPopularity,
-            excludeEntityIds: pair,
-            ages: context.ages ?? [],
-          })
-        ).data,
-      })),
+      runs.map(async ({ band, venue }) => {
+        const query = (signal: string) => ({
+          signalEntityIds: [...pair, signal],
+          popularityMin: band.minPopularity,
+          popularityMax: band.maxPopularity,
+          excludeEntityIds: pair,
+          ages: context.ages ?? [],
+        });
+        const artists = await savedRanking(
+          saved,
+          reader,
+          query(venue.entityId),
+          true,
+        );
+        // WS13.3: a 2.0 run's matched control, read back from the build's own prefix.
+        const matched = context.controls?.[band.id]?.find(
+          (entry) => entry.venueId === venue.entityId,
+        );
+        if (!matched) return { venue, band: band.id, artists };
+        return {
+          venue,
+          band: band.id,
+          artists,
+          control: matched.control
+            ? {
+                venue: matched.control,
+                artists: await savedRanking(
+                  saved,
+                  reader,
+                  query(matched.control.entityId),
+                  true,
+                ),
+              }
+            : null,
+        };
+      }),
     );
   } catch (error) {
     if (error instanceof QlooCacheMiss) return null;
@@ -135,7 +161,10 @@ export async function readVenueSwitch({
   const every = new Set(venuesOf(input).map((venue) => venue.entityId));
   if (!sameLineup(lineupWith(input, every).acts, saved.lineup.acts))
     return null;
-  return { buildId: saved.id, ...venueSwitch(input) };
+  return {
+    buildId: saved.id,
+    ...withReadings(venueSwitch(input), saved.lineup.acts),
+  };
 }
 
 /**

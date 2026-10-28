@@ -9,6 +9,7 @@ import type { AgentModel } from "./ai";
 import type { BuildStore, SavedBuild } from "./build-store";
 import { QlooCacheMiss, type QlooClient } from "./qloo";
 import type { LimitResult, RateLimiter } from "./rate-limit";
+import { readerFor, savedRanking } from "./saved-reads";
 
 type Emit = (event: BuildEvent) => void;
 
@@ -85,6 +86,7 @@ export async function replayClimbs(
 ): Promise<Map<number, ClimbEvent>> {
   const out = new Map<number, ClimbEvent>();
   if (!qloo) return out;
+  const reader = readerFor(saved, qloo);
   const { context } = saved;
   const pair = context.headliners.map((headliner) => headliner.entityId);
   const lists = saved.trace.flatMap((call, index) => {
@@ -105,14 +107,18 @@ export async function replayClimbs(
   const answers = await Promise.all(
     lists.map(async ({ band, venue }) => {
       try {
-        const { data } = await qloo.artists({
-          signalEntityIds: venue ? [...pair, venue.entityId] : pair,
-          popularityMin: band.minPopularity,
-          popularityMax: band.maxPopularity,
-          excludeEntityIds: pair,
-          ages: context.ages ?? [],
-        });
-        return data;
+        return await savedRanking(
+          saved,
+          reader,
+          {
+            signalEntityIds: venue ? [...pair, venue.entityId] : pair,
+            popularityMin: band.minPopularity,
+            popularityMax: band.maxPopularity,
+            excludeEntityIds: pair,
+            ages: context.ages ?? [],
+          },
+          venue !== undefined,
+        );
       } catch (error) {
         if (!(error instanceof QlooCacheMiss)) throw error;
         return null;
@@ -166,7 +172,10 @@ async function replay(
     if (climb) emit(climb);
   }
   sayNotes((at) => at >= saved.trace.length);
+  if (saved.stopped) emit({ type: "stopped", ...saved.stopped });
   emit({ type: "lineup", lineup: saved.lineup });
+  if (saved.localPicks?.length)
+    emit({ type: "local-pick", picks: saved.localPicks });
   emit({ type: "done", calls: saved.trace.length, ms: Date.now() - started });
 }
 
@@ -244,23 +253,11 @@ export async function handleUndercardBuild({
   if (!verdict.allowed) return limitedResponse(verdict);
 
   return ndjsonResponse(async (emit) => {
-    const id = crypto.randomUUID();
-    const createdAt = new Date().toISOString();
-    const trace: TraceCall[] = [];
-    const notes: { at: number; text: string }[] = [];
-    const seen: BuildEvent[] = [];
-    emit({ type: "build", id, createdAt, replayed: false });
-    const result = await runUndercardAgent({
+    const { result, build, seen } = await recordRun({
       festival,
       qloo: qlooClient,
       model: agentModel,
-      emit: (event) => {
-        if (event.type === "call") trace.push(event.call);
-        if (event.type === "status" && event.planner)
-          notes.push({ at: trace.length, text: event.text });
-        seen.push(event);
-        emit(event);
-      },
+      emit,
     });
     if (!save) {
       // A busy Qloo or a failed planner call already said why; a second diagnosis would only
@@ -281,9 +278,48 @@ export async function handleUndercardBuild({
       if (problem) emit({ type: "error", ...problem });
       return;
     }
-    if (result.complete && result.lineup) {
-      trace.sort((a, b) => a.n - b.n);
-      await store.save({
+    if (result.complete && build) await store.save(build);
+  });
+}
+
+/**
+ * One live run of the agent, recorded as a saved build would be (WS13.11): its trace in call
+ * order, the planner's lines where it said them, and Agent 2.0's fields, its prefix among them.
+ * The build is null when the run booked no act. Shared by POST /api/undercard, which saves only
+ * a complete build, and scripts/rerun-towns.ts, which keeps every build by id only.
+ */
+export async function recordRun({
+  festival,
+  qloo,
+  model,
+  emit = () => {},
+}: {
+  festival: Festival;
+  qloo: QlooClient;
+  model: AgentModel;
+  emit?: Emit;
+}) {
+  const id = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+  const trace: TraceCall[] = [];
+  const notes: { at: number; text: string }[] = [];
+  const seen: BuildEvent[] = [];
+  emit({ type: "build", id, createdAt, replayed: false });
+  const result = await runUndercardAgent({
+    festival,
+    qloo,
+    model,
+    emit: (event) => {
+      if (event.type === "call") trace.push(event.call);
+      if (event.type === "status" && event.planner)
+        notes.push({ at: trace.length, text: event.text });
+      seen.push(event);
+      emit(event);
+    },
+  });
+  trace.sort((a, b) => a.n - b.n);
+  const build: SavedBuild | null = result.lineup
+    ? {
         id,
         festivalId: festival.id,
         createdAt,
@@ -291,7 +327,13 @@ export async function handleUndercardBuild({
         lineup: result.lineup,
         context: result.context,
         notes,
-      });
-    }
-  });
+        // Agent 2.0 (WS13): its venue reads are scored reads, under the prefix its client used.
+        engine: 2,
+        cachePrefix: qloo.cachePrefix,
+        ...(result.stopped ? { stopped: result.stopped } : {}),
+        ...(result.localPicks ? { localPicks: result.localPicks } : {}),
+        ...(result.plan ? { plan: result.plan } : {}),
+      }
+    : null;
+  return { result, build, seen };
 }

@@ -4,8 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import type { TraceCall } from "@/lib/build-events";
 import type { BuildState } from "@/lib/build-state";
 import { callWords } from "@/components/chart/words";
-
-const CALL_CAP = 12;
+import { noFanDataCallLine } from "@/lib/agent-words";
+import { QLOO_CALL_CAP } from "@/lib/agent-limits";
+import { paramWords } from "@/lib/call-words";
 
 const seconds = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
 const savedAt = new Intl.DateTimeFormat("en-US", {
@@ -55,6 +56,10 @@ export function CallRow({
       {before.map((text, index) => (
         <PlannerLine key={index} text={text} />
       ))}
+      {/* WS13.7: the planner's own line on why it made this call. */}
+      {call.why && !before.includes(call.why) && (
+        <PlannerLine text={call.why} />
+      )}
       <div className="trace-call-head">
         <p className="trace-summary">
           {call.n}. {callWords(call.summary)}
@@ -82,8 +87,16 @@ export function CallRow({
           </button>
         )}
       </div>
+      {/* WS13.9: what the app asked, in plain words and as sent; never what Qloo answered. */}
+      {showParams && call.params.length > 0 && (
+        <ul aria-label="In plain words" className="trace-params">
+          {paramWords(call.params).map((line, index) => (
+            <li key={index}>{line}</li>
+          ))}
+        </ul>
+      )}
       {showParams && (
-        <ul className="trace-params">
+        <ul aria-label="As sent to Qloo" className="trace-params">
           {call.params.map((param) => (
             <li key={param.key}>
               <code>
@@ -94,6 +107,10 @@ export function CallRow({
         </ul>
       )}
       {call.error && <p className="alert">{call.error}</p>}
+      {/* WS13.1: Qloo's warning reached the agent, which skips the venue. */}
+      {call.noFanData && (
+        <p className="trace-note">{noFanDataCallLine(call.noFanData)}</p>
+      )}
       {after.map((text, index) => (
         <PlannerLine key={index} text={text} />
       ))}
@@ -174,7 +191,7 @@ export function TracePanel({
             <p className="trace-tally">
               {folded
                 ? refillCount
-                : `${buildCalls} of ${CALL_CAP}${refillCalls > 0 ? ` · ${refillCount}` : ""}`}
+                : `${buildCalls} of ${state.build?.replayed && savedCalls ? savedCalls : QLOO_CALL_CAP}${refillCalls > 0 ? ` · ${refillCount}` : ""}`}
             </p>
           )}
         </div>
@@ -306,6 +323,10 @@ export function TracePanel({
               />
             ))}
           </ol>
+        )}
+        {/* WS13.2: the trace's last line says why the agent stopped reading venues. */}
+        {state.stopped && state.calls.length > 0 && (
+          <p className="trace-line">{state.stopped.text}</p>
         )}
       </div>
     </aside>

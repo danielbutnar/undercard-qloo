@@ -295,7 +295,8 @@ describe("what each town's replay gives", () => {
 
   it("reads the rule, the brief's fee range and the checked towns from the code", () => {
     expect(value({ kind: "rule", of: "min-lift" })).toBe(5);
-    expect(value({ kind: "rule", of: "call-cap" })).toBe(12);
+    // Agent 2.0's cap (WS13; Daniel, 2026-10-24); the README and the story still say 12.
+    expect(value({ kind: "rule", of: "call-cap" })).toBe(28);
     expect(value({ kind: "rule", of: "refill-cap" })).toBe(3);
     expect(value({ kind: "fee-range", end: "bottom" })).toBeCloseTo(55, 6);
     expect(value({ kind: "fee-range", end: "top" })).toBeCloseTo(92, 6);

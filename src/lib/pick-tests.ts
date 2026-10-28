@@ -2,6 +2,8 @@ import {
   headlinerTagWeights,
   liftsOver,
   sharedTags,
+  sharedWeight,
+  type ArtistTag,
   type AssemblyInput,
   type RankedArtist,
 } from "./assemble-lineup";
@@ -53,14 +55,24 @@ export const foldAccents = (name: string) =>
 /** Whether a name has a letter beyond ASCII, which Qloo's search can miss (WS8). */
 export const hasNonAscii = (name: string) => /[^\x00-\x7F]/.test(name);
 
-export function foundOnQloo<Artist extends { name: string }>(
+export function foundOnQloo<
+  Artist extends { name: string; tags?: readonly ArtistTag[] },
+>(
   name: string,
   results: readonly Artist[],
+  /**
+   * The headliners' genre weights (headlinerTagWeights). When several of the top five carry the
+   * name, the one whose genres the headliners share most is taken, ties in Qloo's order (WS13.6);
+   * without them, the first.
+   */
+  weights?: ReadonlyMap<string, number>,
 ): Artist | null {
-  return (
-    results
-      .slice(0, 5)
-      .find((entity) => normalise(entity.name) === normalise(name)) ?? null
+  const matches = results
+    .slice(0, 5)
+    .filter((entity) => normalise(entity.name) === normalise(name));
+  if (matches.length < 2 || !weights) return matches[0] ?? null;
+  return matches.reduce((best, entity) =>
+    sharedWeight(entity, weights) > sharedWeight(best, weights) ? entity : best,
   );
 }
 

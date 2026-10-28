@@ -29,6 +29,11 @@ export type ActSplits = Record<string, ActSplit>;
 export interface SplitLine {
   line: string;
   short: string;
+  /**
+   * Where another venue's share is strictly larger than the credited venue's, why the credit
+   * stands (WS13.10, src/lib/credit-split.ts); absent otherwise, ties included.
+   */
+  credit?: string;
 }
 
 const TOGETHER = "With this fee range's venues together, ";

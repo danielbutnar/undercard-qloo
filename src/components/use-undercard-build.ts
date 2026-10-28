@@ -65,6 +65,12 @@ export function useUndercardBuild(
     [festivalId, brief, replayOnly],
   );
 
+  // WS13.5: the buyer adds the AI's local pick to the bill, or takes it off; no request.
+  const toggleLocal = useCallback(
+    (entityId: string) => dispatch({ type: "toggleLocal", entityId }),
+    [],
+  );
+
   const markUnavailable = useCallback(
     async (act: Act, reason?: UnavailableReason) => {
       const current = stateRef.current;
@@ -196,5 +202,6 @@ export function useUndercardBuild(
     redraft,
     runningOrder,
     closeOrder,
+    toggleLocal,
   };
 }

@@ -43,7 +43,10 @@ const PLAN = [
   [
     {
       name: "finish",
-      input: { anchor_venue_ids: [LANTERN, FORT], summary: "Two rooms." },
+      input: {
+        anchor_venue_ids: [LANTERN, FORT],
+        summary: "Two music venues, both tiers.",
+      },
     },
   ],
 ];

@@ -126,8 +126,10 @@ describe("runUndercardAgent", () => {
     const { model } = scriptedModel(PLAN);
     const { calls, lineup, error, events } = await build(model);
     expect(error).toBeUndefined();
+    // The plan's 11 calls, the control town's venues and the matched control's two rankings
+    // (WS13.3), then Qloo's location signal for each tier's acts (WS13.4).
     expect(calls.map((call) => call.n)).toEqual([
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
     ]);
     const acts = LineupSchema.parse(lineup).acts;
     expect(acts).toHaveLength(10);
@@ -138,7 +140,7 @@ describe("runUndercardAgent", () => {
       expect(act.reason).toContain(act.anchorVenue.name);
       expect(act.sharedTags).toHaveLength(2);
     }
-    expect(events.at(-1)).toMatchObject({ type: "done", calls: 11 });
+    expect(events.at(-1)).toMatchObject({ type: "done", calls: 18 });
   });
 
   it("gives the model the festival brief and the Qloo tools, then every tool result in one message", async () => {
@@ -163,7 +165,7 @@ describe("runUndercardAgent", () => {
     ).toBe(true);
   });
 
-  it("stops at 12 Qloo calls even when the model keeps asking for more", async () => {
+  it("stops at the cap of 28 Qloo calls even when the model keeps asking for more", async () => {
     // Unique names per turn, so no call is served from the cache.
     const searches = (turn: number): Turn =>
       Array.from({ length: 5 }, (_, i) => ({
@@ -172,9 +174,9 @@ describe("runUndercardAgent", () => {
       }));
     const { model, requests: turns } = scriptedModel(searches);
     const { calls, requests, error } = await build(model);
-    expect(calls).toHaveLength(12);
-    expect(requests).toHaveLength(12);
-    expect(turns).toHaveLength(3);
+    expect(calls).toHaveLength(28);
+    expect(requests).toHaveLength(28);
+    expect(turns).toHaveLength(6);
     expect(error).toBeDefined();
   });
 

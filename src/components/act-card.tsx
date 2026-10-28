@@ -13,6 +13,7 @@ import {
 } from "@/components/chart/poster-words";
 import { whySentence } from "@/components/chart/why";
 import { ordinal, venueShort } from "@/components/chart/words";
+import { climbsLine, locationLine } from "@/lib/agent-words";
 import type { SplitLine } from "@/lib/attribution-line";
 import type { FeeBand } from "@/lib/fee-bands";
 import {
@@ -172,6 +173,10 @@ export function ActCard({
               <strong>Why it&apos;s here: </strong>
               {whySentence(act, place)}
             </p>
+            {/* WS13.3: both climbs, the town venue's and its matched venue abroad's. */}
+            {act.localLift && (
+              <p className="card-check-rule">{climbsLine(act)}</p>
+            )}
             <p className="card-check-rule">{cardClimbRule()}</p>
           </div>
         </li>
@@ -240,6 +245,12 @@ export function ActCard({
           )}
           <span className="card-split-full">{split.line}</span>
         </p>
+      )}
+      {/* WS13.10: why the credit stands where another venue's share is larger. */}
+      {split?.credit && <p className="card-credit">{split.credit}</p>}
+      {/* WS13.4: Qloo's location signal, a second reading, only where Qloo answered it. */}
+      {act.location && (
+        <p className="card-location">{locationLine(act.location)}</p>
       )}
       {act.anchorVenue.kind && (
         <p className="card-kind">

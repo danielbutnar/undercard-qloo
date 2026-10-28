@@ -1,6 +1,7 @@
 import { noFanData } from "@/lib/fan-data";
 import type { Festival } from "@/lib/festival";
 import type { FirstBill } from "@/lib/first-bill";
+import { venueOfCall } from "@/lib/venue-call";
 import type { BuildStore } from "./build-store";
 import { serverBuildStore } from "./deps";
 import { createQlooClient, type QlooClient } from "./qloo";
@@ -25,6 +26,19 @@ export async function noFanDataFor({
 }): Promise<string[]> {
   const saved = await store.byId(buildId);
   if (!saved || saved.festivalId !== festival.id) return [];
+  // A 2.0 build's calls say it themselves (WS13.1): Qloo's warning, as the agent was told.
+  if (saved.engine === 2) {
+    const venues = Object.values(saved.context.anchors).flatMap(
+      (list) => list ?? [],
+    );
+    const ids = saved.trace.flatMap((call) => {
+      if (call.tool !== "venue_artists" || call.noFanData === undefined)
+        return [];
+      const venue = venueOfCall(call.summary, venues);
+      return venue ? [venue.entityId] : [];
+    });
+    return [...new Set(ids)];
+  }
   const input = await assemblyFromSaved(saved, festival, qloo);
   return input ? noFanData(input) : [];
 }

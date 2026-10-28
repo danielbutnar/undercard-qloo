@@ -11,12 +11,17 @@ export interface AgentSwitch {
   from: Pick<Venue, "entityId" | "name">;
   to: Pick<Venue, "entityId" | "name">;
   acts: number;
-  /** The planner's line, by its place in the build's notes. */
-  note: number;
+  /** The planner's line, by its place in the build's notes; absent on a switch the data shows. */
+  note?: number;
+  /**
+   * Why the agent read `to` (WS13.1): Qloo had no fan data for `from`, and the agent was told so.
+   * Only a 2.0 build's calls carry it; a 1.0 switch states the order, never a reason.
+   */
+  because?: "no-fan-data";
 }
 
 export interface SwitchTrace {
-  trace: readonly Pick<TraceCall, "tool" | "summary">[];
+  trace: readonly Pick<TraceCall, "tool" | "summary" | "noFanData">[];
   /** The planner's lines, each with how many calls had come back when it was said. */
   notes: readonly { at: number; text: string }[];
   acts: readonly Pick<Act, "anchorVenue">[];
@@ -53,14 +58,48 @@ export function agentSwitches({
   const rooms = [
     ...new Map(venues.map((venue) => [venue.entityId, venue])).values(),
   ];
-  const reads: { index: number; room: Room }[] = [];
+  const reads: { index: number; room: Room; noFanData: boolean }[] = [];
   for (const [index, call] of trace.entries()) {
     if (call.tool !== "venue_artists") continue;
     const held = rooms.filter((room) => namesVenue(call.summary, room.name));
     const longest = Math.max(0, ...held.map((room) => room.name.length));
     const best = held.filter((room) => room.name.length === longest);
     if (best.length !== 1) return [];
-    reads.push({ index, room: best[0] });
+    reads.push({
+      index,
+      room: best[0],
+      noFanData: call.noFanData !== undefined,
+    });
+  }
+  const lifted = (room: Room) =>
+    acts.filter((act) => act.anchorVenue.entityId === room.entityId).length;
+
+  // A 2.0 build (WS13.1): the calls say where Qloo had no fan data, which the agent was told, so
+  // each such venue's switch is the next venue it went on to read, with the reason.
+  if (reads.some((entry) => entry.noFanData)) {
+    const found: AgentSwitch[] = [];
+    const seen = new Set<string>();
+    for (const [k, entry] of reads.entries()) {
+      seen.add(entry.room.entityId);
+      if (!entry.noFanData) continue;
+      if (found.some((done) => done.from.entityId === entry.room.entityId))
+        continue;
+      const next = reads
+        .slice(k + 1)
+        .find(
+          (later) =>
+            !seen.has(later.room.entityId) &&
+            !found.some((done) => done.to.entityId === later.room.entityId),
+        );
+      if (!next) continue;
+      found.push({
+        from: { entityId: entry.room.entityId, name: entry.room.name },
+        to: { entityId: next.room.entityId, name: next.room.name },
+        acts: lifted(next.room),
+        because: "no-fan-data",
+      });
+    }
+    return found;
   }
 
   // A form two venues share names neither.
@@ -81,9 +120,6 @@ export function agentSwitches({
             "u",
           ).test(text),
       );
-  const lifted = (room: Room) =>
-    acts.filter((act) => act.anchorVenue.entityId === room.entityId).length;
-
   const found: AgentSwitch[] = [];
   for (const [index, note] of notes.entries()) {
     const before = reads.filter((entry) => entry.index < note.at);

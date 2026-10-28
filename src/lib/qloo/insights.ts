@@ -1,9 +1,70 @@
 import { z } from "zod";
-import { RawEntity, toEntity, type QlooGet } from "./core";
+import { RawEntity, toEntity, type QlooEntity, type QlooGet } from "./core";
 
 const InsightsBody = z.object({
   results: z.object({ entities: z.array(RawEntity) }),
 });
+
+/**
+ * Qloo's warnings on an Insights answer (docs/evidence.md section 35): a signal input it couldn't
+ * use comes back as { type: "not_found", "signal.interests.entities": [<entity id>] }, and the
+ * input is left out of the result. Read loosely: a warning in any other shape is ignored, never
+ * an error.
+ */
+const Warnings = z
+  .array(z.unknown())
+  .catch([])
+  .transform((warnings) =>
+    warnings.flatMap((warning) => {
+      if (!warning || typeof warning !== "object") return [];
+      const record = warning as Record<string, unknown>;
+      const ids = record["signal.interests.entities"];
+      if (record.type !== "not_found" || !Array.isArray(ids)) return [];
+      return ids.filter((id): id is string => typeof id === "string");
+    }),
+  );
+
+const ScoredBody = InsightsBody.extend({ warnings: Warnings.optional() });
+
+/** An artists read with what Qloo said it couldn't score (WS13 item 1). */
+export interface ScoredArtists {
+  /** The ranked artists, as the plain read returns them. */
+  entities: QlooEntity[];
+  /** Signal inputs Qloo reported not found, by entity id: it had no fan data to use for them. */
+  unscored: string[];
+}
+
+export interface ArtistsQuery {
+  signalEntityIds: string[];
+  popularityMin: number;
+  popularityMax: number;
+  excludeEntityIds?: string[];
+  /** Qloo age buckets for signal.demographics.age, such as 25_to_29. */
+  ages?: readonly string[];
+  take?: number;
+}
+
+/** The parameters of an artists ranking, in the order the trace lists them. */
+function artistParams({
+  signalEntityIds,
+  popularityMin,
+  popularityMax,
+  excludeEntityIds = [],
+  ages = [],
+  take = 50,
+}: ArtistsQuery): Record<string, string | number> {
+  const params: Record<string, string | number> = {
+    "filter.type": "urn:entity:artist",
+    "signal.interests.entities": signalEntityIds.join(","),
+    "filter.popularity.min": popularityMin,
+    "filter.popularity.max": popularityMax,
+  };
+  if (excludeEntityIds.length)
+    params["filter.exclude.entities"] = excludeEntityIds.join(",");
+  if (ages.length) params["signal.demographics.age"] = ages.join(",");
+  params.take = take;
+  return params;
+}
 
 /** GET /v2/insights with filter.type=urn:entity:place: a town's tagged places. */
 export function placesEndpoint(get: QlooGet) {
@@ -41,34 +102,34 @@ export function artistsEndpoint(get: QlooGet) {
    * tested (docs/evidence.md section 6), so local taste enters only as venue entities in the
    * signal (SPEC.md section 7).
    */
-  return function artists({
-    signalEntityIds,
-    popularityMin,
-    popularityMax,
-    excludeEntityIds = [],
-    ages = [],
-    take = 50,
-  }: {
-    signalEntityIds: string[];
-    popularityMin: number;
-    popularityMax: number;
-    excludeEntityIds?: string[];
-    /** Qloo age buckets for signal.demographics.age, such as 25_to_29. */
-    ages?: readonly string[];
-    take?: number;
-  }) {
-    const params: Record<string, string | number> = {
-      "filter.type": "urn:entity:artist",
-      "signal.interests.entities": signalEntityIds.join(","),
-      "filter.popularity.min": popularityMin,
-      "filter.popularity.max": popularityMax,
-    };
-    if (excludeEntityIds.length)
-      params["filter.exclude.entities"] = excludeEntityIds.join(",");
-    if (ages.length) params["signal.demographics.age"] = ages.join(",");
-    params.take = take;
-    return get("/v2/insights", params, (body) =>
+  return function artists(query: ArtistsQuery) {
+    return get("/v2/insights", artistParams(query), (body) =>
       InsightsBody.parse(body).results.entities.map(toEntity),
+    );
+  };
+}
+
+/** The same ranking with Qloo's not_found warnings kept (WS13 item 1: fan data first). */
+export function scoredArtistsEndpoint(get: QlooGet) {
+  /**
+   * GET /v2/insights for artists, exactly as artists() asks it, keeping the signal inputs Qloo
+   * reported not found: a venue among them is one Qloo had no fan data for. Cached under its own
+   * key version, so it never reads or replaces a plain ranking's entry (whose warnings the cache
+   * didn't keep).
+   */
+  return function scoredArtists(query: ArtistsQuery) {
+    return get(
+      "/v2/insights",
+      artistParams(query),
+      (body): ScoredArtists => {
+        const parsed = ScoredBody.parse(body);
+        return {
+          entities: parsed.results.entities.map(toEntity),
+          unscored: [...new Set(parsed.warnings ?? [])],
+        };
+      },
+      "w1:",
+      (data) => data.entities.length,
     );
   };
 }
@@ -84,17 +145,21 @@ export function rankAmongEndpoint(get: QlooGet) {
     signalEntityIds,
     amongIds,
     ages = [],
+    locationQuery,
   }: {
     signalEntityIds: string[];
     amongIds: string[];
     /** Qloo age buckets for signal.demographics.age, such as 25_to_29. */
     ages?: readonly string[];
+    /** Qloo's location signal (signal.location.query), as section 34's Control B sent it. */
+    locationQuery?: string;
   }) {
     const params: Record<string, string | number> = {
       "filter.type": "urn:entity:artist",
       "signal.interests.entities": signalEntityIds.join(","),
-      "filter.results.entities": amongIds.join(","),
     };
+    if (locationQuery) params["signal.location.query"] = locationQuery;
+    params["filter.results.entities"] = amongIds.join(",");
     if (ages.length) params["signal.demographics.age"] = ages.join(",");
     params.take = amongIds.length;
     return get("/v2/insights", params, (body) =>

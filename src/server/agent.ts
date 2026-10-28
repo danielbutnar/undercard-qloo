@@ -1,28 +1,34 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { ageBuckets } from "@/lib/ages";
+import { stopOf, type StopLine } from "@/lib/agent-words";
 import { assembleLineup, type AssemblyInput } from "@/lib/assemble-lineup";
+import type { LocalPick } from "@/lib/local-pick";
 import type { BuildEvent } from "@/lib/build-events";
 import type { Lineup } from "@/lib/lineup";
 import type { PlaceWhere } from "@/lib/town-resolution";
 import { FEE_BAND_IDS } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import { formatCount } from "@/lib/format";
-import { createToolbox, type AgentState } from "./agent-tools";
+import { assemblyOf, createToolbox } from "./agent-tools";
 import type { AgentModel } from "./ai";
 import type { BuildContext } from "./build-store";
 import { QlooBusy, type QlooClient } from "./qloo";
 
-/** Model turns per build; a plan needs about five. */
-export const MAX_AGENT_TURNS = 8;
+/** Model turns per build: a plan reads two rooms, then room after room until every tier is full. */
+export const MAX_AGENT_TURNS = 16;
 
-export const SYSTEM_PROMPT = `You are Undercard's booking agent. A festival talent buyer has booked two headliners and needs the undercard: acts for each fee band, chosen by the city's own taste. You work only through the tools. Every tool except finish is one Qloo API call, and a build gets 12 Qloo calls in total, cached answers included, so plan before you call.
+export const SYSTEM_PROMPT = `You are Undercard's booking agent. A festival talent buyer has booked two headliners and needs the undercard: acts for each fee band, chosen by the city's own taste. You work only through the tools. Every tool except finish is one Qloo API call, and a build gets 28 Qloo calls in total, cached answers included, so plan before you call.
 
 A build that works:
 1. search_artist for each booked headliner, and find_tag for the tag Qloo puts on live music venues (entity_type place). These don't depend on each other: call them together.
-2. find_venues with that tag. Choose two anchor venues that are music rooms: clubs, music halls, art spaces that book shows. Skip restaurants, cafes, breweries, theaters and arenas; their audiences say little about an undercard.
+2. find_venues with that tag. Its music venues are the clubs, music halls and art spaces that book shows; skip restaurants, cafes, breweries, theaters and arenas: their audiences say little about an undercard.
 3. compare_headliners, and baseline_artists for each fee band, together.
-4. venue_artists for each anchor venue and each fee band, together. If a venue lifts almost no acts in a band and calls remain, you may try one other music room for that band.
-5. finish, naming the anchor venues and the plan in one sentence.
+4. venue_artists for two music venues and each fee band, together, each with one line on why you chose that venue. Each venue read also reads the venue's matched venue abroad, a second Qloo call: an act books only if it climbs at least 5 places with the town's venue and at least 5 places more than with the venue abroad. Each result says whether Qloo had fan data for the venue and how many slots each band has filled so far. If Qloo had no fan data for a venue, skip it for every band.
+5. Read until every band is full: while a band has open slots and calls remain, read the next music venue for the bands still open, and stop once every band is full or you have tried every music venue find_venues listed. If a venue replaces one Qloo had no fan data for, say so in its line.
+6. local_pick: name one or two acts from the town that you know of from your own knowledge, each with one line on why. The buyer checks them; they take no slot.
+7. finish, naming the anchor venues, with one sentence on the plan you followed and why you stopped.
+
+Your lines and summaries are shown to the buyer: say venue, not room, and tier, not band.
 
 Use only entity ids and tag ids that tools returned. Don't pick acts or invent numbers yourself: the app books the acts each venue lifts most, from Qloo's data.
 
@@ -62,30 +68,6 @@ export function festivalBrief(festival: Festival): string {
   ].join("\n");
 }
 
-const isGenreTag = (type: string) => type.includes("genre");
-
-function assemblyInput(festival: Festival, state: AgentState): AssemblyInput {
-  return {
-    bands: festival.feeBands,
-    headliners: festival.headliners.flatMap(
-      (name) => state.headliners.get(name.toLowerCase()) ?? [],
-    ),
-    comparedTags: state.comparedTags
-      .filter(({ tag }) => isGenreTag(tag.type))
-      .map(({ tag, score }) => ({ name: tag.name, score })),
-    baselines: state.baselines,
-    venueRuns: state.venueRuns.map(({ venue, band, artists }) => ({
-      venue: {
-        entityId: venue.entityId,
-        name: venue.name,
-        ...(venue.kind ? { kind: venue.kind } : {}),
-      },
-      band,
-      artists,
-    })),
-  };
-}
-
 export interface AgentResult {
   lineup: Lineup | null;
   /** True when every slot was booked and nothing failed: only such builds are saved. */
@@ -93,11 +75,17 @@ export interface AgentResult {
   context: BuildContext;
   /** The places the venue search kept, with where Qloo puts them; not saved with a build. */
   places?: { name: string; where?: PlaceWhere }[];
+  /** Why the agent stopped (WS13.2): the trace's last line, saved with the build. */
+  stopped?: StopLine;
+  /** The AI's local picks Qloo found (WS13.5), saved with the build; never on the lineup. */
+  localPicks?: LocalPick[];
+  /** The planner's one sentence on its plan and why it stopped (WS13.7), saved with the build. */
+  plan?: string;
 }
 
 /**
  * The agent loop: Claude plans the Qloo calls through the tools, the toolbox enforces the
- * 12-call cap and streams a trace event per call, and the app books the lineup from what
+ * 28-call cap and streams a trace event per call, and the app books the lineup from what
  * Qloo returned. Every outcome, including failures, ends with a done event.
  */
 export async function runUndercardAgent({
@@ -127,7 +115,7 @@ export async function runUndercardAgent({
     return {
       lineup: null,
       complete: false,
-      context: buildContext(assemblyInput(festival, toolbox.state), festival),
+      context: buildContext(assemblyOf(festival, toolbox.state), festival),
     };
   };
 
@@ -187,11 +175,28 @@ export async function runUndercardAgent({
     return failed();
   }
 
-  const input = assemblyInput(festival, toolbox.state);
-  const { acts, shortfall } = assembleLineup(input);
+  const input = assemblyOf(festival, toolbox.state);
+  const { acts: booked, shortfall } = assembleLineup(input);
   const missing = shortfall.mid + shortfall.opener;
+  // WS13.2: the trace's last line says why the agent stopped reading venues.
+  const stopped = stopOf({
+    open: shortfall,
+    calls: toolbox.callsUsed(),
+    cap: toolbox.cap,
+    city: festival.city,
+    claimed: toolbox.state.finished?.stoppedBecause,
+  });
+  // WS13.4: Qloo's location signal, a second reading on the booked acts, inside the cap.
+  const located = await toolbox.readLocation(booked);
+  const acts = booked.map((act) => {
+    const location = located.get(act.entityId);
+    return location ? { ...act, location } : act;
+  });
   const lineup = acts.length > 0 ? { festivalId: festival.id, acts } : null;
+  emit({ type: "stopped", ...stopped });
   if (lineup) emit({ type: "lineup", lineup });
+  const localPicks = toolbox.state.localPicks;
+  if (localPicks.length > 0) emit({ type: "local-pick", picks: localPicks });
   if (missing > 0) {
     emit({
       type: "error",
@@ -207,6 +212,11 @@ export async function runUndercardAgent({
     complete: lineup !== null && missing === 0,
     context: buildContext(input, festival),
     places: toolbox.state.venues.map(({ name, where }) => ({ name, where })),
+    stopped,
+    ...(localPicks.length > 0 ? { localPicks } : {}),
+    ...(toolbox.state.finished?.summary.trim()
+      ? { plan: toolbox.state.finished.summary.trim() }
+      : {}),
   };
 }
 
@@ -216,6 +226,17 @@ function buildContext(input: AssemblyInput, festival: Festival): BuildContext {
     const list = (anchors[run.band] ??= []);
     if (!list.some((venue) => venue.entityId === run.venue.entityId))
       list.push(run.venue);
+  }
+  // WS13.3: each venue's matched control per tier, so the replay and the switch read it back.
+  const controls: NonNullable<BuildContext["controls"]> = {};
+  for (const run of input.venueRuns) {
+    if (run.control === undefined) continue;
+    const list = (controls[run.band] ??= []);
+    if (!list.some((entry) => entry.venueId === run.venue.entityId))
+      list.push({
+        venueId: run.venue.entityId,
+        control: run.control ? run.control.venue : null,
+      });
   }
   const baselines: BuildContext["baselines"] = {};
   for (const band of FEE_BAND_IDS) {
@@ -232,5 +253,6 @@ function buildContext(input: AssemblyInput, festival: Festival): BuildContext {
     baselines,
     anchors,
     ages: ageBuckets(festival.crowdAge.min, festival.crowdAge.max).buckets,
+    ...(Object.keys(controls).length > 0 ? { controls } : {}),
   };
 }
