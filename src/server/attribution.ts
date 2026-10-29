@@ -12,6 +12,7 @@ import type { BuildStore, SavedBuild } from "./build-store";
 import { serverBuildStore } from "./deps";
 import { createQlooClient, QlooCacheMiss } from "./qloo";
 import { createQlooCache, type QlooCache } from "./qloo-cache";
+import { readerFor } from "./saved-reads";
 
 export type { ActSplits } from "@/lib/attribution-line";
 
@@ -74,14 +75,18 @@ export async function attributionFor(
   build: SavedBuild,
   cache: QlooCache,
 ): Promise<ActSplits> {
-  const qloo = createQlooClient({
-    apiKey: "",
-    cache,
-    cacheOnly: true,
-    fetch: async () => {
-      throw new Error("Qloo's split is read from the Qloo cache only.");
-    },
-  });
+  // A 2.0 build's split lives under the cache prefix it records, as its other reads do.
+  const qloo = readerFor(
+    build,
+    createQlooClient({
+      apiKey: "",
+      cache,
+      cacheOnly: true,
+      fetch: async () => {
+        throw new Error("Qloo's split is read from the Qloo cache only.");
+      },
+    }),
+  );
   const splits: ActSplits = {};
   for (const call of explainCalls(build)) {
     let answer;

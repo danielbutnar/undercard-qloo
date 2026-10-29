@@ -117,7 +117,12 @@ describe("the local_pick tool (WS13.5)", () => {
         popularity: 0.62,
         tier: "opener",
       },
-      { name: "Nobody From Here", found: false },
+      // Daniel, 2026-10-28 (22:20): a search that finds no artist says so.
+      {
+        name: "Nobody From Here",
+        found: false,
+        note: "not an artist Qloo knows",
+      },
     ]);
     expect(toolbox.state.localPicks.map((pick) => pick.name)).toEqual([
       "Larkspur Lanterns",

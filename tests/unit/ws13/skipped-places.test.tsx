@@ -22,6 +22,7 @@ import { readEvents } from "../m3/scripted";
 import {
   DINER,
   FORT,
+  HALL,
   LANTERN,
   LARKSPUR_FESTIVAL,
   opened,
@@ -36,23 +37,30 @@ afterEach(cleanup);
 
 const REASON = "a restaurant, not a music room";
 const LINE = `Skipped Sagebrush Diner: listed by Qloo, but ${REASON}`;
+const BALLROOM = "a wedding ballroom that holds no concerts";
 
 const finishSkipping = (skipped: unknown[]): Turn => [
   {
     name: "finish",
     input: {
-      anchor_venue_ids: [LANTERN, FORT],
+      anchor_venue_ids: [LANTERN],
       summary: "Two venues filled both tiers.",
       stopped_because: "every_band_full",
       not_music_venues: skipped,
     },
   },
 ];
+// Daniel, 2026-10-28 (22:20): a skip is kept only when the agent needs it to stop with fewer than
+// two rooms. Here the Lantern Room is the one room with fan data, the hall has none, and the two
+// places not tried are skipped, so the finish needs both skips.
 const PLAN: Turn[] = [
   ...OPENING,
   [read("mid", LANTERN), read("opener", LANTERN)],
-  [read("mid", FORT), read("opener", FORT)],
-  finishSkipping([{ entity_id: DINER, reason: REASON }]),
+  [read("mid", HALL), read("opener", HALL)],
+  finishSkipping([
+    { entity_id: DINER, reason: REASON },
+    { entity_id: FORT, reason: BALLROOM },
+  ]),
 ];
 
 const plannerLines = (events: BuildEvent[]) =>
@@ -144,17 +152,21 @@ describe("a place the planner skips as not a music venue (Daniel, 19:10)", () =>
       scriptedModel([
         ...OPENING,
         [read("mid", LANTERN), read("opener", LANTERN)],
-        [read("mid", FORT), read("opener", FORT)],
+        [read("mid", HALL), read("opener", HALL)],
         finishSkipping([
           { entity_id: DINER, reason: REASON },
           { entity_id: DINER, reason: REASON },
-          { entity_id: FORT, reason: "a ballroom" },
+          { entity_id: FORT, reason: BALLROOM },
+          { entity_id: LANTERN, reason: "a club" },
         ]),
       ]).model,
     );
     const skipped = plannerLines(events).filter((text) =>
       text.startsWith("Skipped"),
     );
-    expect(skipped).toEqual([LINE]);
+    expect(skipped).toEqual([
+      LINE,
+      `Skipped Fort Street Ballroom: listed by Qloo, but ${BALLROOM}`,
+    ]);
   });
 });
