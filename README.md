@@ -4,62 +4,48 @@ This repository's history is filtered from Undercard's private development repos
 
 [![gate](https://github.com/danielbutnar/undercard/actions/workflows/gate.yml/badge.svg?branch=main)](https://github.com/danielbutnar/undercard/actions/workflows/gate.yml)
 
-A festival talent buyer fills the undercard from acts the town's own venue crowds favour,
-inside the buyer's fee bands, and refills a slot when an act drops out; Undercard finds each
-act through Qloo and shows why.
+An AI agent for festival talent buyers, built on Qloo. With the headliners booked, Undercard
+drafts the acts below them inside the buyer's fee ranges, and shows the evidence behind each
+pick: Qloo's numbers for its climb with a town venue's fans and with a music venue abroad of
+similar Qloo popularity, for its popularity and for its genres, and every Qloo call that
+produced them. When an act drops out, Undercard refills the slot by the same rule.
 
-Undercard drafts a shortlist with its evidence attached; the buyer makes every call. Qloo
-decides, the model plans, the rule books.
+Undercard drafts a shortlist with its evidence attached; the buyer makes every call. The AI
+agent plans the Qloo calls, Qloo knows the taste, and a fixed rule picks the acts.
 
 **Live demo: https://undercard-daniel-51ed.vercel.app** (no login, no API key).
 
 Entry for the [Qloo Agentic Hackathon](https://qloo.devpost.com/). The brief is in
-[SPEC.md](SPEC.md) and the event rules in [RULES.md](RULES.md).
+[SPEC.md](SPEC.md), the event rules in [RULES.md](RULES.md) and the submission's text in
+[docs/devpost-story.md](docs/devpost-story.md).
 
 ## What it does
 
-A talent buyer has booked a festival's headliners and set fee bands for the rest of the bill.
-Undercard fills those slots with acts the town's own music crowd already follows, and says
-why for each one.
+A talent buyer has booked a festival's headliners and set a fee range for each tier of slots
+below them. Undercard fills those slots with acts that climb in Qloo's ranking when the fans
+of one of the town's music venues join the headliners' fans, and climb further with it than
+with a music venue abroad of similar Qloo popularity; each act says why it's there. It doesn't
+claim to know what a festival would book ([docs/evidence.md](docs/evidence.md), section 38):
+its case is the evidence behind each pick, with every call shown.
 
 The demo festival is Sagebrush Sound: fictional, 3,000 capacity, in Boise, Idaho, with
-Khruangbin and Japanese Breakfast booked and two fee bands, Mid (4 slots) and Opener (6 slots).
-
-1. The page opens on the saved build as the buyer's draft, a poster beside a small 3D model of
-   Boise. The headliners sit over 4 mid-size and 6 opening acts, each act's name in the colour
-   of the Boise venue whose fans lifted it in Qloo's ranking, with how far (↑ and the places, or
-   NEW when it entered the top 50). In the town each venue the AI agent tested stands lit in
-   its colour, or grey when it lifted no act, with a sign counting its acts.
-2. **Watch the AI agent build it**: the camera closes on each venue as the replay reads its
-   fans; the caption gives the Qloo call, its result count and the agent's own line, and the
-   acts its fans lifted fly from the venue into their slots on the poster. The Qloo calls panel
-   below lists every call with its parameters. **Run the agent live instead** runs a fresh
-   build.
-3. Click an act to open its card: its slot and the venue whose fans lift it, then the three
-   checks it passed: its climb in Qloo's ranking with the "Why it's here" sentence, its
-   popularity percentile inside the fee range with its Qloo affinity, and two Qloo tags it
-   shares with the headliners; a last line gives Qloo's own split of its match by input.
-4. Mark it **Unavailable** and say why: a radius clause, routing or the fee. Undercard finds a
-   replacement in the same fee band with a new Qloo call, the replacement prints into the slot,
-   and the reason names the refill's line in the trace.
-5. Flip to **Without Qloo** to see the same brief answered by the model alone: one list of its
-   10 picks, each tagged with where Qloo's popularity puts it ("99th · above both ranges", "not
-   on Qloo"), its reason one click away. **Export CSV** under the poster downloads the booking
-   sheet; a replacement's row names the act it replaced and why.
+Khruangbin and Japanese Breakfast booked and two tiers, mid-size (4 slots) and opening (6 slots),
+each with a fee range given as a range of Qloo popularity. The path a judge can follow through
+it is under [Testing instructions](#testing-instructions).
 
 Beyond the demo path, one click from the bill:
 
 - **Same brief, other towns.** The town switcher links Austin, Denver and Nashville: the same
-  headliners, capacity, crowd and fee bands, each drafted from that town's own rooms, saved and
-  replayed like Boise's.
+  headliners, capacity, crowd and fee ranges, each drafted from that town's own venues, saved
+  and replayed like Boise's. **Compare with another town** sets two towns' lineups side by side.
 - **Your festival** (`/your-festival`). Name a town and two headliners, and the agent runs live
-  for them with Sagebrush Sound's crowd and fee bands. It counts against the same per-IP limit
+  for them with Sagebrush Sound's crowd and fee ranges. It counts against the same per-IP limit
   as a fresh build, and nothing is saved. A headliner Qloo can't find, a town with too few
-  music rooms and the daily limit each have their own designed state. A link can fill the form
+  music venues and the daily limit each have their own designed state. A link can fill the form
   in: `/your-festival?town=Tallinn&headliner=Khruangbin&headliner=Japanese%20Breakfast`. It never
   runs on load, because mail clients and link previews open links by themselves.
-- **Check a shortlist** (`/shortlist`). A buyer picks one of the 29 checked towns and pastes up
-  to 10 acts they've been pitched. Undercard finds each on Qloo (a name it can't match reads
+- **Check the acts you've been pitched** (`/shortlist`). A buyer picks one of the 29 checked
+  towns and pastes up to 10 acts they've been pitched. Undercard finds each on Qloo (a name it can't match reads
   "not found on Qloo"), ranks them for the headliners' fans alone and again with each of the
   town's venues' fans, every act scored inside the same call, and sorts them by how far a
   venue's fans lift them, with each act's fee range and genre fit. A check makes at most 14 Qloo
@@ -67,23 +53,64 @@ Beyond the demo path, one click from the bill:
   nothing and books nothing. The page opens on the model's own ten picks for Boise, from its
   saved Without Qloo answer, sorted from the Qloo cache.
 
+## Testing instructions
+
+For judges: no login and no API key. These steps are the demo path in [SPEC.md](SPEC.md),
+section 3, on the live demo.
+
+1. **Open https://undercard-daniel-51ed.vercel.app.** Sagebrush Sound opens on its saved
+   draft: the booked headliners sit over 4 mid-size and 6 opening acts, each in the colour of
+   the Boise venue whose fans lifted it, with its rank and its climb in Qloo's ranking (NEW when
+   it entered the top 50). In the town, each venue the agent read counts the acts its fans
+   lifted, or says Qloo had no fan data for it.
+2. **Press Watch the AI agent build it.** The saved build replays in the town, call by call,
+   each caption naming its Qloo call and result count. Under the town, the AI agent's setlist
+   lists every call, and the full calls list under it gives each call's parameters. A replay is
+   never limited. To run the agent live instead, press **Play it live** on the setlist (or **Run
+   it live** under Watch, on a large screen); a live run is limited per IP and per day.
+3. **Click an act.** Its card says why it's here: its place for the headliners' fans alone and
+   with the venue's fans added, its climb with that venue and with its control, a music venue
+   abroad of similar Qloo popularity, its Qloo popularity inside the tier's fee range, and two
+   genres it shares with the headliners. Keep, Unavailable and Close stay in view.
+4. **Press Unavailable** and give a reason: radius clause, routing or fee. Undercard refills
+   the slot from the same tier by the same rule. If an act in the rankings the build already
+   holds passes, it takes the slot with no new Qloo call; otherwise Undercard makes at most 5
+   Qloo calls, each listed with the refill's reason. The replacement prints into the slot.
+5. **Flip to Without Qloo**: the same brief answered by the AI model alone, its reason under
+   each pick, checked on Qloo afterwards. Flip back and press **Export CSV** to download the
+   draft; a replacement's row names the act it replaced and why.
+
 ## How it works
 
 ![How a build works: the page, the API routes, the planner, the five kinds of Qloo call, the lift rule, the refill, the model-only baseline and Upstash](docs/architecture.svg)
 
-- **The agent plans the Qloo calls.** Claude Sonnet 5.5 works through tools that each make one Qloo call, plus one to finish
-  ([src/server/agent.ts](src/server/agent.ts), [src/server/agent-tools.ts](src/server/agent-tools.ts)).
-  It resolves the headliners, finds the city's live music venues and picks the music rooms
-  among them as anchors, gets the taste the headliners share, then asks for each band's
-  artists for the headliners alone, then once more for each anchor venue. It
-  runs independent calls in parallel and stops at 28. In live builds it has changed course
-  mid-build: when Qloo had no fan data for one anchor venue, it spent its last call on another room.
+The diagram was drawn for Undercard 1.0. Undercard 2.0, on the live demo, adds a control beside
+each venue and the local-lift test, as below.
+
+- **The agent plans the Qloo calls.** Claude Sonnet 5.5 works through tools that make the Qloo
+  calls, plus one to finish ([src/server/agent.ts](src/server/agent.ts),
+  [src/server/agent-tools.ts](src/server/agent-tools.ts)). It resolves the headliners, finds the
+  town's live music venues and picks the music venues among them as anchors, gets the taste
+  the headliners share, then ranks each tier's artists for the headliners alone and once more
+  with each anchor venue's fans. Beside each venue the app reads its control: the music venue
+  in a checked town in another country closest to it in Qloo popularity (for Boise, a venue in
+  Bucharest with similar Qloo popularity), skipping one Qloo has no fan data for. The agent
+  skips a venue Qloo has no fan data for and reads the next, reads at least two music venues
+  with fan data before it may stop (a town with fewer says so), and writes one line on each
+  choice. It runs independent calls in parallel and stops at 28 calls at most, retries included
+  in every count. It may also name local acts it knows of: each is looked up on Qloo and shown
+  for the buyer to check, and takes a slot only if the buyer adds it.
 - **The app books the acts.** [src/lib/assemble-lineup.ts](src/lib/assemble-lineup.ts) takes
   an act when an anchor venue lifts it at least five places above the headliners-only
-  ranking, its popularity sits inside the band, and it shares two genre tags with the
-  headliners; each band takes its strongest-affinity acts. Every number on a card is Qloo's.
-- **A refill** ([src/server/refill.ts](src/server/refill.ts)) reruns the venue query for that
-  band with every act on the board excluded, in at most 5 calls, and applies the same bar.
+  ranking, and at least 5 places more than that venue's control does (its local lift); its
+  popularity sits inside the tier's range, and it shares two genre tags with the headliners.
+  Each tier takes its strongest-affinity acts, and a tier with too few stays open. Every
+  number on a card is Qloo's.
+- **A refill** ([src/server/refill.ts](src/server/refill.ts)) first takes an act that passes
+  the same rule from the rankings the build already holds, with no new call; otherwise it reads
+  the build's venues again beside their controls, with every act on the board excluded, in at
+  most 5 calls. **Redraft the rest** ([src/server/redraft.ts](src/server/redraft.ts)) does the
+  same for every slot not kept.
 - **Saved builds.** A festival's first complete build is saved ([src/server/build-store.ts](src/server/build-store.ts))
   and replayed to every later visitor; the trace says when a board is a replay. A later live run
   is kept under its own id for whoever ran it (its lineup, refill and venue switch) and never
@@ -94,66 +121,114 @@ Beyond the demo path, one click from the bill:
   back to the empty board and Build undercard. Each act's mark is read from its Why Boise line
   ([src/lib/marks.ts](src/lib/marks.ts)), so older saved builds need no new field.
 - **Checks.** Unit tests in [tests/unit](tests/unit) run against a synthetic Qloo: each tool's
-  query parameters, the 12-call cap, the refill's exclusions and 5-call cap, the rate limits.
-  The demo path in [tests/e2e/demo-path.spec.ts](tests/e2e/demo-path.spec.ts) (all five steps,
-  plus a first-paint check) passes against the live demo, most recently on 2026-10-17.
-  GitHub Actions runs `pnpm gate` on every push to main and on pull requests.
+  query parameters, the call cap, the control rule and the local-lift bar, the refill's
+  exclusions and cap, the rate limits. The demo path in
+  [tests/e2e/demo-path.spec.ts](tests/e2e/demo-path.spec.ts) (all five steps, plus a
+  first-paint check) runs against a deployment with `E2E_BASE_URL` (Checks, below). GitHub
+  Actions runs `pnpm gate` on every push to main and on pull requests.
 
 ## Sponsor technology
 
 Qloo does the work in every build. The agent calls the Qloo hackathon API
 (`https://hackathon.api.qloo.com`, `X-Api-Key`, GET only) at most 28 times per build, and
-the trace panel lists every call with its parameters and result count.
+the AI agent's setlist and the calls list under it show every call with its parameters and
+result count.
 
 | Endpoint | Why the agent calls it |
 |---|---|
-| `GET /search` | Resolve each booked headliner (names only in the seed) to a Qloo entity. |
+| `GET /search` | Resolve each booked headliner (names only in the seed) to a Qloo entity, and look up each local pick the agent names. |
 | `GET /v2/tags` | Find the tag Qloo puts on live music venues. |
-| `GET /v2/insights` with `filter.type=urn:entity:place` | List the festival city's places with that tag; the agent picks music rooms as anchor venues. |
+| `GET /v2/insights` with `filter.type=urn:entity:place` | List the festival town's places with that tag, where the agent picks music venues as anchors, and the control town's music venues. |
 | `GET /v2/analysis/compare` | Find the taste tags the two headliners share; they rank the two tags each card shows. |
-| `GET /v2/insights` with `filter.type=urn:entity:artist` | Rank artists inside each fee band's popularity range (`filter.popularity.min/max`), first for the headliners alone, then for the headliners plus one anchor venue in `signal.interests.entities`. |
+| `GET /v2/insights` with `filter.type=urn:entity:artist` | Rank artists inside each tier's popularity range (`filter.popularity.min/max`) with the crowd's age (`signal.demographics.age`): first for the headliners alone, then for the headliners plus one anchor venue in `signal.interests.entities`, then plus that venue's control instead. |
+| `GET /v2/insights` with `signal.location.query` | Qloo's location signal for the town, over the lineup's own acts (`filter.results.entities`): a second reading on each card, never the basis for booking. |
 | `GET /v2/insights` with `feature.explainability=true` | For each fee range of a saved build, the headliners and that range's venues together as the signal and the range's lineup acts as `filter.results.entities`: Qloo's own split of each act's match by input, one small line on its card. Made once per saved build by `scripts/attribution-warm.ts`; the page reads it from the cache only. |
 
 Artists have no location of their own in Qloo. Its location data for artists, tried three
 ways, gave a usable local reading for at most 7 of 10 acts, short of the bar of 8
-([docs/evidence.md](docs/evidence.md), section 6, 17 October 2026), so local taste enters only through the
-city's venues as signals. An act makes the board when an anchor venue lifts it at least five
-places above the headliners-only ranking; its "Why Boise" line says by how much. Affinity,
-popularity percentile, fee band, anchor venue and shared tags on every card come from those
-responses.
+([docs/evidence.md](docs/evidence.md), section 6, 17 October 2026), so local taste enters the
+booking only through the town's venues as signals. An act makes the board when an anchor venue
+lifts it at least five places above the headliners-only ranking, and at least 5 places more
+than that venue's control does; its "Why it's here" line and its card's climbs say by how much.
+Affinity, popularity, fee range, anchor venue, both climbs and shared tags on every card come
+from those responses.
 
 The spike of 15 October 2026 ([docs/qloo-spike.md](docs/qloo-spike.md), which keeps only its
-counts) checked that a venue is a real signal.
-Adding Venue 227 to the headliners moved N–29 artists per fee band up five or more places,
-and 22–23 of them share at least two genre tags with the headliners. The Visual Arts
-Collective moved N–31 (21–23 with shared tags). Venue 166 Boise changed nothing, which
-is why the agent measures each venue's lift instead of trusting the venue list.
+counts) checked that a venue is a real signal. Adding one Boise venue to the headliners moved
+28–29 artists per tier up five or more places, and 22–23 of them share at least two genre tags
+with the headliners. A second venue moved 26–31 (21–23 with shared tags). A third changed
+nothing: Qloo had no fan data for it. That is why the agent checks each venue's fan data and
+lift instead of trusting the venue list.
 
-Marking an act **Unavailable** refills its slot with at most 5 more Qloo calls: artist
-insights for the same fee band, seeded by the headliners and the act's anchor venue (then the
-build's other anchors), with the headliners and every act on the board in
-`filter.exclude.entities`. The first act that venue lifts past the same bar takes the slot,
-and the call appears in the trace.
+Marking an act **Unavailable** refills its slot from the same tier: first with an act that
+passes the rule in the rankings the build already holds, with no call; otherwise with at most
+5 more Qloo calls: artist insights for the same tier, seeded by the headliners and the act's
+anchor venue (then the build's other anchors), each beside its control, with the headliners and
+every act on the board in `filter.exclude.entities`. The first act that passes the same rule
+takes the slot, and each call appears in the calls list with the refill's reason.
 
-**Without Qloo: the model's picks** sends the same festival brief to the model with no Qloo
-and no tools, for comparison: each pick shows the model's own reason, with no Boise room behind
-it and no popularity to check it against a fee band.
+**Without Qloo: the model's picks** sends the same festival brief, fee ranges included, to the
+model with no Qloo and no tools, as a contrast, not a score: each pick shows the model's own
+reason, with no Boise venue behind it and no Qloo popularity to check it against a fee range.
 
-Measured over the 29 checked towns ([docs/evidence.md](docs/evidence.md), section 31): of the
-model's 290 picks, 268 are on Qloo, 59 sit in the fee range (204 are bigger than its top), 235
-share two genres with the headliners, 11 climb with the fans of one of the town's venues, and 10
-pass all three tests that every act on the Qloo lineup passes.
+Measured over the 29 checked towns ([docs/evidence.md](docs/evidence.md), section 31): the
+model alone picked 290 acts, and Qloo found 268 of them. Of those 268, 204 sit above the fee
+range, 235 share two genres with the headliners, and 10 pass all three of the rule's checks.
+Those are Qloo's measures, which the model never sees, so they say how far its picks land from
+Qloo's data, not which lineup a buyer would prefer. At 33 real festivals, the model alone held
+11 of the acts the festivals booked and Undercard's shortlists 3 (section 38): Undercard
+doesn't claim to pick what a festival would book.
 
 Qloo responses are cached server-side in Upstash Redis until at least 2026-11-18, past the end
 of judging, and never committed. A festival's first complete build is saved the same way, so
-every visitor opens on it and "Watch the AI agent build it" replays its calls in 2 to 3 seconds,
-marked as a replay; "Run the agent live instead" starts a fresh build, which isn't saved for
-other visitors. [docs/qloo-spike.md](docs/qloo-spike.md) records what the first live calls
-returned, as counts only.
+every visitor opens on it and "Watch the AI agent build it" replays its calls, marked as a
+replay; a live run ("Play it live" on the setlist, or "Run it live" under Watch on a large
+screen) starts a fresh build, which isn't saved for other visitors.
+[docs/qloo-spike.md](docs/qloo-spike.md) records what the first live calls returned, as counts
+only.
 
 ## AI usage
 
-- This repository is built with Claude Code (Anthropic); Claude writes most of the code.
+**Who wrote what.** This repository was built with Claude Code (Anthropic). Claude (Opus 5.5)
+wrote most of it: the code, the tests, the scripts in `scripts/` and the docs, this README and
+[docs/devpost-story.md](docs/devpost-story.md) included. I chose the product and its direction,
+approved each design, set every test's bar before its first call, named the window for every
+run that called Qloo, and decided how each result is worded. Fresh Claude subagents worked as
+cold readers, as the blind tournament's judges, as research assistants who collected festival
+lineups from the festivals' own pages, and as fact-checkers of the record; an outside review
+was written by Claude Fable 5.1. None of them is quoted anywhere as a person's view.
+
+**In the product.** Claude Sonnet 5.5 (`claude-sonnet-5-5`, called only from
+`src/server/ai.ts`) has three jobs:
+
+- It is the agent's planner: it decides which Qloo calls to make, which venues to read and
+  when to stop, with one line on each choice. It doesn't choose acts or write numbers; the app
+  books the acts from Qloo's responses by a fixed rule.
+- It names the local picks: acts from the festival's town that it knows of, each looked up on
+  Qloo and shown for the buyer to check, never booked on its own.
+- It answers the Without Qloo baseline, from its own knowledge with no tools.
+
+Refills and redrafts don't use the model. Once a day the smoke workflow's deep health check
+also sends it a one-character prompt with max_tokens 1, to see that it answers; nothing from
+the answer is kept. The festival, its presale numbers, and the acts and venues in the test
+fixture are invented. The two headliners are real artists, named so the agent can look them up
+on Qloo.
+
+**Media.**
+
+- [docs/architecture.svg](docs/architecture.svg): drawn by Claude as hand-written SVG.
+- The link previews and the printable poster: drawn by the app's own code from the saved build
+  with `next/og`.
+- Artist photos: Qloo's own images, credited "Artist images via Qloo"; none is generated.
+- The gallery images and the video's stills: screenshots of the live demo, taken after the 2.0
+  deploy.
+- The video: the Remotion project in `video/`, written by Claude, with the narration in
+  [docs/video-script.md](docs/video-script.md), written by Claude.
+- TODO (WS17, once the voiceover is made): the voiceover tool and voice, and the video's end
+  card saying the voiceover is AI-generated.
+
+**By milestone.**
+
 - M1: Claude (Opus 5.5) wired the scaffold's tooling and wrote the festival data model, the
   fee-band mapping, the synthetic lineup fixture, the design brief and the festival screen
   with its lineup board and tests. I approved the visual direction it proposed in
@@ -170,16 +245,6 @@ returned, as counts only.
   and lift, the rooms rail, the act card on click, the Without Qloo reprint, the print-in
   motion, the synthetic test server and their tests, and checked the screens in design
   screenshots and with a fresh cold reader.
-- In the product, Claude Sonnet 5.5 (`claude-sonnet-5-5`, called only from
-  `src/server/ai.ts`) does two jobs. It is the agent's planner: it decides which Qloo calls to
-  make, which venues to anchor on and when to try another, but doesn't choose acts or write
-  numbers; the app books the acts from Qloo's responses. It also answers the Without Qloo
-  baseline, from its own knowledge with no tools; those picks are stamped "No Qloo data".
-  Refills don't use the model. Once a day the smoke workflow's deep health check also sends it
-  a one-character prompt with max_tokens 1, to see that it answers; nothing from the answer is
-  kept.
-- The festival, its presale numbers, and the acts and venues in the test fixture are invented.
-  The two headliners are real artists, named so the agent can look them up on Qloo.
 - M4c: Claude (Opus 5.5) shipped M4b, then fixed what fresh cold readers (Claude subagents)
   misread: the fee band now reads as the buyer's, the marks use "+", the card's Close sits
   inside the card, the first click comes up under the headliners on phones, and the rooms
@@ -191,13 +256,11 @@ returned, as counts only.
   and the agent in three more towns), wrote [docs/evidence.md](docs/evidence.md) and had a
   Claude subagent fact-check it against the sources and run outputs.
 - M4f: Claude (Opus 5.5) wrote the GitHub Actions workflow that runs `pnpm gate`.
-- M5: Claude (Opus 5.5) wrote [docs/devpost-story.md](docs/devpost-story.md) and tested its
-  opening on a fresh Claude subagent, drew [docs/architecture.svg](docs/architecture.svg) by
-  hand, and built the Remotion project in `video/`: it captures the live demo's replay as
-  stills, and the narration script follows the story. The video's voiceover is AI-generated
-  with ElevenLabs, and its end card says so. Claude also shot the gallery stills and ran the
-  contradiction check across the README, SPEC.md, the story, the narration and the live
-  screens.
+- M5, 17 October: Claude (Opus 5.5) wrote the first docs/devpost-story.md and tested its opening
+  on a fresh Claude subagent, drew [docs/architecture.svg](docs/architecture.svg) by hand, built
+  the Remotion project in `video/`, which captures the live demo's replay as stills, shot
+  gallery stills of that day's build and ran the contradiction check across the README, SPEC.md,
+  the story and the live screens. No video was rendered and no voiceover made then.
 - M6a to M9d: Claude (Opus 5.5) wrote the pilot runner, the town switcher and the other towns'
   builds, Your festival with its checked towns, replays and pre-filled link, town resolution,
   the Qloo rate-limit handling, the venue labels, the running order, Keep and Redraft the rest,
@@ -266,6 +329,27 @@ returned, as counts only.
   lineup's rows, Boise's example and scripts/shortlist-example.ts, with unit tests and a
   Playwright spec on the synthetic build; and the line on each act card giving Qloo's own split
   of its match (scripts/attribution-warm.ts), read from the cache only.
+- 24 October: Claude (Opus 5.5) kept the act card's Keep, Unavailable and Close in view, put each
+  act's rank beside its climb, wrote every why line as "With <venue>'s fans added to the
+  headliners'", stopped Without Qloo's headline grading the model on a number it never saw, put
+  popularity on the tiers' 0-100 scale, made Watch land its first act within 3 s and end on a
+  reveal, folded accents before a Qloo search says "no match", and wrote sections 37 and 38 of
+  [docs/evidence.md](docs/evidence.md), with the bars I set, before any of their calls.
+- 28 October: Claude (Opus 5.5) built Agent 2.0: fan data first, reading until every tier is
+  full within a cap of 28 Qloo calls, a control abroad for every venue and the local-lift bar
+  that section 37's result set, Qloo's location signal as a second reading on the card, the
+  local picks for the buyer to check, a line for every decision, retries counted wherever a call
+  count shows, and refills and redrafts by the same rule. It wrote and ran the scripts for
+  sections 37 and 38 and the 29 towns' re-runs, in windows I named, and reported both results as
+  they came.
+- 28 and 29 October: Claude (Opus 5.5) built Design 2.0 from the direction I approved: the AI
+  agent's setlist of Qloo calls under the town, with Play it live; the door check, whose ticket
+  takes an act's local lift, popularity and genres; How it works as four scenes made of the first
+  screen's own objects, with who does what and the three stamps of what was tested; the
+  printable poster; every empty and error state; and the about line at the foot of every page.
+- 29 October: Claude (Opus 5.5) wrote section 38's result into docs/evidence.md as it came,
+  rewrote docs/devpost-story.md and this README's testing instructions and AI usage, and wrote
+  the narration in docs/video-script.md.
 - Kept current as each milestone lands.
 
 ## Built on
@@ -357,11 +441,13 @@ everyone, and answer with a friendly message at the limit:
 | Action | Per IP per day | Everyone per day |
 |---|---|---|
 | Fresh build (runs the agent: Qloo and Claude) | 5 | 60 |
-| Refill (up to 5 Qloo calls) | 25 | 500 |
+| Refill or redraft (up to 5 Qloo calls) | 25 | 500 |
 | LLM only (asks Claude) | 10 | 100 |
 | Deep health check (`GET /api/health/deep` with the `HEALTH_TOKEN` bearer token: one Qloo search and a one-token Claude call) | 3 | 3 |
 
-Replaying the saved build and serving the saved LLM-only answer are never limited.
+Replaying the saved build and serving the saved LLM-only answer are never limited. The
+fresh-build numbers are the code's defaults: `LIVE_BUILDS_PER_IP_PER_DAY` and
+`LIVE_BUILDS_GLOBAL_PER_DAY` override them, and production sets its own.
 
 ## License
 

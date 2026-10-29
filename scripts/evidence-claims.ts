@@ -64,13 +64,28 @@ const LOCAL =
   "section 6's location spike of 17 October: its measure isn't re-derived here (its raw output is .design/evidence/m6c-*)";
 const SPIKE =
   "the M2 spike's first live calls of 15 October: only their counts were kept, in docs/qloo-spike.md";
-const TREEFORT =
-  "section 2's Treefort check of 17 October: its lists weren't saved";
 const SOURCE = "a source (KIVI, 23 March 2026), not Undercard's data";
 const RERUNS =
   "section 5's offline runs of 17 October: fresh memory caches, no build saved";
 const CHEAP =
   "section 33's fresh runs of 21 October: a memory cache and no saved build (their counts sit in .design/cheap-tests/, not re-derived here)";
+// The story's stamps and Agent 2.0's rule (WS17): each source, with its section and date.
+const S26 =
+  "docs/evidence.md section 26, its run of 21 October: its per-festival lifts stay in .design/m8f/result.json, not re-derived here";
+const S34 =
+  "docs/evidence.md section 34, its run of 22 October (scripts/premise-controls.ts): its lifts stay in .design/m8f/controls/, not re-derived here";
+const S37 =
+  "docs/evidence.md section 37, its run of 28 October (scripts/control-test-37.ts): its answers stay in .design/evidence-37/, not re-derived here";
+const S38 =
+  "docs/evidence.md section 38, its run of 28 October (scripts/evidence-38.ts at e32233d): its answers stay in .design/evidence-38/, not re-derived here";
+const LOCAL_BAR =
+  "src/lib/assemble-lineup.ts LOCAL_LIFT_BAR, set by section 37's rule from its result of 28 October: no computation here reads it";
+const TWO_ROOMS =
+  "the agent's two-room rule, src/server/agent-tools.ts (Daniel, 28 October): no computation here reads it";
+const GENRES =
+  "the rule's two shared genres, src/lib/assemble-lineup.ts: no computation here reads it";
+const REDRAFT =
+  "src/server/redraft.ts REDRAFT_CALL_CAP, equal to the refill's cap: no computation here reads it";
 
 /** Section 20's lineups sharing acts with Boise's, of 10, town by town. */
 const SHARED_WITH_BOISE: [town: string, phrase: string][] = [
@@ -105,33 +120,57 @@ const SHARED_WITH_BOISE: [town: string, phrase: string][] = [
 ];
 
 export const CLAIMS: readonly Entry[] = [
-  // README.md: the demo festival, the bill, the rule and section 31's totals.
-  { file: README, phrase: "Mid ({4} slots)", equals: slots("Boise", "mid") },
+  // README.md: the demo festival, the testing path, Agent 2.0's rule and section 31's totals
+  // beside section 38's (WS17, 29 October).
   {
     file: README,
-    phrase: "Opener ({6} slots)",
+    phrase: "mid-size ({4} slots)",
+    equals: slots("Boise", "mid"),
+  },
+  {
+    file: README,
+    phrase: "opening ({6} slots)",
     equals: slots("Boise", "opener"),
   },
   {
     file: README,
-    phrase: "The headliners sit over {4} mid-size and 6 opening acts",
+    phrase: "headliners sit over {4} mid-size and 6 opening acts",
     equals: filled("Boise", "mid"),
   },
   {
     file: README,
-    phrase: "The headliners sit over 4 mid-size and {6} opening acts",
+    phrase: "headliners sit over 4 mid-size and {6} opening acts",
     equals: filled("Boise", "opener"),
   },
   {
     file: README,
-    phrase: "NEW when it entered the top {50})",
+    phrase: "NEW when it entered the top {50}",
     equals: { kind: "baseline-top", town: "Boise" },
+  },
+  {
+    file: README,
+    phrase:
+      "otherwise Undercard makes at most {5} Qloo calls, each listed with the refill's reason",
+    equals: rule("refill-cap"),
+  },
+  {
+    file: README,
+    phrase:
+      "reads at least {two} music venues with fan data before it may stop",
+    equals: NOT,
+    why: TWO_ROOMS,
   },
   { file: README, phrase: "stops at {28}", equals: rule("call-cap") },
   {
     file: README,
     phrase: "at least {five} places above the headliners-only ranking",
     equals: rule("min-lift"),
+  },
+  {
+    file: README,
+    phrase: "and at least {5} places more than that venue's control does",
+    equals: NOT,
+    why: LOCAL_BAR,
   },
   { file: README, phrase: "in at most {5} calls", equals: rule("refill-cap") },
   {
@@ -149,19 +188,19 @@ export const CLAIMS: readonly Entry[] = [
   {
     file: README,
     phrase:
-      "Adding Venue 227 to the headliners moved N–29 artists per fee band up five or more places, and 22–23 of them share at least two genre tags with the headliners",
+      "Adding one Boise venue to the headliners moved 28–29 artists per tier up five or more places, and 22–23 of them share at least two genre tags with the headliners",
     equals: NOT,
     why: SPIKE,
   },
   {
     file: README,
-    phrase: "Collective moved 26–31 (21–23 with shared tags)",
+    phrase: "A second venue moved 26–31 (21–23 with shared tags)",
     equals: NOT,
     why: SPIKE,
   },
   {
     file: README,
-    phrase: "refills its slot with at most {5} more Qloo calls",
+    phrase: "otherwise with at most {5} more Qloo calls",
     equals: rule("refill-cap"),
   },
   {
@@ -171,18 +210,17 @@ export const CLAIMS: readonly Entry[] = [
   },
   {
     file: README,
-    phrase: "of the model's {290} picks",
+    phrase: "the model alone picked {290} acts",
     equals: without("picks"),
   },
-  { file: README, phrase: "{268} are on Qloo", equals: without("found") },
   {
     file: README,
-    phrase: "{59} sit in the fee range",
-    equals: without("inRange"),
+    phrase: "and Qloo found {268} of them",
+    equals: without("found"),
   },
   {
     file: README,
-    phrase: "({204} are bigger than its top)",
+    phrase: "Of those 268, {204} sit above the fee range",
     equals: without("above"),
   },
   {
@@ -192,13 +230,26 @@ export const CLAIMS: readonly Entry[] = [
   },
   {
     file: README,
-    phrase: "{11} climb with the fans of one of the town's venues",
-    equals: without("climbs"),
+    phrase: "and {10} pass all three of the rule's checks",
+    equals: without("allThree"),
   },
   {
     file: README,
-    phrase: "and {10} pass all three tests",
-    equals: without("allThree"),
+    phrase: "At {33} real festivals, the model alone held 11",
+    equals: NOT,
+    why: S38,
+  },
+  {
+    file: README,
+    phrase: "the model alone held {11} of the acts the festivals booked",
+    equals: NOT,
+    why: S38,
+  },
+  {
+    file: README,
+    phrase: "and Undercard's shortlists {3} (section 38)",
+    equals: NOT,
+    why: S38,
   },
   {
     file: README,
@@ -211,156 +262,209 @@ export const CLAIMS: readonly Entry[] = [
     equals: run("answers-asked"),
   },
 
-  // docs/devpost-story.md: the rule, the current build and the three more towns. The Austin,
-  // Denver and Nashville sentence is checked against those towns' saved builds.
+  // docs/devpost-story.md (WS17, 29 October): the brief, Agent 2.0's rule and caps, the 29 towns
+  // and How it works' three stamps. The stamps' runs (sections 26, 34, 37 and 38) aren't
+  // re-derived here: each names its section of docs/evidence.md and its date, and so does the
+  // story. The story names no act and no venue.
   {
     file: STORY,
     phrase:
-      "a usable local reading for at most 7 of 10 acts, short of the bar of 8",
+      "tried three ways, gave a usable local reading for at most 7 of 10 acts, short of the bar of 8",
     equals: NOT,
     why: LOCAL,
   },
   {
     file: STORY,
-    phrase: "lifts it at least {five} places in Qloo's ranking",
-    equals: rule("min-lift"),
-  },
-  {
-    file: STORY,
-    phrase: "the headliners over {4} Mid and 6 Opener acts",
-    equals: filled("Boise", "mid"),
-  },
-  {
-    file: STORY,
-    phrase: "the headliners over 4 Mid and {6} Opener acts",
-    equals: filled("Boise", "opener"),
-  },
-  {
-    file: STORY,
-    phrase: "in at most {five} Qloo calls",
-    equals: rule("refill-cap"),
-  },
-  { file: STORY, phrase: "a build stops at {28}", equals: rule("call-cap") },
-  {
-    file: STORY,
-    phrase: "an artist lifted {five} or more places",
-    equals: rule("min-lift"),
-  },
-  {
-    file: STORY,
-    phrase:
-      "adding Venue 227 to the headliners moved N–29 artists per fee band up five or more places, 22–23 of them sharing two genre tags",
-    equals: NOT,
-    why: SPIKE,
-  },
-  {
-    file: STORY,
-    phrase: "The Venue 418 moved N–31",
-    equals: NOT,
-    why: SPIKE,
-  },
-  {
-    file: STORY,
-    phrase: "{12} Qloo calls; both bands full",
-    equals: calls("Boise"),
-  },
-  {
-    file: STORY,
-    phrase: "both bands full, {4} of 4",
-    equals: filled("Boise", "mid"),
-  },
-  {
-    file: STORY,
-    phrase: "both bands full, 4 of {4}",
-    equals: slots("Boise", "mid"),
-  },
-  {
-    file: STORY,
-    phrase: "4 of 4 and {6} of 6",
-    equals: filled("Boise", "opener"),
-  },
-  {
-    file: STORY,
-    phrase: "4 of 4 and 6 of {6}",
-    equals: slots("Boise", "opener"),
-  },
-  {
-    file: STORY,
-    phrase: "The Venue 418 lifted {8} acts",
-    equals: venue("Boise", "Venue 418"),
-  },
-  {
-    file: STORY,
-    phrase: "Venue 227 {2} and Venue 166 Boise 0",
-    equals: venue("Boise", "Venue 227"),
-  },
-  {
-    file: STORY,
-    phrase: "Venue 227 2 and Venue 166 Boise {0}",
-    equals: venue("Boise", "Venue 166 Boise"),
-  },
-  {
-    file: STORY,
-    phrase: "Austin, Denver and Nashville within {12} Qloo calls",
-    equals: { kind: "calls-across", towns: THREE_TOWNS, end: "most" },
-  },
-  {
-    file: STORY,
-    phrase: "Venue 213 Austin lifted all {10} acts",
-    equals: venue("Austin", "Venue 213 Austin"),
-  },
-  {
-    file: STORY,
-    phrase: "Venue 420 and Venue 316 {0}",
-    equals: venue("Austin", "Venue 316"),
-  },
-  {
-    file: STORY,
-    phrase: "Venue 420 and Venue 316 {0}",
-    equals: venue("Austin", "Venue 420"),
-  },
-  {
-    file: STORY,
-    phrase: "Venue 333 and Venue 184 {5} each",
-    equals: venue("Denver", "Venue 333"),
-  },
-  {
-    file: STORY,
-    phrase: "Venue 333 and Venue 184 {5} each",
-    equals: venue("Denver", "Venue 184"),
-  },
-  {
-    file: STORY,
-    phrase: "Venue 331 {10}",
-    equals: venue("Nashville", "Venue 331"),
-  },
-  {
-    file: STORY,
-    phrase: "Venue 106 and Venue 330 {0}",
-    equals: venue("Nashville", "Venue 106"),
-  },
-  {
-    file: STORY,
-    phrase: "Venue 106 and Venue 330 {0}",
-    equals: venue("Nashville", "Venue 330"),
-  },
-  {
-    file: STORY,
-    phrase: "{two} of the three rooms tested in Boise",
+    phrase: "{two} of the three Boise venues the agent read",
     equals: NOT,
     why: SOURCE,
   },
   {
     file: STORY,
-    phrase: "two of the {three} rooms tested in Boise",
+    phrase: "two of the {three} Boise venues the agent read",
     equals: { kind: "venues-tested", town: "Boise" },
   },
   {
     file: STORY,
+    phrase: "booked and {4} mid-size and 6 opening slots",
+    equals: slots("Boise", "mid"),
+  },
+  {
+    file: STORY,
+    phrase: "booked and 4 mid-size and {6} opening slots",
+    equals: slots("Boise", "opener"),
+  },
+  {
+    file: STORY,
     phrase:
-      "the best list held 2 of Treefort 2026's acts in the Mid band's top 50, against 1 for the headliners alone",
+      "in {29} of the 29 checked towns, the saved build of the same brief fills every slot",
+    equals: { kind: "full-lineups", towns: "all" },
+  },
+  {
+    file: STORY,
+    phrase: "in 29 of the {29} checked towns, the saved build",
+    equals: { kind: "checked-towns" },
+  },
+
+  // How it works' three stamps, in Daniel's words of 29 October.
+  { file: STORY, phrase: "SHOWN: {244} of 290", equals: NOT, why: S37 },
+  { file: STORY, phrase: "SHOWN: 244 of {290}", equals: NOT, why: S37 },
+  {
+    file: STORY,
+    phrase: "{244} of the 290 acts Undercard 1.0 booked",
     equals: NOT,
-    why: TREEFORT,
+    why: S37,
+  },
+  {
+    file: STORY,
+    phrase: "244 of the {290} acts Undercard 1.0 booked",
+    equals: NOT,
+    why: S37,
+  },
+  {
+    file: STORY,
+    phrase:
+      "booked climbed at least {5} places more with the town venue that put them on the bill",
+    equals: NOT,
+    why: S37,
+  },
+  {
+    file: STORY,
+    phrase: "that result set Undercard 2.0's bar: a local lift of {5} places",
+    equals: NOT,
+    why: LOCAL_BAR,
+  },
+  { file: STORY, phrase: "PARTLY SHOWN: {20} of 30", equals: NOT, why: S26 },
+  { file: STORY, phrase: "PARTLY SHOWN: 20 of {30}", equals: NOT, why: S26 },
+  {
+    file: STORY,
+    phrase: "{20} of 30 real festivals where the acts booked showed more lift",
+    equals: NOT,
+    why: S26,
+  },
+  {
+    file: STORY,
+    phrase: "20 of {30} real festivals where the acts booked showed more lift",
+    equals: NOT,
+    why: S26,
+  },
+  {
+    file: STORY,
+    phrase: "another country's venues did it at {18}",
+    equals: NOT,
+    why: S34,
+  },
+  { file: STORY, phrase: "NOT SHOWN: {3} vs 11", equals: NOT, why: S38 },
+  { file: STORY, phrase: "NOT SHOWN: 3 vs {11}", equals: NOT, why: S38 },
+  {
+    file: STORY,
+    phrase: "At {33} real festivals, Undercard's shortlists held 3",
+    equals: NOT,
+    why: S38,
+  },
+  {
+    file: STORY,
+    phrase:
+      "Undercard's shortlists held {3} of the acts the festivals actually booked",
+    equals: NOT,
+    why: S38,
+  },
+  {
+    file: STORY,
+    phrase: "the AI model alone held {11}",
+    equals: NOT,
+    why: S38,
+  },
+
+  // Agent 2.0, as deployed: its rule and its caps, from the code.
+  {
+    file: STORY,
+    phrase: "It reads at least {two} music venues with fan data",
+    equals: NOT,
+    why: TWO_ROOMS,
+  },
+  {
+    file: STORY,
+    phrase: "it climbs at least {5} places with the town's venue",
+    equals: rule("min-lift"),
+  },
+  {
+    file: STORY,
+    phrase: "and at least {5} more than with the control",
+    equals: NOT,
+    why: LOCAL_BAR,
+  },
+  {
+    file: STORY,
+    phrase: "it shares {two} genres with the headliners",
+    equals: NOT,
+    why: GENRES,
+  },
+  {
+    file: STORY,
+    phrase: "The cap is {28} Qloo calls a build",
+    equals: rule("call-cap"),
+  },
+  {
+    file: STORY,
+    phrase: "with their controls, in at most {5} Qloo calls",
+    equals: rule("refill-cap"),
+  },
+  {
+    file: STORY,
+    phrase: "with their controls, in at most {5} Qloo calls",
+    equals: NOT,
+    why: REDRAFT,
+  },
+  {
+    file: STORY,
+    phrase: "take={50}",
+    equals: { kind: "baseline-top", town: "Boise" },
+  },
+  {
+    file: STORY,
+    phrase: "→ {50} ranked artists",
+    equals: { kind: "baseline-top", town: "Boise" },
+  },
+  {
+    file: STORY,
+    phrase:
+      "In {29} of the 29 checked towns, a saved build of the same brief fills every slot",
+    equals: { kind: "full-lineups", towns: "all" },
+  },
+  {
+    file: STORY,
+    phrase: "In 29 of the {29} checked towns, a saved build",
+    equals: { kind: "checked-towns" },
+  },
+
+  // The testing instructions: the demo path on the first screen, the card and the refill.
+  {
+    file: STORY,
+    phrase: "sit over {4} mid-size and 6 opening acts",
+    equals: filled("Boise", "mid"),
+  },
+  {
+    file: STORY,
+    phrase: "sit over 4 mid-size and {6} opening acts",
+    equals: filled("Boise", "opener"),
+  },
+  {
+    file: STORY,
+    phrase: "NEW when it entered the top {50}",
+    equals: { kind: "baseline-top", town: "Boise" },
+  },
+  {
+    file: STORY,
+    phrase: "and {two} genres it shares with the headliners",
+    equals: NOT,
+    why: GENRES,
+  },
+  {
+    file: STORY,
+    phrase:
+      "otherwise Undercard makes at most {5} Qloo calls, each listed with the refill's reason",
+    equals: rule("refill-cap"),
   },
 
   // docs/evidence.md section 3: the offline table can't be re-derived; production's builds can.
