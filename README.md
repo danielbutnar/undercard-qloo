@@ -2,7 +2,7 @@
 
 This repository's history is filtered from Undercard's private development repository: the same commits, with their dates and messages, with some files and quotes removed and data from Qloo's answers redacted, as Qloo's developer guide requires.
 
-[![gate](https://github.com/danielbutnar/undercard/actions/workflows/gate.yml/badge.svg?branch=main)](https://github.com/danielbutnar/undercard/actions/workflows/gate.yml)
+[![gate](https://github.com/danielbutnar/undercard-qloo/actions/workflows/gate.yml/badge.svg?branch=main)](https://github.com/danielbutnar/undercard-qloo/actions/workflows/gate.yml)
 
 An AI agent for festival talent buyers, built on Qloo. With the headliners booked, Undercard
 drafts the acts below them inside the buyer's fee ranges, and shows the evidence behind each
