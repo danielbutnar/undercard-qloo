@@ -7,6 +7,7 @@ import type { Festival } from "@/lib/festival";
 import type { Act } from "@/lib/lineup";
 import type { LlmOnlyPick, PickCheck } from "@/lib/llm-only";
 import { markLabel } from "@/lib/marks";
+import { nameKey } from "@/lib/pick-tests";
 import type { ChartRowData, Printing } from "./band-chart";
 import { PRINT_STEP_S } from "./band-chart";
 import { Cover } from "./cover";
@@ -31,13 +32,17 @@ export function HeadlinerList({
 }: {
   headliners: readonly string[];
   images?: ArtistImages;
-  /** Each headliner's Qloo id, by name, from the saved build. */
+  /** Each headliner's Qloo id, by Qloo's spelling of its name, from the saved build. */
   ids?: ReadonlyMap<string, string>;
 }) {
+  // The buyer's spelling against Qloo's, both folded (WS18).
+  const byName = new Map(
+    [...(ids ?? [])].map(([qlooName, id]) => [nameKey(qlooName), id]),
+  );
   return (
     <ul aria-label="Booked headliners" className="poster-heads">
       {headliners.map((name) => {
-        const id = ids?.get(name);
+        const id = byName.get(nameKey(name));
         const image = id ? images?.[id] : undefined;
         return (
           <li key={name} className="poster-head">

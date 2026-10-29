@@ -31,7 +31,8 @@ describe("the CI workflow", () => {
 describe("README.md", () => {
   it("shows the workflow's status badge", () => {
     expect(readFileSync("README.md", "utf8")).toContain(
-      "https://github.com/danielbutnar/undercard/actions/workflows/gate.yml/badge.svg?branch=main",
+      // Daniel, 29 October 19:40: the badge shows the public repository's gate.
+      "https://github.com/danielbutnar/undercard-qloo/actions/workflows/gate.yml/badge.svg?branch=main",
     );
   });
 });

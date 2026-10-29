@@ -1,9 +1,9 @@
 /**
- * The method page (M9c) links every claim to its row in docs/evidence.md on GitHub. The
- * repository is public from M5 on; until then the links resolve only for its owner.
+ * The method page (M9c) links every claim to its row in docs/evidence.md on GitHub, in the public
+ * repository (Daniel, 29 October 19:40), which judges can open.
  */
 export const EVIDENCE_URL =
-  "https://github.com/danielbutnar/undercard/blob/main/docs/evidence.md";
+  "https://github.com/danielbutnar/undercard-qloo/blob/main/docs/evidence.md";
 
 /** GitHub's anchor for a markdown heading: lower case, punctuation dropped, spaces to hyphens. */
 export function evidenceAnchor(heading: string): string {
