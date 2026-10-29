@@ -105,3 +105,41 @@ describe("the claims", () => {
       ).toBe(true);
   });
 });
+
+// Daniel, 29 October 13:30: claims about the builds saved before 29 October read those builds by
+// id (the 21 October record), as section 31's do; claims about the builds on show read the latest.
+describe("claims about earlier builds", () => {
+  const pinnedOf = (claim: (typeof CLAIMS)[number]) =>
+    claim.equals !== "not recomputable" &&
+    "builds" in claim.equals &&
+    claim.equals.builds === "pinned-1.0";
+
+  it("are pinned in docs/evidence.md's sections 3, 13, 19 and 20 and src/lib/compare.ts", () => {
+    const earlier = CLAIMS.filter(
+      (claim) =>
+        claim.equals !== "not recomputable" &&
+        ((claim.file === "docs/evidence.md" &&
+          [3, 13, 19, 20].includes(claim.section ?? 0)) ||
+          claim.file === "src/lib/compare.ts"),
+    );
+    expect(earlier.length).toBeGreaterThanOrEqual(54);
+    for (const claim of earlier)
+      expect(pinnedOf(claim), claim.phrase).toBe(true);
+    // The evidence page's row for M6m, measured on the 1.0 builds.
+    expect(
+      CLAIMS.filter(
+        (claim) =>
+          claim.file === "src/components/method-evidence.tsx" &&
+          claim.phrase === 'result: "{29} of 29"',
+      ).every(pinnedOf),
+    ).toBe(true);
+  });
+
+  it("aren't the README's or the story's, which describe the builds on show", () => {
+    for (const claim of CLAIMS.filter(
+      (entry) =>
+        entry.file === "README.md" || entry.file === "docs/devpost-story.md",
+    ))
+      expect(pinnedOf(claim), claim.phrase).toBe(false);
+  });
+});

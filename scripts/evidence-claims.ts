@@ -119,7 +119,7 @@ const SHARED_WITH_BOISE: [town: string, phrase: string][] = [
   ["Wrexham", "Wrexham {3}. The first town"],
 ];
 
-export const CLAIMS: readonly Entry[] = [
+const ENTRIES: readonly Entry[] = [
   // README.md: the demo festival, the testing path, Agent 2.0's rule and section 31's totals
   // beside section 38's (WS17, 29 October).
   {
@@ -1082,3 +1082,21 @@ export const CLAIMS: readonly Entry[] = [
     equals: { kind: "full-lineups", towns: "all" },
   },
 ];
+
+/**
+ * Claims about the builds saved before 29 October read those builds by id, from the 21 October
+ * record (Daniel, 2026-10-29 13:30): docs/evidence.md's sections 3, 13, 19 and 20, the default
+ * pair's comment in src/lib/compare.ts and the evidence page's row for M6m all measured
+ * Undercard 1.0's builds (src/data/pinned-builds-2026-10-21.json). Section 31's read them through
+ * the store already. Every other claim reads the builds on show.
+ */
+const measuredOn1 = (entry: Entry) =>
+  (entry.file === EVIDENCE && [3, 13, 19, 20].includes(entry.section ?? 0)) ||
+  entry.file === COMPARE ||
+  (entry.file === EVIDENCE_PAGE && entry.phrase === 'result: "{29} of 29"');
+
+export const CLAIMS: readonly Entry[] = ENTRIES.map((entry) =>
+  entry.equals !== NOT && measuredOn1(entry)
+    ? { ...entry, equals: { ...entry.equals, builds: "pinned-1.0" as const } }
+    : entry,
+);
