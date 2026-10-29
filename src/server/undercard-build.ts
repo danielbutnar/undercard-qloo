@@ -158,6 +158,15 @@ async function replay(
     type: "status",
     text: `Replaying the saved build from ${savedAt.format(new Date(saved.createdAt))} UTC: no new Qloo or Claude calls.`,
   });
+  // WS18 (Daniel, 29 Oct, 20:40; the first act within 3 s of pressing Watch): a replay knows its
+  // lineup, so it sends it first and each act lands as soon as its venue's step comes; the calls
+  // before the first venue whose fans lift an act (the lookups, the tags, the places, the
+  // baselines, a venue Qloo had no fan data for) go out four times as fast.
+  emit({ type: "lineup", lineup: saved.lineup });
+  const firstLift = saved.trace.findIndex((_, index) => {
+    const climb = climbs.get(index);
+    return climb?.venue && climb.acts.some((act) => act.move !== null);
+  });
   // The planner's lines go out where they were said: before the call that followed them.
   const notes = saved.notes ?? [];
   const sayNotes = (at: (n: number) => boolean) => {
@@ -166,7 +175,9 @@ async function replay(
   };
   for (const [index, call] of saved.trace.entries()) {
     sayNotes((at) => at === index);
-    await sleep(delayMs);
+    await sleep(
+      firstLift < 0 || index < firstLift ? Math.round(delayMs / 4) : delayMs,
+    );
     emit({ type: "call", call: { ...call, cached: true } });
     const climb = climbs.get(index);
     if (climb) emit(climb);
@@ -174,7 +185,6 @@ async function replay(
   sayNotes((at) => at >= saved.trace.length);
   if (saved.stopped) emit({ type: "stopped", ...saved.stopped });
   if (saved.short) emit({ type: "short", ...saved.short });
-  emit({ type: "lineup", lineup: saved.lineup });
   if (saved.localPicks?.length)
     emit({ type: "local-pick", picks: saved.localPicks });
   emit({ type: "done", calls: saved.trace.length, ms: Date.now() - started });

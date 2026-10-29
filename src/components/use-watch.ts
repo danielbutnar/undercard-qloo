@@ -19,13 +19,21 @@ import type { ClimbEvent } from "@/lib/lift-climb";
 export const BASELINE_HOLD_MS = 800;
 export const VENUE_HOLD_MS = 1600;
 export const END_HOLD_MS = 1400;
-/** WS8: the steps before the first venue's hold this long, so the first act lands within 3 s. */
-export const LEAD_HOLD_MS = 300;
+/**
+ * WS8, WS18: the steps before the first venue whose fans lift an act (the headliners' lists, a
+ * venue Qloo had no fan data for) hold this long, so the first act lands within 3 s of pressing
+ * Watch; the two tiers' steps share a caption, so each caption still shows for about 0.5 s.
+ */
+export const LEAD_HOLD_MS = 250;
 /** WS8: the end's reveal, every lifting venue lit and the acts pulsing, before the overview. */
 export const REVEAL_MS = 1400;
 
 export const holdFor = (step: ClimbEvent) =>
   step.venue ? VENUE_HOLD_MS : BASELINE_HOLD_MS;
+
+/** A venue's step whose fans lift an act past the bar (a no-fan-data venue's lifts none). */
+export const liftsAnAct = (step: ClimbEvent) =>
+  step.venue !== null && step.acts.some((act) => act.move !== null);
 
 const REDUCED = "(prefers-reduced-motion: reduce)";
 function subscribe(change: () => void) {
@@ -72,27 +80,37 @@ export function useWatch(state: BuildState) {
     setFinished(true);
   }, []);
 
+  // Until a venue's fans lift an act, each step holds briefly: the headliners' lists and a venue
+  // Qloo had no fan data for (WS8; WS18, Daniel, 29 Oct, 20:40: the first act within 3 s).
+  const ready = shown < steps.length;
+  const beforeLift = !steps.slice(0, shown).some(liftsAnAct);
+  const hold =
+    !ready || shown === 0
+      ? 0
+      : beforeLift
+        ? LEAD_HOLD_MS
+        : holdFor(steps[shown - 1]);
+  const anySteps = steps.length > 0;
+
+  // The next step once the one on screen has held; one that streams in meanwhile doesn't restart
+  // the hold (WS18).
   useEffect(() => {
-    if (!watching || finished) return;
-    if (shown < steps.length) {
-      // Until the first venue's step, each step holds briefly (WS8).
-      const lead = !steps.slice(0, shown).some((step) => step.venue);
-      const hold =
-        shown === 0 ? 0 : lead ? LEAD_HOLD_MS : holdFor(steps[shown - 1]);
-      const next = setTimeout(() => setShown((n) => n + 1), hold);
-      return () => clearTimeout(next);
-    }
-    if (!streaming) {
-      const end = setTimeout(
-        () => {
-          setFinished(true);
-          if (steps.length) setRevealing(true);
-        },
-        steps.length ? END_HOLD_MS : 0,
-      );
-      return () => clearTimeout(end);
-    }
-  }, [watching, finished, streaming, shown, steps]);
+    if (!watching || finished || !ready) return;
+    const next = setTimeout(() => setShown((n) => n + 1), hold);
+    return () => clearTimeout(next);
+  }, [watching, finished, ready, shown, hold]);
+
+  useEffect(() => {
+    if (!watching || finished || ready || streaming) return;
+    const end = setTimeout(
+      () => {
+        setFinished(true);
+        if (anySteps) setRevealing(true);
+      },
+      anySteps ? END_HOLD_MS : 0,
+    );
+    return () => clearTimeout(end);
+  }, [watching, finished, ready, streaming, anySteps]);
 
   useEffect(() => {
     if (!revealing) return;
