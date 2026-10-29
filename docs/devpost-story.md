@@ -130,7 +130,7 @@ TODO (after the render). The narration is in docs/video-script.md.
 
 ## Image gallery
 
-TODO (after the deploy): the images from the live site, each with a caption: the first screen, Watch, an act card with both climbs, a refill, Without Qloo, and How it works' stamps.
+TODO (after the deploy): the images, each with a caption: from the live site, the first screen, Watch, an act card with both climbs, a refill and Without Qloo; and the architecture diagram, docs/architecture.svg.
 
 ## Testing instructions
 

@@ -82,10 +82,7 @@ section 3, on the live demo.
 
 ## How it works
 
-![How a build works: the page, the API routes, the planner, the five kinds of Qloo call, the lift rule, the refill, the model-only baseline and Upstash](docs/architecture.svg)
-
-The diagram was drawn for Undercard 1.0. Undercard 2.0, on the live demo, adds a control beside
-each venue and the local-lift test, as below.
+![How a build works: at most 28 Qloo calls a build, retries counted apart; the start; the venue loop, at least two town venues with fan data, each beside its control, a venue in another country with similar Qloo popularity; local picks and location reads after the loop; the rule's four checks, the local lift among them; refill and redraft from the rankings the build holds, then up to 5 calls; and each build's Qloo answers under its own cache prefix](docs/architecture.svg)
 
 - **The agent plans the Qloo calls.** Claude Sonnet 5.5 works through tools that make the Qloo
   calls, plus one to finish ([src/server/agent.ts](src/server/agent.ts),
@@ -216,7 +213,9 @@ on Qloo.
 
 **Media.**
 
-- [docs/architecture.svg](docs/architecture.svg): drawn by Claude as hand-written SVG.
+- [docs/architecture.svg](docs/architecture.svg): drawn by Claude in SVG code for Agent 2.0, in
+  the app's own colours, with the app's two fonts embedded (latin subsets, SIL Open Font
+  License); no image model.
 - The link previews and the printable poster: drawn by the app's own code from the saved build
   with `next/og`.
 - Artist photos: Qloo's own images, credited "Artist images via Qloo"; none is generated.
@@ -348,8 +347,9 @@ on Qloo.
   screen's own objects, with who does what and the three stamps of what was tested; the
   printable poster; every empty and error state; and the about line at the foot of every page.
 - 29 October: Claude (Opus 5.5) wrote section 38's result into docs/evidence.md as it came,
-  rewrote docs/devpost-story.md and this README's testing instructions and AI usage, and wrote
-  the narration in docs/video-script.md.
+  rewrote docs/devpost-story.md and this README's testing instructions and AI usage, wrote
+  the narration in docs/video-script.md, pinned `pnpm evidence:check`'s section-31 claims to
+  the 1.0 builds that section measured, and redrew docs/architecture.svg for Agent 2.0.
 - Kept current as each milestone lands.
 
 ## Built on
@@ -365,7 +365,9 @@ There is no starter kit. The app was generated with
   agent's planner, and [@upstash/redis](https://github.com/upstash/redis-js) for the Qloo
   response cache.
 - Styling: [Tailwind CSS](https://tailwindcss.com) 4, with Anton and Schibsted Grotesk
-  from [Google Fonts](https://fonts.google.com) (SIL Open Font License) through `next/font`.
+  from [Google Fonts](https://fonts.google.com) (SIL Open Font License) through `next/font`;
+  their latin subsets are also embedded in docs/architecture.svg, so it renders without a
+  network.
 - Link previews: `next/og`, part of Next.js, draws each page's 1200×630 picture on the server
   from the saved build, in its bundled Geist font; no extra package.
 - Tooling: TypeScript 5, ESLint 9 with `eslint-config-next`, Prettier 3,
@@ -406,7 +408,7 @@ Checks:
 
 - `pnpm gate`: typecheck, lint, every unit test and the design-ban scan. GitHub Actions runs it on every push to main and on pull requests (`.github/workflows/gate.yml`, no secrets).
 - `.github/workflows/smoke.yml`: once a day, `tests/e2e/smoke.spec.ts` against production, then `node scripts/deep-health.mjs`, one `GET /api/health/deep` with the `HEALTH_TOKEN` repository secret. The run fails unless Qloo and Anthropic both answer ok, and passes with a notice when the secret isn't set or the day's 3 checks are used.
-- `pnpm evidence:check`: re-derives the numbers in this README, docs/devpost-story.md, docs/evidence.md and the copy constants (claims in `scripts/evidence-claims.ts`) from production's saved builds, through replay-only requests that make no Qloo or model call, and from the store read-only, then prints one table and exits 1 on any mismatch; `--base <url>` replays another server. Not part of `pnpm gate`.
+- `pnpm evidence:check`: re-derives the numbers in this README, docs/devpost-story.md, docs/evidence.md and the copy constants (claims in `scripts/evidence-claims.ts`) from production's saved builds, through replay-only requests that make no Qloo or model call, and from the store read-only, then prints one table and exits 1 on any mismatch; `--base <url>` replays another server. Section 31's claims read the 1.0 builds that section measured, by id, from the pinned record in `.design/pinned-builds/` (git-ignored); without it they have no data. Not part of `pnpm gate`.
 - `pnpm e2e`: the Playwright specs in `tests/e2e`. Run `pnpm exec playwright install chromium`
   once first. Playwright starts its own dev server on port 3100 in synthetic mode
   (`UNDERCARD_E2E_SYNTHETIC=1`): the server serves the synthetic saved build and model answer
