@@ -86,8 +86,10 @@ describe("the lead", () => {
   it("says under Watch what it replays", () => {
     withSwitch();
     open();
+    // Daniel, 29 Oct (09:45): it ends on a way to the setlist's "Play it live", which CSS
+    // hides where "Run it live" stands under Watch.
     expect(document.querySelector(".watch-sub")!.textContent).toBe(
-      "Replays how the agent drafted Boise",
+      "Replays how the agent drafted Boise · or run it live ↓",
     );
   });
 });
