@@ -110,7 +110,7 @@ describe("a failed planner call on a saved town's live run", () => {
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
     );
     fireEvent.click(
-      screen.getByRole("button", { name: "Run the agent live instead" }),
+      screen.getByRole("button", { name: "Play it live" }),
     );
     await waitFor(() => expect(screen.getByText(FAILED.message)).toBeTruthy());
     fireEvent.click(

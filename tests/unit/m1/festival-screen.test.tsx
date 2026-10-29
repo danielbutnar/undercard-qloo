@@ -13,8 +13,14 @@ describe("FestivalScreen for Sagebrush Sound", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: "Sagebrush Sound" }),
     ).toBeTruthy();
+    // The facts line sets each part unbroken (WS12 item 7), so it's read as a whole.
     expect(
-      screen.getByText("Boise, Idaho · 3,000 capacity · crowd aged 25–34"),
+      screen.getByText(
+        (_, element) =>
+          element?.classList.contains("facts") === true &&
+          element.textContent ===
+            "Boise, Idaho · 3,000 capacity · crowd aged 25–34",
+      ),
     ).toBeTruthy();
   });
 

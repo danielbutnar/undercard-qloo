@@ -18,19 +18,25 @@ const band = (page: Page, name: RegExp) =>
   bill(page).getByRole("region", { name });
 const traceRows = (page: Page) =>
   page.getByRole("list", { name: "Qloo calls" }).locator(":scope > li");
+// The poster's key is the venue switch since WS12 item 1 (the switch panel went): each venue the
+// build read, a switch for its fans, with the acts they lifted.
 const rooms = (page: Page) =>
-  page.getByRole("region", {
-    name: "Boise venues whose fans shaped this lineup",
-  });
+  page.getByRole("group", { name: "Venue fans used for this draft" });
 // Each act's mark, read out in words (the + and the room's initials are hidden from it).
 const MARK =
   /With .+'s fans added: (\d+(st|nd|rd|th) in Qloo's ranking, (up \d+ places|new from outside)|up \d+ places in Qloo's ranking|new in Qloo's ranking, from outside)/;
 
-/** The acts each room lifted, from the rail: their sum is the acts on the bill. */
+/** The acts each venue lifted, from the poster's key: their sum is the acts on the bill. */
 async function liftedTotal(page: Page): Promise<number> {
-  const text = (await rooms(page).getByRole("list").textContent()) ?? "";
-  return [...text.matchAll(/(\d+) (?:acts? lifted|lifted none)/g)].reduce(
-    (total, match) => total + Number(match[1]),
+  const labels = await page
+    .getByRole("group", { name: "Venue fans used for this draft" })
+    .locator("[aria-label]")
+    .evaluateAll((items) =>
+      items.map((item) => item.getAttribute("aria-label") ?? ""),
+    );
+  return labels.reduce(
+    (total, label) =>
+      total + Number(/: (?:on, )?(\d+) acts?/.exec(label)?.[1] ?? 0),
     0,
   );
 }
@@ -79,8 +85,8 @@ test.describe("demo path", () => {
     await expect(band(page, /^Opening acts/).getByRole("article")).toHaveCount(
       6,
     );
-    // Each band says its Qloo popularity range, our stand-in for fee; How an act gets on, under
-    // the poster, says each fee range in words.
+    // Each band says its Qloo popularity range, our stand-in for fee; the door check, under the
+    // poster (WS12 item 1), says each fee range in words.
     await expect(
       band(page, /^Mid/).getByText(
         "· Qloo popularity 80–92, our stand-in for fee",
@@ -89,7 +95,7 @@ test.describe("demo path", () => {
     await expect(
       band(page, /^Opening acts/).getByText("· Qloo popularity 55–80"),
     ).toBeVisible();
-    const rule = page.getByRole("region", { name: "How an act gets on" });
+    const rule = page.getByRole("region", { name: "The door check" });
     await expect(rule).toContainText(
       "4 slots · fee range (Mid): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (80th–92nd percentile)",
     );
@@ -108,8 +114,9 @@ test.describe("demo path", () => {
       bill(page).getByRole("article").first().locator(".poster-climb"),
     ).toHaveText(/^(\d+(st|nd|rd|th) )?(↑\d+|NEW)$/);
     await expect(
+      // NEW is defined there too when an act is new to the top 50 (WS12 item 7).
       bill(page).getByText(
-        "↑ = places it rose in Qloo's ranking with that venue's fans (5+ to qualify); the strongest Qloo match takes each slot",
+        /^↑ = places it rose in Qloo's ranking with that venue's fans \(5\+ to qualify\); (NEW = rose into Qloo's top 50; )?the strongest Qloo match takes each slot$/,
       ),
     ).toHaveCount(1);
     await expect(bill(page).locator(".poster-example")).toContainText(
@@ -124,8 +131,8 @@ test.describe("demo path", () => {
         .getByRole("button", { name: /\. Show this venue$/ })
         .first(),
     ).toBeVisible();
-    await expect(rooms(page)).toContainText(
-      "These venues stand for the town's taste: the acts won't necessarily play there.",
+    await expect(bill(page)).toContainText(
+      "These venues' fans are the signal: the acts won't necessarily play there.",
     );
     expect(await liftedTotal(page)).toBe(10);
 
@@ -187,7 +194,7 @@ test.describe("demo path", () => {
     await expect(bill(page).getByRole("article")).toHaveCount(10);
     await expect.poll(() => liftedTotal(page)).toBe(10);
     await expect(
-      page.getByRole("button", { name: "Run the agent live instead" }),
+      page.getByRole("button", { name: "Play it live" }),
     ).toBeVisible();
   });
 
@@ -203,8 +210,8 @@ test.describe("demo path", () => {
       // Daniel's brief of 2026-10-22, item 1: the badge says what the venue's fans did, no more,
       // naming the venue in full on a laptop (a phone takes the row tab's label, item 5 of the
       // second batch).
-      const [, venue] = /^with (.+)'s fans$/.exec(
-        await opened.locator(".card-place small").last().innerText(),
+      const [, venue] = /^in Qloo's ranking with (.+)'s fans added$/.exec(
+        await opened.locator(".card-rank-with").innerText(),
       )!;
       await expect(
         opened
@@ -349,14 +356,20 @@ test.describe("demo path", () => {
     // M6q: Export CSV sits below the bill.
     await page.getByRole("button", { name: "Export CSV" }).click();
     const file = await download;
-    expect(file.suggestedFilename()).toBe("sagebrush-sound-undercard.csv");
+    // WS12 item 7: the demo festival's CSV says it's fictional, in its name and first line.
+    expect(file.suggestedFilename()).toBe(
+      "sagebrush-sound-fictional-demo-festival-undercard.csv",
+    );
     const lines = (await readFile(await file.path(), "utf8"))
       .trimEnd()
       .split("\r\n");
     expect(lines[0]).toBe(
+      '"Fictional demo festival: Sagebrush Sound in Boise, Idaho, drafted by Undercard"',
+    );
+    expect(lines[1]).toBe(
       "act,band,affinity,popularity,anchor_venue,reason,replaces,unavailable_reason",
     );
-    expect(lines).toHaveLength(11);
+    expect(lines).toHaveLength(12);
   });
 
   test("the venue switch: a venue off re-forms the lineup from the saved build, with no Qloo call; on again brings it back", async ({
@@ -380,14 +393,18 @@ test.describe("demo path", () => {
 
     const switcher = rooms(page);
     const first = switcher
-      .getByRole("button", { name: /: on, \d+ acts? lifted$/ })
+      .getByRole("button", { name: /'s fans: on, [1-9]\d* acts?\./ })
       .first();
     await expect(first).toBeEnabled({ timeout: 15_000 });
-    const venue = (await first.getAttribute("aria-label"))!.split(":")[0];
+    const venue = (await first.getAttribute("aria-label"))!.split(
+      "'s fans:",
+    )[0];
     await first.click();
 
     await expect(
-      switcher.getByRole("button", { name: `${venue}: off, lifted none` }),
+      switcher.getByRole("button", {
+        name: `${venue}'s fans: off. Switch them on`,
+      }),
     ).toHaveAttribute("aria-pressed", "false");
     await expect(bill(page).getByText(/^What if /)).toBeVisible();
     const reformed = await names();
@@ -425,7 +442,10 @@ test.describe("demo path", () => {
       await expect(bill(page).locator(".poster-slot")).toHaveCount(7);
     }
 
-    await switcher.getByRole("button", { name: "All venues on" }).click();
+    await bill(page)
+      .getByRole("button", { name: "All venues on" })
+      .first()
+      .click();
     await expect.poll(names).toEqual(saved);
     expect(sent).toEqual([]);
   });
@@ -487,7 +507,8 @@ test.describe("demo path", () => {
     page,
   }) => {
     const html = await (await page.request.get("/")).text();
-    expect(html.match(/<article\b/g) ?? []).toHaveLength(10);
+    // The poster's acts (each carries data-act; the door check's ticket is an article too).
+    expect(html.match(/<article\b[^>]*\bdata-act=/g) ?? []).toHaveLength(10);
 
     const started = Date.now();
     await page.goto("/");

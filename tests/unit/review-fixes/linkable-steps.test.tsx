@@ -1,13 +1,8 @@
 // @vitest-environment jsdom
-// Item 3 of Daniel's brief of 2026-10-21 (second): each step of How it works' walkthrough has
-// its own link, /method?step=N, so stills and the video can open steps 2 to 4 directly.
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  within,
-} from "@testing-library/react";
+// Review fix: a step of How it works has its own link. Since WS12 item 2 the steps are the
+// director's cut's four scenes, each with an id (/method#scene-N), and an old /method?step=N
+// link still lands on its scene.
+import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MethodPage } from "@/components/method-page";
 import { methodStory } from "@/lib/method-story";
@@ -17,68 +12,41 @@ import { FIRST_BILL } from "../m4b/first-bill-fixture";
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
   window.history.replaceState(null, "", "/");
 });
 
 const story = methodStory(SAGEBRUSH_SOUND, FIRST_BILL)!;
 
-function page(url: string) {
+function open(url: string) {
   window.history.replaceState(null, "", url);
   vi.stubGlobal(
     "fetch",
     vi.fn(async () => new Response(null, { status: 404 })),
   );
+  const scrolled: string[] = [];
+  // jsdom has no scrollIntoView: a stand-in records which element was brought into view.
+  Element.prototype.scrollIntoView = function (this: Element) {
+    scrolled.push(this.id);
+  };
   render(<MethodPage story={story} videoUrl={null} />);
-  return screen.getByRole("region", { name: "Follow one act" });
+  return scrolled;
 }
 
-const current = (follow: HTMLElement) =>
-  within(follow)
-    .getAllByRole("link")
-    .find((tab) => tab.getAttribute("aria-current") === "step")!;
-
-describe("the walkthrough's steps, each with its own link", () => {
-  it("names each step's link /method?step=N", () => {
-    const follow = page("/method");
+describe("How it works' steps, linkable (review fix, WS12 item 2)", () => {
+  it("gives each scene its own anchor, /method#scene-N", () => {
+    open("/method");
     expect(
-      within(follow)
-        .getAllByRole("link")
-        .map((tab) => tab.getAttribute("href")),
-    ).toEqual([
-      "/method?step=1",
-      "/method?step=2",
-      "/method?step=3",
-      "/method?step=4",
-    ]);
-    expect(current(follow).getAttribute("href")).toBe("/method?step=1");
+      [1, 2, 3, 4].map((n) => document.getElementById(`scene-${n}`)?.tagName),
+    ).toEqual(["SECTION", "SECTION", "SECTION", "SECTION"]);
   });
 
-  it("opens on the step its link names", () => {
-    const follow = page("/method?step=3");
-    expect(current(follow).getAttribute("href")).toBe("/method?step=3");
-    expect(
-      within(follow).getByRole("list", { name: "The rule's checks" }),
-    ).toBeTruthy();
+  it("lands an old /method?step=N link on its scene", () => {
+    expect(open("/method?step=3")).toContain("scene-3");
   });
 
-  it("keeps the address on the step on screen as the reader steps through", () => {
-    const follow = page("/method?step=2");
-    fireEvent.click(within(follow).getByRole("button", { name: "Next step" }));
-    expect(window.location.search).toBe("?step=3");
-    fireEvent.click(within(follow).getAllByRole("link")[0]);
-    expect(window.location.search).toBe("?step=1");
-    expect(current(follow).getAttribute("href")).toBe("/method?step=1");
-  });
-
-  it("opens on the first step when the link names no step it has", () => {
-    for (const url of [
-      "/method?step=0",
-      "/method?step=9",
-      "/method?step=two",
-    ]) {
-      const follow = page(url);
-      expect(current(follow).getAttribute("href")).toBe("/method?step=1");
-      cleanup();
-    }
+  it("stays at the top when the link names no step it has", () => {
+    expect(open("/method?step=9")).not.toContain("scene-9");
+    expect(open("/method")).toEqual([]);
   });
 });

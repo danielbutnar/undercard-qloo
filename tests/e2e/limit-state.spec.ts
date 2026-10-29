@@ -47,7 +47,7 @@ test("a refused live run keeps the bill, shows the limit and offers the replay",
   await expect(acts).toHaveCount(10);
 
   await page
-    .getByRole("button", { name: "Run the agent live instead" })
+    .getByRole("button", { name: "Play it live" })
     .click();
   await expect(trace.getByRole("alert")).toHaveText(LIMIT_MESSAGE);
   await expect(acts).toHaveCount(10);

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { ClimbArrow } from "@/components/chart/band-chart";
 import { Cover } from "@/components/chart/cover";
 import {
   cardBand,
@@ -94,7 +93,6 @@ export function ActCard({
   const lift = liftOf(act);
   // The label on the row's tab ("V418"): a phone's venue line uses it so it fits in two lines.
   const short = venueShort(act.anchorVenue.name);
-  const popularity = Math.round(act.popularity * 100);
   return (
     <article
       aria-label={act.name}
@@ -142,33 +140,30 @@ export function ActCard({
           <Tick />
           <div className="card-check-body">
             <p className="card-climb-title">Its place in Qloo&apos;s ranking</p>
-            <div className="card-climb" aria-hidden>
-              <span className="card-place">
-                {place?.was
-                  ? ordinal(place.was)
-                  : lift?.kind === "new"
-                    ? "outside"
-                    : "–"}
-                <small>
-                  {lift?.kind === "new"
-                    ? "the top 50"
-                    : "headliners' fans alone"}
-                </small>
-              </span>
-              <ClimbArrow
-                move={lift?.kind === "up" ? lift.places : null}
-                fresh={lift?.kind === "new"}
-                was={null}
-              />
-              <span className="card-place">
+            {/* WS12 item 3: its rank beside its climb, as the poster prints them. */}
+            <div className="card-rank">
+              <span className="card-rank-place">
                 {place
                   ? ordinal(place.now)
                   : lift?.kind === "new"
                     ? ordinal(lift.top)
                     : "–"}
-                <small>with {act.anchorVenue.name}&apos;s fans</small>
+              </span>
+              {lift && (
+                <span className="card-rank-climb">
+                  {lift.kind === "up" ? `↑${lift.places}` : "NEW"}
+                </span>
+              )}
+              <span className="card-rank-with">
+                in Qloo&apos;s ranking with {act.anchorVenue.name}&apos;s fans
+                added
               </span>
             </div>
+            <p className="card-rank-from">
+              {place?.was
+                ? `${ordinal(place.was)} for the headliners' fans alone`
+                : "Outside the top 50 for the headliners' fans alone"}
+            </p>
             <p className="card-why">
               <strong>Why it&apos;s here: </strong>
               {whySentence(act, place)}
@@ -193,28 +188,33 @@ export function ActCard({
                 <dt>Popularity</dt>
                 <dd>{formatPopularity(act.popularity)}</dd>
               </div>
-              <div className="card-pop" aria-hidden>
-                <span className="fee-track card-track">
-                  {band && (
+              {band && (
+                <p className="card-pop-words">
+                  popularity on Qloo, inside the{" "}
+                  {band.id === "mid" ? "mid-size" : "opening"} fee range (
+                  {formatPopularityRange(band)})
+                </p>
+              )}
+              {band && (
+                <div
+                  role="img"
+                  aria-label={`Popularity ${formatPopularity(act.popularity)} on the ${band.id === "mid" ? "mid-size" : "opening"} tier's scale, ${formatPopularityRange(band).replace("–", " to ")}`}
+                  className="card-scale"
+                >
+                  <span>{Math.round(band.minPopularity * 100)}</span>
+                  <span className="card-scale-track">
                     <span
-                      className="fee-lit"
+                      className="card-scale-dot"
                       style={{
-                        left: `${band.minPopularity * 100}%`,
-                        width: `${(band.maxPopularity - band.minPopularity) * 100}%`,
+                        left: `${Math.min(100, Math.max(0, ((act.popularity - band.minPopularity) / (band.maxPopularity - band.minPopularity)) * 100))}%`,
                       }}
-                    />
-                  )}
-                  <span
-                    className="card-pop-dot"
-                    style={{ left: `${popularity}%` }}
-                  />
-                </span>
-                <span className="card-pop-words">
-                  {band
-                    ? `popularity on Qloo, inside the ${band.id === "mid" ? "mid-size" : "opening"} fee range (${formatPopularityRange(band)})`
-                    : "percentile on Qloo: it stands in for the fee"}
-                </span>
-              </div>
+                    >
+                      {formatPopularity(act.popularity)}
+                    </span>
+                  </span>
+                  <span>{Math.round(band.maxPopularity * 100)}</span>
+                </div>
+              )}
             </dl>
           </div>
         </li>

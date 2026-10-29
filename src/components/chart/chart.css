@@ -41,6 +41,17 @@
   width: 30px;
   height: 30px;
 }
+/* WS12 item 7: one wordmark on every page, set as the landing sets it (first-screen.css). */
+.chart-app .logo.wordmark {
+  font-size: 28px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+@media (max-width: 399px) {
+  .chart-app .logo.wordmark {
+    font-size: 24px;
+  }
+}
 .chart-app .nav {
   display: flex;
   flex-wrap: wrap;

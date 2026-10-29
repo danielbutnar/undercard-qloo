@@ -52,6 +52,12 @@ export interface VenueRun {
    * run books no act. Absent on a 1.0 run, which the rule reads as before.
    */
   control?: { venue: ControlRef; artists: RankedArtist[] } | null;
+  /**
+   * Qloo had no fan data for the venue: its not-scored warning, or a ranking equal to the
+   * headliners' own (WS13.1). Such a run books no act in any tier (Daniel, 2026-10-28): it stays
+   * in the input only so the build's context and its switch still list the venue.
+   */
+  noFanData?: boolean;
 }
 
 export interface AssemblyInput {
@@ -184,7 +190,7 @@ export function assembleLineup(input: AssemblyInput): {
       { venue: VenueRef; lift: Lift; local?: Act["localLift"] }
     >();
     for (const run of input.venueRuns.filter(
-      (candidate) => candidate.band === band.id,
+      (candidate) => candidate.band === band.id && !candidate.noFanData,
     )) {
       for (const lift of liftsOver(baseline, run.artists)) {
         if (baseline.length === 0 || lift.lift < MIN_LIFT) continue;

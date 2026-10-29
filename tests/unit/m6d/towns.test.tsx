@@ -102,13 +102,10 @@ describe("a town's screen", () => {
         screen.getByRole("region", { name: "What Undercard does" }),
       ).getByText(/from what fans of Austin's music venues like\.$/),
     ).toBeTruthy();
-    // The venue switch is a region named for the town, with "Switch a venue off" under it.
-    const venues = screen.getByRole("region", {
-      name: "Austin venues whose fans shaped this lineup",
-    });
+    // The town's legend names the town (the second venue switch went with WS12 item 1).
     expect(
-      within(venues).getByRole("heading", { name: "Switch a venue off" }),
-    ).toBeTruthy();
+      screen.getByRole("region", { name: "Your town" }).textContent,
+    ).toContain("in Austin");
     const draft = screen.getByRole("region", { name: "Undercard draft" });
     fireEvent.click(
       within(draft).getByRole("button", { name: "Hollow Pines" }),

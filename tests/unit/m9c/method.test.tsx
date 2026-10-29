@@ -57,10 +57,12 @@ describe("the method page (M9c)", () => {
     }
   });
 
-  it("holds one picture of the method, and the evidence its own page links to", () => {
+  // Since WS12 item 2 the picture is the director's cut, which needs a saved build; without one
+  // the page still says who does what and links its evidence.
+  it("says who does what, and links the evidence its own page holds", () => {
     render(<MethodPage />);
     expect(
-      screen.getAllByRole("img", { name: /How Undercard drafts a lineup/ }),
+      screen.getAllByRole("region", { name: "Who does what" }),
     ).toHaveLength(1);
     expect(
       screen

@@ -159,6 +159,9 @@ describe("plain words, round 2 (M6r)", () => {
     let text = visibleText();
     for (const act of saved.lineup.acts)
       text = text.split(act.anchorVenue.name).join("");
+    // Daniel, 2026-10-28, 17:10: a local lift's control is worded as what it is, "a room in
+    // <town> with similar Qloo popularity" (climbsLine), which the door check's first stamp shows.
+    text = text.replace(/a room in .+? with similar Qloo popularity/g, "");
     expect(text).not.toMatch(/rooms?/i);
   });
 

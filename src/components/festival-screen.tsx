@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -36,7 +37,8 @@ import {
   openBandLine,
   openPosterLine,
   regionCode,
-  RULE_LINE,
+  KEY_SIGNAL,
+  ruleLine,
   stampWords,
   TAGLINE_LEAD,
   TAGLINE_QLOO,
@@ -48,13 +50,20 @@ import {
   withoutNote,
   withoutSummary,
 } from "@/components/chart/poster-words";
-import { RuleKey } from "@/components/chart/rule-key";
 import {
   signName,
   TownScene,
   type SceneVenue,
 } from "@/components/chart/town-scene";
-import { VenueSwitch, type VenueLine } from "@/components/chart/venue-switch";
+import { PageEnd, Setlist } from "@/components/chart/setlist";
+import {
+  buildCallCount,
+  buildRetryCount,
+  marginNote,
+  setlistLines,
+} from "@/components/chart/setlist-words";
+import { DoorCheck } from "@/components/chart/ticket";
+import type { VenueLine } from "@/components/chart/venue-switch";
 import { WithoutQlooChecksLine } from "@/components/chart/with-without-line";
 import {
   AGENT_DECIDES,
@@ -86,6 +95,7 @@ import { LiveRunProvider, useLiveRun } from "@/components/live-run";
 import {
   agentLineFor,
   liveRunFacts,
+  plusRetries,
   retriesIn,
   RUN_IT_LIVE,
   runItLiveSub,
@@ -97,6 +107,12 @@ import {
   townsNear,
   type CheckedTown,
 } from "@/lib/checked-towns";
+import {
+  csvFile,
+  csvNote,
+  posterFile,
+  printRequest,
+} from "@/components/share/print-words";
 import { lineupCsv } from "@/lib/csv";
 import type { FeeBand } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
@@ -111,6 +127,7 @@ import type { Placed } from "@/lib/venue-switch";
 import type { YourBrief } from "@/lib/your-festival";
 import "./chart/chart.css";
 import "./chart/first-screen.css";
+import "./chart/backstage.css";
 
 type Mode = "qloo" | "llm";
 
@@ -124,7 +141,11 @@ const savedAt = new Intl.DateTimeFormat("en-US", {
 });
 
 function downloadText(filename: string, text: string, type: string) {
-  const url = URL.createObjectURL(new Blob([text], { type }));
+  downloadBlob(filename, new Blob([text], { type }));
+}
+
+function downloadBlob(filename: string, blob: Blob) {
+  const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
   link.download = filename;
@@ -143,6 +164,45 @@ const wideNow = () => window.matchMedia?.(WIDE)?.matches === true;
 /** Whether the screen is laid out wide; false on the server and in a narrow window. */
 function useWide(): boolean {
   return useSyncExternalStore(subscribeWide, wideNow, () => false);
+}
+
+/**
+ * A short laptop (WS8, WS12 item 1), or one narrower than 1250 px, where the town is too narrow
+ * for Watch's corner beside its controls: Watch stands above the town, not over its corner.
+ */
+const SHORT =
+  "(min-width: 1100px) and (max-height: 760px), (min-width: 1100px) and (max-width: 1249px)";
+function subscribeShort(change: () => void) {
+  const query = window.matchMedia?.(SHORT);
+  query?.addEventListener?.("change", change);
+  return () => query?.removeEventListener?.("change", change);
+}
+const shortNow = () => window.matchMedia?.(SHORT)?.matches === true;
+function useShort(): boolean {
+  return useSyncExternalStore(subscribeShort, shortNow, () => false);
+}
+
+/**
+ * An element's size as it draws, kept up as it changes (WS12): Watch's corner of the town grows
+ * with the live run's line under it, and the town keeps its signs out of whatever it covers.
+ * Null until measured, and where ResizeObserver is missing (a test's DOM).
+ */
+function useBoxSize(element: HTMLElement | null) {
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
+  useLayoutEffect(() => {
+    if (!element || typeof ResizeObserver === "undefined") return;
+    const measure = () => {
+      const { width, height } = element.getBoundingClientRect();
+      const w = Math.ceil(width);
+      const h = Math.ceil(height);
+      setSize((now) => (now && now.w === w && now.h === h ? now : { w, h }));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [element]);
+  return size;
 }
 
 /** The poster's With and Without Qloo tabs, each named for what it shows (label fix 3). */
@@ -544,6 +604,16 @@ export function FestivalScreen({
   const watch = useWatch(state);
   const llm = useLlmOnly(festival.id);
   const wide = useWide();
+  const short = useShort();
+  // Watch's corner of the town, measured, so the town's signs stand clear of all of it.
+  const [watchCorner, setWatchCorner] = useState<HTMLDivElement | null>(null);
+  const watchSize = useBoxSize(watchCorner);
+  // The act the door check shows: the one last pointed at on the poster (WS12 item 1).
+  const [pointedId, setPointedId] = useState<string | null>(null);
+  // The printable poster (WS12 item 6): drawn on the server, which takes a second or two.
+  const [posterPrint, setPosterPrint] = useState<"idle" | "drawing" | "failed">(
+    "idle",
+  );
   // The switch works from the saved build on screen, never a judge's own run (it isn't saved).
   // It follows a new build once the build has finished, so a live run's lineup is the one it
   // re-forms (on a preview, which saves nothing, the switch then says it isn't available).
@@ -696,6 +766,7 @@ export function FestivalScreen({
     hue: venue.hue,
     lifted: venue.lifted,
     off: venue.off,
+    noFanData: venue.noFanData,
   }));
 
   function startShow(replay: boolean) {
@@ -810,12 +881,13 @@ export function FestivalScreen({
 
   function exportCsv() {
     downloadText(
-      `${festival.id}-undercard.csv`,
+      csvFile(festival),
       lineupCsv(
         bookedActs,
         festival.feeBands,
         whatIf ? {} : state.replaced,
         state.localPicks.filter((pick) => state.added.includes(pick.entityId)),
+        { note: csvNote(festival) },
       ),
       "text/csv;charset=utf-8",
     );
@@ -978,6 +1050,92 @@ export function FestivalScreen({
   const printedActs = bandRows.flatMap(({ rows }) =>
     rows.flatMap((row) => (row.act ? [row.act] : [])),
   );
+
+  // The printable poster (WS12 item 6): the poster on screen, drawn by /api/poster at print
+  // size, so a refill or a venue switched off prints as the poster shows it.
+  async function downloadPoster() {
+    setPosterPrint("drawing");
+    try {
+      const response = await fetch("/api/poster", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(
+          printRequest({
+            festival,
+            brief: custom?.brief,
+            bands: bandRows,
+            venues: keyVenues,
+            unavailable: whatIf ? [] : state.unavailable,
+          }),
+        ),
+      });
+      if (!response.ok) throw new Error(`The poster: ${response.status}`);
+      downloadBlob(posterFile(festival), await response.blob());
+      setPosterPrint("idle");
+    } catch {
+      setPosterPrint("failed");
+    }
+  }
+  // The setlist (WS12 item 1): the calls of the run on screen once one streams in, else the
+  // saved build's, with the AI agent's lines where it said them.
+  // The run on screen: one that streamed its own build calls and didn't fail. Otherwise the bill
+  // is still the saved build's (WS12 item 9: a failed live run left "0 Qloo calls"), so the
+  // setlist lists its calls, then any refill made since.
+  const ownRunCalls = state.calls.some(
+    (call) =>
+      call.tool !== "refill" &&
+      call.tool !== "redraft" &&
+      call.tool !== "running_order",
+  );
+  // A run that failed with a saved build behind it falls back to that build; a short bill
+  // (not-full) is still the run's, and a judge's own festival has no saved build to show.
+  const failedOverSaved =
+    state.status === "error" &&
+    firstBill !== null &&
+    state.errorCode !== "not-full";
+  const streamed = ownRunCalls && !failedOverSaved;
+  const savedTrace = firstBill?.trace ?? [];
+  const setlistTrace: TraceCall[] = streamed
+    ? state.calls
+    : [
+        ...savedTrace,
+        // A refill made since, numbered on from the saved build's calls (its own count starts
+        // at 1 when the build wasn't replayed first).
+        ...(ownRunCalls ? [] : state.calls).map((call, index) => ({
+          ...call,
+          n: savedTrace.length + index + 1,
+        })),
+      ];
+  const setlist = setlistLines(setlistTrace, {
+    venues: allVenues,
+    bands: festival.feeBands,
+    noFanData: fanless,
+    notes: streamed ? state.notes : (firstBill?.notes ?? []),
+  });
+  // The drafted line's count: the build's, or, on a run cut short with acts on the poster
+  // (not-full), the calls it made (WS12 item 9: it said "No undercard drafted yet.").
+  const draftedCalls =
+    calls ??
+    (bookedActs.length > 0 && streamed
+      ? buildCallCount(setlist.lines)
+      : undefined);
+  // The build's retries, from its trace (WS13): said wherever its call count is (Daniel, 19:20).
+  const retries = plusRetries(buildRetryCount(setlist.lines));
+  // Each venue's colour as the poster sets it: grey (none) for a venue that lifted no act.
+  const liftingHues = new Map([...hues].filter(([id]) => savedLifted(id) > 0));
+  // The door check's act: the one last pointed at on the poster, else the poster's first act.
+  const ticketAct =
+    printedActs.find((act) => act.entityId === pointedId) ??
+    exampleAct(printedActs, placeOf) ??
+    printedActs[0] ??
+    null;
+  const ticketCall = ticketAct
+    ? (setlist.lines.find(
+        (line) =>
+          line.band === ticketAct.band &&
+          line.venue?.entityId === ticketAct.anchorVenue.entityId,
+      )?.n ?? null)
+    : null;
   const onVenues = allVenues
     .filter((venue) => !switcher.off.has(venue.entityId))
     .map((venue) => venue.name);
@@ -1158,7 +1316,7 @@ export function FestivalScreen({
   );
 
   const watchButton = thinTown ? null : limited ? null : (
-    <div className="fs-watch">
+    <div className="fs-watch" ref={setWatchCorner}>
       <button
         type="button"
         onClick={() =>
@@ -1195,7 +1353,7 @@ export function FestivalScreen({
       <p className="watch-sub">
         {custom
           ? ownRun
-            ? `Replays its ${calls ?? state.calls.length} Qloo calls`
+            ? `Replays its ${calls ?? state.calls.length} Qloo calls${retries}`
             : runAgain
               ? "Runs the AI agent again; its Qloo calls list below"
               : "Runs the AI agent; its Qloo calls list below"
@@ -1239,9 +1397,10 @@ export function FestivalScreen({
         }}
         quiet={watching}
       />
+      {!custom && !watching && <p className="poster-key-note">{KEY_SIGNAL}</p>}
       {!allOpen && (
         <p className={`poster-rule ${watching ? "is-quiet" : ""}`}>
-          {RULE_LINE}
+          {ruleLine(anyNew && !without)}
         </p>
       )}
       {watching && !wide && (
@@ -1291,6 +1450,9 @@ export function FestivalScreen({
                 keeping={whatIf ? [] : state.keeping}
                 unavailable={whatIf ? [] : state.unavailable}
                 onOpen={watching ? undefined : openCard}
+                onPoint={
+                  watching ? undefined : (act) => setPointedId(act.entityId)
+                }
                 printing={printing}
                 column={column}
                 landed={landed}
@@ -1365,6 +1527,21 @@ export function FestivalScreen({
               Export CSV
             </button>
           )}
+          {bookedActs.length > 0 && (
+            <button
+              type="button"
+              className="tool poster-export"
+              onClick={() => void downloadPoster()}
+              disabled={posterPrint === "drawing"}
+            >
+              <svg viewBox="0 0 16 16" aria-hidden>
+                <path d="M8 2 V11 M4 7 L8 11 L12 7 M2 14 H14" />
+              </svg>
+              {posterPrint === "drawing"
+                ? "Drawing the poster…"
+                : "Download the poster"}
+            </button>
+          )}
           {!custom && state.build && (
             <>
               <button
@@ -1423,6 +1600,11 @@ export function FestivalScreen({
           )}
         </PosterActions>
       )}
+      {posterPrint === "failed" && !watching && (
+        <p role="alert" className="tools-note">
+          The poster couldn&apos;t be drawn. Try again.
+        </p>
+      )}
       {!without && state.keeping.length > 0 && !whatIf && !watching && (
         <p className="tools-note">
           Redraft the rest keeps {state.keeping.length}{" "}
@@ -1449,10 +1631,10 @@ export function FestivalScreen({
         />
       )}
       <p className="drafted">
-        {calls && state.build?.createdAt
+        {draftedCalls && state.build?.createdAt
           ? liveOnly
-            ? `Drafted from ${calls} Qloo calls the AI agent planned · run live ${savedAt.format(new Date(state.build.createdAt))} UTC, not saved for other visitors`
-            : `Drafted from ${calls} Qloo calls the AI agent planned · saved ${savedAt.format(new Date(state.build.createdAt))} UTC`
+            ? `Drafted from ${draftedCalls} Qloo calls the AI agent planned${retries} · run live ${savedAt.format(new Date(state.build.createdAt))} UTC, not saved for other visitors`
+            : `Drafted from ${draftedCalls} Qloo calls the AI agent planned${retries} · saved ${savedAt.format(new Date(state.build.createdAt))} UTC`
           : state.status === "building"
             ? "The AI agent is drafting the undercard."
             : "No undercard drafted yet."}
@@ -1507,6 +1689,14 @@ export function FestivalScreen({
           checks={llm.state.checks}
         />
       )}
+      {/* WS12 item 5: beside the model's picks, the AI's local pick (WS13.5): the model's own
+          knowledge of the town, checked on Qloo, in WS13's box with WS13's rules. */}
+      <LocalPickBox
+        picks={state.localPicks}
+        festival={festival}
+        added={state.added}
+        onToggle={toggleLocal}
+      />
       {counts && withoutSummary(festival, counts) && (
         <p className="model-summary">{withoutSummary(festival, counts)}</p>
       )}
@@ -1625,7 +1815,20 @@ export function FestivalScreen({
                   </span>
                 </p>
                 <h1 className="poster-name">{festival.name}</h1>
-                <p className="facts">{factsLine(festival)}</p>
+                {/* Each part on one line ("3,000 capacity"), breaking only after a part's dot. */}
+                <p className="facts">
+                  {factsLine(festival)
+                    .split(" · ")
+                    .map((part, index, parts) => (
+                      <span key={part}>
+                        {index > 0 && " "}
+                        <span className="nowrap">
+                          {part}
+                          {index < parts.length - 1 && " ·"}
+                        </span>
+                      </span>
+                    ))}
+                </p>
                 <span className="poster-rule-line" aria-hidden />
                 <HeadlinerList
                   headliners={festival.headliners}
@@ -1645,7 +1848,8 @@ export function FestivalScreen({
                 {!custom && <WithoutQlooChecksLine />}
                 <ImageCredit images={creditImages} />
                 <p className="poster-foot">
-                  {footnote(festival, anyNew && !without)}
+                  {/* NEW is defined in the rule line above (WS12 item 7). */}
+                  {footnote(festival, false)}
                 </p>
               </div>
             </section>
@@ -1683,7 +1887,18 @@ export function FestivalScreen({
                 reserve={
                   wide
                     ? {
-                        corner: { w: 420, h: 104 },
+                        // Watch's block and its 15 px margin, with its button's 5 px shadow
+                        // and room to spare; before it is measured, its usual size.
+                        ...(short
+                          ? {}
+                          : {
+                              corner: watchSize
+                                ? {
+                                    w: watchSize.w + 15 + 5 + 8,
+                                    h: watchSize.h + 15 + 8,
+                                  }
+                                : { w: 420, h: 104 },
+                            }),
                         ...(watching ? { top: 150 } : {}),
                         ...((cardInTown && openAct) || (venueCard && !openAct)
                           ? { right: 404 }
@@ -1698,39 +1913,48 @@ export function FestivalScreen({
 
           <div className="fs-below">
             {!thinTown && notice}
-            <div className="fs-panels">
-              {/* While Watch plays the switch steps aside: the lineup it counts is being re-drawn. */}
-              {!without && !custom && !watching && allVenues.length > 0 && (
-                <VenueSwitch
-                  city={festival.city}
-                  venues={venueLines.map((venue) => ({
-                    ...venue,
-                    noFanData: fanless.includes(venue.entityId),
-                  }))}
-                  off={switcher.off}
-                  status={switcher.status}
-                  onToggle={(id) => {
-                    setOpenId(null);
-                    switcher.toggle(id);
-                  }}
-                  onReset={switcher.reset}
-                  filled={bookedActs.length}
-                  slots={slots}
-                  placesListed={placesListed}
-                  editable={!watching && !busy && !without}
-                />
-              )}
-              {!without && <RuleKey bands={festival.feeBands} positioning />}
-              {!without && (
-                <TracePanel
-                  state={state}
-                  savedCalls={firstBill?.calls}
-                  replay={!custom}
-                  onBuild={runBuild}
-                  button={false}
-                />
-              )}
-            </div>
+            {!without && (
+              <div className="fs-below-cols">
+                <Setlist
+                  festival={festival}
+                  createdAt={
+                    state.calls.length > 0
+                      ? state.build?.createdAt
+                      : firstBill?.build.createdAt
+                  }
+                  lines={setlist.lines}
+                  closing={setlist.closing}
+                  hues={liftingHues}
+                  circled={ticketCall}
+                  margin={
+                    ticketAct
+                      ? marginNote(ticketAct, placeOf[ticketAct.entityId])
+                      : null
+                  }
+                >
+                  <TracePanel
+                    state={state}
+                    savedCalls={firstBill?.calls}
+                    replay={!custom}
+                    onBuild={runBuild}
+                    button={false}
+                    live={false}
+                  />
+                </Setlist>
+                {ticketAct && (
+                  <DoorCheck
+                    festival={festival}
+                    act={ticketAct}
+                    place={placeOf[ticketAct.entityId]}
+                    hue={
+                      liftingHues.get(ticketAct.anchorVenue.entityId) ?? null
+                    }
+                    image={images?.[ticketAct.entityId]}
+                  />
+                )}
+              </div>
+            )}
+            {!custom && <PageEnd />}
           </div>
         </main>
       </div>

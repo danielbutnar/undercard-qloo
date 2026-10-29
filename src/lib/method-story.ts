@@ -1,3 +1,4 @@
+import { retriesIn } from "./agent-words";
 import type { AgentSwitch } from "./agent-switch";
 import type { ArtistImages } from "./artist-images";
 import type { FeeBand } from "./fee-bands";
@@ -21,6 +22,8 @@ export interface MethodStory {
   buildId: string;
   /** Qloo calls the build made. */
   calls: number;
+  /** Busy answers its calls were retried after, from its trace (WS13); 0 when it says none. */
+  retries: number;
   act: Act;
   band: FeeBand;
   /** Its place for the headliners' fans alone (was) and with its venue's fans added (now). */
@@ -60,6 +63,7 @@ export function methodStory(
   return {
     buildId: bill.build.id,
     calls: bill.calls,
+    retries: retriesIn(bill.trace ?? []),
     act,
     band,
     place: bill.places?.[act.entityId] ?? null,

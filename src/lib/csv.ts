@@ -31,6 +31,8 @@ export function lineupCsv(
   bands: readonly FeeBand[],
   replaced: Readonly<Record<string, Replacement>> = {},
   added: readonly LocalPick[] = [],
+  /** A line, one cell, above the header: a demo festival's says it's fictional (WS12 item 7). */
+  { note }: { note?: string | null } = {},
 ): string {
   const rows = bands.flatMap((band) =>
     acts
@@ -59,7 +61,7 @@ export function lineupCsv(
     "",
   ]);
   return (
-    [COLUMNS, ...rows, ...additions]
+    [...(note ? [[note]] : []), COLUMNS, ...rows, ...additions]
       .map((row) => row.map(cell).join(","))
       .join("\r\n") + "\r\n"
   );

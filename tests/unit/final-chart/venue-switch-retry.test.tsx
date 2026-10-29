@@ -61,9 +61,8 @@ describe("the venue switch's request", () => {
         }}
       />,
     );
-    const venues = screen.getByRole("region", {
-      name: "Boise venues whose fans shaped this lineup",
-    });
+    // The poster's key is the venue switch (WS12 item 1).
+    const venues = screen.getByRole("group", { name: "Venue fans used for this draft" });
     await waitFor(
       () => {
         const toggles = within(venues).getAllByRole(

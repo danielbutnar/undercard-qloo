@@ -13,7 +13,6 @@ import {
 import { afterEach, describe, expect, it } from "vitest";
 import { BandChart } from "@/components/chart/band-chart";
 import { billRows, editionRows } from "@/components/chart/chart-rows";
-import { RuleKey } from "@/components/chart/rule-key";
 import { FestivalScreen } from "@/components/festival-screen";
 import { MIN_LIFT } from "@/lib/assemble-lineup";
 import { climbAfter } from "@/lib/lift-climb";
@@ -78,15 +77,10 @@ describe("why no act is at the top", () => {
 });
 
 describe("the climb is Qloo's ranking, never the AI agent's", () => {
-  it("is named so in the key, the rule key, the mark a screen reader hears and the card", () => {
+  it("is named so in the key, the rule line, the mark a screen reader hears and the card", () => {
     chart(mid);
     expect(document.querySelector(".numbers-key")!.textContent).toBe(
       "places it climbed in Qloo's ranking with its venue's fans added",
-    );
-    cleanup();
-    render(<RuleKey />);
-    expect(document.body.textContent).toContain(
-      `It climbs ${MIN_LIFT} places or more in Qloo's ranking with a venue's fans`,
     );
     cleanup();
     expect(markLabel(acts[0])).toBe(
@@ -98,6 +92,11 @@ describe("the climb is Qloo's ranking, never the AI agent's", () => {
     );
     render(
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
+    );
+    // The rule key went with How an act gets on (WS12 items 1 and 7); the poster's rule line
+    // says the climb the rule counts is Qloo's.
+    expect(document.querySelector(".poster-rule")!.textContent).toContain(
+      `places it rose in Qloo's ranking with that venue's fans (${MIN_LIFT}+ to qualify)`,
     );
     fireEvent.click(screen.getByRole("button", { name: acts[0].name }));
     expect(

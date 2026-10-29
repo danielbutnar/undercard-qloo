@@ -71,6 +71,8 @@ export interface KeyVenue {
   hue: number | null;
   lifted: number;
   off: boolean;
+  /** Qloo had no fan data for it (WS8): its count says so, in grey, as its sign in the town. */
+  noFanData?: boolean;
 }
 
 /**
@@ -123,8 +125,13 @@ export function VenueKey({
               )}
             </span>
             <span className="poster-ink-name">{signName(venue.name)}</span>
-            <span className="poster-ink-count">
-              {venue.off ? "off" : venue.lifted}
+            {/* WS12 item 7: grey where the venue is unlit, as its sign in the town. */}
+            <span className={`poster-ink-count ${lit ? "" : "is-grey"}`}>
+              {venue.off
+                ? "off"
+                : venue.noFanData
+                  ? "no fan data"
+                  : venue.lifted}
             </span>
           </>
         );
@@ -134,7 +141,12 @@ export function VenueKey({
             type="button"
             className={`poster-ink ${venue.off ? "is-off" : ""}`}
             aria-pressed={!venue.off}
-            aria-label={inkLabel(venue.name, !venue.off, venue.lifted)}
+            aria-label={inkLabel(
+              venue.name,
+              !venue.off,
+              venue.lifted,
+              venue.noFanData,
+            )}
             onClick={() => onToggle(venue.entityId)}
             onMouseEnter={() => onHover?.(venue.entityId)}
             onMouseLeave={() => onHover?.(null)}
@@ -146,7 +158,7 @@ export function VenueKey({
             key={venue.entityId}
             className={`poster-ink ${venue.off ? "is-off" : ""}`}
             role="img"
-            aria-label={`${venue.name}'s fans: ${venue.off ? "off" : venue.lifted === 1 ? "1 act" : `${venue.lifted} acts`}`}
+            aria-label={`${venue.name}'s fans: ${venue.off ? "off" : venue.noFanData ? "no fan data on Qloo" : venue.lifted === 1 ? "1 act" : `${venue.lifted} acts`}`}
           >
             {body}
           </span>
@@ -164,6 +176,7 @@ function PosterAct({
   gone,
   dim,
   onOpen,
+  onPoint,
   printDelay,
 }: {
   row: ChartRowData & { act: Act };
@@ -173,6 +186,8 @@ function PosterAct({
   gone: boolean;
   dim: boolean;
   onOpen?: (act: Act) => void;
+  /** The act was pointed at or focused: the door check shows its ticket (WS12 item 1). */
+  onPoint?: (act: Act) => void;
   printDelay: number | null;
 }) {
   // Decided when the act mounts, so the acts already on the poster never print again.
@@ -191,6 +206,8 @@ function PosterAct({
     <article
       aria-label={row.name}
       data-act={row.act.entityId}
+      onPointerEnter={onPoint ? () => onPoint(row.act) : undefined}
+      onFocus={onPoint ? () => onPoint(row.act) : undefined}
       className={`poster-act ${row.hue !== null ? `venue-${row.hue}` : ""} ${open ? "is-open" : ""} ${gone ? "is-gone" : ""} ${kept ? "is-kept" : ""} ${dim ? "is-dim" : ""} ${print !== null ? "motion-safe:animate-print-in" : ""}`}
       style={
         print !== null ? { animationDelay: `${print.toFixed(2)}s` } : undefined
@@ -248,6 +265,7 @@ export function PosterBand({
   keeping = [],
   unavailable = [],
   onOpen,
+  onPoint,
   printing = null,
   column = 0,
   landed,
@@ -266,6 +284,8 @@ export function PosterBand({
   keeping?: readonly string[];
   unavailable?: readonly string[];
   onOpen?: (act: Act) => void;
+  /** An act pointed at or focused on the poster (WS12 item 1's door check). */
+  onPoint?: (act: Act) => void;
   printing?: Printing;
   /** The band's place, 0 or 1, so a replay's two bands print side by side. */
   column?: number;
@@ -348,6 +368,7 @@ export function PosterBand({
                   gone={unavailable.includes(act.entityId)}
                   dim={dimmed?.(act) ?? false}
                   onOpen={onOpen}
+                  onPoint={onPoint}
                   printDelay={
                     printing === null
                       ? null

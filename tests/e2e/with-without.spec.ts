@@ -21,7 +21,8 @@ test("the per-check line sits under the toggle, and the With and Without Qloo li
   await expect(page.getByText(CHECKS_LINE)).toBeVisible();
   await expect(page.getByText(LINE)).toHaveCount(0);
   await page.goto("/method");
-  await expect(
-    page.getByRole("region", { name: "What was tested" }).getByText(LINE),
-  ).toBeVisible();
+  // Daniel, 29 Oct: the line moved out of the stamps into the method fold under them.
+  const tested = page.getByRole("region", { name: "What was tested" });
+  await tested.getByText("The method", { exact: true }).click();
+  await expect(tested.getByText(LINE)).toBeVisible();
 });

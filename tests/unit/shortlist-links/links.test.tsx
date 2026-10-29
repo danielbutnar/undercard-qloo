@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // Daniel's brief, Phase 3: once the shortlist makes its gate, two links to it below the fold, one
 // beside "Draft your own festival" on the first screen and one on How it works.
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FestivalScreen } from "@/components/festival-screen";
 import { MethodPage } from "@/components/method-page";
@@ -31,7 +31,7 @@ describe("links to the shortlist", () => {
       name: "Check the acts you've been pitched",
     });
     expect(link.getAttribute("href")).toBe("/shortlist");
-    const own = screen.getByRole("link", { name: /Draft your own festival/ });
+    const own = within(screen.getByRole("region", { name: "Undercard draft" })).getByRole("link", { name: /Draft your own festival/ });
     expect(own.parentElement).toBe(link.parentElement);
   });
 

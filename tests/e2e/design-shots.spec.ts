@@ -26,12 +26,15 @@ const bill = (page: Page) =>
 const never = () => new Promise<void>(() => {});
 
 async function liftedTotal(page: Page): Promise<number> {
-  const rail = page.getByRole("region", {
-    name: "Boise venues whose fans shaped this lineup",
-  });
-  const text = (await rail.getByRole("list").textContent()) ?? "";
-  return [...text.matchAll(/(\d+) (?:acts? lifted|lifted none)/g)].reduce(
-    (total, match) => total + Number(match[1]),
+  const labels = await page
+    .getByRole("group", { name: "Venue fans used for this draft" })
+    .locator("[aria-label]")
+    .evaluateAll((items) =>
+      items.map((item) => item.getAttribute("aria-label") ?? ""),
+    );
+  return labels.reduce(
+    (total, label) =>
+      total + Number(/: (?:on, )?(\d+) acts?/.exec(label)?.[1] ?? 0),
     0,
   );
 }
@@ -198,7 +201,7 @@ const SCENES: {
     viewports: [VIDEO, MOBILE],
     prepare: async (page) => {
       const toggle = page
-        .getByRole("button", { name: /: on, \d+ acts? lifted$/ })
+        .getByRole("button", { name: /'s fans: on, [1-9]\d* acts?\./ })
         .first();
       await toggle.waitFor();
       await test.expect(toggle).toBeEnabled({ timeout: 15_000 });
@@ -227,9 +230,7 @@ const SCENES: {
               },
         );
       });
-      await page
-        .getByRole("button", { name: "Run the agent live instead" })
-        .click();
+      await page.getByRole("button", { name: "Play it live" }).click();
       await page
         .getByRole("button", { name: "Replay the saved build" })
         .waitFor();

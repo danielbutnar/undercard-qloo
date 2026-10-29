@@ -115,7 +115,7 @@ describe("the act card's line on Qloo's split (WS7 part b)", () => {
         .find((button) =>
           button
             .getAttribute("aria-label")
-            ?.startsWith(`Cottonwood Social Hall: ${state}`),
+            ?.startsWith(`Cottonwood Social Hall's fans: ${state}`),
         )!;
     // Cottonwood Social Hall lifts no act: every act stays, but the lineup is a what-if.
     fireEvent.click(toggle("on"));
