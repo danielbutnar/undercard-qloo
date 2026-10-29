@@ -1,5 +1,7 @@
 # Evidence (M4e, 2026-10-17)
 
+**Added on 2026-10-29.** Sections written before 29 October describe the builds saved at the time, Undercard 1.0's; their 29 town builds are pinned by id in src/data/pinned-builds-2026-10-21.json. Since 29 October the town pages show 2.0's builds (src/data/pinned-builds-2026-10-29.json).
+
 Counts and venue names only, like docs/qloo-spike.md: no Qloo response bodies, entity IDs, scores or act names. Every outside fact carries a source. The runs below used the scripts in `scripts/`. They call Qloo (and, for the agent, Claude) from a local machine and keep Qloo's responses in memory. The Treefort check also writes the names it matched to `.design/evidence/`, which is gitignored. Neither script saves a build or touches the production store.
 
 ## 1. Why a club's crowd: Boise's own festival books Boise's rooms
