@@ -8,17 +8,29 @@ import {
   fireEvent,
   render,
   screen,
-  waitFor,
   within,
 } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FestivalScreen } from "@/components/festival-screen";
 import { liftOf } from "@/lib/marks";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { readEvents, syntheticServer } from "../m3/scripted";
+import { lag, settle, SLOW_MS } from "../test-clock";
+
+// The tests read a clock they move themselves, never the wall clock (Daniel, 2026-10-28), so a
+// loaded machine can't fail them: Watch's pace runs on it, and a card is checked on the venue's
+// own step, never a later one. requestAnimationFrame and performance.now stay real: the flights
+// use the Web Animations API (stubbed below), and the page's one frame-paced motion, the town's
+// camera glide, needs a measured viewport that jsdom never gives, so no frame is asked for here.
+beforeEach(() => {
+  vi.useFakeTimers({
+    toFake: ["setTimeout", "clearTimeout", "setInterval", "clearInterval"],
+  });
+});
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   delete (Element.prototype as { animate?: unknown }).animate;
 });
@@ -28,9 +40,11 @@ const WATCH = { name: "Watch the AI agent build it" };
 async function watchOn({
   wide,
   reduced = false,
+  latency = 0,
 }: {
   wide: boolean;
   reduced?: boolean;
+  latency?: number;
 }) {
   const server = syntheticServer();
   const events = await readEvents(server.build({ fresh: true }));
@@ -55,8 +69,9 @@ async function watchOn({
   });
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (url: string) =>
-      url.startsWith("/api/venue-switch")
+    vi.fn(async (url: string) => {
+      await lag(latency);
+      return url.startsWith("/api/venue-switch")
         ? new Response("{}", { status: 404 })
         : new Response(
             events
@@ -64,8 +79,8 @@ async function watchOn({
               .map((event) => JSON.stringify(event))
               .join("\n") + "\n",
             { headers: { "content-type": "application/x-ndjson" } },
-          ),
-    ),
+          );
+    }),
   );
   render(
     <FestivalScreen
@@ -84,12 +99,10 @@ async function watchOn({
   const mid = within(
     screen.getByRole("region", { name: "Undercard draft" }),
   ).getByRole("region", { name: "Mid-size acts" });
-  await waitFor(
-    () =>
-      expect(
-        within(mid).getByText("With The Lantern Room's fans added"),
-      ).toBeTruthy(),
-    { timeout: 8000 },
+  await settle(() =>
+    expect(
+      within(mid).queryAllByText("With The Lantern Room's fans added"),
+    ).toHaveLength(1),
   );
   const lantern = saved.lineup.acts.filter(
     (act) => act.band === "mid" && act.anchorVenue.name === "The Lantern Room",
@@ -97,9 +110,12 @@ async function watchOn({
   return { animate, lantern, mid };
 }
 
-describe("Watch's acts on a laptop", () => {
+describe.each([
+  { speed: "at full speed", latency: 0 },
+  { speed: "on a slow machine", latency: SLOW_MS },
+])("Watch's acts on a laptop, $speed", ({ latency }) => {
   it("fly from the venue to their slots, each a card with its name and climb, then stamp in", async () => {
-    const { animate, lantern, mid } = await watchOn({ wide: true });
+    const { animate, lantern, mid } = await watchOn({ wide: true, latency });
     const cards = [...document.querySelectorAll(".fly-card")];
     expect(
       cards.map((card) => card.querySelector(".fly-name")!.textContent).sort(),
@@ -127,23 +143,27 @@ describe("Watch's acts on a laptop", () => {
     );
     for (const delay of delays) expect(delay).toBeGreaterThan(0.5);
     expect(new Set(delays).size).toBe(delays.length);
-  }, 15000);
+  });
 });
 
-describe("Watch's acts land in place", () => {
+describe.each([
+  { speed: "at full speed", latency: 0 },
+  { speed: "on a slow machine", latency: SLOW_MS },
+])("Watch's acts land in place, $speed", ({ latency }) => {
   it("on a phone, with no card flying", async () => {
-    const { animate } = await watchOn({ wide: false });
+    const { animate } = await watchOn({ wide: false, latency });
     expect(document.querySelectorAll(".fly-card")).toHaveLength(0);
     expect(animate).not.toHaveBeenCalled();
-  }, 15000);
+  });
 
   it("under reduced motion, on a laptop too", async () => {
     const { animate, lantern, mid } = await watchOn({
       wide: true,
       reduced: true,
+      latency,
     });
     expect(document.querySelectorAll(".fly-card")).toHaveLength(0);
     expect(animate).not.toHaveBeenCalled();
     expect(within(mid).getAllByRole("article")).toHaveLength(lantern.length);
-  }, 15000);
+  });
 });
