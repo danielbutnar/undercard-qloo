@@ -324,7 +324,7 @@ export const CLAIMS: readonly Entry[] = [
   {
     file: STORY,
     phrase:
-      "booked climbed at least {5} places more with the town venue that put them on the bill",
+      "(its bills of 21 October) climbed at least {5} places more with the town venue that put them on the bill",
     equals: NOT,
     why: S37,
   },

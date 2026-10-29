@@ -4,7 +4,7 @@ The narration for the demo video, scene by scene, following the demo path in SPE
 
 ## Length and rules
 
-- **Length: under 2:00, aimed at about 1:50.** RULES.md states no limit; Qloo's hackathon manager suggested a couple of minutes at most (RULES.md, Unclear 2), and SPEC.md caps it at 3:00. The narration below is 273 words: about 1:42 at 160 words a minute and 1:49 at 150, before the pauses between scenes (about 6 s). If the voiceover runs past 2:00, shorten scenes 2 and 5 first, never scene 6.
+- **Length: under 2:00, aimed at about 1:50.** RULES.md states no limit; Qloo's hackathon manager suggested a couple of minutes at most (RULES.md, Unclear 2), and SPEC.md caps it at 3:00. The narration below is 276 words: about 1:44 at 160 words a minute and 1:50 at 150, before the pauses between scenes (about 6 s). If the voiceover runs past 2:00, shorten scenes 2 and 5 first, never scene 6.
 - **Working product by 10 s** (SPEC.md, section 4): the first frame is the live first screen.
 - **One measured number about the product**: in all 29 checked towns, a saved build fills every slot (scene 7). The setlist in scene 2 also shows the saved build's own call count on screen.
 - **The voice**: an AI voiceover, said on the end card. Captions on, since judges may watch muted: each scene's narration is its caption.
@@ -24,7 +24,7 @@ The narration for the demo video, scene by scene, following the demo path in SPE
 
 **On screen:** the cursor presses Watch the AI agent build it. The camera closes on a venue as the replay reads its fans; the caption names the Qloo call and its result count; the venue's acts fly into their slots. Then the AI agent's setlist under the town, with its call count.
 
-**Narration:** "Watch replays the build: for each fee range, Qloo ranks artists for the headliners' fans, then again with one Boise venue's fans added, and with a venue abroad of similar Qloo popularity. Every call is listed."
+**Narration:** "Watch replays it: for each fee range, Qloo ranks artists for the headliners' fans, then with one Boise venue's fans added, and with a venue abroad of similar Qloo popularity. Every call is listed."
 
 ### 3. One act's evidence (0:25 to 0:43)
 
@@ -44,13 +44,13 @@ The narration for the demo video, scene by scene, following the demo path in SPE
 
 **Narration:** "Without Qloo, the AI model alone answers the same brief, with its own reasons and no view of the town's venues. Then export the CSV."
 
-### 6. What was tested (1:04 to 1:43)
+### 6. What was tested (1:04 to 1:45)
 
 **On screen:** How it works, What was tested: the three stamps, the camera resting on each in turn while it is read: SHOWN 244 of 290, PARTLY SHOWN 20 of 30, NOT SHOWN 3 vs 11.
 
-**Narration:** "What was tested, said plainly. Shown: 244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a music venue abroad of similar Qloo popularity. Partly shown: 20 of 30 real festivals where the acts booked showed more lift from the town's venues than random acts of their tier; another country's venues did it at 18. Not shown: at 33 real festivals, Undercard's shortlists held 3 of the acts the festivals actually booked; the AI model alone held 11. Neither test bar was met."
+**Narration:** "What was tested, said plainly. Shown: 244 of the 290 acts Undercard 1.0 booked (its bills of 21 October) climbed at least 5 places more with the town venue that put them on the bill than with a music venue abroad of similar Qloo popularity. Partly shown: 20 of 30 real festivals where the acts booked showed more lift from the town's venues than random acts of their tier; another country's venues did it at 18. Not shown: at 33 real festivals, Undercard's shortlists held 3 of the acts the festivals actually booked; the AI model alone held 11. Neither test bar was met."
 
-### 7. End (1:43 to 1:52)
+### 7. End (1:45 to 1:54)
 
 **On screen:** the poster, the live demo's address (undercard-daniel-51ed.vercel.app), "Built on Qloo" and "Narration: AI voiceover" (with the tool's name, once it is chosen).
 

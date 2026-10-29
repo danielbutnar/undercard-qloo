@@ -38,7 +38,7 @@ The demo festival, Sagebrush Sound, is fictional: Boise, Idaho, with Khruangbin 
 
 Each of these tests had its bar written into docs/evidence.md before its first call, and each result is reported as it came.
 
-- **SHOWN: 244 of 290** (section 37, 28 October 2026). 244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a music venue abroad of similar Qloo popularity. By a rule written before the test, that result set Undercard 2.0's bar: a local lift of 5 places.
+- **SHOWN: 244 of 290** (section 37, 28 October 2026). 244 of the 290 acts Undercard 1.0 booked (its bills of 21 October) climbed at least 5 places more with the town venue that put them on the bill than with a music venue abroad of similar Qloo popularity. By a rule written before the test, that result set Undercard 2.0's bar: a local lift of 5 places.
 - **PARTLY SHOWN: 20 of 30** (sections 26 and 34, 21 and 22 October 2026). 20 of 30 real festivals where the acts booked showed more lift from the town's venues than random acts of their tier; another country's venues did it at 18.
 - **NOT SHOWN: 3 vs 11** (section 38, 28 October 2026). At 33 real festivals, Undercard's shortlists held 3 of the acts the festivals actually booked; the AI model alone held 11. Neither test bar was met.
 
@@ -60,7 +60,7 @@ So Undercard doesn't claim to pick what festivals would book, or to beat asking 
 - `/search`: each booked headliner, and each local pick.
 - `/v2/tags`: the tag Qloo puts on live music venues.
 - `/v2/insights` with `filter.type=urn:entity:place`: the town's tagged places, and the control town's music venues.
-- `/v2/analysis/compare`: the genres the headliners share, which rank the genres a card shows.
+- `/v2/analysis/compare`: the taste tags the headliners share, for the AI agent's plan. The genre check counts the headliners' own genre tags.
 - `/v2/insights` with `filter.type=urn:entity:artist`: each tier ranked for the headliners alone, then with a venue's fans added, then with its control's, always inside the tier's popularity range and with the crowd's age.
 - `/v2/insights` with `signal.location.query`: Qloo's location signal for the town, a second reading on the card, outside the rule.
 - `/v2/insights` with `feature.explainability=true`: Qloo's own split of each act's match by input, a line on its card, read from the cache.

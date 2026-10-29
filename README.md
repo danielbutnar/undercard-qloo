@@ -136,7 +136,7 @@ result count.
 | `GET /search` | Resolve each booked headliner (names only in the seed) to a Qloo entity, and look up each local pick the agent names. |
 | `GET /v2/tags` | Find the tag Qloo puts on live music venues. |
 | `GET /v2/insights` with `filter.type=urn:entity:place` | List the festival town's places with that tag, where the agent picks music venues as anchors, and the control town's music venues. |
-| `GET /v2/analysis/compare` | Find the taste tags the two headliners share; they rank the two tags each card shows. |
+| `GET /v2/analysis/compare` | Find the taste tags the two headliners share, for the AI agent's plan. The genre check counts the headliners' own genre tags. |
 | `GET /v2/insights` with `filter.type=urn:entity:artist` | Rank artists inside each tier's popularity range (`filter.popularity.min/max`) with the crowd's age (`signal.demographics.age`): first for the headliners alone, then for the headliners plus one anchor venue in `signal.interests.entities`, then plus that venue's control instead. |
 | `GET /v2/insights` with `signal.location.query` | Qloo's location signal for the town, over the lineup's own acts (`filter.results.entities`): a second reading on each card, never the basis for booking. |
 | `GET /v2/insights` with `feature.explainability=true` | For each fee range of a saved build, the headliners and that range's venues together as the signal and the range's lineup acts as `filter.results.entities`: Qloo's own split of each act's match by input, one small line on its card. Made once per saved build by `scripts/attribution-warm.ts`; the page reads it from the cache only. |
