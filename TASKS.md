@@ -740,7 +740,7 @@ Binding until 05:45 Bucharest on Saturday 31 October (03:45 UTC). Until Wednesda
 - [x] WS13, Daniel's 19:20 correction before the second run: the client keeps its own retries (section 8, up to 5); the agent adds none on top (its one retry only for a call the client didn't retry); every retry counted and stated with every call count, stop lines included (all four reasons); retries stop where they'd pass the route's 120 s and the bill says it may be short; each refused finish recorded in the saved build (merged 6dbb5ea; tightened at 22:20 in 7f0d154)
 - [ ] Before the deploy, with a test: a venue with no fan data never enters the assembly (WS13's latent bug; Daniel, 19:20)
 - [ ] The merge report for ws13: the departures (.design/orchestrator/ws13-four-changes-departures.md) and the two lines in WS12's files; the second comparison lists every not_music_venues use and whether a town ended on one room because of it
-- [ ] The four other timing tests (redesign/flights, final-chart/live-banner, method/switch-screens, method/fan-data-screens) on a fake clock, test-first with the slow clock, after WS12 has merged and before the deploy (Daniel, 19:00)
+- [x] The four other timing tests (redesign/flights, final-chart/live-banner, method/switch-screens, method/fan-data-screens) on a fake clock, test-first with the slow clock, after WS12 has merged and before the deploy (Daniel, 19:00) (timing 6ecd672, 4d182d3, f685917, afbf4fe, merged into integration 096f1f5; the slow machine waits 15 s, not 2 s, since the old waits allowed 8 and 12 s)
 - [ ] WS13: the hidden stopped call, before the 2.0 deploy (a failed or busy call retried once; then the trace names the venue not checked and the page says the bill may be short; tested with a fake that fails a control call)
 - [x] Section 38's dated addition before any call: the four readings and the known limit (3d241d3)
 - [ ] Section 38's script: Daniel's changes of 28 October (the expected model spend before the probe and a 1.5 times ceiling, model calls one at a time with no SDK retries, a stop at the first model rate-limit answer, N = 12 capped at 10); its windows proposed after the 29 re-runs
@@ -750,3 +750,9 @@ Binding until 05:45 Bucharest on Saturday 31 October (03:45 UTC). Until Wednesda
 - [ ] Deploy on Daniel's yes; his panel re-run; its defects as WS18
 - [ ] The freeze, WS17 and the submission (Thursday 29 October), improved until the deadline
 - [ ] Round 2: counts into evidence 36 when the notes arrive; its Qloo calls counted against .design/orchestrator/qloo-cache-keys-round2-start.txt
+- [x] Section 39 (Daniel, 29 October 11:05): considered and not drafted; no new call
+- [x] Section 38's dated additions (Daniel, 11:05): the audit, the in-band reading (B 5, A 3, C 2), N = 0, the seven one-line items, the spend corrected to $3.16 at the pricing page's prices (18ee9a4); the evidence page's audit line (6e7ec7b); the after-window check copied to .design/evidence-38/
+- [x] The narrower count named exactly where 3/2/1 stays in docs (18ee9a4); section 31's test 2 corrected, dated: the rule counts only the headliners' own genre tags (18ee9a4); the comment at the filter (2de8d23)
+- [ ] The NOT SHOWN fold replaced with Daniel's 11:05 text, and the SHOWN stamp naming Undercard 1.0's bills of 17 and 18 October, on the site (WS12), before the push
+- [x] The app's name folding checked (.design/orchestrator/name-folding-check.md): the fold covers ı, ø, ł, ß and æ, but a name typed in plain ASCII misses a Qloo spelling that has one
+- [ ] Name folding fixed test-first in the deploy after this one (Daniel, 11:05)
