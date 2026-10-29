@@ -80,10 +80,13 @@ describe("plain words, round 2 (M6r)", () => {
   });
 
   // M6r: the plain word first, the buyer's word once in brackets. WS9's first screen says
-  // poster, lineup and slots, and never the buyer's "bill" on its own.
+  // poster, lineup and slots, and never the buyer's "bill" on its own, but for the town's note:
+  // since WS18 item 2 it is Daniel's sentence, "...fans lifted 8 acts onto this bill and...".
   it("never says a bare bill", async () => {
     await firstScreen();
-    const text = visibleText().replace("lineup (the bill)", "");
+    const text = visibleText()
+      .replace("lineup (the bill)", "")
+      .replace(/ onto this bill\b/g, "");
     expect(text).not.toMatch(/\bbill\b/i);
   });
 
