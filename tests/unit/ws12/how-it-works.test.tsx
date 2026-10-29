@@ -130,7 +130,7 @@ describe("How it works as the director's cut of Watch (WS12 item 2)", () => {
       ["Not shown", "3 vs 11"],
     ]);
     expect(stamps[0].textContent).toContain(
-      "244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a music venue abroad of similar Qloo popularity.",
+      "244 of the 290 acts Undercard 1.0 booked (its bills of 17 and 18 October) climbed at least 5 places more with the town venue that put them on the bill than with a music venue abroad of similar Qloo popularity.",
     );
     const not = stamps[2];
     expect(not.querySelector(".dc-verdict-line")?.textContent).toBe(
@@ -140,7 +140,7 @@ describe("How it works as the director's cut of Watch (WS12 item 2)", () => {
     const how = not.querySelector("details")!;
     expect(how.querySelector("summary")?.textContent).toBe("How we tested");
     expect(how.textContent).toContain(
-      "All three shortlists had the same headliners and the same brief, and a hit is any act on the festival's lineup except its headliners. 6 of the model's 11 hits are acts outside the fee bands Undercard is given. Counting only the booked acts inside those bands: Undercard 3, the model 2, Undercard with another country's venues 1. The model may also recall real lineups from its training. Against Undercard with another country's venues, Undercard won 3 festivals to 2, which doesn't meet that bar either.",
+      "All three shortlists had the same headliners and the same brief, and a hit is any act on the festival's lineup except its headliners. 6 of the model's 11 hits are acts outside the fee bands Undercard is given; inside them, the model held 5, Undercard 3 and Undercard with another country's venues 2. The model may also recall real lineups from its training. Asked for an undercard in 29 towns (section 31), the same model put 204 of the 268 picks Qloo found above the top of those fee bands. Against Undercard with another country's venues, Undercard won 3 festivals to 2, which doesn't meet that bar either.",
     );
     // Each stamp links its section of docs/evidence.md.
     expect(
