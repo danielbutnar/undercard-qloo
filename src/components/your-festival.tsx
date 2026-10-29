@@ -8,6 +8,7 @@ import {
   checkedTownLabel,
   type CheckedTown,
 } from "@/lib/checked-towns";
+import { sameName } from "@/lib/pick-tests";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { Quilt } from "@/components/chart/sleeve";
 import { TopBar } from "@/components/chart/top-bar";
@@ -43,8 +44,8 @@ function problemWith(values: {
   return "Two different headliners, please.";
 }
 
-const same = (a: string, b: string) =>
-  a.trim().toLowerCase() === b.trim().toLowerCase();
+// The search finds the same acts for both spellings, so the names compare folded (WS18).
+const same = sameName;
 
 /** The headliners are still the demo's, in either order. */
 function demoHeadliners({ first, second }: { first: string; second: string }) {
@@ -241,7 +242,10 @@ export function YourFestival({
             </p>
           )}
           {freeText && (
-            <section aria-labelledby="free-town-title" className="panel yours-free">
+            <section
+              aria-labelledby="free-town-title"
+              className="panel yours-free"
+            >
               <h2 id="free-town-title" className="panel-title">
                 Or name another town
               </h2>

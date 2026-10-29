@@ -1314,9 +1314,12 @@ export async function withoutFromStore(
     for (const pick of answer.data.picks) {
       let found = null;
       try {
+        // Section 18's normalising, as section 31 counted; the app folds accents too (WS18).
         found = foundOnQloo(
           pick.name,
           (await qloo.search({ query: pick.name })).data,
+          undefined,
+          normalise,
         );
       } catch (error) {
         if (!(error instanceof QlooCacheMiss)) throw error;

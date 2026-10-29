@@ -7,7 +7,7 @@ import {
 import type { TraceCall } from "@/lib/build-events";
 import { FEE_BAND_IDS, feeBandFor } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
-import { foundOnQloo, pickTests } from "@/lib/pick-tests";
+import { foundOnQloo, normalise, pickTests } from "@/lib/pick-tests";
 import {
   climbOf,
   distinctNames,
@@ -118,7 +118,9 @@ export type ResolvedName =
  * Step 1: each name once, searched on Qloo as an artist; its act is the first of search's top
  * five that matches it after section 18's normalising (foundOnQloo), so a near miss is not found,
  * never guessed. A match needs the same normalised name, so two names for one act are a repeat
- * before any search. A headliner is marked, not ranked; a search not made is not checked.
+ * before any search. A headliner is marked, not ranked; a search not made is not checked. The
+ * pitch check keeps section 18's rule until Daniel says yes to folding it (WS18): the fold finds
+ * a pick of Boise's example whose rankings the cache doesn't hold, so the example would move.
  */
 export async function resolveNames({
   names,
@@ -143,7 +145,7 @@ export async function resolveNames({
   const acts = typed.names.map((name, index): ResolvedName => {
     const result = results[index];
     if (!result) return { name, status: "not-checked" };
-    const artist = foundOnQloo(name, result.data, tagWeights);
+    const artist = foundOnQloo(name, result.data, tagWeights, normalise);
     if (!artist) return { name, status: "not-found" };
     return {
       name,

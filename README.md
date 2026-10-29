@@ -332,8 +332,8 @@ on Qloo.
   act's rank beside its climb, wrote every why line as "With <venue>'s fans added to the
   headliners'", stopped Without Qloo's headline grading the model on a number it never saw, put
   popularity on the tiers' 0-100 scale, made Watch land its first act within 3 s and end on a
-  reveal, folded accents before a Qloo search says "no match", and wrote sections 37 and 38 of
-  [docs/evidence.md](docs/evidence.md), with the bars I set, before any of their calls.
+  reveal, folded accents before a Without Qloo check says "no match", and wrote sections 37 and
+  38 of [docs/evidence.md](docs/evidence.md), with the bars I set, before any of their calls.
 - 28 October: Claude (Opus 5.5) built Agent 2.0: fan data first, reading until every tier is
   full within a cap of 28 Qloo calls, a control abroad for every venue and the local-lift bar
   that section 37's result set, Qloo's location signal as a second reading on the card, the
@@ -349,7 +349,9 @@ on Qloo.
 - 29 October: Claude (Opus 5.5) wrote section 38's result into docs/evidence.md as it came,
   rewrote docs/devpost-story.md and this README's testing instructions and AI usage, wrote
   the narration in docs/video-script.md, pinned `pnpm evidence:check`'s section-31 claims to
-  the 1.0 builds that section measured, and redrew docs/architecture.svg for Agent 2.0.
+  the 1.0 builds that section measured, and redrew docs/architecture.svg for Agent 2.0. It
+  matched the model's picks, the AI's local picks and the headliners to Qloo's spellings with
+  accents folded on both sides, and gave the headliner search a second, folded search.
 - Kept current as each milestone lands.
 
 ## Built on
