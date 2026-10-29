@@ -161,12 +161,18 @@ describe("How it works as the director's cut of Watch (WS12 item 2)", () => {
     ]);
   });
 
-  it("keeps the 29 towns' line out of the stamps, in the method fold", () => {
+  it("puts the old SHOWN stand-in and the 2.0 re-runs' numbers in the method fold (Daniel, 29 Oct)", () => {
     page();
     const tested = screen.getByRole("region", { name: "What was tested" });
     const fold = tested.querySelector("details.dc-method")!;
     expect(fold.querySelector("summary")?.textContent).toBe("The method");
-    expect(fold.textContent).toMatch(/^The methodAcross 29 towns, /);
+    expect(
+      [...fold.querySelectorAll("p")].map((line) => line.textContent),
+    ).toEqual([
+      "In all 29 checked towns, the AI agent drafted a full bill from the town's own venues, and every Qloo call is listed.",
+      "In the 2.0 re-runs of 28 October: 290 acts in 29 full bills, from 17 to 28 Qloo calls a build; 28 towns read two venues with fan data, and Bozeman one, the only one Qloo had fan data for there.",
+      "Across 29 towns, the model alone and Qloo share one act, in one town.",
+    ]);
     for (const stamp of tested.querySelectorAll(".dc-verdict"))
       expect(stamp.textContent).not.toContain("Across 29 towns");
   });

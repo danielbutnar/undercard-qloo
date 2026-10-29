@@ -1,0 +1,17 @@
+{
+  "computedAt": "2026-10-29",
+  "basis": "The 29 re-run builds of 28 October (Agent 2.0) beside the model's saved picks, matched by name; counted by the orchestrator. Section 31's 1.0 record stays in with-without-qloo.json.",
+  "towns": 29,
+  "sharedActs": 1,
+  "townsSharingAnAct": 1,
+  "townsShared": ["Duluth"],
+  "reruns": {
+    "date": "28 October",
+    "acts": 290,
+    "bills": 29,
+    "callsMin": 17,
+    "callsMax": 28,
+    "twoVenueTowns": 28,
+    "oneVenueTown": "Bozeman"
+  }
+}

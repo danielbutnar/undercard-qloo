@@ -12,7 +12,7 @@ test.skip(SYNTHETIC === "empty", "needs a saved build");
 const CHECK_LINE =
   /^Picked without Qloo; (on Qloo: popularity \d+(st|nd|rd|th), (in|above|below) the (mid-size|opening) range · (no genres|1 genre|\d+ genres) shared · (a climb with one of|no climb with) .+'s venues|not found on Qloo|not checked on Qloo)$/;
 const CHECKS_LINE =
-  /^Across \d+ towns, the model alone picked \d+ acts; Qloo found \d+ of them\. Of those \d+, \d+ sit above the fee range, \d+ share two genres with the headliners, and \d+ pass all three of the rule's checks\.$/;
+  /^Across \d+ towns, the model alone picked \d+ acts; Qloo found \d+ of them\. Of those \d+, \d+ sit above the fee range, and \d+ share two genres with the headliners\.$/;
 
 async function withoutQloo(page: Page) {
   await page.goto("/");

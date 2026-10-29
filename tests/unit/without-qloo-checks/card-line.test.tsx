@@ -138,10 +138,13 @@ describe("each card, one line in the small style", () => {
   });
 });
 
+// Daniel, 29 Oct (09:45): "pass all three of the rule's checks" was the 1.0 rule's, so the
+// line keeps only what it says of the model's picks.
 const CHECKS_LINE =
-  "Across 29 towns, the model alone picked 290 acts; Qloo found 268 of them. Of those 268, 204 sit above the fee range, 235 share two genres with the headliners, and 10 pass all three of the rule's checks.";
+  "Across 29 towns, the model alone picked 290 acts; Qloo found 268 of them. Of those 268, 204 sit above the fee range, and 235 share two genres with the headliners.";
+// How it works' own line, recounted from the 2.0 re-runs: the shared acts only.
 const OLD_LINE =
-  /^Across \d+ towns, the model alone and Qloo share [^,]+(, in [^,]+)?, and \d+ of the model's \d+ picks pass all three checks\.$/;
+  /^Across \d+ towns, the model alone and Qloo share [^,]+, in [^,]+\.$/;
 
 function open(body: unknown) {
   vi.stubGlobal(
