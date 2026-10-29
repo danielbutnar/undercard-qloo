@@ -648,7 +648,9 @@ export function MethodEvidencePage() {
                   That Undercard finds the acts festivals actually book: at 33
                   real festivals its shortlists didn&apos;t beat the model
                   alone, or the same agent with another country&apos;s venues (
-                  <Ev to="yardstick">section 38</Ev>).
+                  <Ev to="yardstick">section 38</Ev>). Audited on 29 October by
+                  an agent that didn&apos;t write the script: every count
+                  reproduced from the saved answers.
                 </li>
               </ul>
               <p className="mt-2 text-label">

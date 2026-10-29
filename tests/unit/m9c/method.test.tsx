@@ -128,6 +128,20 @@ describe("the method page (M9c)", () => {
     expect(headings).toContain(link.getAttribute("href")!.split("#")[1]);
   });
 
+  // Daniel, 2026-10-29 11:05: section 38's entry says the audit reproduced its counts.
+  it("says on section 38's entry that the audit reproduced every count", () => {
+    render(<MethodEvidencePage />);
+    const limits = screen.getByRole("region", {
+      name: "What these numbers don't establish",
+    });
+    const entry = within(limits)
+      .getByRole("link", { name: "section 38" })
+      .closest("li");
+    expect((entry?.textContent ?? "").replace(/\s+/g, " ")).toContain(
+      "Audited on 29 October by an agent that didn't write the script: every count reproduced from the saved answers.",
+    );
+  });
+
   it("loads the video only when it's played", () => {
     render(<MethodPage videoUrl="https://example.org/demo.mp4" />);
     expect(document.querySelector("video, iframe")).toBeNull();
