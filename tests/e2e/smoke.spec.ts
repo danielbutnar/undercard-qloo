@@ -18,8 +18,9 @@ test("the home page shows Boise's ten acts", async ({ page }) => {
 });
 
 // Live runs no longer replace the saved builds (Daniel's brief of 2026-10-21, night), so the
-// first screen stays the build the video, the stills and docs/evidence.md describe.
-test("the home page still opens on the build saved Oct 17, 12:13 UTC", async ({
+// first screen stays the build the video, the stills and docs/evidence.md describe: since the 2.0
+// deploy (29 October), Boise's re-run build of 28 October.
+test("the home page still opens on the build saved Oct 28, 20:35 UTC", async ({
   page,
 }) => {
   test.skip(
@@ -30,7 +31,7 @@ test("the home page still opens on the build saved Oct 17, 12:13 UTC", async ({
   await expect(
     page
       .getByRole("region", { name: "Undercard draft" })
-      .getByText("saved Oct 17, 12:13 UTC"),
+      .getByText("saved Oct 28, 20:35 UTC"),
   ).toBeVisible();
 });
 
