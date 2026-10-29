@@ -57,6 +57,7 @@ import {
 } from "@/components/chart/town-scene";
 import { PageEnd, Setlist } from "@/components/chart/setlist";
 import {
+  buildCallCount,
   buildRetryCount,
   marginNote,
   setlistLines,
@@ -1077,18 +1078,38 @@ export function FestivalScreen({
   }
   // The setlist (WS12 item 1): the calls of the run on screen once one streams in, else the
   // saved build's, with the AI agent's lines where it said them.
-  const streamed = state.calls.length > 0;
+  // The run on screen: one that streamed its own build calls and didn't fail. Otherwise the bill
+  // is still the saved build's (WS12 item 9: a failed live run left "0 Qloo calls"), so the
+  // setlist lists its calls, then any refill made since.
+  const ownRunCalls = state.calls.some(
+    (call) =>
+      call.tool !== "refill" &&
+      call.tool !== "redraft" &&
+      call.tool !== "running_order",
+  );
+  // A run that failed with a saved build behind it falls back to that build; a short bill
+  // (not-full) is still the run's, and a judge's own festival has no saved build to show.
+  const failedOverSaved =
+    state.status === "error" &&
+    firstBill !== null &&
+    state.errorCode !== "not-full";
+  const streamed = ownRunCalls && !failedOverSaved;
   const setlistTrace: TraceCall[] = streamed
     ? state.calls
-    : onFirst
-      ? (firstBill?.trace ?? [])
-      : [];
+    : [...(firstBill?.trace ?? []), ...(ownRunCalls ? [] : state.calls)];
   const setlist = setlistLines(setlistTrace, {
     venues: allVenues,
     bands: festival.feeBands,
     noFanData: fanless,
     notes: streamed ? state.notes : (firstBill?.notes ?? []),
   });
+  // The drafted line's count: the build's, or, on a run cut short with acts on the poster
+  // (not-full), the calls it made (WS12 item 9: it said "No undercard drafted yet.").
+  const draftedCalls =
+    calls ??
+    (bookedActs.length > 0 && streamed
+      ? buildCallCount(setlist.lines)
+      : undefined);
   // The build's retries, from its trace (WS13): said wherever its call count is (Daniel, 19:20).
   const retries = plusRetries(buildRetryCount(setlist.lines));
   // Each venue's colour as the poster sets it: grey (none) for a venue that lifted no act.
@@ -1601,10 +1622,10 @@ export function FestivalScreen({
         />
       )}
       <p className="drafted">
-        {calls && state.build?.createdAt
+        {draftedCalls && state.build?.createdAt
           ? liveOnly
-            ? `Drafted from ${calls} Qloo calls the AI agent planned${retries} · run live ${savedAt.format(new Date(state.build.createdAt))} UTC, not saved for other visitors`
-            : `Drafted from ${calls} Qloo calls the AI agent planned${retries} · saved ${savedAt.format(new Date(state.build.createdAt))} UTC`
+            ? `Drafted from ${draftedCalls} Qloo calls the AI agent planned${retries} · run live ${savedAt.format(new Date(state.build.createdAt))} UTC, not saved for other visitors`
+            : `Drafted from ${draftedCalls} Qloo calls the AI agent planned${retries} · saved ${savedAt.format(new Date(state.build.createdAt))} UTC`
           : state.status === "building"
             ? "The AI agent is drafting the undercard."
             : "No undercard drafted yet."}
