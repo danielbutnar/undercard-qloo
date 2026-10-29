@@ -385,6 +385,21 @@
   line-height: 1.35;
 }
 
+/* The sections' headings ("Who does what", "What was tested"), in the landing's type scale: the
+   door check's and the setlist's heading (backstage.css). They were unstyled (WS12, 29 Oct). */
+.chart-app.fs.directors-cut .dc-heading {
+  margin-bottom: 18px;
+  font-family: var(--font-display);
+  font-size: var(--text-band);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+@media (max-width: 599px) {
+  .chart-app.fs.directors-cut .dc-heading {
+    font-size: 32px;
+  }
+}
+
 /* What was tested: one sheet, three rubber stamps. */
 .chart-app.fs.directors-cut .dc-verdicts {
   display: grid;
@@ -439,6 +454,35 @@
   font-size: var(--text-body);
   font-weight: 600;
   line-height: 1.4;
+}
+/* A stamp's "How we tested" and its source, and the method fold under the stamps (29 Oct). */
+.chart-app.fs.directors-cut .dc-verdict-how,
+.chart-app.fs.directors-cut .dc-method {
+  font-size: var(--text-label);
+  line-height: 1.45;
+}
+.chart-app.fs.directors-cut .dc-verdict-how summary,
+.chart-app.fs.directors-cut .dc-method summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.chart-app.fs.directors-cut .dc-verdict-how p {
+  margin-top: 4px;
+}
+.chart-app.fs.directors-cut .dc-verdict-source {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+.chart-app.fs.directors-cut .dc-method {
+  margin-top: 22px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -504,4 +548,3 @@
     font-size: 52px;
   }
 }
-

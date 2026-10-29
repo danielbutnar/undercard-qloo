@@ -98,8 +98,7 @@ export function MethodPage({
         </p>
 
         <div className="chart-app fs directors-cut">
-          <TestedStamps>
-            <WithWithoutLine />
+          <TestedStamps method={<WithWithoutLine />}>
             <p className="mt-3 text-label">
               <Link href="/method/evidence" className="link">
                 The evidence: every test with its result, limit and source, and

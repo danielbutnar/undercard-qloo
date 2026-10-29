@@ -13,6 +13,7 @@ import { LOCAL_LIFT_BAR, MIN_LIFT } from "@/lib/assemble-lineup";
 import type { Festival } from "@/lib/festival";
 import { formatPopularityRange } from "@/lib/format";
 import { actsInBand, type Act } from "@/lib/lineup";
+import { evidenceHref } from "@/lib/method";
 import type { MethodStory } from "@/lib/method-story";
 import { venueHues } from "@/lib/venue-colours";
 
@@ -450,28 +451,56 @@ export function BackstagePasses({
  * other stamps' words wait for WS14.3 (placeholders from today's page); a NOT SHOWN stamp says
  * what isn't shown in words, never a dash.
  */
-const TESTED = [
+const TESTED: readonly {
+  id: "shown" | "partly" | "not";
+  verdict: string;
+  big: string;
+  line: string;
+  /** The test's section of docs/evidence.md, by its heading. */
+  section: string;
+  /** "How we tested", where Daniel gave its words. */
+  how?: string;
+}[] = [
   {
     id: "shown",
     verdict: "Shown",
     big: "244 of 290",
     line: "244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a music room abroad of similar Qloo popularity.",
+    section:
+      "37. The control test across the 29 towns, written before any call",
   },
   {
     id: "partly",
     verdict: "Partly shown",
     big: "20 of 30",
     line: "real festivals where the acts booked showed more lift from the town's venues than random acts of their tier; another country's venues did it at 18.",
+    section: "34. Two controls for the premise test, written before any call",
   },
   {
+    // Section 38 (Daniel, 29 October): said plainly, at the same weight as the other two.
     id: "not",
     verdict: "Not shown",
-    big: "Not measured",
-    line: "that the town's crowd knows these acts, or that they would sell tickets, take the slot or fit a budget.",
+    big: "3 vs 11",
+    line: "At 33 real festivals, Undercard's shortlists held 3 of the acts the festivals actually booked; the AI model alone held 11. Neither test bar was met.",
+    section:
+      "38. An outside yardstick at real festivals, written before any call",
+    how: "All three shortlists had the same headliners and the same brief, and a hit is any act on the festival's lineup except its headliners. 6 of the model's 11 hits are acts outside the fee bands Undercard is given. Counting only the booked acts inside those bands: Undercard 3, the model 2, Undercard with another country's venues 1. The model may also recall real lineups from its training. Against Undercard with another country's venues, Undercard won 3 festivals to 2, which doesn't meet that bar either.",
   },
-] as const;
+];
 
-export function TestedStamps({ children }: { children?: ReactNode }) {
+/**
+ * What was tested (WS12 item 2) as rubber stamps, in Daniel's words of 29 October: section 37
+ * SHOWN, the premise test's second round PARTLY SHOWN, and section 38 NOT SHOWN, each with its
+ * number, its sentence and a link to its section of docs/evidence.md. `method` is the method
+ * fold under them (the 29 towns' line); `children` follow it.
+ */
+export function TestedStamps({
+  method,
+  children,
+}: {
+  method?: ReactNode;
+  children?: ReactNode;
+}) {
   const reveal = useReveal<HTMLElement>();
   return (
     <section ref={reveal} aria-labelledby="dc-tested" className="dc-tested">
@@ -486,11 +515,31 @@ export function TestedStamps({ children }: { children?: ReactNode }) {
             style={{ "--i": index } as CSSProperties}
           >
             <span className="dc-verdict-stamp">{entry.verdict}</span>
-            <span className="verdict-number">{entry.big}</span>
+            <span className="verdict-number dc-verdict-number">
+              {entry.big}
+            </span>
             <span className="dc-verdict-line">{entry.line}</span>
+            {entry.how && (
+              <details className="dc-verdict-how">
+                <summary>How we tested</summary>
+                <p>{entry.how}</p>
+              </details>
+            )}
+            <a
+              href={evidenceHref(entry.section)}
+              className="link dc-verdict-source"
+            >
+              Evidence, section {entry.section.split(".")[0]}
+            </a>
           </li>
         ))}
       </ul>
+      {method && (
+        <details className="dc-method">
+          <summary>The method</summary>
+          {method}
+        </details>
+      )}
       {children}
     </section>
   );

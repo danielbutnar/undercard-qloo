@@ -12,6 +12,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MethodPage } from "@/components/method-page";
+import { evidenceAnchor } from "@/lib/method";
 import { methodStory } from "@/lib/method-story";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { syntheticVenueSwitch } from "../../e2e/synthetic-build";
@@ -112,18 +113,62 @@ describe("How it works as the director's cut of Watch (WS12 item 2)", () => {
     ]);
   });
 
-  it("stamps what was tested: section 37 shown in Daniel's words, and what isn't shown in words", () => {
+  it("stamps what was tested in Daniel's words of 29 October: shown, partly shown, not shown", () => {
     page();
     const tested = screen.getByRole("region", { name: "What was tested" });
-    const stamps = within(tested).getAllByRole("listitem");
+    const stamps = within(tested)
+      .getAllByRole("listitem")
+      .filter((item) => item.classList.contains("dc-verdict"));
+    expect(
+      stamps.map((stamp) => [
+        stamp.querySelector(".dc-verdict-stamp")?.textContent,
+        stamp.querySelector(".verdict-number")?.textContent,
+      ]),
+    ).toEqual([
+      ["Shown", "244 of 290"],
+      ["Partly shown", "20 of 30"],
+      ["Not shown", "3 vs 11"],
+    ]);
     expect(stamps[0].textContent).toContain(
       "244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a music room abroad of similar Qloo popularity.",
     );
-    const not = stamps.at(-1)!;
-    expect(not.textContent).toMatch(/^Not shown/);
-    expect(not.querySelector(".verdict-number")?.textContent).toMatch(
-      /[A-Za-z]{3}/,
+    const not = stamps[2];
+    expect(not.querySelector(".dc-verdict-line")?.textContent).toBe(
+      "At 33 real festivals, Undercard's shortlists held 3 of the acts the festivals actually booked; the AI model alone held 11. Neither test bar was met.",
     );
+    // Under "How we tested", word for word.
+    const how = not.querySelector("details")!;
+    expect(how.querySelector("summary")?.textContent).toBe("How we tested");
+    expect(how.textContent).toContain(
+      "All three shortlists had the same headliners and the same brief, and a hit is any act on the festival's lineup except its headliners. 6 of the model's 11 hits are acts outside the fee bands Undercard is given. Counting only the booked acts inside those bands: Undercard 3, the model 2, Undercard with another country's venues 1. The model may also recall real lineups from its training. Against Undercard with another country's venues, Undercard won 3 festivals to 2, which doesn't meet that bar either.",
+    );
+    // Each stamp links its section of docs/evidence.md.
+    expect(
+      stamps.map(
+        (stamp) =>
+          within(stamp).getByRole("link").getAttribute("href")?.split("#")[1],
+      ),
+    ).toEqual([
+      evidenceAnchor(
+        "37. The control test across the 29 towns, written before any call",
+      ),
+      evidenceAnchor(
+        "34. Two controls for the premise test, written before any call",
+      ),
+      evidenceAnchor(
+        "38. An outside yardstick at real festivals, written before any call",
+      ),
+    ]);
+  });
+
+  it("keeps the 29 towns' line out of the stamps, in the method fold", () => {
+    page();
+    const tested = screen.getByRole("region", { name: "What was tested" });
+    const fold = tested.querySelector("details.dc-method")!;
+    expect(fold.querySelector("summary")?.textContent).toBe("The method");
+    expect(fold.textContent).toMatch(/^The methodAcross 29 towns, /);
+    for (const stamp of tested.querySelectorAll(".dc-verdict"))
+      expect(stamp.textContent).not.toContain("Across 29 towns");
   });
 });
 
