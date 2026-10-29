@@ -258,7 +258,7 @@ const ROWS: Row[] = [
     to: "festival",
     group: "product",
     what: "Can a festival filed as a place be told apart from a venue?",
-    result: "Labelled, booking unchanged",
+    result: "Labelled, picks unchanged",
     chip: "go",
     limit: "The rule fits the one case seen",
   },
@@ -552,8 +552,8 @@ export function MethodEvidencePage() {
                 <p>
                   In every replay: the agent (Claude) plans the Qloo calls:
                   which venues to read, in what order, within 12 calls. Qloo
-                  supplies every ranking, affinity and popularity. The
-                  app&apos;s own rule books the acts: a climb of 5 places or
+                  supplies every ranking, affinity and popularity. A fixed rule
+                  picks the acts: a climb of 5 places or
                   more, inside the fee range, two genres shared with the
                   headliners. The model doesn&apos;t choose the acts (
                   <Ev to="decides">evidence 22</Ev>).

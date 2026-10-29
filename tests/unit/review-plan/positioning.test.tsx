@@ -17,7 +17,9 @@ afterEach(() => {
 
 const SHORTLIST =
   "drafts a shortlist with its evidence attached; the buyer makes every call";
-const PRINCIPLE = "Qloo decides, the model plans, the rule books.";
+// WS18 item 1 (Daniel, 2026-10-29): the README's line, word for word.
+const PRINCIPLE =
+  "The AI agent plans the Qloo calls, Qloo knows the taste, and a fixed rule picks the acts. The buyer makes every call.";
 const quiet = () =>
   vi.stubGlobal(
     "fetch",

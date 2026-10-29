@@ -83,7 +83,8 @@ describe("The band charts with the synthetic lineup", () => {
       screen.getByRole("region", { name: "Act card" }),
     ).getByRole("article", { name: "Hollow Pines" });
     expect(within(card).getByText("0.94")).toBeTruthy();
-    expect(within(card).getByText("91")).toBeTruthy();
+    // WS18 item 1: popularity out of 100, never an ordinal.
+    expect(within(card).getByText("91/100")).toBeTruthy();
     expect(within(card).getByText("Why it's here:")).toBeTruthy();
     expect(
       within(card).getByText("The Lantern Room fans move it up 11 places."),
@@ -120,12 +121,12 @@ describe("The band charts with the synthetic lineup", () => {
     );
     expect(
       screen.getByText(
-        /^4 slots · fee range \(Mid\):.*\(80th–92nd percentile\)$/,
+        /^4 slots · fee range:.*, 80–92 out of 100$/,
       ),
     ).toBeTruthy();
     expect(
       screen.getByText(
-        /^6 slots · fee range \(Opener\):.*\(55th–80th percentile\)$/,
+        /^6 slots · fee range:.*, 55–80 out of 100$/,
       ),
     ).toBeTruthy();
   });

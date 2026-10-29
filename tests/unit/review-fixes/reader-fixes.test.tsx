@@ -96,7 +96,11 @@ describe("the climb is Qloo's ranking, never the AI agent's", () => {
     // The rule key went with How an act gets on (WS12 items 1 and 7); the poster's rule line
     // says the climb the rule counts is Qloo's.
     expect(document.querySelector(".poster-rule")!.textContent).toContain(
-      `places it rose in Qloo's ranking with that venue's fans (${MIN_LIFT}+ to qualify)`,
+      "places it rose in Qloo's ranking with that venue's fans",
+    );
+    // Its bar is in the three checks under the acts (WS18 item 1).
+    expect(document.querySelector(".poster-checks")!.textContent).toContain(
+      `It climbs at least ${MIN_LIFT} places with a town venue's fans`,
     );
     fireEvent.click(screen.getByRole("button", { name: acts[0].name }));
     expect(

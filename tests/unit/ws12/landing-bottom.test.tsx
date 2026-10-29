@@ -105,11 +105,11 @@ describe("the door check", () => {
     });
     expect(
       within(ticket).getAllByRole("listitem", {
-        name: /^(Climb|Popularity|Genres)/,
+        name: /^Check [123], passed: /,
       }),
     ).toHaveLength(3);
     expect(door.textContent).toContain(
-      "4 slots · fee range (Mid): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (80th–92nd percentile)",
+      "4 slots · fee range: with no real fees to go on, how popular an act is on Qloo stands in for what it charges, 80–92 out of 100",
     );
   });
 
@@ -138,8 +138,7 @@ describe("the door check", () => {
         },
       },
     };
-    // The climbs in WS13's own words, whatever they become (Daniel, 2026-10-28).
-    const [own, abroad] = climbsLine(lifted)!.split(" · ");
+    // The climbs in Daniel's words of 29 October: "↑7 with …'s fans, ↑4 abroad".
     render(
       <Ticket
         act={lifted}
@@ -148,11 +147,13 @@ describe("the door check", () => {
         festival={SAGEBRUSH_SOUND}
       />,
     );
-    const stamp = screen.getByRole("listitem", { name: /^Climb/ });
-    expect(stamp.textContent).toContain("↑7");
+    const stamp = screen.getByRole("listitem", { name: /^Check 1/ });
+    // The local lift's ↑ is drawn (WS18 item 1); the climbs keep theirs in the body face.
+    expect(stamp.querySelector(".stamp-big svg")).not.toBeNull();
+    expect(stamp.querySelector(".stamp-big")!.textContent).toBe("7");
     expect(stamp.textContent).toContain("local lift");
-    expect(stamp.textContent).toContain(own);
-    expect(stamp.textContent).toContain(abroad);
+    expect(stamp.textContent).toContain("↑11 with The Lantern Room's fans");
+    expect(stamp.textContent).toContain("↑4 abroad");
     // The stamp's own label names the climbs in the same words, none of its own.
     expect(stamp.getAttribute("aria-label")).toContain(climbsLine(lifted)!);
   });

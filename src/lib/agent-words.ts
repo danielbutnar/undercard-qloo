@@ -1,4 +1,5 @@
 import { QLOO_CALL_CAP } from "./agent-limits";
+import { LOCAL_LIFT_BAR } from "./assemble-lineup";
 import { FEE_BAND_IDS, type FeeBand, type FeeBandId } from "./fee-bands";
 import {
   formatAffinity,
@@ -257,18 +258,17 @@ const climbWord = (places: number) =>
   places > 0 ? `↑${places}` : places < 0 ? `↓${-places}` : null;
 
 /**
- * The card's line on both climbs (WS13.3): with the town venue's fans, and with its control's,
- * worded as what it is (Daniel, 2026-10-28): a room in the control town with similar Qloo
- * popularity, never "matched". Null on a 1.0 act, which has no control.
+ * An act's first check in numbers (WS13.3; Daniel, 2026-10-29, WS18 item 1): its climb with the
+ * town venue's fans, its climb with the venue abroad of similar Qloo popularity, and the local
+ * lift between them against the bar, as "↑N with Venue 227's fans, ↓N abroad: a local lift of
+ * 22 (bar 5)". Null on a 1.0 act, which has no control.
  */
 export function climbsLine(
   act: Pick<Act, "anchorVenue" | "localLift">,
 ): string | null {
   if (!act.localLift) return null;
   const { venueClimb, controlClimb } = act.localLift;
-  const own = `${climbWord(venueClimb) ?? "no climb"} with ${act.anchorVenue.name}'s fans`;
-  const abroad = climbWord(controlClimb);
-  return `${own} · ${abroad ? `${abroad} with` : "no climb with"} a venue in ${act.localLift.control.town} with similar Qloo popularity`;
+  return `${climbWord(venueClimb) ?? "no climb"} with ${act.anchorVenue.name}'s fans, ${climbWord(controlClimb) ?? "no climb"} abroad: a local lift of ${venueClimb - controlClimb} (bar ${LOCAL_LIFT_BAR})`;
 }
 
 /**

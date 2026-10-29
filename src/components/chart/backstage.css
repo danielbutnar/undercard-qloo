@@ -776,3 +776,22 @@
   font-size: var(--text-label);
   translate: -50% -50%;
 }
+
+/* WS18 item 1: the door check lists the three checks in the card's words; the popularity
+   stamp reads out of 100. */
+.chart-app .door-checks {
+  margin-top: 8px;
+}
+.chart-app .stamp-of {
+  font-size: 0.42em;
+  letter-spacing: 0.02em;
+}
+/* On a laptop, the hint to point at an act, after the list. */
+.chart-app .door-point {
+  display: none;
+}
+@media (min-width: 1100px) {
+  .chart-app .door-point {
+    display: block;
+  }
+}

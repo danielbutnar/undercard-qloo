@@ -73,19 +73,19 @@ describe("what a shortlist row says (WS4, step 3)", () => {
 
   it("places its popularity against the two fee ranges", () => {
     const fee = (over: Partial<Found>) => feeWords(act(over), SAGEBRUSH_SOUND);
-    expect(fee({})).toBe("Qloo popularity 86th · in the mid-size range");
+    expect(fee({})).toBe("Qloo popularity 86/100 · in the mid-size range");
     expect(fee({ popularity: 0.64, band: "opener" })).toBe(
-      "Qloo popularity 64th · in the opening range",
+      "Qloo popularity 64/100 · in the opening range",
     );
     expect(fee({ popularity: 0.963, range: "above", band: null })).toBe(
-      "Qloo popularity 96th · above both ranges",
+      "Qloo popularity 96/100 · above both ranges",
     );
     // Just over the top edge reads one past it, never as the edge itself.
     expect(fee({ popularity: 0.9204, range: "above", band: null })).toBe(
-      "Qloo popularity 93rd · above both ranges",
+      "Qloo popularity 93/100 · above both ranges",
     );
     expect(fee({ popularity: 0.47, range: "below", band: null })).toBe(
-      "Qloo popularity 47th · below both ranges",
+      "Qloo popularity 47/100 · below both ranges",
     );
   });
 

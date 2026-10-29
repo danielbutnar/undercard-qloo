@@ -59,7 +59,7 @@ describe("the method page's results, drawn", () => {
     // repeat it. A screen reader, which the chip is hidden from, hears the word once.
     for (const [shown, chip, heard] of [
       ["With at most one extra Qloo call", "go", "Go: "],
-      ["Labelled, booking unchanged", "go", "Go: "],
+      ["Labelled, picks unchanged", "go", "Go: "],
       ["They are labelled instead", "no-go", "No-go: "],
     ]) {
       const cell = resultCell(shown);

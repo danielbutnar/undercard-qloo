@@ -163,7 +163,7 @@ describe("a saved trace line's control, as the page shows it (Daniel, 29 Oct, 09
         "Mid-band artists for the headliners and Strada Hall, a room in Bucharest with similar Qloo popularity, the control for Venue 227",
       ),
     ).toBe(
-      "Mid-tier artists for the headliners and Strada Hall, a venue in Bucharest with similar Qloo popularity, the control for Venue 227",
+      "Mid-size artists for the headliners and Strada Hall, a venue in Bucharest with similar Qloo popularity, the control for Venue 227",
     );
     expect(
       callWords(
@@ -174,7 +174,7 @@ describe("a saved trace line's control, as the page shows it (Daniel, 29 Oct, 09
     );
     // A venue's own name keeps its words.
     expect(callWords("Mid-band artists for The Lantern Room")).toBe(
-      "Mid-tier artists for The Lantern Room",
+      "Mid-size artists for The Lantern Room",
     );
   });
 });

@@ -22,7 +22,7 @@ describe("the poster's rule line (WS12 item 7)", () => {
   it("defines NEW right after ↑ when an act is new to the top 50", () => {
     expect(NEW_KEY).toBe("NEW = rose into Qloo's top 50");
     expect(ruleLine(true)).toBe(
-      "↑ = places it rose in Qloo's ranking with that venue's fans (5+ to qualify); NEW = rose into Qloo's top 50; the strongest Qloo match takes each slot",
+      "↑ = places it rose in Qloo's ranking with that venue's fans; NEW = rose into Qloo's top 50",
     );
     expect(ruleLine(false)).toBe(RULE_LINE);
   });

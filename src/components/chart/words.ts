@@ -1,12 +1,16 @@
 import type { AgentSwitch } from "@/lib/agent-switch";
 import { plusRetries } from "@/lib/agent-words";
-import { MIN_LIFT } from "@/lib/assemble-lineup";
+import { LOCAL_LIFT_BAR, MIN_LIFT } from "@/lib/assemble-lineup";
 import type { TraceCall } from "@/lib/build-events";
 import { feeBandFor, type FeeBand, type FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import type { ClimbEvent } from "@/lib/lift-climb";
 import type { PickCheck } from "@/lib/llm-only";
-import { formatBandRange, formatCount } from "@/lib/format";
+import {
+  formatCount,
+  formatPopularity,
+  formatPopularityRange,
+} from "@/lib/format";
 import { roomShortName } from "@/lib/marks";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 
@@ -131,12 +135,14 @@ export function watchLine({
 }
 
 /**
- * A saved call's line in today's words (WS8): a fee range is a tier, never a band ("Mid-tier
- * artists for the headliners and …"); the saved line itself keeps its words, which the app parses.
+ * A saved call's line in today's words (WS8): a tier is mid-size or opening, never a band or a
+ * "-tier" (Daniel, 2026-10-29: "Mid-size artists for the headliners and …"); the saved line
+ * itself keeps its words, which the app parses.
  */
 export const callWords = (summary: string) =>
   summary
-    .replace(/\b(Mid|Opener)-band\b/g, "$1-tier")
+    .replace(/\bMid-band\b/g, "Mid-size")
+    .replace(/\bOpener-band\b/g, "Opening")
     // Daniel, 29 Oct (09:45): the control is "a venue in <town> with similar Qloo popularity".
     // The 29 saved re-run builds say "room" in their trace text, which is never edited.
     .replace(
@@ -199,9 +205,44 @@ export const noFanDataLine = (names: readonly string[]) =>
 export const AGENT_DECIDES =
   "The AI agent chose which venues to read, and in what order; Qloo's numbers and the rule pick the acts.";
 
-/** The fee range in plain words (M6r): the plain term first, the buyer's once in brackets. */
+/**
+ * The fee range in plain words (M6r), its tier named beside it as mid-size or opening and its
+ * popularity out of 100, never an ordinal (Daniel, 2026-10-29).
+ */
 export const feeRangeWords = (band: FeeBand) =>
-  `${band.slots} slots · fee range (${band.label}): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (${formatBandRange(band)} percentile)`;
+  `${band.slots} slots · fee range: with no real fees to go on, how popular an act is on Qloo stands in for what it charges, ${formatPopularityRange(band)} out of 100`;
+
+/**
+ * The three checks that put an act on a lineup (Daniel, 2026-10-29, WS18 item 1), in the same
+ * words on the card, the ticket, the poster's key and How it works. The climb with a town venue's
+ * fans and the local lift over a venue abroad are one check, the first. A 1.0 bill's acts had no
+ * control, so its first check is the climb alone.
+ */
+export const CHECKS = [
+  `It climbs at least ${MIN_LIFT} places with a town venue's fans, and at least ${LOCAL_LIFT_BAR} more than with a venue abroad of similar Qloo popularity.`,
+  "Its popularity is inside the tier's range.",
+  "It shares two genres with the headliners.",
+] as const;
+export const checksFor = (local: boolean): readonly string[] =>
+  local
+    ? CHECKS
+    : [
+        `It climbs at least ${MIN_LIFT} places with a town venue's fans.`,
+        CHECKS[1],
+        CHECKS[2],
+      ];
+
+/** Who does what, in the README's words (Daniel, 2026-10-29, WS18 item 1). */
+export const WHO_DOES_WHAT =
+  "The AI agent plans the Qloo calls, Qloo knows the taste, and a fixed rule picks the acts. The buyer makes every call.";
+
+/** Where the venue abroad first appears on a page, once (Daniel, 2026-10-29). */
+export const CONTROL_LINE =
+  "Fans of any busy venue lift some acts; a venue abroad with similar Qloo popularity shows how much of the climb is this town's.";
+
+/** An act's Qloo popularity out of 100, never an ordinal (Daniel, 2026-10-29): "86/100". */
+export const outOf100 = (popularity: number) =>
+  `${formatPopularity(popularity)}/100`;
 
 export function ordinal(place: number): string {
   const teen = Math.floor((place % 100) / 10) === 1;
@@ -263,5 +304,5 @@ export function pickCheckLine(
     check.climb !== null && check.climb > 0
       ? `a climb with one of ${festival.city}'s venues`
       : `no climb with ${festival.city}'s venues`;
-  return `${picked}; on Qloo: popularity ${ordinal(percent)}, ${check.range} the ${RANGE_NAME[band.id]} range · ${genres} · ${climb}`;
+  return `${picked}; on Qloo: popularity ${percent}/100, ${check.range} the ${RANGE_NAME[band.id]} range · ${genres} · ${climb}`;
 }

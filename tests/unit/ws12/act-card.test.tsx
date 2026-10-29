@@ -45,11 +45,11 @@ describe("the act card, finished (WS12 item 3)", () => {
       name: /on the mid-size tier's scale/,
     });
     expect(scale.getAttribute("aria-label")).toBe(
-      `Popularity ${Math.floor(act.popularity * 100)} on the mid-size tier's scale, 80 to 92`,
+      `Popularity ${Math.floor(act.popularity * 100)}/100 on the mid-size tier's scale, 80 to 92`,
     );
     // The demo path reads the figure, then its words, then the scale (SPEC section 3, step 3).
     expect(document.body.textContent).toMatch(
-      /Popularity\d{1,2}popularity on Qloo, inside the mid-size fee range \(80–92\)80/,
+      /Popularity\d{1,2}\/100The mid-size range is 80–92 out of 100 on Qloo, our stand-in for fee\.80/,
     );
   });
 

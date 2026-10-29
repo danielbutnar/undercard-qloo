@@ -5,8 +5,6 @@ import {
   bandRange,
   cardBand,
   CARD_CHECKS,
-  cardClimbRule,
-  cardGenresLine,
   cardPopularityLine,
   CARD_STRONGEST,
   climbMark,
@@ -95,20 +93,18 @@ describe("the act card", () => {
     expect(CARD_CHECKS).toBe("Why it's on your poster");
   });
 
-  it("says the rule each check holds the act to, from the rule's own numbers", () => {
-    expect(cardClimbRule()).toBe(
-      "Undercard only books a climb of 5 places or more.",
-    );
+  // WS18 item 1: the checks' own words are the three checks (words.ts CHECKS, tested in
+  // tests/unit/ws18/glossary.test.tsx); under the fee check, the tier's range.
+  it("says the tier's range under the fee check, from the tier's own numbers", () => {
     expect(cardPopularityLine(mid)).toBe(
-      "Its Qloo popularity is inside the mid-size range, 80–92 out of 100, our stand-in for fee.",
+      "The mid-size range is 80–92 out of 100 on Qloo, our stand-in for fee.",
     );
     expect(cardPopularityLine(opener)).toBe(
-      "Its Qloo popularity is inside the opening range, 55–80 out of 100, our stand-in for fee.",
+      "The opening range is 55–80 out of 100 on Qloo, our stand-in for fee.",
     );
     expect(cardPopularityLine(undefined)).toBe(
-      "Its Qloo popularity stands in for its fee.",
+      "Qloo popularity stands in for its fee.",
     );
-    expect(cardGenresLine(2)).toBe("It shares two genres with the headliners:");
     expect(CARD_STRONGEST).toBe(
       "Of the acts that pass all three, the strongest Qloo match fills each slot first.",
     );
@@ -424,12 +420,12 @@ const counted = () => withoutCounts(PICKS, CHECKS, SAGEBRUSH_SOUND);
 describe("Without Qloo: the model's picks, checked on Qloo afterwards", () => {
   it("tags each pick with where Qloo's popularity puts it, or why it can't", () => {
     expect(CHECKS.map((check) => pickTag(check, SAGEBRUSH_SOUND))).toEqual([
-      "96th · above both ranges",
+      "96/100 · above both ranges",
       // Just over the top edge reads one past it, never as the edge itself.
-      "93rd · above both ranges",
-      "86th · in the mid-size range",
-      "64th · in the opening range",
-      "47th · below both ranges",
+      "93/100 · above both ranges",
+      "86/100 · in the mid-size range",
+      "64/100 · in the opening range",
+      "47/100 · below both ranges",
       "not on Qloo",
       "not checked on Qloo",
     ]);

@@ -119,7 +119,7 @@ test("sorts the pasted acts by climb, lists the calls, and says a name Qloo does
     "The Lantern Room's fans lift it 1 place, 2nd to 1st",
   );
   await expect(rows.first()).toContainText(
-    "Qloo popularity 86th · in the mid-size range",
+    "Qloo popularity 86/100 · in the mid-size range",
   );
   await expect(rows.last()).toHaveAccessibleName("Glass Harbor Nowhere");
   await expect(rows.last()).toContainText("Not found on Qloo");

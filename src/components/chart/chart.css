@@ -3218,3 +3218,26 @@
     font-size: 13px;
   }
 }
+
+/* WS18 item 1 (Daniel, 2026-10-29): the ↑ drawn where Anton would set it as a "1". */
+.chart-app .up-arrow {
+  display: inline-block;
+  width: 0.5em;
+  height: 0.72em;
+  margin-right: 0.06em;
+  fill: currentColor;
+  vertical-align: baseline;
+}
+/* The three checks, numbered, in the same words wherever they're listed. */
+.chart-app .checks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding-left: 1.4em;
+  list-style: decimal;
+  font-size: var(--text-label);
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: left;
+}

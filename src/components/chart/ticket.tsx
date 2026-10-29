@@ -1,18 +1,25 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import { LOCAL_LIFT_BAR } from "@/lib/assemble-lineup";
 import type { FeeBand } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import type { Act } from "@/lib/lineup";
 import type { Placed } from "@/lib/venue-switch";
+import { ChecksList } from "./checks";
 import { Cover } from "./cover";
 import { climbsLine } from "@/lib/agent-words";
 import { ticketStamps } from "./setlist-words";
 import { signName } from "./town-scene";
+import { UpArrow } from "./up-arrow";
 import { useReveal } from "./use-reveal";
-import { feeRangeWords, ordinal, PLAIN_BAND } from "./words";
+import { checksFor, feeRangeWords, ordinal, PLAIN_BAND } from "./words";
 
 const TIER = { mid: "Mid-size act", opener: "Opening act" } as const;
+
+/** A climb as its mark, in the body face: ↑7, ↓15, or no climb. */
+const mark = (places: number) =>
+  places > 0 ? `↑${places}` : places < 0 ? `↓${-places}` : "no climb";
 
 /**
  * The door check's ticket (WS12 items 1 and 2): one act's ticket for the festival, its rank and
@@ -44,7 +51,7 @@ export function Ticket({
       ? { venue: act.localLift.venueClimb, control: act.localLift.controlClimb }
       : null,
   );
-  const [ownClimb, abroadClimb] = climbsLine(act)?.split(" · ") ?? [];
+  const checks = checksFor(Boolean(act.localLift));
   const venue = signName(act.anchorVenue.name);
   const { value, min, max } = stamps.popularity;
   const at = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
@@ -59,14 +66,28 @@ export function Ticket({
       ? "new in Qloo's top 50"
       : `climbs ${stamps.climb?.kind === "up" ? stamps.climb.places : 0} places`;
   const { local } = stamps;
+  // Daniel, 2026-10-29 (WS18 item 1): the big ↑ in Anton is drawn, never Anton's own arrow.
   const first = local
     ? {
-        big: `↑${local.lift}`,
-        label: `Climb: a local lift of ${local.lift} places, the bar is ${stamps.bar}; ${climbsLine(act) ?? ""}`,
+        big: (
+          <>
+            <UpArrow />
+            {local.lift}
+          </>
+        ),
+        label: `Check 1, passed: ${checks[0]} ${climbsLine(act) ?? ""}`,
       }
     : {
-        big: climb,
-        label: `Climb: ${climbWords}, the bar is ${stamps.bar}`,
+        big:
+          stamps.climb?.kind === "up" ? (
+            <>
+              <UpArrow />
+              {stamps.climb.places}
+            </>
+          ) : (
+            climb
+          ),
+        label: `Check 1, passed: ${checks[0]} It ${climbWords}, the bar is ${stamps.bar}`,
       };
   return (
     <article
@@ -116,12 +137,12 @@ export function Ticket({
               <span className="stamp-small">
                 local lift
                 <br />
-                the bar is {stamps.bar}
+                bar {LOCAL_LIFT_BAR}
               </span>
               <span className="stamp-fine">
-                {ownClimb}
+                {mark(local.venue)} with {act.anchorVenue.name}&apos;s fans
                 <br />
-                {abroadClimb}
+                {mark(local.control)} abroad
               </span>
             </>
           ) : (
@@ -133,11 +154,14 @@ export function Ticket({
           )}
         </li>
         <li
-          aria-label={`Popularity: ${value} on Qloo, inside ${min}–${max}`}
+          aria-label={`Check 2, passed: ${checks[1]} Popularity ${value}/100 on Qloo, inside ${min}–${max}`}
           className="stamp stamp-pop"
           style={{ "--i": 1 } as CSSProperties}
         >
-          <span className="stamp-big">{value}</span>
+          <span className="stamp-big">
+            {value}
+            <span className="stamp-of">/100</span>
+          </span>
           <span className="stamp-scale" aria-hidden>
             <span>{min}</span>
             <span className="stamp-track">
@@ -150,7 +174,7 @@ export function Ticket({
           <span className="stamp-small">popularity</span>
         </li>
         <li
-          aria-label={`Genres: ${stamps.genres[0]} and ${stamps.genres[1]}, shared with the headliners`}
+          aria-label={`Check 3, passed: ${checks[2]} ${stamps.genres[0]} and ${stamps.genres[1]}`}
           className="stamp stamp-genres"
           style={{ "--i": 2 } as CSSProperties}
         >
@@ -198,11 +222,11 @@ export function DoorCheck({
         The door check
       </h2>
       <p className="backstage-lede">
-        Every act on your poster got past these three checks.
-        <span className="wide-only">
-          {" "}
-          Point at an act on the poster for its ticket.
-        </span>
+        Every act on your poster got past these three checks:
+      </p>
+      <ChecksList local={Boolean(act.localLift)} className="door-checks" />
+      <p className="backstage-lede door-point">
+        Point at an act on the poster for its ticket.
       </p>
       <Ticket
         act={act}

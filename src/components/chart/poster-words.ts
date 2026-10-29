@@ -1,4 +1,3 @@
-import { MIN_LIFT } from "@/lib/assemble-lineup";
 import { feeBandFor, type FeeBand, type FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import type { Act } from "@/lib/lineup";
@@ -124,19 +123,19 @@ export const inkLabel = (
 export const KEY_SIGNAL =
   "These venues' fans are the signal: the acts won't necessarily play there.";
 
-export const RULE_LINE = `↑ = places it rose in Qloo's ranking with that venue's fans (${MIN_LIFT}+ to qualify); the strongest Qloo match takes each slot`;
+// The marks only: the three checks, with their bars, follow the acts (PosterChecks, WS18 item 1).
+export const RULE_LINE =
+  "↑ = places it rose in Qloo's ranking with that venue's fans";
 
 /** What NEW on an act means (the poster's mark for an act new to Qloo's top 50). */
 export const NEW_KEY = "NEW = rose into Qloo's top 50";
 
 /**
- * The rule line, with NEW defined beside ↑ where an act on the poster is new to the top 50
+ * The key line, with NEW defined beside ↑ where an act on the poster is new to the top 50
  * (WS12 item 7: a reader looks for what the marks mean there).
  */
 export const ruleLine = (anyNew: boolean) =>
-  anyNew
-    ? RULE_LINE.replace("to qualify); ", `to qualify); ${NEW_KEY}; `)
-    : RULE_LINE;
+  anyNew ? `${RULE_LINE}; ${NEW_KEY}` : RULE_LINE;
 
 /** A band's head on the poster: its Qloo popularity range, the first band saying what it stands for. */
 export function bandRange(band: FeeBand, first: boolean): string {
@@ -195,21 +194,13 @@ export const cardBand = (band: Pick<FeeBand, "id">) =>
 /** The act card's heading over the three checks every act on the poster passed. */
 export const CARD_CHECKS = "Why it's on your poster";
 
-/** The climb check's bar, from the booking rule's own number (src/lib/assemble-lineup.ts). */
-export const cardClimbRule = () =>
-  `Undercard only books a climb of ${MIN_LIFT} places or more.`;
-
-/** The fee check: the act's Qloo popularity sits inside its slot's range. */
+/** Under the fee check: the tier's range on Qloo's scale, our stand-in for fee. */
 export function cardPopularityLine(band: FeeBand | undefined): string {
-  if (!band) return "Its Qloo popularity stands in for its fee.";
+  if (!band) return "Qloo popularity stands in for its fee.";
   const low = Math.round(band.minPopularity * 100);
   const high = Math.round(band.maxPopularity * 100);
-  return `Its Qloo popularity is inside the ${RANGE_NAME[band.id]} range, ${low}–${high} out of 100, our stand-in for fee.`;
+  return `The ${RANGE_NAME[band.id]} range is ${low}–${high} out of 100 on Qloo, our stand-in for fee.`;
 }
-
-/** The genre check, before the act's two shared genres. */
-export const cardGenresLine = (genres: number) =>
-  `It shares ${genres === 2 ? "two" : String(genres)} ${genres === 1 ? "genre" : "genres"} with the headliners:`;
 
 /** Under the checks: which act a slot goes to when several pass. */
 export const CARD_STRONGEST =
@@ -384,12 +375,12 @@ export function pickTag(
       down(check.popularity),
       down(top.maxPopularity) + 1,
     );
-    return `${ordinal(percent)} · above ${every}`;
+    return `${percent}/100 · above ${every}`;
   }
   if (check.range === "below")
-    return `${ordinal(down(check.popularity))} · below ${every}`;
+    return `${down(check.popularity)}/100 · below ${every}`;
   const band = feeBandFor(check.popularity, bands) ?? bands[0];
-  return `${ordinal(down(check.popularity))} · in the ${RANGE_NAME[band.id]} range`;
+  return `${down(check.popularity)}/100 · in the ${RANGE_NAME[band.id]} range`;
 }
 
 /** What prompt 4's checks found for one town's model picks, counted. */

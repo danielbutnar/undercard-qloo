@@ -97,11 +97,12 @@ test.describe("demo path", () => {
       band(page, /^Opening acts/).getByText("· Qloo popularity 55–80"),
     ).toBeVisible();
     const rule = page.getByRole("region", { name: "The door check" });
+    // WS18 item 1: the tier said as mid-size or opening, popularity out of 100.
     await expect(rule).toContainText(
-      "4 slots · fee range (Mid): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (80th–92nd percentile)",
+      "4 slots · fee range: with no real fees to go on, how popular an act is on Qloo stands in for what it charges, 80–92 out of 100",
     );
     await expect(rule).toContainText(
-      "6 slots · fee range (Opener): with no real fees to go on, how popular an act is on Qloo stands in for what it charges (55th–80th percentile)",
+      "6 slots · fee range: with no real fees to go on, how popular an act is on Qloo stands in for what it charges, 55–80 out of 100",
     );
     for (const act of await bill(page).getByRole("article").all()) {
       await expect(act).toContainText(MARK);
@@ -117,9 +118,19 @@ test.describe("demo path", () => {
     await expect(
       // NEW is defined there too when an act is new to the top 50 (WS12 item 7).
       bill(page).getByText(
-        /^↑ = places it rose in Qloo's ranking with that venue's fans \(5\+ to qualify\); (NEW = rose into Qloo's top 50; )?the strongest Qloo match takes each slot$/,
+        /^↑ = places it rose in Qloo's ranking with that venue's fans(; NEW = rose into Qloo's top 50)?$/,
       ),
     ).toHaveCount(1);
+    // The three checks follow the acts, in the card's words (WS18 item 1).
+    await expect(bill(page).locator(".poster-checks")).toContainText(
+      "It climbs at least 5 places with a town venue's fans",
+    );
+    await expect(bill(page).locator(".poster-checks")).toContainText(
+      "Its popularity is inside the tier's range.",
+    );
+    await expect(bill(page).locator(".poster-checks")).toContainText(
+      "It shares two genres with the headliners.",
+    );
     await expect(bill(page).locator(".poster-example")).toContainText(
       /in Qloo's ranking once .+'s fans joined the headliners' fans\.|entered Qloo's top 50 at \d+(st|nd|rd|th) once/,
     );
@@ -220,13 +231,15 @@ test.describe("demo path", () => {
           .getByText(`Climbs with ${venue}'s fans added`, { exact: true })
           .filter({ visible: true }),
       ).toBeVisible();
-      // Card text runs together ("Qloo affinity0.94Popularity86th"), so no word boundaries.
+      // Card text runs together ("Qloo affinity0.94Popularity86/100"), so no word boundaries.
       await expect(opened).toContainText(/affinity0\.\d\d/);
-      await expect(opened).toContainText(/Popularity\d{1,2}popularity on Qloo/);
+      await expect(opened).toContainText(
+        /Popularity\d{1,2}\/100The (mid-size|opening) range is \d+–\d+ out of 100 on Qloo/,
+      );
       // Plan.md item 5: the why in one sentence from the saved places and climb; a build without
       // its places keeps its own line.
       await expect(opened).toContainText(
-        /Why it's here: (With .+'s fans added to the headliners', Qloo ranks .+ \d+(st|nd|rd|th); for the headliners' fans alone, (\d+(st|nd|rd|th)\. That climb of \d+|it isn't in the top 50\. That climb into the top 50) is why .+ is here\.|.+ fans move it (up \d+ places|into the top \d+)\.)/,
+        /Why it's here: (With .+'s fans added to the headliners', Qloo ranks .+ \d+(st|nd|rd|th); for the headliners' fans alone, (\d+(st|nd|rd|th)\. That climb of \d+|it isn't in the top 50\. That climb into the top 50) is why .+ is here\.|With .+'s fans added to the headliners', (Qloo ranks .+ \d+(st|nd|rd|th); for the headliners' fans alone, (\d+(st|nd|rd|th): a climb of \d+|it isn't in the top 50)|.+ climbs \d+ places? in Qloo's ranking)\. With a venue abroad of similar Qloo popularity, it (climbs \d+ places?|falls \d+ places?|doesn't move)\. That local lift of \d+ is why .+ is here\.|.+ fans move it (up \d+ places|into the top \d+)\.)/,
       );
       await expect(
         opened
@@ -291,7 +304,7 @@ test.describe("demo path", () => {
       expect(added).toBeGreaterThanOrEqual(1);
       await expect(page.getByText(/^[1-5] refill calls?/)).toBeVisible();
       const refillRow = traceRows(page)
-        .filter({ hasText: "Refill (radius clause): Mid-tier artists" })
+        .filter({ hasText: "Refill (radius clause): Mid-size artists" })
         .last();
       await refillRow.getByRole("button", { name: "Parameters" }).click();
       await expect(refillRow).toContainText("filter.exclude.entities=");
@@ -331,7 +344,7 @@ test.describe("demo path", () => {
     for (const pick of await picks.all()) {
       // Prompt-4: each pick's tag and line, how Qloo's cached data places it or why it can't.
       await expect(pick).toContainText(
-        /(\d+(st|nd|rd|th) · (above|below) both ranges|\d+(st|nd|rd|th) · in the (mid-size|opening) range|not on Qloo|not checked on Qloo)/,
+        /(\d+\/100 · (above|below) both ranges|\d+\/100 · in the (mid-size|opening) range|not on Qloo|not checked on Qloo)/,
       );
       await expect(pick).toContainText(
         /Picked without Qloo; (on Qloo: popularity \d+|not found on Qloo|not checked on Qloo)/,
@@ -350,7 +363,10 @@ test.describe("demo path", () => {
       page.getByRole("note", { name: "Without Qloo" }),
     ).toContainText("Without Qloo, the model can't see Boise's venues.");
     await expect(model.locator(".sleeve-blank")).toHaveCount(0);
-    await expect(page.locator("main")).not.toContainText(/\d+\s*\/\s*\d+/);
+    // No score grades the model; popularity reads out of 100 (WS18 item 1: "86/100").
+    await expect(page.locator("main")).not.toContainText(
+      /\d+\s*\/\s*(?!100\b)\d+/,
+    );
     await expect(bill(page)).toHaveCount(0);
 
     await page

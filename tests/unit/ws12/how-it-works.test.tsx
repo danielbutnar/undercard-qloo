@@ -130,7 +130,7 @@ describe("How it works as the director's cut of Watch (WS12 item 2)", () => {
       ["Not shown", "3 vs 11"],
     ]);
     expect(stamps[0].textContent).toContain(
-      "244 of the 290 acts Undercard 1.0 booked (its bills of 17 and 18 October) climbed at least 5 places more with the town venue that put them on the bill than with a music venue abroad of similar Qloo popularity.",
+      "244 of the 290 acts Undercard 1.0 drafted (its bills of 17 and 18 October) climbed at least 5 places more with the town venue that put them on the bill than with a music venue abroad of similar Qloo popularity; the bills on show now hold only acts that pass that test.",
     );
     const not = stamps[2];
     expect(not.querySelector(".dc-verdict-line")?.textContent).toBe(
@@ -140,7 +140,7 @@ describe("How it works as the director's cut of Watch (WS12 item 2)", () => {
     const how = not.querySelector("details")!;
     expect(how.querySelector("summary")?.textContent).toBe("How we tested");
     expect(how.textContent).toContain(
-      "All three shortlists had the same headliners and the same brief, and a hit is any act on the festival's lineup except its headliners. 6 of the model's 11 hits are acts outside the fee bands Undercard is given; inside them, the model held 5, Undercard 3 and Undercard with another country's venues 2. The model may also recall real lineups from its training. Asked for an undercard in 29 towns (section 31), the same model put 204 of the 268 picks Qloo found above the top of those fee bands. Against Undercard with another country's venues, Undercard won 3 festivals to 2, which doesn't meet that bar either.",
+      "All three shortlists had the same headliners and the same brief, and a hit is any act on the festival's lineup except its headliners. 6 of the model's 11 hits are acts outside the fee ranges Undercard is given; inside them, the model held 5, Undercard 3 and Undercard with another country's venues 2. The model may also recall real lineups from its training. Asked for an undercard in 29 towns (section 31), the same model put 204 of the 268 picks Qloo found above the top of those fee ranges. Against Undercard with another country's venues, Undercard won 3 festivals to 2, which doesn't meet that bar either.",
     );
     // Each stamp links its section of docs/evidence.md.
     expect(
@@ -200,14 +200,17 @@ describe("How it works tells a 2.0 build's rule from the saved act (Daniel, 2026
     ),
   })!;
 
-  it("names the local lift over a venue in the control's town with similar Qloo popularity", () => {
+  // WS18 item 1 (Daniel, 2026-10-29): the local lift is part of the first of three checks,
+  // over a venue abroad of similar Qloo popularity, never a fourth condition.
+  it("names the local lift over a venue abroad with similar Qloo popularity, in the first of three checks", () => {
     render(<MethodPage story={lifted} videoUrl={null} />);
     expect(scene(3).textContent).toContain(
-      "a local lift of 5 or more over a venue in Elsewhere with similar Qloo popularity",
+      "It climbs at least 5 places with a town venue's fans, and at least 5 more than with a venue abroad of similar Qloo popularity.",
     );
+    expect(scene(3).textContent).not.toContain("a venue in Elsewhere");
     expect(
       screen.getByRole("region", { name: "Who does what" }).textContent,
-    ).toContain("a local lift of 5 or more");
+    ).toContain("The three checks");
   });
 
   it("says nothing of a local lift on a 1.0 build, whose acts had none", () => {

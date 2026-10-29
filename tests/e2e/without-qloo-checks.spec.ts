@@ -10,7 +10,7 @@ import { SYNTHETIC_UNCHECKED_PICK, syntheticLlmOnly } from "./synthetic-build";
 test.skip(SYNTHETIC === "empty", "needs a saved build");
 
 const CHECK_LINE =
-  /^Picked without Qloo; (on Qloo: popularity \d+(st|nd|rd|th), (in|above|below) the (mid-size|opening) range · (no genres|1 genre|\d+ genres) shared · (a climb with one of|no climb with) .+'s venues|not found on Qloo|not checked on Qloo)$/;
+  /^Picked without Qloo; (on Qloo: popularity \d+\/100, (in|above|below) the (mid-size|opening) range · (no genres|1 genre|\d+ genres) shared · (a climb with one of|no climb with) .+'s venues|not found on Qloo|not checked on Qloo)$/;
 const CHECKS_LINE =
   /^Across \d+ towns, the model alone picked \d+ acts; Qloo found \d+ of them\. Of those \d+, \d+ sit above the fee range, and \d+ share two genres with the headliners\.$/;
 
@@ -58,10 +58,10 @@ test("on the synthetic build, a pick missing from the Qloo cache says not checke
   for (const name of names.filter((n) => n !== SYNTHETIC_UNCHECKED_PICK))
     await expect(line(name)).not.toHaveText(/not checked/);
   await expect(line("Velvet Coyote")).toHaveText(
-    "Picked without Qloo; on Qloo: popularity 96th, above the mid-size range · 2 genres shared · no climb with Boise's venues",
+    "Picked without Qloo; on Qloo: popularity 96/100, above the mid-size range · 2 genres shared · no climb with Boise's venues",
   );
   await expect(line("Marigold Static")).toHaveText(
-    "Picked without Qloo; on Qloo: popularity 86th, in the mid-size range · 2 genres shared · a climb with one of Boise's venues",
+    "Picked without Qloo; on Qloo: popularity 86/100, in the mid-size range · 2 genres shared · a climb with one of Boise's venues",
   );
   await expect(line("Fern & Fable")).toHaveText(
     "Picked without Qloo; not found on Qloo",

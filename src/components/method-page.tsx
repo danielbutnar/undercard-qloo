@@ -12,6 +12,7 @@ import { AgentChoices } from "./method/follow-one-act";
 import { ImageCredit } from "./chart/image-credit";
 import { RerunsLine, WithWithoutLine } from "./chart/with-without-line";
 import { VideoSlot } from "./video-slot";
+import { WHO_DOES_WHAT } from "./chart/words";
 import "./chart/chart.css";
 import "./chart/first-screen.css";
 import "./chart/backstage.css";
@@ -82,11 +83,9 @@ export function MethodPage({
             festival={SAGEBRUSH_SOUND}
             calls={story?.calls ?? 12}
             retries={story?.retries ?? 0}
-            local={Boolean(story?.act.localLift)}
           >
-            <p className="dc-principle">
-              Qloo decides, the model plans, the rule books.
-            </p>
+            {/* Daniel, 2026-10-29 (WS18 item 1): the README's line, word for word. */}
+            <p className="dc-principle">{WHO_DOES_WHAT}</p>
           </BackstagePasses>
         </div>
 

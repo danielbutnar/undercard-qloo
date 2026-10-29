@@ -548,3 +548,10 @@
     font-size: 52px;
   }
 }
+
+/* WS18 item 1: scene 3 lists the three checks in the card's words. */
+.chart-app.fs.directors-cut .dc-checks {
+  font-size: var(--text-body);
+  font-weight: 600;
+  line-height: 1.42;
+}

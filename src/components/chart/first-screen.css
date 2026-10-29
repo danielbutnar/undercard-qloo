@@ -2102,3 +2102,39 @@
     box-shadow: 0 0 0 4px var(--color-ink);
   }
 }
+
+/* WS18 item 1: the poster's three checks under its acts, in the card's words, then the control's
+   one line and which act takes a slot. Below the acts, so the whole poster still shows on a
+   1440x780 screen. */
+.chart-app.fs .poster-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 520px;
+  margin: 4px auto 0;
+  text-align: left;
+  transition: opacity 0.3s ease;
+}
+.chart-app.fs .poster-checks .checks {
+  font-size: 14px;
+}
+.chart-app.fs .poster-checks.is-quiet {
+  opacity: 0.3;
+}
+.chart-app.fs .poster-checks-title,
+.chart-app.fs .poster-checks-rule {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+.chart-app.fs .poster-checks-control {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--color-muted);
+}
+.chart-app.fs .card-check-line {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+}

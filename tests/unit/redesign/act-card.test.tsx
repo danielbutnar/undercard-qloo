@@ -59,17 +59,21 @@ describe("an act's card", () => {
       .getByRole("list", { name: "The three checks it passed" })
       .querySelectorAll(":scope > li");
     expect(checks).toHaveLength(3);
-    // The climb, with its places and the rule's bar.
+    // The climb, in the three checks' words (WS18 item 1), then its places.
+    expect(checks[0].textContent).toContain(
+      "It climbs at least 5 places with a town venue's fans.",
+    );
     expect(checks[0].textContent).toContain("Its place in Qloo's ranking");
     expect(checks[0].textContent).toContain(
       "Why it's here: With Fort Street Ballroom's fans added to the headliners', Qloo ranks Marisol Vey 4th; for the headliners' fans alone, 11th. That climb of 7 is why Marisol Vey is here.",
     );
-    expect(checks[0].textContent).toContain(
-      "Undercard only books a climb of 5 places or more.",
-    );
+    expect(checks[0].textContent).not.toContain("books");
     // The fee range, with Qloo's numbers.
     expect(checks[1].textContent).toContain(
-      "Its Qloo popularity is inside the mid-size range, 80–92 out of 100, our stand-in for fee.",
+      "Its popularity is inside the tier's range.",
+    );
+    expect(checks[1].textContent).toContain(
+      "The mid-size range is 80–92 out of 100 on Qloo, our stand-in for fee.",
     );
     expect(
       within(checks[1] as HTMLElement).getByText("Qloo affinity").parentElement
@@ -78,10 +82,10 @@ describe("an act's card", () => {
     expect(
       within(checks[1] as HTMLElement).getByText("Popularity").parentElement
         ?.textContent,
-    ).toBe("Popularity88");
+    ).toBe("Popularity88/100");
     // The two genres it shares with the headliners.
     expect(checks[2].textContent).toContain(
-      "It shares two genres with the headliners:",
+      "It shares two genres with the headliners.",
     );
     expect(
       within(checks[2] as HTMLElement)
@@ -112,7 +116,7 @@ describe("an act's card", () => {
     const card = openCard("Low Bench Choir");
     expect(within(card).getByText("Opening act")).toBeTruthy();
     expect(card.textContent).toContain(
-      "Its Qloo popularity is inside the opening range, 55–80 out of 100, our stand-in for fee.",
+      "The opening range is 55–80 out of 100 on Qloo, our stand-in for fee.",
     );
     expect(card.textContent).toMatch(
       /Why it's here: With The Lantern Room's fans added to the headliners', Qloo ranks Low Bench Choir 8th; for the headliners' fans alone, it isn't in the top 50\./,

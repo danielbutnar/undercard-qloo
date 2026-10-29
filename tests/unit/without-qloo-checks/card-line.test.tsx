@@ -36,7 +36,7 @@ const line = (check: PickCheck) => pickCheckLine(check, SAGEBRUSH_SOUND);
 describe("a Without Qloo card's line, size first", () => {
   it("reads as the brief's examples do", () => {
     expect(line(found(0.963, "above", 2, null))).toBe(
-      "Picked without Qloo; on Qloo: popularity 96th, above the mid-size range · 2 genres shared · no climb with Boise's venues",
+      "Picked without Qloo; on Qloo: popularity 96/100, above the mid-size range · 2 genres shared · no climb with Boise's venues",
     );
     expect(line({ name: "Someone", status: "not-found" })).toBe(
       "Picked without Qloo; not found on Qloo",
@@ -54,29 +54,29 @@ describe("a Without Qloo card's line, size first", () => {
 
   it("names the range, rounds down, and never shows a pick over the top edge as the edge", () => {
     expect(line(found(0.92, "in"))).toContain(
-      "popularity 92nd, in the mid-size range ·",
+      "popularity 92/100, in the mid-size range ·",
     );
     expect(line(found(0.9201, "above"))).toContain(
-      "popularity 93rd, above the mid-size range ·",
+      "popularity 93/100, above the mid-size range ·",
     );
-    expect(line(found(0.93, "above"))).toContain("popularity 93rd, above");
+    expect(line(found(0.93, "above"))).toContain("popularity 93/100, above");
     expect(line(found(0.8, "in"))).toContain(
-      "popularity 80th, in the mid-size range ·",
+      "popularity 80/100, in the mid-size range ·",
     );
     expect(line(found(0.7999, "in"))).toContain(
-      "popularity 79th, in the opening range ·",
+      "popularity 79/100, in the opening range ·",
     );
     expect(line(found(0.55, "in"))).toContain(
-      "popularity 55th, in the opening range ·",
+      "popularity 55/100, in the opening range ·",
     );
     expect(line(found(0.5499, "below"))).toContain(
-      "popularity 54th, below the opening range ·",
+      "popularity 54/100, below the opening range ·",
     );
   });
 
   it("counts the genres shared and says whether a venue's fans lift it", () => {
     expect(line(found(0.86, "in", 1, 7))).toBe(
-      "Picked without Qloo; on Qloo: popularity 86th, in the mid-size range · 1 genre shared · a climb with one of Boise's venues",
+      "Picked without Qloo; on Qloo: popularity 86/100, in the mid-size range · 1 genre shared · a climb with one of Boise's venues",
     );
     expect(line(found(0.6, "in", 0, 0))).toContain(
       "· no genres shared · no climb with Boise's venues",
@@ -123,7 +123,7 @@ describe("each card, one line in the small style", () => {
     const small = (name: string) =>
       [...card(name).querySelectorAll("p.pick-none")].map((p) => p.textContent);
     expect(small("Alpha Hum")).toEqual([
-      "Picked without Qloo; on Qloo: popularity 86th, in the mid-size range · 2 genres shared · a climb with one of Boise's venues",
+      "Picked without Qloo; on Qloo: popularity 86/100, in the mid-size range · 2 genres shared · a climb with one of Boise's venues",
     ]);
     expect(small("Beta Glow")).toEqual([
       "Picked without Qloo; not found on Qloo",
@@ -175,7 +175,7 @@ describe("the Without Qloo view", () => {
     expect(
       cards.map((card) => card.querySelector(".pick-none")!.textContent),
     ).toEqual([
-      "Picked without Qloo; on Qloo: popularity 97th, above the mid-size range · 2 genres shared · no climb with Boise's venues",
+      "Picked without Qloo; on Qloo: popularity 97/100, above the mid-size range · 2 genres shared · no climb with Boise's venues",
       "Picked without Qloo; not found on Qloo",
       "Picked without Qloo; not checked on Qloo",
     ]);

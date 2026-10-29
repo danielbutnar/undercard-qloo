@@ -5,13 +5,16 @@ import { Cover } from "@/components/chart/cover";
 import {
   cardBand,
   CARD_CHECKS,
-  cardClimbRule,
-  cardGenresLine,
   cardPopularityLine,
   CARD_STRONGEST,
 } from "@/components/chart/poster-words";
 import { whySentence } from "@/components/chart/why";
-import { ordinal, venueShort } from "@/components/chart/words";
+import {
+  checksFor,
+  ordinal,
+  outOf100,
+  venueShort,
+} from "@/components/chart/words";
 import { climbsLine, locationLine } from "@/lib/agent-words";
 import type { SplitLine } from "@/lib/attribution-line";
 import type { FeeBand } from "@/lib/fee-bands";
@@ -91,6 +94,7 @@ export function ActCard({
 }) {
   const [asking, setAsking] = useState(false);
   const lift = liftOf(act);
+  const checks = checksFor(Boolean(act.localLift));
   // The label on the row's tab ("V418"): a phone's venue line uses it so it fits in two lines.
   const short = venueShort(act.anchorVenue.name);
   return (
@@ -139,6 +143,12 @@ export function ActCard({
         <li className="card-check">
           <Tick />
           <div className="card-check-body">
+            {/* Daniel, 2026-10-29 (WS18 item 1): the three checks in the same words everywhere,
+                then the act's own numbers: both climbs and the local lift. */}
+            <p className="card-check-text">{checks[0]}</p>
+            {act.localLift && (
+              <p className="card-check-line">{climbsLine(act)}</p>
+            )}
             <p className="card-climb-title">Its place in Qloo&apos;s ranking</p>
             {/* WS12 item 3: its rank beside its climb, as the poster prints them. */}
             <div className="card-rank">
@@ -168,17 +178,12 @@ export function ActCard({
               <strong>Why it&apos;s here: </strong>
               {whySentence(act, place)}
             </p>
-            {/* WS13.3: both climbs, the town venue's and its control's (a room in the control town with similar Qloo popularity). */}
-            {act.localLift && (
-              <p className="card-check-rule">{climbsLine(act)}</p>
-            )}
-            <p className="card-check-rule">{cardClimbRule()}</p>
           </div>
         </li>
         <li className="card-check">
           <Tick />
           <div className="card-check-body">
-            <p className="card-check-text">{cardPopularityLine(band)}</p>
+            <p className="card-check-text">{checks[1]}</p>
             <dl className="card-figures">
               <div>
                 <dt>Qloo affinity</dt>
@@ -186,19 +191,13 @@ export function ActCard({
               </div>
               <div>
                 <dt>Popularity</dt>
-                <dd>{formatPopularity(act.popularity)}</dd>
+                <dd>{outOf100(act.popularity)}</dd>
               </div>
-              {band && (
-                <p className="card-pop-words">
-                  popularity on Qloo, inside the{" "}
-                  {band.id === "mid" ? "mid-size" : "opening"} fee range (
-                  {formatPopularityRange(band)})
-                </p>
-              )}
+              <p className="card-pop-words">{cardPopularityLine(band)}</p>
               {band && (
                 <div
                   role="img"
-                  aria-label={`Popularity ${formatPopularity(act.popularity)} on the ${band.id === "mid" ? "mid-size" : "opening"} tier's scale, ${formatPopularityRange(band).replace("–", " to ")}`}
+                  aria-label={`Popularity ${outOf100(act.popularity)} on the ${band.id === "mid" ? "mid-size" : "opening"} tier's scale, ${formatPopularityRange(band).replace("–", " to ")}`}
                   className="card-scale"
                 >
                   <span>{Math.round(band.minPopularity * 100)}</span>
@@ -221,9 +220,7 @@ export function ActCard({
         <li className="card-check">
           <Tick />
           <div className="card-check-body">
-            <p className="card-check-text">
-              {cardGenresLine(act.sharedTags.length)}
-            </p>
+            <p className="card-check-text">{checks[2]}</p>
             <ul
               aria-label="Tags shared with the headliners"
               className="card-tags"

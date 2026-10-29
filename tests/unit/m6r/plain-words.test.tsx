@@ -74,9 +74,10 @@ describe("plain words, round 2 (M6r)", () => {
         "· Qloo popularity 80–92, our stand-in for fee",
       ),
     ).toBeTruthy();
-    // The plain word first, the buyer's term once in brackets.
+    // WS18 item 1: a tier is mid-size or opening, so the fee range drops the band's label.
     for (const band of SAGEBRUSH_SOUND.feeBands)
-      expect(text).toContain(`fee range (${band.label})`);
+      expect(text).not.toContain(`fee range (${band.label})`);
+    expect(text).toContain("Mid-size acts: 4 slots · fee range:");
   });
 
   // M6r: the plain word first, the buyer's word once in brackets. WS9's first screen says
@@ -108,10 +109,11 @@ describe("plain words, round 2 (M6r)", () => {
         ),
       );
     }
-    // The poster's key says in words what the climb counts, once.
+    // The poster's key says in words what the climb counts, once; the three checks follow
+    // the acts (WS18 item 1).
     expect(
       within(bill).getAllByText(
-        "↑ = places it rose in Qloo's ranking with that venue's fans (5+ to qualify); the strongest Qloo match takes each slot",
+        "↑ = places it rose in Qloo's ranking with that venue's fans",
       ),
     ).toHaveLength(1);
     // The example line says one act's climb as a sentence, from its places.
@@ -123,8 +125,9 @@ describe("plain words, round 2 (M6r)", () => {
     const first = rows[0].querySelector("button")!;
     fireEvent.click(first);
     const card = screen.getByRole("region", { name: "Act card" });
+    // A 1.0 act's climb, or a 2.0 act's two climbs and the local lift (WS18 item 1).
     expect(card.textContent).toMatch(
-      /Why it's here: With .+'s fans added to the headliners', Qloo ranks .+ \d+(st|nd|rd|th); for the headliners' fans alone, \d+(st|nd|rd|th)\. That climb of \d+ is why .+ is here\./,
+      /Why it's here: With .+'s fans added to the headliners', Qloo ranks .+ \d+(st|nd|rd|th); for the headliners' fans alone, \d+(st|nd|rd|th)(\. That climb of \d+ is why .+ is here\.|: a climb of \d+\. With a venue abroad of similar Qloo popularity, it (climbs \d+ places?|falls \d+ places?|doesn't move)\. That local lift of \d+ is why .+ is here\.)/,
     );
   });
 

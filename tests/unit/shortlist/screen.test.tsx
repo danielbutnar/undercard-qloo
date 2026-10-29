@@ -133,7 +133,7 @@ describe("the shortlist page (WS4, step 3)", () => {
     ]);
     const marigold = rows[0].textContent ?? "";
     expect(marigold).toContain("The Lantern Room's fans lift it");
-    expect(marigold).toContain("Qloo popularity 86th · in the mid-size range");
+    expect(marigold).toContain("Qloo popularity 86/100 · in the mid-size range");
     expect(marigold).toContain(
       "2 genres shared with the headliners: Dream Pop, Indie Pop",
     );

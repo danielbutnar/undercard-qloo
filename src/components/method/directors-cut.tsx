@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { ChecksList } from "@/components/chart/checks";
 import { HeadlinerList } from "@/components/chart/poster";
 import { climbMark } from "@/components/chart/poster-words";
 import { Ticket } from "@/components/chart/ticket";
 import { TownScene, type SceneVenue } from "@/components/chart/town-scene";
 import { useReveal } from "@/components/chart/use-reveal";
-import { ordinal, PLAIN_BAND } from "@/components/chart/words";
+import { CONTROL_LINE, ordinal, PLAIN_BAND } from "@/components/chart/words";
 import { Cover } from "@/components/chart/cover";
 import { plusRetries } from "@/lib/agent-words";
-import { LOCAL_LIFT_BAR, MIN_LIFT } from "@/lib/assemble-lineup";
 import type { Festival } from "@/lib/festival";
 import { formatPopularityRange } from "@/lib/format";
 import { actsInBand, type Act } from "@/lib/lineup";
@@ -291,11 +291,17 @@ export function DirectorsCut({
         n={3}
         title="The door check"
         line={
-          <p>
-            {act.localLift
-              ? `To get on, an act needs a climb of ${MIN_LIFT} places or more, a local lift of ${LOCAL_LIFT_BAR} or more over a venue in ${act.localLift.control.town} with similar Qloo popularity, a Qloo popularity inside its tier (${formatPopularityRange(band)}) and two genres shared with the headliners. ${act.name} passes them all.`
-              : `To get on, an act needs a climb of ${MIN_LIFT} places or more, a Qloo popularity inside its tier (${formatPopularityRange(band)}) and two genres shared with the headliners. ${act.name} passes all three.`}
-          </p>
+          // Daniel, 2026-10-29 (WS18 item 1): the three checks in the card's words, then the
+          // control's one line where the venue abroad first appears.
+          <>
+            <p>To get on, an act passes three checks:</p>
+            <ChecksList local={Boolean(act.localLift)} className="dc-checks" />
+            {act.localLift && <p>{CONTROL_LINE}</p>}
+            <p>
+              {act.name} passes all three. Its tier&apos;s range is{" "}
+              {formatPopularityRange(band)} out of 100.
+            </p>
+          </>
         }
       >
         <div className="dc-ticket">
@@ -384,27 +390,22 @@ const PASSES = [
     id: "rule",
     role: "The rule",
     does: () => "picks the acts",
-    access: `A climb of ${MIN_LIFT} or more, inside the fee range, two genres shared`,
+    // Daniel, 2026-10-29 (WS18 item 1): the three checks, never a list of four conditions.
+    access: "The three checks, then the strongest Qloo match for each slot",
   },
 ] as const;
-
-/** The rule's pass on a 2.0 build (WS13.3): the local lift is checked too. */
-const LOCAL_RULE_ACCESS = `A climb of ${MIN_LIFT} or more, a local lift of ${LOCAL_LIFT_BAR} or more, inside the fee range, two genres shared`;
 
 /** Who does what (WS12 item 2) as three backstage passes on lanyards, from one rail. */
 export function BackstagePasses({
   festival,
   calls,
   retries = 0,
-  local = false,
   children,
 }: {
   festival: Festival;
   calls: number;
   /** The build's retries, said beside its calls (Daniel, 2026-10-28, 19:20). */
   retries?: number;
-  /** The saved build's acts carry a local lift (a 2.0 build): the rule checks it too. */
-  local?: boolean;
   children?: ReactNode;
 }) {
   const reveal = useReveal<HTMLElement>();
@@ -435,9 +436,7 @@ export function BackstagePasses({
                   .does(calls, retries)
                   .replace(/^./, (c) => c.toUpperCase())}
               </p>
-              <p className="dc-pass-access">
-                {pass.id === "rule" && local ? LOCAL_RULE_ACCESS : pass.access}
-              </p>
+              <p className="dc-pass-access">{pass.access}</p>
             </div>
           </li>
         ))}
@@ -465,7 +464,9 @@ const TESTED: readonly {
     id: "shown",
     verdict: "Shown",
     big: "244 of 290",
-    line: "244 of the 290 acts Undercard 1.0 booked (its bills of 17 and 18 October) climbed at least 5 places more with the town venue that put them on the bill than with a music venue abroad of similar Qloo popularity.",
+    // Daniel, 2026-10-29 (WS18 item 1): Undercard drafts, it doesn't book; the clause on the
+    // bills on show stands on the 29 2.0 builds, 290 of 290 (WS18b's check, no call).
+    line: "244 of the 290 acts Undercard 1.0 drafted (its bills of 17 and 18 October) climbed at least 5 places more with the town venue that put them on the bill than with a music venue abroad of similar Qloo popularity; the bills on show now hold only acts that pass that test.",
     section:
       "37. The control test across the 29 towns, written before any call",
   },
@@ -484,7 +485,9 @@ const TESTED: readonly {
     line: "At 33 real festivals, Undercard's shortlists held 3 of the acts the festivals actually booked; the AI model alone held 11. Neither test bar was met.",
     section:
       "38. An outside yardstick at real festivals, written before any call",
-    how: "All three shortlists had the same headliners and the same brief, and a hit is any act on the festival's lineup except its headliners. 6 of the model's 11 hits are acts outside the fee bands Undercard is given; inside them, the model held 5, Undercard 3 and Undercard with another country's venues 2. The model may also recall real lineups from its training. Asked for an undercard in 29 towns (section 31), the same model put 204 of the 268 picks Qloo found above the top of those fee bands. Against Undercard with another country's venues, Undercard won 3 festivals to 2, which doesn't meet that bar either.",
+    // Daniel's words of 29 October (11:05), "fee bands" said as the glossary's "fee ranges"
+    // (WS18 item 1: one tier word everywhere).
+    how: "All three shortlists had the same headliners and the same brief, and a hit is any act on the festival's lineup except its headliners. 6 of the model's 11 hits are acts outside the fee ranges Undercard is given; inside them, the model held 5, Undercard 3 and Undercard with another country's venues 2. The model may also recall real lineups from its training. Asked for an undercard in 29 towns (section 31), the same model put 204 of the 268 picks Qloo found above the top of those fee ranges. Against Undercard with another country's venues, Undercard won 3 festivals to 2, which doesn't meet that bar either.",
   },
 ];
 

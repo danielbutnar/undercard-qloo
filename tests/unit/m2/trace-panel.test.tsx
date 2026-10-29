@@ -56,7 +56,7 @@ describe("TracePanel", () => {
     const row = within(list).getAllByRole("listitem")[0];
     expect(
       within(row).getByText(
-        /Mid-tier artists for the headliners and The Lantern Room/,
+        /Mid-size artists for the headliners and The Lantern Room/,
       ),
     ).toBeTruthy();
     expect(

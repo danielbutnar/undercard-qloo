@@ -14,6 +14,7 @@ import { ActCardPanel } from "@/components/act-card-panel";
 import { FlyingActs, landsAt, type Flight } from "@/components/chart/flights";
 import type { Printing } from "@/components/chart/band-chart";
 import { billRows } from "@/components/chart/chart-rows";
+import { PosterChecks } from "@/components/chart/checks";
 import { ImageCredit } from "@/components/chart/image-credit";
 import {
   HeadlinerList,
@@ -1530,6 +1531,13 @@ export function FestivalScreen({
             );
           })}
         </div>
+      )}
+      {/* Daniel, 2026-10-29 (WS18 item 1): the three checks under the acts, in the card's words. */}
+      {!allOpen && printedActs.length > 0 && (
+        <PosterChecks
+          local={printedActs.every((act) => act.localLift)}
+          quiet={watching}
+        />
       )}
       {!wide && venueCard}
       {example && (

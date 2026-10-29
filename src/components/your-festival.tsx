@@ -209,7 +209,7 @@ export function YourFestival({
               Towns Undercard has already read
             </h2>
             <p className="panel-sub">
-              Each has a saved build that fills both bands with these
+              Each has a saved build that fills both tiers with these
               headliners. One click replays it, with the live run next to it;
               change a headliner and the click runs the agent live instead.
             </p>
