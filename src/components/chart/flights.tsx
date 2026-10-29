@@ -26,18 +26,20 @@ export const landsAt = (order: number) =>
 
 function FlyCard({ flight }: { flight: Flight }) {
   const card = useRef<HTMLDivElement>(null);
+  // The screen builds its flights afresh on every render (a resize across the short-laptop line,
+  // the venue switch's answer): the card flies once per act, venue and place in the run, so a
+  // re-render mid-step never cancels and restarts it (WS18, post-deploy brief item 1).
+  const actId = flight.act.entityId;
+  const venueId = flight.act.anchorVenue.entityId;
+  const { order } = flight;
   useLayoutEffect(() => {
     const element = card.current;
     const layer = element?.parentElement;
     if (!element || !layer || typeof element.animate !== "function") return;
     const box = layer.getBoundingClientRect();
-    const sign = document.querySelector(
-      `.town-sign[data-venue="${flight.act.anchorVenue.entityId}"]`,
-    );
+    const sign = document.querySelector(`.town-sign[data-venue="${venueId}"]`);
     const town = document.querySelector(".town-view");
-    const slot = document.querySelector(
-      `.poster-act[data-act="${flight.act.entityId}"]`,
-    );
+    const slot = document.querySelector(`.poster-act[data-act="${actId}"]`);
     if (!slot || !(sign ?? town)) return;
     const from = (sign ?? town)!.getBoundingClientRect();
     const to = slot.getBoundingClientRect();
@@ -64,13 +66,13 @@ function FlyCard({ flight }: { flight: Flight }) {
       ],
       {
         duration: FLIGHT_MS,
-        delay: flight.order * STAGGER_MS,
+        delay: order * STAGGER_MS,
         easing: "cubic-bezier(0.45, 0, 0.2, 1)",
         fill: "both",
       },
     );
     return () => flightOf?.cancel?.();
-  }, [flight]);
+  }, [actId, venueId, order]);
   const mark = climbMark(flight.act);
   return (
     <div
