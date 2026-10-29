@@ -38,7 +38,7 @@ The demo festival, Sagebrush Sound, is fictional: Boise, Idaho, with Khruangbin 
 
 Each of these tests had its bar written into docs/evidence.md before its first call, and each result is reported as it came.
 
-- **SHOWN: 244 of 290** (section 37, 28 October 2026). 244 of the 290 acts Undercard 1.0 booked (its bills of 21 October) climbed at least 5 places more with the town venue that put them on the bill than with a music venue abroad of similar Qloo popularity. By a rule written before the test, that result set Undercard 2.0's bar: a local lift of 5 places.
+- **SHOWN: 244 of 290** (section 37, 28 October 2026). 244 of the 290 acts Undercard 1.0 booked (its bills of 17 and 18 October) climbed at least 5 places more with the town venue that put them on the bill than with a music venue abroad of similar Qloo popularity. By a rule written before the test, that result set Undercard 2.0's bar: a local lift of 5 places.
 - **PARTLY SHOWN: 20 of 30** (sections 26 and 34, 21 and 22 October 2026). 20 of 30 real festivals where the acts booked showed more lift from the town's venues than random acts of their tier; another country's venues did it at 18.
 - **NOT SHOWN: 3 vs 11** (section 38, 28 October 2026). At 33 real festivals, Undercard's shortlists held 3 of the acts the festivals actually booked; the AI model alone held 11. Neither test bar was met.
 
