@@ -82,22 +82,26 @@ describe("the claims", () => {
     }
   });
 
-  it("check the story's three towns against their saved builds", () => {
-    const story = recomputable.filter(
-      (claim) =>
-        claim.file === "docs/devpost-story.md" &&
-        claim.equals.kind === "venue-acts" &&
-        claim.equals.town !== "Boise",
+  it("check the story without naming a venue, and its stamps from their sections (WS17)", () => {
+    const story = CLAIMS.filter(
+      (claim) => claim.file === "docs/devpost-story.md",
     );
-    expect(new Set(story.map((claim) => townsOf(claim.equals)[0]))).toEqual(
-      new Set(["Austin", "Denver", "Nashville"]),
+    // Daniel, 29 October: the story names no act and no venue, so no claim reads a venue's acts.
+    expect(
+      story.filter(
+        (claim) =>
+          claim.equals !== "not recomputable" &&
+          claim.equals.kind === "venue-acts",
+      ),
+    ).toEqual([]);
+    // How it works' three stamps: each number names its section of docs/evidence.md.
+    const whys = story.flatMap((claim) =>
+      claim.equals === "not recomputable" ? [claim.why ?? ""] : [],
     );
-    // The story's line names the production builds the town pages replay (WS6 item 7).
-    expect(story.map((claim) => claim.phrase)).toEqual(
-      expect.arrayContaining([
-        "Venue 213 Austin lifted all {10} acts",
-        "Venue 420 and Venue 316 {0}",
-      ]),
-    );
+    for (const section of [26, 34, 37, 38])
+      expect(
+        whys.some((why) => why.includes(`section ${section},`)),
+        `section ${section}`,
+      ).toBe(true);
   });
 });

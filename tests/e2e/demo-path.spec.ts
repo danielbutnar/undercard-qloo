@@ -8,6 +8,7 @@ import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
 import { LIVE_QLOO, QLOO_SKIP_REASON, SYNTHETIC } from "./env";
 import { syntheticRefillStream } from "./synthetic-build";
+import { QLOO_CALL_CAP } from "../../src/lib/agent-limits";
 
 const NDJSON = "application/x-ndjson; charset=utf-8";
 const REPLAY_TIMEOUT = 30_000;
@@ -176,7 +177,8 @@ test.describe("demo path", () => {
       ).toBeVisible();
       await page.getByRole("button", { name: "Skip to the lineup" }).click();
     }
-    expect(callCount).toBeLessThanOrEqual(12);
+    // A 2.0 build reads up to 28 calls (a 1.0 build stopped at 12).
+    expect(callCount).toBeLessThanOrEqual(QLOO_CALL_CAP);
     await expect(trace.getByLabel(/^\d+ results$/)).toHaveCount(callCount);
     // The planner's own lines replay with the calls (builds saved since 2026-10-17 carry them).
     await expect(trace.getByText(/^Agent:/).first()).toBeVisible();
@@ -239,7 +241,7 @@ test.describe("demo path", () => {
     }
   });
 
-  test("step 4: Unavailable on the card asks why, then refills the slot from the same fee band with a new Qloo call", async ({
+  test("step 4: Unavailable on the card asks why, then refills the slot from the same tier, in at most 5 Qloo calls", async ({
     page,
   }) => {
     test.skip(!SYNTHETIC && !LIVE_QLOO, QLOO_SKIP_REASON);
@@ -280,17 +282,21 @@ test.describe("demo path", () => {
     await expect(mid.getByRole("article")).toHaveCount(4);
     await expect(mid.getByRole("article").first()).toContainText(MARK);
 
-    // The refill shows in the trace: at most 3 new Qloo calls, excluding the board.
+    // The refill shows in the trace, excluding the board. A 2.0 build refills from the rankings
+    // it already holds first, at no call, then from up to two more venues with their controls: at
+    // most 5 Qloo calls. The synthetic refill makes one.
     const added = await traceRows(page).count();
-    expect(added).toBeGreaterThanOrEqual(1);
-    expect(added).toBeLessThanOrEqual(3);
-    await expect(page.getByText(/^[123] refill calls?$/)).toBeVisible();
-    const refillRow = traceRows(page)
-      .filter({ hasText: "Refill (radius clause): Mid-tier artists" })
-      .last();
-    await refillRow.getByRole("button", { name: "Parameters" }).click();
-    await expect(refillRow).toContainText("filter.exclude.entities=");
-    await expect(refillRow).toContainText(gone);
+    expect(added).toBeLessThanOrEqual(5);
+    if (SYNTHETIC || added > 0) {
+      expect(added).toBeGreaterThanOrEqual(1);
+      await expect(page.getByText(/^[1-5] refill calls?/)).toBeVisible();
+      const refillRow = traceRows(page)
+        .filter({ hasText: "Refill (radius clause): Mid-tier artists" })
+        .last();
+      await refillRow.getByRole("button", { name: "Parameters" }).click();
+      await expect(refillRow).toContainText("filter.exclude.entities=");
+      await expect(refillRow).toContainText(gone);
+    }
 
     // The CSV names the act the replacement took over from, and why.
     const download = page.waitForEvent("download");
