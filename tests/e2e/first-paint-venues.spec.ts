@@ -16,5 +16,6 @@ for (const path of ["/", "/towns/austin"])
     );
     const html = await (await request.get(path)).text();
     expect(html).not.toContain("Loading the saved build");
-    expect(html).toMatch(/\d+ of \d+ slots filled/);
+    // The poster key's toggles are live in the server's HTML (the switch panel went, WS12 item 1).
+    expect(html).toMatch(/fans: on, \d+ acts?\. Switch them off/);
   });

@@ -1,4 +1,5 @@
 import type { AgentSwitch } from "./agent-switch";
+import type { TraceCall } from "./build-events";
 import type { ArtistImages } from "./artist-images";
 import type { SplitLine } from "./attribution-line";
 import type { FeeBandId } from "./fee-bands";
@@ -12,6 +13,9 @@ export interface FirstBill {
   acts: Act[];
   /** Qloo calls the build made. */
   calls: number;
+  /** The build's Qloo calls and the AI agent's lines, for the setlist (WS12 item 1). */
+  trace?: TraceCall[];
+  notes?: { at: number; text: string }[];
   /** Boise live-music places Qloo listed, from the build's venue search; null without one. */
   placesListed: number | null;
   /** Per band, the rooms the build tested, in the order it ran them. */

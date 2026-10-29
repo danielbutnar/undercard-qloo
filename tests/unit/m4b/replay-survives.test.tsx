@@ -5,6 +5,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { Activity } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -59,7 +60,7 @@ describe("a replay in flight", () => {
     );
     // Watch hands the chart back a beat after the build is in; then the lineup returns.
     await waitFor(() =>
-      expect(screen.getAllByRole("article")).toHaveLength(10),
+      expect(within(screen.getByRole("region", { name: "Undercard draft" })).getAllByRole("article")).toHaveLength(10),
     );
     // Watch is ready to play again: the screen isn't stuck on "Building…" or "Watching…".
     expect(

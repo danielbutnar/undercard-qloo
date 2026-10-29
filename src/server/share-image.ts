@@ -1,4 +1,6 @@
 import { ImageResponse } from "next/og";
+import { PRINT_SIZE, printImage } from "@/components/share/print-image";
+import type { PrintPoster } from "@/components/share/print-words";
 import { SHARE_SIZE, shareImage } from "@/components/share/share-image";
 import { shareCard, type ShareCard } from "@/components/share/share-words";
 import type { Festival } from "@/lib/festival";
@@ -20,4 +22,18 @@ export async function shareCardFor(
 /** The preview's PNG, 1200×630, in next/og's own font. */
 export function shareResponse(card: ShareCard): Response {
   return new ImageResponse(shareImage(card), { ...SHARE_SIZE });
+}
+
+/**
+ * The printable poster's PNG (WS12 item 6), 1800×2400, as a download under its file name. It
+ * is drawn from the poster it's given alone, so it is never cached.
+ */
+export function printResponse(poster: PrintPoster): Response {
+  return new ImageResponse(printImage(poster), {
+    ...PRINT_SIZE,
+    headers: {
+      "content-disposition": `attachment; filename="${poster.file}"`,
+      "cache-control": "no-store",
+    },
+  });
 }

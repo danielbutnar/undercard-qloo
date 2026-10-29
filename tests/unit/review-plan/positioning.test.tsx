@@ -31,8 +31,9 @@ describe("the positioning, in Daniel's words (plan.md item 7)", () => {
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
     );
     const text = document.body.textContent ?? "";
-    expect(text).toContain(`Undercard is an AI agent: it ${SHORTLIST}.`);
-    expect(text).toContain(PRINCIPLE);
+    // Since WS12 item 1 (plan-to-9) the home page ends on the positioning's short form, in place
+    // of How an act gets on's two lines; How it works keeps the principle.
+    expect(text).toContain("Undercard drafts. The buyer makes every call.");
     expect(text).not.toContain(
       "the acts that play before the headliners from what fans",
     );

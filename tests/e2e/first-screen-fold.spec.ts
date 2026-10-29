@@ -134,11 +134,13 @@ test.describe("the first screen above the fold", () => {
 
   // WS8: a maximized browser on the commonest small laptops shows Watch before any scroll, with
   // the lead, the town picker and the top of the poster; the town is shorter there. 1280x720
-  // too, where Watch was still cut off (Daniel, 2026-10-24).
+  // too, where Watch was still cut off (Daniel, 2026-10-24). WS12 item 1: up to 760 px tall
+  // (Daniel, 2026-10-28), so 1536x730 too, and every venue's sign shows with Watch.
   for (const [width, height] of [
     [1366, 640],
     [1280, 650],
     [1280, 720],
+    [1536, 730],
   ] as const)
     test.describe(`on a short laptop, ${width}x${height}`, () => {
       test.use({ viewport: { width, height } });
@@ -152,6 +154,12 @@ test.describe("the first screen above the fold", () => {
           await expect(
             page.getByRole("region", { name: "Your town" }),
           ).toBeInViewport();
+          const signs = page
+            .getByRole("region", { name: "Your town" })
+            .getByRole("button", { name: /\. Show this venue$/ });
+          await expect(signs).toHaveCount(3);
+          for (const sign of await signs.all())
+            await expect(sign).toBeInViewport({ ratio: 1 });
           expect(
             await page.evaluate(
               () => document.documentElement.scrollWidth - window.innerWidth,

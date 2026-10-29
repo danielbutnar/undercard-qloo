@@ -83,7 +83,7 @@ describe("While a venue is off", () => {
     expect(screen.getByText(HINT)).toBeTruthy();
     const venue = data!.venues[0];
     const toggle = screen.getByRole("button", {
-      name: (name) => name.startsWith(`${venue.name}: on`),
+      name: (name) => name.startsWith(`${venue.name}'s fans: on`),
     }) as HTMLButtonElement;
     await waitFor(() => expect(toggle.disabled).toBe(false));
     fireEvent.click(toggle);

@@ -1,47 +1,30 @@
-// M9c and M10b: How it works, one click from the lineup; the video loads only when played; one
-// act is followed through the saved build; the evidence and the five objections are one click on.
+// M9c, M10b and WS12 item 2: How it works, one click from the lineup, as the director's cut of
+// Watch; the video loads only when played; the evidence and the five objections are one click on.
 import { expect, test } from "@playwright/test";
 
-test("How it works follows one act through the saved build, with the evidence a click away and no video loaded", async ({
+test("How it works plays Watch in four scenes, with the evidence a click away and no video loaded", async ({
   page,
 }) => {
   await page.goto("/");
   await page
-    .getByRole("banner")
+    .getByRole("navigation", { name: "Other screens" })
     .getByRole("link", { name: "How it works" })
     .click();
   await expect(page).toHaveURL(/\/method$/, { timeout: 30_000 });
-  await expect(
-    page.getByRole("img", { name: /How Undercard drafts a lineup/ }),
-  ).toBeVisible();
+  // The director's cut: four scenes made of the landing's own objects.
+  for (const n of [1, 2, 3, 4])
+    await expect(
+      page.getByRole("region", { name: new RegExp(`^Scene ${n}: `) }),
+    ).toBeVisible();
   await expect(page.locator("video, iframe")).toHaveCount(0);
 
-  // One act, a step at a time: its row climbs, the rule checks it, it lands on the lineup.
-  const follow = page.getByRole("region", { name: "Follow one act" });
-  await expect(follow.getByRole("article").first()).toBeVisible();
-  for (let step = 0; step < 3; step++)
-    await follow.getByRole("button", { name: "Next step" }).click();
-  await expect(
-    follow.getByRole("region", { name: "Mid-size acts" }),
-  ).toBeVisible();
-  await expect(
-    follow.getByRole("button", { name: "Next step" }),
-  ).toBeDisabled();
-  await expect(
-    follow.getByRole("region", { name: "The AI agent's choices" }),
-  ).toContainText(/acts? lifted|lifted none/);
-
-  // Try it: the followed act's venue off, and the acts its fans lifted leave.
-  const tryIt = page.getByRole("region", { name: "Try it" });
-  const toggle = tryIt.getByRole("switch");
-  await expect(toggle).toHaveAttribute("aria-checked", "true", {
-    timeout: 30_000,
-  });
+  // The venue's switch inside scene 2: off, the act stays where the headliners' fans put it.
+  const two = page.getByRole("region", { name: /^Scene 2: / });
+  const toggle = two.getByRole("button", { name: /'s fans/ });
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
   await toggle.click();
-  await expect(toggle).toHaveAttribute("aria-checked", "false");
-  await expect(tryIt).toContainText(
-    /^.*Without .+'s fans, .+ leaves? the lineup/,
-  );
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect(two).toContainText("no climb, so no slot");
 
   // The evidence and the five objections, on their own page.
   await page.getByRole("link", { name: /^The evidence/ }).click();
@@ -60,22 +43,11 @@ test("How it works follows one act through the saved build, with the evidence a 
   ).toBeVisible();
 });
 
-test("a walkthrough step's own link opens How it works on that step, in view", async ({
+test("a scene's old step link opens How it works on that scene, in view", async ({
   page,
 }) => {
   await page.goto("/method?step=3");
-  const follow = page.getByRole("region", { name: "Follow one act" });
-  await expect(
-    follow.getByRole("list", { name: "The rule's checks" }),
-  ).toBeVisible({
+  await expect(page.getByRole("region", { name: /^Scene 3: / })).toBeInViewport({
     timeout: 30_000,
   });
-  await expect(
-    follow.getByRole("heading", { name: "Follow one act" }),
-  ).toBeInViewport();
-  await follow.getByRole("button", { name: "Next step" }).click();
-  await expect(page).toHaveURL(/\/method\?step=4$/);
-  await expect(
-    follow.getByRole("region", { name: "Mid-size acts" }),
-  ).toBeVisible();
 });

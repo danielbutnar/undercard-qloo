@@ -38,12 +38,10 @@ test.describe("the same brief in other towns", () => {
         .getByRole("list", { name: "Booked headliners" })
         .getByRole("listitem"),
     ).toHaveText(["Khruangbin", "Japanese Breakfast"]);
-    // The town's own venues, in the venue switch under its poster.
-    await expect(
-      page.getByRole("region", {
-        name: `${city} venues whose fans shaped this lineup`,
-      }),
-    ).toBeVisible();
+    // The town's own venues: the town's legend names them (the switch panel went, WS12 item 1).
+    await expect(page.getByRole("region", { name: "Your town" })).toContainText(
+      `live-music places in ${city}`,
+    );
     const bill = page.getByRole("region", { name: "Undercard draft" });
     await expect(bill.getByRole("article")).toHaveCount(10);
     await expect(

@@ -56,8 +56,8 @@ test.describe("the first screen on a phone", () => {
         const name = (await act.getAttribute("aria-label"))!;
         await act.getByRole("button", { name, exact: true }).click();
         const opened = card.getByRole("article", { name, exact: true });
-        const [, full] = /^with (.+)'s fans$/.exec(
-          await opened.locator(".card-place small").last().innerText(),
+        const [, full] = /^in Qloo's ranking with (.+)'s fans added$/.exec(
+          await opened.locator(".card-rank-with").innerText(),
         )!;
         const short = roomShortName(full);
         const line = opened.locator(".card-venue");

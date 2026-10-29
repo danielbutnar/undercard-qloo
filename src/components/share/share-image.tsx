@@ -50,14 +50,14 @@ const PAGE_DOTS =
 const SHEET_DOTS =
   "radial-gradient(circle, rgba(11, 11, 12, 0.07) 24%, transparent 33%)";
 // An open slot's dashed edge: ink at 58% on white (first-screen.css's .poster-slot).
-const SLOT_EDGE = "#727273";
+export const SLOT_EDGE = "#727273";
 
-const venueInk = (hue: number) => ({
+export const venueInk = (hue: number) => ({
   background: C[`venue-${hue % 6}` as keyof typeof C],
   color: C[`on-venue-${hue % 6}` as keyof typeof C],
 });
 
-const NO_BREAK_SPACE = String.fromCharCode(0xa0);
+export const NO_BREAK_SPACE = String.fromCharCode(0xa0);
 
 /**
  * A "·"-separated line in the parts it wraps between. Satori measures a word letter by letter
@@ -67,10 +67,10 @@ const NO_BREAK_SPACE = String.fromCharCode(0xa0);
 export const lineParts = (line: string) =>
   line.split(" · ").map((part) => part.replaceAll(" ", NO_BREAK_SPACE));
 // A drawn dot between two parts: its width and the space on each side.
-const DOT = { size: 4, space: 7 };
+export const DOT = { size: 4, space: 7 };
 
 // The poster's heavy names, drawn in the one weight next/og's font has.
-const heavy = (size: number, color: string) => ({
+export const heavy = (size: number, color: string) => ({
   WebkitTextStroke: `${Math.max(1, Math.round(size / 28))}px ${color}`,
 });
 
@@ -124,7 +124,7 @@ export function lineCount(text: string, size: number, width: number): number {
 }
 
 /** The largest size from `max` down to `min` that sets `text` in `lines` lines or fewer. */
-function fitLines(
+export function fitLines(
   text: string,
   width: number,
   max: number,
@@ -141,7 +141,11 @@ function fitLines(
 }
 
 /** How many rows boxes of these widths wrap to in `width`, flex-wrap's way. */
-function rowCount(widths: readonly number[], width: number, gap: number) {
+export function rowCount(
+  widths: readonly number[],
+  width: number,
+  gap: number,
+) {
   let rows = 1;
   let line = 0;
   for (const w of widths) {
@@ -157,7 +161,7 @@ const GAP = 8;
 const SLOT_TEXT = 15;
 
 /** A band's chip at `size`: its climb mark set in the body face, smaller, as the poster sets it. */
-const chip = (size: number) => ({
+export const chip = (size: number) => ({
   size,
   climb: Math.min(size, Math.max(12, Math.round(size * 0.55))),
   padX: Math.round(size * 0.38),

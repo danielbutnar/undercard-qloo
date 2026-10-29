@@ -24,6 +24,8 @@ function toFirstBill(saved: SavedBuild): FirstBill {
     build: { id: saved.id, createdAt: saved.createdAt },
     acts: saved.lineup.acts,
     calls: saved.trace.length,
+    trace: saved.trace,
+    notes: saved.notes ?? [],
     placesListed: venueSearch?.resultCount ?? null,
     anchors: saved.context.anchors,
     baselineTop,
