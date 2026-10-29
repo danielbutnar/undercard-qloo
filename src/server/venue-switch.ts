@@ -88,7 +88,15 @@ export async function assemblyFromSaved(
         const matched = context.controls?.[band.id]?.find(
           (entry) => entry.venueId === venue.entityId,
         );
-        if (!matched) return { venue, band: band.id, artists };
+        // A 2.0 run with no control recorded is a venue Qloo had no fan data for: it never books
+        // an act (Daniel, 2026-10-28). A 1.0 run has no controls and reads as before.
+        if (!matched)
+          return {
+            venue,
+            band: band.id,
+            artists,
+            ...(saved.engine === 2 ? { noFanData: true } : {}),
+          };
         return {
           venue,
           band: band.id,
