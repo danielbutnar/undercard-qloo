@@ -113,6 +113,19 @@ describe("the method page (M9c)", () => {
       expect(headings).toContain(link.getAttribute("href")!.split("#")[1]);
   });
 
+  // Daniel, 2026-10-29: section 38's result, NOT SHOWN, as a limit.
+  it("lists section 38's limit, linked to section 38", () => {
+    render(<MethodEvidencePage />);
+    const limits = screen.getByRole("region", {
+      name: "What these numbers don't establish",
+    });
+    expect((limits.textContent ?? "").replace(/\s+/g, " ")).toContain(
+      "That Undercard finds the acts festivals actually book: at 33 real festivals its shortlists didn't beat the model alone, or the same agent with another country's venues (section 38).",
+    );
+    const link = within(limits).getByRole("link", { name: "section 38" });
+    expect(headings).toContain(link.getAttribute("href")!.split("#")[1]);
+  });
+
   it("loads the video only when it's played", () => {
     render(<MethodPage videoUrl="https://example.org/demo.mp4" />);
     expect(document.querySelector("video, iframe")).toBeNull();

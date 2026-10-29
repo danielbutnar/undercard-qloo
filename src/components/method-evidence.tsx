@@ -31,6 +31,8 @@ const S = {
   controls: "34. Two controls for the premise test, written before any call",
   controlTest:
     "37. The control test across the 29 towns, written before any call",
+  yardstick:
+    "38. An outside yardstick at real festivals, written before any call",
   climb:
     "19. The lift, visible (M9a), written before the spike and the readers",
   compare:
@@ -640,6 +642,12 @@ export function MethodEvidencePage() {
                   country as much as the town: one opening act clears the bar in
                   all four US demo towns. (<Ev to="controlTest">Section 37</Ev>,
                   added 2026-10-28.)
+                </li>
+                <li>
+                  That Undercard finds the acts festivals actually book: at 33
+                  real festivals its shortlists didn&apos;t beat the model
+                  alone, or the same agent with another country&apos;s venues (
+                  <Ev to="yardstick">section 38</Ev>).
                 </li>
               </ul>
               <p className="mt-2 text-label">
