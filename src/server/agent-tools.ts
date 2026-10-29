@@ -30,7 +30,12 @@ import {
 import type { Festival } from "@/lib/festival";
 import type { Act, LocationReading } from "@/lib/lineup";
 import { localPickOf, type LocalPick } from "@/lib/local-pick";
-import { foldAccents, foundOnQloo, hasNonAscii } from "@/lib/pick-tests";
+import {
+  foldAccents,
+  foundOnQloo,
+  hasNonAscii,
+  sameName,
+} from "@/lib/pick-tests";
 import {
   QLOO_RETRY,
   QlooBusy,
@@ -753,20 +758,32 @@ export function createToolbox({
     [K in ToolName]: (input: z.infer<(typeof Inputs)[K]>) => Promise<unknown>;
   } = {
     async search_artist({ name }) {
-      const matches = await callQloo(
-        "search_artist",
-        "/search",
-        `Search for "${name}"`,
-        () => qloo.search({ query: name }),
+      const search = async (query: string) => {
+        const found = await callQloo(
+          "search_artist",
+          "/search",
+          `Search for "${query}"`,
+          () => qloo.search({ query }),
+        );
+        for (const match of found) names.set(match.entityId, match.name);
+        return found;
+      };
+      // Daniel, 2026-10-29 (WS18): Qloo's spelling matches with both names folded, as every
+      // name comparison does, and a name the fold changes that matches nothing is searched once
+      // more with its accents folded (WS13.6), a call of its own. A name nothing matches still
+      // takes Qloo's first result.
+      let matches = await search(name);
+      let chosen = foundOnQloo(name, matches);
+      const folded = foldAccents(name);
+      if (!chosen && folded !== name) {
+        const again = await search(folded);
+        chosen = foundOnQloo(folded, again);
+        if (chosen || matches.length === 0) matches = again;
+      }
+      chosen ??= matches[0] ?? null;
+      const booked = festival.headliners.find((headliner) =>
+        sameName(headliner, name),
       );
-      for (const match of matches) names.set(match.entityId, match.name);
-      const booked = festival.headliners.find(
-        (headliner) => headliner.toLowerCase() === name.toLowerCase(),
-      );
-      const chosen =
-        matches.find(
-          (match) => match.name.toLowerCase() === name.toLowerCase(),
-        ) ?? matches[0];
       if (booked && chosen) state.headliners.set(booked.toLowerCase(), chosen);
       return {
         matches: matches.slice(0, 3).map((match) => ({

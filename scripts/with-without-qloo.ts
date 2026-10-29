@@ -11,7 +11,7 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import type { RankedArtist } from "@/lib/assemble-lineup";
 import { CHECKED_TOWNS } from "@/lib/checked-towns";
-import { foundOnQloo, pickTests } from "@/lib/pick-tests";
+import { foundOnQloo, normalise, pickTests } from "@/lib/pick-tests";
 import { checkedFestival } from "@/lib/towns";
 import { createLlmOnlyModel, type LlmOnlyModel } from "@/server/ai";
 import { createBuildStore } from "@/server/build-store";
@@ -116,9 +116,12 @@ for (const town of CHECKED_TOWNS) {
     let found: RankedArtist | null = null;
     let searched = true;
     try {
+      // Section 18's normalising, as section 31 counted; the app folds accents too (WS18).
       found = foundOnQloo(
         pick.name,
         (await live.search({ query: pick.name })).data,
+        undefined,
+        normalise,
       );
     } catch (error) {
       if (!(error instanceof QlooCacheMiss)) throw error;

@@ -19,11 +19,6 @@ export const normalise = (name: string) =>
     .replace(/^\s*the\s+/, "")
     .replace(/[^\p{L}\p{N}]/gu, "");
 
-/**
- * The artist a pick's name finds on Qloo (docs/evidence.md section 31): the first of a search's
- * top five whose name matches it after section 18's normalising, or null when none does. A
- * pick Qloo doesn't find fails all three tests.
- */
 // Letters NFKD leaves whole, folded to the ASCII a search would match (WS8).
 const LETTERS: Record<string, string> = {
   ı: "i",
@@ -55,6 +50,22 @@ export const foldAccents = (name: string) =>
 /** Whether a name has a letter beyond ASCII, which Qloo's search can miss (WS8). */
 export const hasNonAscii = (name: string) => /[^\x00-\x7F]/.test(name);
 
+/**
+ * A name as the app compares it (Daniel, 2026-10-29): the app's full fold, foldAccents then
+ * section 18's normalising, so "Fjord" and "Fjørd" are one name. A name with no letter or digit
+ * left is compared as typed, in lower case.
+ */
+export const nameKey = (name: string) =>
+  normalise(foldAccents(name)) || name.trim().toLowerCase();
+
+/** Whether two names are one act's name, both folded (nameKey). */
+export const sameName = (a: string, b: string) => nameKey(a) === nameKey(b);
+
+/**
+ * The artist a pick's name finds on Qloo (docs/evidence.md section 31): the first of a search's
+ * top five whose name matches it, both folded, or null when none does. A pick Qloo doesn't find
+ * fails all three tests.
+ */
 export function foundOnQloo<
   Artist extends { name: string; tags?: readonly ArtistTag[] },
 >(
@@ -66,10 +77,15 @@ export function foundOnQloo<
    * without them, the first.
    */
   weights?: ReadonlyMap<string, number>,
+  /**
+   * How both names are compared: the app's full fold, or section 18's normalising alone where
+   * the evidence counts as section 31 counted (evidence:check, scripts/with-without-qloo.ts).
+   */
+  key: (name: string) => string = nameKey,
 ): Artist | null {
   const matches = results
     .slice(0, 5)
-    .filter((entity) => normalise(entity.name) === normalise(name));
+    .filter((entity) => key(entity.name) === key(name));
   if (matches.length < 2 || !weights) return matches[0] ?? null;
   return matches.reduce((best, entity) =>
     sharedWeight(entity, weights) > sharedWeight(best, weights) ? entity : best,

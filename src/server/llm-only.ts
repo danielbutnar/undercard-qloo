@@ -4,6 +4,7 @@ import {
   type LlmOnlyLineup,
   type PickCheck,
 } from "@/lib/llm-only";
+import { nameKey } from "@/lib/pick-tests";
 import { festivalBrief } from "./agent";
 import type { LlmOnlyModel } from "./ai";
 import { cacheTtlSeconds, type QlooCache } from "./qloo-cache";
@@ -99,14 +100,13 @@ export async function handleLlmOnly({
       502,
     );
   }
-  const headliners = new Set(
-    festival.headliners.map((name) => name.toLowerCase()),
-  );
+  // A headliner the model names in another spelling is still a headliner (WS18).
+  const headliners = new Set(festival.headliners.map(nameKey));
   const lineup: LlmOnlyLineup = {
     festivalId: festival.id,
     createdAt: new Date(now()).toISOString(),
     picks: picks
-      .filter((pick) => !headliners.has(pick.name.trim().toLowerCase()))
+      .filter((pick) => !headliners.has(nameKey(pick.name)))
       .slice(0, SLOTS),
   };
   await cache.set(key, lineup, cacheTtlSeconds(now()));

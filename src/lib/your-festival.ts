@@ -1,6 +1,7 @@
 import { z } from "zod";
-import type { BuildEvent } from "./build-events";
+import type { BuildEvent, TraceCall } from "./build-events";
 import type { Festival } from "./festival";
+import { sameName } from "./pick-tests";
 import { SAGEBRUSH_SOUND } from "./sagebrush";
 
 /**
@@ -24,11 +25,11 @@ export const YourBriefSchema = z
     region: TOWN,
     headliners: z.tuple([NAME, NAME]),
   })
-  .refine(
-    ({ headliners: [a, b] }) =>
-      a.trim().toLowerCase() !== b.trim().toLowerCase(),
-    { message: "Two different headliners, please.", path: ["headliners"] },
-  );
+  // One act in two spellings is one headliner: names compare folded (WS18).
+  .refine(({ headliners: [a, b] }) => !sameName(a, b), {
+    message: "Two different headliners, please.",
+    path: ["headliners"],
+  });
 
 /**
  * Whether Your festival takes a free-text town below the checked towns. M6j's re-measure
@@ -75,12 +76,20 @@ export function diagnoseRun(
   const calls = events.flatMap((event) =>
     event.type === "call" ? [event.call] : [],
   );
-  const missing = calls.find(
-    (call) => call.tool === "search_artist" && call.resultCount === 0,
+  const searches = calls.filter((call) => call.tool === "search_artist");
+  const query = (call: TraceCall) =>
+    call.params.find((param) => param.key === "query")?.value ?? "";
+  // A headliner's search that found nothing, unless its folded search found it (WS18).
+  const missing = searches.find(
+    (call) =>
+      call.resultCount === 0 &&
+      !searches.some(
+        (other) =>
+          (other.resultCount ?? 0) > 0 && sameName(query(other), query(call)),
+      ),
   );
   if (missing) {
-    const name =
-      missing.params.find((param) => param.key === "query")?.value ?? "";
+    const name = query(missing);
     return {
       code: "headliner-not-found",
       message: `Qloo found no artist called “${name}”. Check the spelling, or try another headliner.`,

@@ -221,7 +221,8 @@ export function climbOf(
 
 /**
  * The names to search, each once: a repeat after section 18's normalising (accents, case, a
- * bracketed note, a leading "The") keeps the first spelling.
+ * bracketed note, a leading "The") keeps the first spelling. The pitch check keeps section 18's
+ * rule until Daniel says yes to folding it (WS18): folding moves Boise's example.
  */
 export function distinctNames(names: readonly string[]): {
   names: string[];
