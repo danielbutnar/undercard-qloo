@@ -21,6 +21,13 @@ const headings = readFileSync("docs/evidence.md", "utf8")
   .map((line) => evidenceAnchor(line.slice(3)));
 
 describe("the method page (M9c)", () => {
+  // Daniel, 29 October 19:40: the evidence links open in the public repository, which judges can read.
+  it("links the evidence to docs/evidence.md in the public repository", () => {
+    expect(EVIDENCE_URL).toBe(
+      "https://github.com/danielbutnar/undercard-qloo/blob/main/docs/evidence.md",
+    );
+  });
+
   it("makes GitHub's anchors from evidence headings", () => {
     expect(
       evidenceAnchor(
