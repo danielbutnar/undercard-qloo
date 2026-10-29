@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Anton, Schibsted_Grotesk } from "next/font/google";
+import { SiteFooter } from "@/components/site-footer";
+import { AI_MODEL } from "@/server/ai";
 import "./globals.css";
 
 // The weekly chart's type (docs/design-brief.md): Anton for the chart's places and names, the
@@ -29,6 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-dvh bg-page font-body text-body text-ink">
         {children}
+        <SiteFooter model={AI_MODEL} />
       </body>
     </html>
   );
