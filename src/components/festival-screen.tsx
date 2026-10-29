@@ -1362,6 +1362,33 @@ export function FestivalScreen({
               live: !state.build,
               onScreen: savedOnScreen || ownRun,
             })}
+        {/* Daniel, 29 Oct: where "Run it live" doesn't stand under Watch (below 1250x960, by
+            CSS), the line ends on a way to it: the setlist's "Play it live", scrolled to and
+            focused. */}
+        {!custom &&
+          state.build &&
+          !watching &&
+          state.status !== "building" &&
+          !state.refusal && (
+            <a
+              href="#setlist-title"
+              className="watch-live-link"
+              onClick={(event) => {
+                const play =
+                  document.querySelector<HTMLButtonElement>(".setlist-live");
+                if (!play) return;
+                event.preventDefault();
+                play.scrollIntoView({
+                  behavior: watch.reduced ? "auto" : "smooth",
+                  block: "center",
+                });
+                play.focus({ preventScroll: true });
+              }}
+            >
+              <span aria-hidden> · </span>or run it live
+              <span aria-hidden> ↓</span>
+            </a>
+          )}
       </p>
       {/* WS13.8: a live run under Watch on every town with a saved build; rate-limited. Once
           it ends it states its time and its Qloo calls; a refused run says why. */}
