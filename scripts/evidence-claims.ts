@@ -120,33 +120,57 @@ const SHARED_WITH_BOISE: [town: string, phrase: string][] = [
 ];
 
 export const CLAIMS: readonly Entry[] = [
-  // README.md: the demo festival, the bill, the rule and section 31's totals.
-  { file: README, phrase: "Mid ({4} slots)", equals: slots("Boise", "mid") },
+  // README.md: the demo festival, the testing path, Agent 2.0's rule and section 31's totals
+  // beside section 38's (WS17, 29 October).
   {
     file: README,
-    phrase: "Opener ({6} slots)",
+    phrase: "mid-size ({4} slots)",
+    equals: slots("Boise", "mid"),
+  },
+  {
+    file: README,
+    phrase: "opening ({6} slots)",
     equals: slots("Boise", "opener"),
   },
   {
     file: README,
-    phrase: "The headliners sit over {4} mid-size and 6 opening acts",
+    phrase: "headliners sit over {4} mid-size and 6 opening acts",
     equals: filled("Boise", "mid"),
   },
   {
     file: README,
-    phrase: "The headliners sit over 4 mid-size and {6} opening acts",
+    phrase: "headliners sit over 4 mid-size and {6} opening acts",
     equals: filled("Boise", "opener"),
   },
   {
     file: README,
-    phrase: "NEW when it entered the top {50})",
+    phrase: "NEW when it entered the top {50}",
     equals: { kind: "baseline-top", town: "Boise" },
+  },
+  {
+    file: README,
+    phrase:
+      "otherwise Undercard makes at most {5} Qloo calls, each listed with the refill's reason",
+    equals: rule("refill-cap"),
+  },
+  {
+    file: README,
+    phrase:
+      "reads at least {two} music venues with fan data before it may stop",
+    equals: NOT,
+    why: TWO_ROOMS,
   },
   { file: README, phrase: "stops at {28}", equals: rule("call-cap") },
   {
     file: README,
     phrase: "at least {five} places above the headliners-only ranking",
     equals: rule("min-lift"),
+  },
+  {
+    file: README,
+    phrase: "and at least {5} places more than that venue's control does",
+    equals: NOT,
+    why: LOCAL_BAR,
   },
   { file: README, phrase: "in at most {5} calls", equals: rule("refill-cap") },
   {
@@ -164,19 +188,19 @@ export const CLAIMS: readonly Entry[] = [
   {
     file: README,
     phrase:
-      "Adding Venue 227 to the headliners moved N–29 artists per fee band up five or more places, and 22–23 of them share at least two genre tags with the headliners",
+      "Adding one Boise venue to the headliners moved 28–29 artists per tier up five or more places, and 22–23 of them share at least two genre tags with the headliners",
     equals: NOT,
     why: SPIKE,
   },
   {
     file: README,
-    phrase: "Collective moved 26–31 (21–23 with shared tags)",
+    phrase: "A second venue moved 26–31 (21–23 with shared tags)",
     equals: NOT,
     why: SPIKE,
   },
   {
     file: README,
-    phrase: "refills its slot with at most {5} more Qloo calls",
+    phrase: "otherwise with at most {5} more Qloo calls",
     equals: rule("refill-cap"),
   },
   {
@@ -186,18 +210,17 @@ export const CLAIMS: readonly Entry[] = [
   },
   {
     file: README,
-    phrase: "of the model's {290} picks",
+    phrase: "the model alone picked {290} acts",
     equals: without("picks"),
   },
-  { file: README, phrase: "{268} are on Qloo", equals: without("found") },
   {
     file: README,
-    phrase: "{59} sit in the fee range",
-    equals: without("inRange"),
+    phrase: "and Qloo found {268} of them",
+    equals: without("found"),
   },
   {
     file: README,
-    phrase: "({204} are bigger than its top)",
+    phrase: "Of those 268, {204} sit above the fee range",
     equals: without("above"),
   },
   {
@@ -207,13 +230,26 @@ export const CLAIMS: readonly Entry[] = [
   },
   {
     file: README,
-    phrase: "{11} climb with the fans of one of the town's venues",
-    equals: without("climbs"),
+    phrase: "and {10} pass all three of the rule's checks",
+    equals: without("allThree"),
   },
   {
     file: README,
-    phrase: "and {10} pass all three tests",
-    equals: without("allThree"),
+    phrase: "At {33} real festivals, the model alone held 11",
+    equals: NOT,
+    why: S38,
+  },
+  {
+    file: README,
+    phrase: "the model alone held {11} of the acts the festivals booked",
+    equals: NOT,
+    why: S38,
+  },
+  {
+    file: README,
+    phrase: "and Undercard's shortlists {3} (section 38)",
+    equals: NOT,
+    why: S38,
   },
   {
     file: README,
