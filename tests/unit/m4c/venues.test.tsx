@@ -21,7 +21,7 @@ describe("the venues behind the bill", () => {
     ).toContain("fans of Boise's music venues");
     expect(
       screen.getByRole("region", { name: "Your town" }).textContent,
-    ).toContain("The Lantern Room's fans lifted 7 acts onto this bill");
+    ).toContain("The Lantern Room's fans lifted 7 acts onto this lineup");
   });
 
   it("calls the first mark's room a Boise venue in the key", () => {

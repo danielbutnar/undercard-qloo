@@ -70,9 +70,10 @@ const actsWord = (n: number) =>
 
 /**
  * The town's note (WS18 item 2, Daniel, 29 Oct): one sentence of at most 25 words, from the
- * build on screen, as "Venue 227's fans lifted N acts onto this bill and Venue 418's
- * 2; Qloo had no fan data for Venue 166 Boise." The colour key stays on the poster. Where a
- * town's names run long, it drops "onto this bill", then counts the venues Qloo had no fan data
+ * build on screen, as "Venue 227's fans lifted N acts onto this lineup and Visual Arts
+ * Collective's 2; Qloo had no fan data for Venue 166 Boise" ("lineup", not "bill": the
+ * first screen keeps M6r's rule, Daniel at 20:40). The colour key stays on the poster. Where a
+ * town's names run long, it drops "onto this lineup", then counts the venues Qloo had no fan data
  * for and those switched off, then all but the strongest venue, rather than name them.
  */
 function townNote(venues: readonly NoteVenue[]): string {
@@ -94,7 +95,7 @@ function townNote(venues: readonly NoteVenue[]): string {
       const [first, ...others] = lead;
       clauses.push(
         andList([
-          `${whose(shownName(first.name))} fans lifted ${actsWord(first.lifted)}${bill ? " onto this bill" : ""}`,
+          `${whose(shownName(first.name))} fans lifted ${actsWord(first.lifted)}${bill ? " onto this lineup" : ""}`,
           ...others.map(
             (venue) =>
               `${whose(shownName(venue.name))} ${venue.lifted || "none"}`,
@@ -141,7 +142,7 @@ function townNote(venues: readonly NoteVenue[]): string {
   }
   // Names longer than the note itself: the counts alone.
   const total = named.reduce((sum, venue) => sum + venue.lifted, 0);
-  return `${venues.length === 1 ? "One venue's" : `${venues.length} venues'`} fans lifted ${actsWord(total)} onto this bill.`;
+  return `${venues.length === 1 ? "One venue's" : `${venues.length} venues'`} fans lifted ${actsWord(total)} onto this lineup.`;
 }
 
 /** The town's legend over the scene: each venue the build read, and what its fans put on the bill. */

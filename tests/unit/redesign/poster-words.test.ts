@@ -318,7 +318,7 @@ describe("the lead and the town", () => {
       }),
     ).toEqual({
       title: "Venues the agent tested",
-      text: "Venue 227's fans lifted 8 acts onto this bill and Venue 418's 2; Qloo had no fan data for Venue 166 Boise.",
+      text: "Venue 227's fans lifted 8 acts onto this lineup and Venue 418's 2; Qloo had no fan data for Venue 166 Boise.",
     });
     // The strongest venue first, whatever the order given; a venue whose fans lifted no act on
     // the bill says none.
@@ -332,7 +332,7 @@ describe("the lead and the town", () => {
         ],
       }).text,
     ).toBe(
-      "The Lantern Room's fans lifted 9 acts onto this bill, Fort Street Ballroom's 1 and Cottonwood Social Hall's none.",
+      "The Lantern Room's fans lifted 9 acts onto this lineup, Fort Street Ballroom's 1 and Cottonwood Social Hall's none.",
     );
     // One act; a name that already ends in 's keeps it.
     expect(
@@ -340,7 +340,7 @@ describe("the lead and the town", () => {
         city: "Larkspur",
         venues: [{ name: "Juniper's", lifted: 1 }],
       }).text,
-    ).toBe("Juniper's fans lifted 1 act onto this bill.");
+    ).toBe("Juniper's fans lifted 1 act onto this lineup.");
     // A venue switched off on the poster's key says so.
     expect(
       legendLine({
@@ -351,7 +351,7 @@ describe("the lead and the town", () => {
         ],
       }).text,
     ).toBe(
-      "Fort Street Ballroom's fans lifted 6 acts onto this bill; The Lantern Room's fans are switched off.",
+      "Fort Street Ballroom's fans lifted 6 acts onto this lineup; The Lantern Room's fans are switched off.",
     );
     expect(legendLine({ city: "Boise", venues: [] }).title).toBe(
       "No venues read yet",
@@ -370,7 +370,7 @@ describe("the lead and the town", () => {
 
   it("keeps the sentence to 25 words however long the town's names run", () => {
     const words = (text: string) => text.split(/\s+/).filter(Boolean).length;
-    // Long names drop "onto this bill" first, and keep every name and number.
+    // Long names drop "onto this lineup" first, and keep every name and number.
     const long = legendLine({
       city: "Larkspur",
       venues: [

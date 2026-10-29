@@ -41,7 +41,7 @@ test.describe("the same brief in other towns", () => {
     // The town's own venues: the town's legend names them and their acts (WS18 item 2), and
     // the lead names the town's venues.
     await expect(page.getByRole("region", { name: "Your town" })).toContainText(
-      /'s fans lifted \d+ acts? onto this bill/,
+      /'s fans lifted \d+ acts? onto this lineup/,
     );
     await expect(
       page.getByRole("region", { name: "What Undercard does" }),

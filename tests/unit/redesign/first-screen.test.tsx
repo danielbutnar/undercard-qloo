@@ -260,7 +260,7 @@ describe("the town", () => {
     open();
     expect(
       within(town()).getByText(
-        /^The Lantern Room's fans lifted 7 acts onto this bill, Fort Street Ballroom's 3 and Cottonwood Social Hall's none\.$/,
+        /^The Lantern Room's fans lifted 7 acts onto this lineup, Fort Street Ballroom's 3 and Cottonwood Social Hall's none\.$/,
       ),
     ).toBeTruthy();
     const signs = await within(town()).findAllByRole("button", {
