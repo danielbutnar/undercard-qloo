@@ -1106,12 +1106,19 @@ export function FestivalScreen({
           n: savedTrace.length + index + 1,
         })),
       ];
+  // The saved build's plan line, first on the setlist under its heading and not again where the
+  // agent said it (Daniel, 29 Oct, 20:40).
+  const planLine = streamed ? null : (firstBill?.plan?.trim() ?? null) || null;
   const setlist = setlistLines(setlistTrace, {
     venues: allVenues,
     bands: festival.feeBands,
     noFanData: fanless,
     notes: [
-      ...(streamed ? state.notes : (firstBill?.notes ?? [])),
+      ...(streamed
+        ? state.notes
+        : (firstBill?.notes ?? []).filter(
+            (note) => note.text.trim() !== planLine,
+          )),
       // A refill or redraft from the rankings already read, after the calls (10:40).
       ...state.refillNotes.map((text) => ({ at: setlistTrace.length, text })),
     ],
@@ -1976,6 +1983,7 @@ export function FestivalScreen({
               <div className="fs-below-cols">
                 <Setlist
                   festival={festival}
+                  plan={planLine}
                   createdAt={
                     state.calls.length > 0
                       ? state.build?.createdAt
