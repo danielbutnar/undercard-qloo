@@ -253,7 +253,9 @@ describe("what each town's replay gives", () => {
     });
   });
 
-  it("checks every act on the Qloo lineups against the three tests", () => {
+  it("leaves section 31's With Qloo counts to the pinned 1.0 builds, never the replays", () => {
+    // The replays follow the latest pointers; section 31 measured the 1.0 builds, which
+    // pinned.test.ts reads by id from the store.
     for (const count of [
       "acts",
       "inRange",
@@ -261,7 +263,10 @@ describe("what each town's replay gives", () => {
       "climbs",
       "allThree",
     ] as const)
-      expect(value({ kind: "with-qloo", count })).toBe(40);
+      expect(value({ kind: "with-qloo", count })).toEqual({
+        missing:
+          "no Without Qloo data: no store and no .design/with-without-qloo/",
+      });
   });
 
   it("counts the lists a replay's climb rebuilt from the cache", () => {
@@ -331,10 +336,13 @@ describe("what each town's replay gives", () => {
       "the saved builds of the 25 towns built after M6d: calls refused or retried",
     );
     expect(describeComputation({ kind: "with-qloo", count: "inRange" })).toBe(
-      "With Qloo, the saved lineups: acts in the fee range",
+      "With Qloo, the pinned 1.0 lineups: acts in the fee range",
     );
     expect(describeComputation({ kind: "with-qloo", count: "found" })).toBe(
-      "With Qloo, the saved lineups: acts found on Qloo",
+      "With Qloo, the pinned 1.0 lineups: acts found on Qloo",
+    );
+    expect(describeComputation({ kind: "without", count: "picks" })).toBe(
+      "Without Qloo, on the pinned 1.0 builds: the model's picks",
     );
   });
 });

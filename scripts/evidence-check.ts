@@ -612,7 +612,7 @@ function climbsOf(acts: readonly Act[], band?: FeeBandId) {
 const ARTIST_LISTS = new Set(["baseline_artists", "venue_artists"]);
 
 /** An act on a Qloo lineup against section 31's three tests, from what the lineup says. */
-function withQloo(
+function withQlooTests(
   act: Act,
   festival: Festival,
 ): Record<WithQlooCount, boolean> {
@@ -693,7 +693,7 @@ export function describe(computation: Computation): string {
         ? "the replays: towns whose climb rebuilt in full"
         : `the replays: the ${c.of === "fewest-lists" ? "fewest" : "most"} lists in one climb`;
     case "with-qloo":
-      return `With Qloo, the saved lineups: ${WITH_WORDS[c.count]}`;
+      return `With Qloo, the pinned 1.0 lineups: ${WITH_WORDS[c.count]}`;
     case "rule":
       return c.of === "min-lift"
         ? "src/lib/assemble-lineup.ts: MIN_LIFT"
@@ -705,13 +705,13 @@ export function describe(computation: Computation): string {
     case "checked-towns":
       return "src/lib/checked-towns.ts: checked towns";
     case "without":
-      return `Without Qloo, the measured towns: ${WITHOUT_WORDS[c.count]}`;
+      return `Without Qloo, on the pinned 1.0 builds: ${WITHOUT_WORDS[c.count]}`;
     case "without-towns":
-      return `Without Qloo: towns with ${c.equal} ${WITHOUT_WORDS[c.count]}`;
+      return `Without Qloo, on the pinned 1.0 builds: towns with ${c.equal} ${WITHOUT_WORDS[c.count]}`;
     case "without-most":
-      return `Without Qloo: the most ${WITHOUT_WORDS[c.count]} in one town`;
+      return `Without Qloo, on the pinned 1.0 builds: the most ${WITHOUT_WORDS[c.count]} in one town`;
     case "measure":
-      return `the review's measures: ${MEASURE_WORDS[c.of]}`;
+      return `the review's measures, on the pinned 1.0 builds: ${MEASURE_WORDS[c.of]}`;
     case "run":
       return `section 31's run record (.design): ${RUN_WORDS[c.of]}`;
   }
@@ -905,13 +905,16 @@ export function evaluate(
         : Math.max(...rebuilt);
     }
     case "with-qloo": {
-      const towns = builtOnly(data, data.towns);
-      if (towns.length === 0) return missing("no replay has a lineup");
-      return towns
-        .flatMap((town) =>
-          town.lineup.acts.map((act) => withQloo(act, town.festival)),
-        )
-        .filter((tests) => tests[c.count]).length;
+      // Section 31's With Qloo column: the pinned 1.0 builds' lineups, never the replays.
+      const without = withoutOf(data);
+      if (isMissing(without)) return without;
+      if (!without.withQloo)
+        return missing(
+          "the raw files don't hold the With Qloo lineups; read the store",
+        );
+      return without.withQloo.builds > 0
+        ? without.withQloo.counts[c.count]
+        : missing("none of the pinned 1.0 builds is in the store");
     }
     case "rule":
       return c.of === "min-lift"
@@ -1029,7 +1032,61 @@ export interface WithoutData {
   source: string;
   /** The towns with a saved build and a saved model answer. */
   towns: WithoutTown[];
+  /**
+   * Section 31's With Qloo column: every act on the pinned 1.0 builds' lineups against the three
+   * tests, and how many of those builds the store holds. Absent from the raw files.
+   */
+  withQloo?: { builds: number; counts: Record<WithQlooCount, number> };
 }
+
+/**
+ * Section 31's builds (Daniel, 2026-10-29): the 1.0 builds it measured on 21 October, by id, as
+ * each festival's latest pointer named them before the pin was deployed. Its claims read these
+ * builds even after the deploy moves the pointers to the 2.0 builds; every other claim reads the
+ * latest builds.
+ */
+export const PINNED_RECORD = "pinned-builds/latest-pointers-2026-10-21.json";
+
+export interface PinnedBuilds {
+  source: string;
+  /** Each festival's pinned build id. */
+  ids: ReadonlyMap<string, string>;
+}
+
+const PinnedRecord = z
+  .object({
+    readAt: z.string(),
+    festivals: z.array(
+      z.object({ festivalId: z.string(), buildId: z.string() }).passthrough(),
+    ),
+  })
+  .passthrough();
+
+/** The pinned 1.0 record under the design folder, or null when it isn't there or doesn't read. */
+export function readPinned(design: string): PinnedBuilds | null {
+  const path = join(design, PINNED_RECORD);
+  const record = readJson(path, PinnedRecord);
+  if (!record) return null;
+  return {
+    source: `the pinned 1.0 record, ${path}, of ${record.readAt}`,
+    ids: new Map(
+      record.festivals.map((entry) => [entry.festivalId, entry.buildId]),
+    ),
+  };
+}
+
+const NO_PIN = missing(
+  `no pinned 1.0 record (.design/${PINNED_RECORD}): section 31's builds are read by its ids`,
+);
+
+const WITH_COUNTS: readonly WithQlooCount[] = [
+  "acts",
+  "found",
+  "inRange",
+  "twoGenres",
+  "climbs",
+  "allThree",
+];
 
 export interface RunRecord {
   source: string;
@@ -1072,14 +1129,17 @@ const noLimit: RateLimiter = {
 };
 
 /**
- * Section 31's counts as they stand, read the way its dry run reads them
+ * Section 31's counts on the builds it measured, read the way its dry run reads them
  * (scripts/with-without-qloo.ts with DRY=1, and the measures of scripts/with-without-measures.ts):
- * each town's latest saved build, the app's saved model answer through its own route handler with
- * no model to ask, each pick's cached search and the build's cached lists through a Qloo client
- * whose fetch throws. Nothing is written.
+ * each town's pinned 1.0 build, by its id, never through the latest pointer; the app's saved
+ * model answer through its own route handler with no model to ask; each pick's cached search and
+ * the build's cached lists through a Qloo client whose fetch throws. Every act on the pinned
+ * builds' lineups is also checked against the three tests, for the With Qloo column. Nothing is
+ * written.
  */
 export async function withoutFromStore(
   store: QlooCache,
+  pinned: PinnedBuilds,
   towns: readonly CheckedTown[] = CHECKED_TOWNS,
 ): Promise<WithoutData> {
   const cache = readOnlyCache(store);
@@ -1091,9 +1151,24 @@ export async function withoutFromStore(
     fetch: noQloo,
   });
   const out: WithoutTown[] = [];
+  const withQloo = {
+    builds: 0,
+    counts: Object.fromEntries(
+      WITH_COUNTS.map((count) => [count, 0]),
+    ) as Record<WithQlooCount, number>,
+  };
   for (const town of towns) {
     const festival = checkedFestival(town);
-    const build = await builds.latest(festival.id);
+    const id = pinned.ids.get(festival.id);
+    const build = id ? await builds.byId(id) : null;
+    if (build) {
+      withQloo.builds++;
+      for (const act of build.lineup.acts) {
+        const tests = withQlooTests(act, festival);
+        for (const count of WITH_COUNTS)
+          if (tests[count]) withQloo.counts[count]++;
+      }
+    }
     const answered = await handleLlmOnly({
       festival,
       model: () => null,
@@ -1152,7 +1227,7 @@ export async function withoutFromStore(
       },
     });
   }
-  return { source: "the store, read-only", towns: out };
+  return { source: "the store, read-only", towns: out, withQloo };
 }
 
 const RawRow = z
@@ -1258,28 +1333,34 @@ export function withoutFromRaw(design: string): {
 }
 
 /**
- * Everything the claims are checked against: the replays from `base`; the Without Qloo counts
- * from the store when there is one, else from the raw files under `design`; and section 31's run
- * record from those files. A store that doesn't answer leaves the counts without data, not
- * filled from the raw files, so a failed read never passes for the store's numbers.
+ * Everything the claims are checked against: the replays from `base`, which follow each
+ * festival's latest pointer; section 31's With and Without Qloo counts from the store when there
+ * is one, on the builds the pinned 1.0 record names, by id, else from the raw files under
+ * `design`; and section 31's run record from those files. A store that doesn't answer, or no
+ * pinned record, leaves section 31's counts without data, not filled from the raw files, so a
+ * failed read never passes for the store's numbers.
  */
 export async function loadEvidence({
   base,
   fetch: fetchImpl = fetch,
   store,
   design,
+  pinned = null,
 }: {
   base: string;
   fetch?: typeof fetch;
   store: QlooCache | null;
   design: string | null;
+  /** Section 31's builds by id (readPinned); without them its store counts have no data. */
+  pinned?: PinnedBuilds | null;
 }): Promise<EvidenceData> {
   const raw = design ? withoutFromRaw(design) : { without: null, run: null };
   const fromStore = async (
     cache: QlooCache,
   ): Promise<WithoutData | Missing> => {
+    if (!pinned) return NO_PIN;
     try {
-      return await withoutFromStore(cache);
+      return await withoutFromStore(cache, pinned);
     } catch (error) {
       return missing(
         `the store didn't answer: ${error instanceof Error ? error.message : String(error)}`,
@@ -1358,8 +1439,9 @@ export function summary(rows: readonly Row[]): string {
 
 /**
  * Re-derives every claim's number and prints one table. Replays come from --base (production by
- * default); the Without Qloo counts from the store when the environment has one, else from the
- * raw files under --design. Returns the exit code: 1 on any recomputable mismatch.
+ * default); section 31's With and Without Qloo counts from the store when the environment has
+ * one, on the builds the pinned 1.0 record under --design names, else from the raw files under
+ * --design. Returns the exit code: 1 on any recomputable mismatch.
  */
 export async function main(
   argv: readonly string[],
@@ -1367,6 +1449,7 @@ export async function main(
     claims = CLAIMS,
     fetch: fetchImpl = fetch,
     store,
+    pinned,
     read = readRepoFile,
     print = (line: string) => console.log(line),
   }: {
@@ -1374,11 +1457,14 @@ export async function main(
     fetch?: typeof fetch;
     /** The store to read; from the environment when undefined. */
     store?: QlooCache | null;
+    /** Section 31's builds; from --design's pinned 1.0 record when undefined. */
+    pinned?: PinnedBuilds | null;
     read?: (file: string) => string | null;
     print?: (line: string) => void;
   } = {},
 ): Promise<0 | 1> {
   const options = parseArgs(argv);
+  const section31 = pinned === undefined ? readPinned(options.design) : pinned;
   const data = await loadEvidence({
     base: options.base,
     fetch: fetchImpl,
@@ -1388,6 +1474,7 @@ export async function main(
         : store
       : null,
     design: options.raw ? options.design : null,
+    pinned: section31,
   });
   const rows = checkClaims(claims, {
     read,
@@ -1407,6 +1494,9 @@ export async function main(
   const without = withoutOf(data);
   print(
     `Without Qloo: ${isMissing(without) ? without.missing : `${without.source}, ${plural(without.towns.length, "town", "towns")}`}. Section 31's run: ${data.run ? data.run.source : "no run record (.design/with-without-qloo/result.json)"}.`,
+  );
+  print(
+    `Section 31's builds: ${section31 ? `${section31.source}, ${plural(section31.ids.size, "build", "builds")}${isMissing(without) || !without.withQloo ? "" : `, ${without.withQloo.builds} read by id`}` : NO_PIN.missing}.`,
   );
   print("");
   print(formatTable(rows).trimEnd());
