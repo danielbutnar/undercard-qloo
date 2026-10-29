@@ -15,10 +15,13 @@ describe("the venues behind the bill", () => {
     render(
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
     );
-    // Since WS12 item 1 the town's legend says it: the switch's own heading went with it.
+    // The lead says it; since WS18 item 2 the town's legend names each venue and its acts.
+    expect(
+      screen.getByRole("region", { name: "What Undercard does" }).textContent,
+    ).toContain("fans of Boise's music venues");
     expect(
       screen.getByRole("region", { name: "Your town" }).textContent,
-    ).toContain("live-music places in Boise");
+    ).toContain("The Lantern Room's fans lifted 7 acts onto this bill");
   });
 
   it("calls the first mark's room a Boise venue in the key", () => {

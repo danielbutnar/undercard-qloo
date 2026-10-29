@@ -698,10 +698,6 @@ export function FestivalScreen({
     : shownActs.filter((act) => !state.unavailable.includes(act.entityId));
   const openAct = shownActs.find((act) => act.entityId === openId) ?? null;
   const calls = state.summary?.calls ?? firstBill?.calls;
-  const placesListed =
-    state.calls.find((call) => call.tool === "find_venues")?.resultCount ??
-    firstBill?.placesListed ??
-    null;
   const busy =
     state.status === "building" ||
     state.refilling !== null ||
@@ -1242,14 +1238,12 @@ export function FestivalScreen({
       ? withoutCounts(modelPicks, llm.state.checks, festival)
       : null;
   const lead = leadLine(festival, without);
+  // WS18 item 2: one sentence of each venue the build read and the acts its fans put on the bill
+  // on screen, as the poster's key counts them.
   const legend = legendLine({
     city: festival.city,
-    placesListed,
-    tested: allVenues.length,
-    lifting: sceneVenues.filter((venue) => venue.lifted > 0).length,
+    venues: sceneVenues,
     without,
-    // WS13.7 (WS8 item 16): why these venues, in the agent's own line, for the saved build.
-    plan: onFirst ? firstBill?.plan : undefined,
   });
   const onShow = TOWNS.filter((town) => towns.includes(town.slug));
   const current = townOf(festival).slug;

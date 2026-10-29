@@ -48,12 +48,13 @@ describe("the venues, in the town's legend and the poster's key", () => {
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
     );
 
-  it("says how many places Qloo listed and how many venues the agent read", () => {
+  // WS18 item 2 (Daniel, 29 Oct): one sentence, from the saved build, of each venue's acts.
+  it("says in one sentence what each venue the agent read put on the bill", () => {
     open();
     expect(
       screen.getByRole("region", { name: "Your town" }).textContent,
     ).toContain(
-      "Qloo listed 8 live-music places in Boise. The AI agent tested these 3 venues.",
+      "The Lantern Room's fans lifted 7 acts onto this bill, Fort Street Ballroom's 3 and Cottonwood Social Hall's none.",
     );
   });
 
