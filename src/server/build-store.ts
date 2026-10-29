@@ -91,7 +91,9 @@ export const SavedBuildSchema = z.object({
 export type BuildContext = z.infer<typeof BuildContextSchema>;
 export type SavedBuild = z.infer<typeof SavedBuildSchema>;
 
-const PREFIX = "undercard:build:v1:";
+/** The build store's keys: id:<buildId> for a build, latest:<festivalId> for its pointer. */
+export const BUILD_PREFIX = "undercard:build:v1:";
+const PREFIX = BUILD_PREFIX;
 
 /**
  * Complete builds, kept server-side as long as Qloo responses (through 2026-11-18), so a visitor
