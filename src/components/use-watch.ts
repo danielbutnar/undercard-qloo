@@ -22,9 +22,9 @@ export const END_HOLD_MS = 1400;
 /**
  * WS8, WS18: the steps before the first venue whose fans lift an act (the headliners' lists, a
  * venue Qloo had no fan data for) hold this long, so the first act lands within 3 s of pressing
- * Watch; the two tiers' steps share a caption, so each caption still shows for about 0.5 s.
+ * Watch; the two tiers' steps share a caption, so each caption still shows for about 0.3 s.
  */
-export const LEAD_HOLD_MS = 250;
+export const LEAD_HOLD_MS = 150;
 /** WS8: the end's reveal, every lifting venue lit and the acts pulsing, before the overview. */
 export const REVEAL_MS = 1400;
 

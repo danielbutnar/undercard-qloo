@@ -161,7 +161,8 @@ async function replay(
   // WS18 (Daniel, 29 Oct, 20:40; the first act within 3 s of pressing Watch): a replay knows its
   // lineup, so it sends it first and each act lands as soon as its venue's step comes; the calls
   // before the first venue whose fans lift an act (the lookups, the tags, the places, the
-  // baselines, a venue Qloo had no fan data for) go out four times as fast.
+  // baselines, a venue Qloo had no fan data for) go out at once, one render on the page rather
+  // than one each, and Watch paces their steps itself.
   emit({ type: "lineup", lineup: saved.lineup });
   const firstLift = saved.trace.findIndex((_, index) => {
     const climb = climbs.get(index);
@@ -175,9 +176,7 @@ async function replay(
   };
   for (const [index, call] of saved.trace.entries()) {
     sayNotes((at) => at === index);
-    await sleep(
-      firstLift < 0 || index < firstLift ? Math.round(delayMs / 4) : delayMs,
-    );
+    if (firstLift >= 0 && index >= firstLift) await sleep(delayMs);
     emit({ type: "call", call: { ...call, cached: true } });
     const climb = climbs.get(index);
     if (climb) emit(climb);

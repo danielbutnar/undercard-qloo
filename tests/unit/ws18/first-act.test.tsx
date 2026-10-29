@@ -78,6 +78,9 @@ const PLAN: Turn[] = [
   ],
 ];
 
+/** The poster stamp's opacity reaches 1 at 55% of its 0.42 s (first-screen.css, poster-stamp). */
+const STAMP_OPAQUE_MS = 231;
+
 let store: BuildStore;
 let cached: QlooClient;
 let firstBill: FirstBill;
@@ -187,11 +190,15 @@ describe.each([
       expect(within(bill).queryAllByRole("article").length).toBeGreaterThan(0);
     });
     const landed = Date.now() - pressed;
-    // Its slot stamps in as its card arrives on a laptop; on a phone it is there at once.
+    // Its slot stamps in as its card arrives on a laptop; on a phone it is there at once. Stamped
+    // in means fully opaque, as tests/e2e/watch-pace.spec.ts reads it: the stamp's opacity is 1
+    // at 55% of its 0.42 s (first-screen.css, poster-stamp).
     const stamps = within(bill)
       .getAllByRole("article")
       .map((article) => parseFloat(article.style.animationDelay || "0") * 1000);
-    expect(landed + Math.min(...stamps)).toBeLessThanOrEqual(3000);
+    expect(landed + Math.min(...stamps) + STAMP_OPAQUE_MS).toBeLessThanOrEqual(
+      3000,
+    );
     expect([...captions]).toEqual(
       expect.arrayContaining([
         "Replaying the AI agent's build",
