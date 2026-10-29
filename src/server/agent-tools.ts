@@ -359,6 +359,8 @@ export function assemblyOf(
       band,
       artists,
       ...(control !== undefined ? { control } : {}),
+      // Daniel, 2026-10-28: a venue Qloo had no fan data for never books an act.
+      ...(state.noFanData.has(venue.entityId) ? { noFanData: true } : {}),
     })),
   };
 }
