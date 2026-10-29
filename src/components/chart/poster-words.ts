@@ -1,10 +1,12 @@
 import { MIN_LIFT } from "@/lib/assemble-lineup";
+import type { RefillReceipt } from "@/lib/build-state";
 import { feeBandFor, type FeeBand, type FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import type { Act } from "@/lib/lineup";
 import type { PickCheck } from "@/lib/llm-only";
 import { liftOf } from "@/lib/marks";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
+import { UNAVAILABLE_REASONS } from "@/lib/unavailable";
 import type { Placed } from "@/lib/venue-switch";
 import { ordinal } from "./words";
 
@@ -228,6 +230,26 @@ export function climbMark(act: Pick<Act, "reason">): string | null {
   const lift = liftOf(act);
   if (!lift) return null;
   return lift.kind === "new" ? "NEW" : `↑${lift.places}`;
+}
+
+/**
+ * The last refill's receipt on the poster (WS18 item 3, Daniel, 29 Oct), as "Act 111 out
+ * (routing) → Act 124, Nth, NEW · from the rankings already read, no new Qloo call".
+ */
+export function receiptLine(receipt: RefillReceipt): string {
+  const why = receipt.reason ? ` (${UNAVAILABLE_REASONS[receipt.reason]})` : "";
+  const where = [
+    receipt.place ? ordinal(receipt.place.now) : null,
+    climbMark(receipt.in),
+  ].filter(Boolean);
+  const from =
+    receipt.calls === 0
+      ? "from the rankings already read, no new Qloo call"
+      : `from ${receipt.calls} new Qloo ${receipt.calls === 1 ? "call" : "calls"}`;
+  const fee = receipt.feeFallback
+    ? ` · no act below ${receipt.out.name}'s popularity passed: the strongest that does took the slot`
+    : "";
+  return `${receipt.out.name} out${why} → ${receipt.in.name}${where.length ? `, ${where.join(", ")}` : ""} · ${from}${fee}`;
 }
 
 /**

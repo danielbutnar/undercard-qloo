@@ -289,6 +289,11 @@ export function ActCard({
             <p id={`why-${act.entityId}`} className="card-reasons-title">
               Why is it unavailable?
             </p>
+            {/* WS18 item 3 (Daniel, 29 Oct), in his words. */}
+            <p className="card-reasons-note">
+              Undercard can&apos;t see tour dates or contracts, so the reason
+              goes on the receipt and in the CSV.
+            </p>
             {UNAVAILABLE_REASON_IDS.map((reason) => (
               <button
                 key={reason}

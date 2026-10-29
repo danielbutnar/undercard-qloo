@@ -174,6 +174,7 @@ function PosterAct({
   open,
   kept,
   gone,
+  fresh = false,
   dim,
   onOpen,
   onPoint,
@@ -184,6 +185,8 @@ function PosterAct({
   open: boolean;
   kept: boolean;
   gone: boolean;
+  /** The last refill's replacement, marked until the buyer's next action (WS18 item 3). */
+  fresh?: boolean;
   dim: boolean;
   onOpen?: (act: Act) => void;
   /** The act was pointed at or focused: the door check shows its ticket (WS12 item 1). */
@@ -208,7 +211,7 @@ function PosterAct({
       data-act={row.act.entityId}
       onPointerEnter={onPoint ? () => onPoint(row.act) : undefined}
       onFocus={onPoint ? () => onPoint(row.act) : undefined}
-      className={`poster-act ${row.hue !== null ? `venue-${row.hue}` : ""} ${open ? "is-open" : ""} ${gone ? "is-gone" : ""} ${kept ? "is-kept" : ""} ${dim ? "is-dim" : ""} ${print !== null ? "motion-safe:animate-print-in" : ""}`}
+      className={`poster-act ${row.hue !== null ? `venue-${row.hue}` : ""} ${open ? "is-open" : ""} ${gone ? "is-gone" : ""} ${kept ? "is-kept" : ""} ${fresh ? "is-replacement" : ""} ${dim ? "is-dim" : ""} ${print !== null ? "motion-safe:animate-print-in" : ""}`}
       style={
         print !== null ? { animationDelay: `${print.toFixed(2)}s` } : undefined
       }
@@ -239,6 +242,9 @@ function PosterAct({
       )}
       {kept && !gone && <span className="poster-flag">Kept</span>}
       {gone && <span className="poster-flag">Unavailable</span>}
+      {fresh && !kept && !gone && (
+        <span className="poster-flag">Replacement</span>
+      )}
       <p className="sr-only">
         {row.words ??
           markLabel(
@@ -264,6 +270,7 @@ export function PosterBand({
   openId = null,
   keeping = [],
   unavailable = [],
+  replacement = null,
   onOpen,
   onPoint,
   printing = null,
@@ -283,6 +290,8 @@ export function PosterBand({
   openId?: string | null;
   keeping?: readonly string[];
   unavailable?: readonly string[];
+  /** The last refill's replacement, marked until the buyer's next action (WS18 item 3). */
+  replacement?: string | null;
   onOpen?: (act: Act) => void;
   /** An act pointed at or focused on the poster (WS12 item 1's door check). */
   onPoint?: (act: Act) => void;
@@ -366,6 +375,7 @@ export function PosterBand({
                   open={openId === act.entityId}
                   kept={keeping.includes(act.entityId)}
                   gone={unavailable.includes(act.entityId)}
+                  fresh={replacement === act.entityId}
                   dim={dimmed?.(act) ?? false}
                   onOpen={onOpen}
                   onPoint={onPoint}

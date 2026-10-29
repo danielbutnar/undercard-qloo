@@ -281,6 +281,14 @@ test.describe("demo path", () => {
     ).toHaveCount(0, { timeout: 60_000 });
     await expect(mid.getByRole("article")).toHaveCount(4);
     await expect(mid.getByRole("article").first()).toContainText(MARK);
+    // WS18 item 3: the receipt on the poster names the act that went, why, and the act in its
+    // slot, with Undo; the replacement is marked.
+    const receipt = bill(page).getByRole("status", { name: "The last refill" });
+    await expect(receipt).toContainText(`${gone} out (radius clause) → `);
+    await expect(receipt.getByRole("button", { name: "Undo" })).toBeVisible();
+    await expect(bill(page).locator(".poster-act.is-replacement")).toHaveCount(
+      1,
+    );
 
     // The refill shows in the trace, excluding the board. A 2.0 build refills from the rankings
     // it already holds first, at no call, then from up to two more venues with their controls: at

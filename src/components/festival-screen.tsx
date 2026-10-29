@@ -36,6 +36,7 @@ import {
   oneActLine,
   openBandLine,
   openPosterLine,
+  receiptLine,
   regionCode,
   KEY_SIGNAL,
   ruleLine,
@@ -595,6 +596,8 @@ export function FestivalScreen({
     runningOrder,
     closeOrder,
     toggleLocal,
+    undoRefill,
+    clearReceipt,
   } = useUndercardBuild(
     firstBoard(firstBill),
     festival.id,
@@ -868,6 +871,7 @@ export function FestivalScreen({
     setMode(next);
     setOpenId(null);
     setPickedVenue(null);
+    clearReceipt();
     if (
       next === "llm" &&
       (llm.state.status === "idle" || llm.state.status === "error")
@@ -1279,7 +1283,10 @@ export function FestivalScreen({
           venueLines.find((line) => line.entityId === picked.entityId)?.kind
         }
         switchable={!custom && switcher.status === "ready" && !busy}
-        onToggle={() => switcher.toggle(picked.entityId)}
+        onToggle={() => {
+          clearReceipt();
+          switcher.toggle(picked.entityId);
+        }}
         onAct={(act) => openCard(act)}
         onClose={() => setPickedVenue(null)}
       />
@@ -1418,6 +1425,7 @@ export function FestivalScreen({
         }
         onToggle={(id) => {
           setOpenId(null);
+          clearReceipt();
           switcher.toggle(id);
         }}
         quiet={watching}
@@ -1444,6 +1452,27 @@ export function FestivalScreen({
             All venues on
           </button>
         </p>
+      )}
+      {/* WS18 item 3: the last refill's receipt, with Undo, until the buyer's next action. */}
+      {state.receipt && !watching && !whatIf && (
+        <div
+          role="status"
+          aria-label="The last refill"
+          className="whatif refill-receipt"
+        >
+          <span>{receiptLine(state.receipt)}</span>{" "}
+          <button
+            type="button"
+            className="switch-reset"
+            disabled={busy}
+            onClick={() => {
+              setOpenId(null);
+              undoRefill();
+            }}
+          >
+            Undo
+          </button>
+        </div>
       )}
       {allOpen ? (
         <div role="status" className="poster-open">
@@ -1474,6 +1503,11 @@ export function FestivalScreen({
                 openId={openAct?.entityId ?? null}
                 keeping={whatIf ? [] : state.keeping}
                 unavailable={whatIf ? [] : state.unavailable}
+                replacement={
+                  whatIf || watching
+                    ? null
+                    : (state.receipt?.in.entityId ?? null)
+                }
                 onOpen={watching ? undefined : openCard}
                 onPoint={
                   watching ? undefined : (act) => setPointedId(act.entityId)

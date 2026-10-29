@@ -8,6 +8,25 @@ import type { Act } from "./lineup";
 import type { LocalPick } from "./local-pick";
 import type { Replacement, UnavailableReason } from "./unavailable";
 
+/**
+ * The last refill's receipt on the poster (WS18 item 3): the act that went, why, the act that took
+ * its slot, its place and where it came from. It goes, and the replacement's mark with it, at
+ * the buyer's next action; Undo puts the act back.
+ */
+export interface RefillReceipt {
+  /** The act that dropped out, as it stood on the bill. */
+  out: Act;
+  /** The act that took its slot. */
+  in: Act;
+  reason: UnavailableReason | null;
+  /** Its place in its venue's ranking, when the refill said. */
+  place: { now: number; was: number | null } | null;
+  /** The Qloo calls the refill made: none when the rankings already read held an act. */
+  calls: number;
+  /** A fee refill found no act below the replaced act's popularity: the strongest that passes. */
+  feeFallback: boolean;
+}
+
 export interface BuildState {
   status: "idle" | "building" | "done" | "error";
   /** Qloo calls in call order; parallel calls can arrive out of order. Refill calls follow. */
@@ -38,6 +57,8 @@ export interface BuildState {
   refillReason: UnavailableReason | null;
   /** Replacements on the board, by act id: whose slot each took, and why. */
   replaced: Record<string, Replacement>;
+  /** The last refill's receipt, until the buyer's next action (WS18 item 3). */
+  receipt: RefillReceipt | null;
   /**
    * The board on screen when a fresh build was asked for. It stays up until the server
    * accepts the build; if the server refuses (a rate limit, a missing key) it comes back.
@@ -85,6 +106,7 @@ export const IDLE_BUILD: BuildState = {
   refillNotes: [],
   refillReason: null,
   replaced: {},
+  receipt: null,
   kept: null,
   refusal: null,
   refusalCode: null,
@@ -123,7 +145,11 @@ export type BuildAction =
   | { type: "toggleLocal"; entityId: string }
   | { type: "startRedraft" }
   | { type: "startOrder" }
-  | { type: "closeOrder" };
+  | { type: "closeOrder" }
+  /** Undo on the receipt: the act that went comes back to its slot (WS18 item 3). */
+  | { type: "undoRefill" }
+  /** An action on the bill outside this state (a venue switched, Without Qloo): the receipt goes. */
+  | { type: "clearReceipt" };
 
 function withCall(state: BuildState, call: TraceCall): BuildState {
   return {
@@ -174,6 +200,18 @@ function applyRefillEvent(state: BuildState, event: BuildEvent): BuildState {
             reason: state.refillReason,
           },
         },
+        receipt: gone
+          ? {
+              out: gone,
+              in: event.act,
+              reason: state.refillReason,
+              place: event.place ?? null,
+              // This refill's calls, numbered on from where it started.
+              calls: state.calls.filter((call) => call.n > state.refillBase)
+                .length,
+              feeFallback: event.feeFallback === true,
+            }
+          : null,
       };
     }
     case "running-order":
@@ -213,6 +251,7 @@ export function buildReducer(
           refusal: null,
           refusalCode: null,
           climbs: [],
+          receipt: null,
         };
         return { ...board, status: "building", kept: board };
       }
@@ -241,6 +280,7 @@ export function buildReducer(
         added: state.added.includes(action.entityId)
           ? state.added.filter((id) => id !== action.entityId)
           : [...state.added, action.entityId],
+        receipt: null,
       };
     case "toggleKeep":
       return {
@@ -248,6 +288,7 @@ export function buildReducer(
         keeping: state.keeping.includes(action.entityId)
           ? state.keeping.filter((id) => id !== action.entityId)
           : [...state.keeping, action.entityId],
+        receipt: null,
       };
     case "startOrder":
       return {
@@ -255,6 +296,7 @@ export function buildReducer(
         ordering: true,
         refillBase: state.calls.length,
         refillError: null,
+        receipt: null,
       };
     case "closeOrder":
       return { ...state, order: null };
@@ -265,6 +307,7 @@ export function buildReducer(
         refillBase: state.calls.length,
         refillError: null,
         refillReason: null,
+        receipt: null,
       };
     case "markUnavailable":
       return {
@@ -275,7 +318,26 @@ export function buildReducer(
         refillBase: state.calls.length,
         refillError: null,
         refillReason: action.reason ?? null,
+        receipt: null,
       };
+    case "undoRefill": {
+      const { receipt } = state;
+      if (!receipt || state.refilling || state.redrafting) return state;
+      const replaced = { ...state.replaced };
+      delete replaced[receipt.in.entityId];
+      return {
+        ...state,
+        acts: replaceAct(state.acts, receipt.in.entityId, receipt.out),
+        unavailable: state.unavailable.filter(
+          (id) => id !== receipt.out.entityId,
+        ),
+        replaced,
+        order: null,
+        receipt: null,
+      };
+    }
+    case "clearReceipt":
+      return state.receipt ? { ...state, receipt: null } : state;
     case "refillEvent":
       return applyRefillEvent(state, action.event);
     case "refillEnd":
