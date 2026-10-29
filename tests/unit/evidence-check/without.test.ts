@@ -16,7 +16,11 @@ import {
   withoutFromStore,
   type Computation,
   type EvidenceData,
+  type PinnedBuilds,
 } from "../../../scripts/evidence-check";
+import { CHECKED_TOWNS } from "@/lib/checked-towns";
+import { checkedFestival } from "@/lib/towns";
+import { createBuildStore } from "@/server/build-store";
 import {
   createMemoryCache,
   createQlooCache,
@@ -26,6 +30,21 @@ import {
 
 /** The synthetic server's cache: Boise's build, its model answer and the picks' searches. */
 const synthetic = () => createQlooCache({ [SYNTHETIC_ENV]: "1" });
+
+/**
+ * Section 31's builds for a store: here each festival's own latest build, pinned by its id
+ * (pinned.test.ts covers a pointer that moves away from the pin).
+ */
+async function pinnedIn(cache: QlooCache): Promise<PinnedBuilds> {
+  const builds = createBuildStore(cache);
+  const ids = new Map<string, string>();
+  for (const town of CHECKED_TOWNS) {
+    const festival = checkedFestival(town);
+    const build = await builds.latest(festival.id);
+    if (build) ids.set(festival.id, build.id);
+  }
+  return { source: "the store's own builds", ids };
+}
 
 /** A cache that counts reads and refuses every write. */
 function watched(cache: QlooCache) {
@@ -61,8 +80,9 @@ const on = (data: Partial<EvidenceData>): EvidenceData => ({
 
 describe("the Without Qloo counts from the store", () => {
   it("count each measured town's picks against the three tests, reading only", async () => {
+    const pinned = await pinnedIn(synthetic());
     const { cache, seen } = watched(synthetic());
-    const without = await withoutFromStore(cache);
+    const without = await withoutFromStore(cache, pinned);
     // Only Boise has a saved model answer in the synthetic store; no model is asked for others.
     expect(without.towns.map((town) => town.festivalId)).toEqual([
       "sagebrush-sound",
@@ -85,7 +105,9 @@ describe("the Without Qloo counts from the store", () => {
   });
 
   it("give the totals, the towns with a count and the most in one town", async () => {
-    const data = on({ without: await withoutFromStore(synthetic()) });
+    const data = on({
+      without: await withoutFromStore(synthetic(), await pinnedIn(synthetic())),
+    });
     const value = (computation: Computation) => evaluate(computation, data);
     expect(value({ kind: "without", count: "towns" })).toBe(1);
     expect(value({ kind: "without", count: "rebuilt" })).toBe(1);
@@ -98,7 +120,9 @@ describe("the Without Qloo counts from the store", () => {
   });
 
   it("give the review's measures over each town's two lineups", async () => {
-    const data = on({ without: await withoutFromStore(synthetic()) });
+    const data = on({
+      without: await withoutFromStore(synthetic(), await pinnedIn(synthetic())),
+    });
     const value = (computation: Computation) => evaluate(computation, data);
     // The synthetic picks are other invented acts than the synthetic lineup's.
     expect(value({ kind: "measure", of: "towns-sharing-no-act" })).toBe(1);
@@ -129,7 +153,7 @@ describe("the Without Qloo counts from the store", () => {
         await bare.set(`undercard:build:v1:id:${value}`, build, 60);
       }
     }
-    const without = await withoutFromStore(bare);
+    const without = await withoutFromStore(bare, await pinnedIn(bare));
     expect(without.towns).toHaveLength(1);
     expect(without.towns[0]).toMatchObject({ rebuilt: false, counts: {} });
     const data = on({ without });
@@ -149,8 +173,15 @@ describe("a store that doesn't answer", () => {
     set: async () => {},
   };
 
+  const pinned: PinnedBuilds = {
+    source: "a pinned record",
+    ids: new Map([["sagebrush-sound", "a-build"]]),
+  };
+
   it("fails the read instead of counting its towns as unbuilt", async () => {
-    await expect(withoutFromStore(down)).rejects.toThrow(/network down/);
+    await expect(withoutFromStore(down, pinned)).rejects.toThrow(
+      /network down/,
+    );
   });
 
   it("leaves every Without Qloo claim without data, saying why", async () => {
@@ -159,6 +190,7 @@ describe("a store that doesn't answer", () => {
       fetch: async () => new Response("", { status: 503 }),
       store: down,
       design: null,
+      pinned,
     });
     expect(evaluate({ kind: "without", count: "picks" }, data)).toEqual({
       missing: "the store didn't answer: network down",
@@ -282,6 +314,7 @@ describe("the Without Qloo counts from section 31's raw files", () => {
       fetch: async () => new Response("", { status: 503 }),
       store: synthetic(),
       design: dir,
+      pinned: await pinnedIn(synthetic()),
     });
     expect(sourceOf(fromStore)).toBe("the store, read-only");
     expect(fromStore.run?.modelCalls).toBe(2);

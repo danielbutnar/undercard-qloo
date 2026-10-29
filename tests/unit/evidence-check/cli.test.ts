@@ -12,6 +12,7 @@ import {
   type Computation,
 } from "../../../scripts/evidence-check";
 import { POST } from "@/app/api/undercard/route";
+import { createBuildStore } from "@/server/build-store";
 import { createQlooCache, SYNTHETIC_ENV } from "@/server/qloo-cache";
 
 const routeFetch: typeof fetch = async (input, init) =>
@@ -59,10 +60,17 @@ afterAll(() => {
 
 async function run(list: Claim<Computation>[]) {
   const lines: string[] = [];
+  const store = createQlooCache({ [SYNTHETIC_ENV]: "1" });
+  // Section 31's builds: here Boise's synthetic build, pinned by its own id.
+  const boise = await createBuildStore(store).latest("sagebrush-sound");
   const code = await main(["--base", "http://synthetic.test", "--no-raw"], {
     claims: list,
     fetch: routeFetch,
-    store: createQlooCache({ [SYNTHETIC_ENV]: "1" }),
+    store,
+    pinned: {
+      source: "the synthetic pin",
+      ids: new Map([["sagebrush-sound", boise!.id]]),
+    },
     read: (file) => (file === "doc.md" ? DOC : null),
     print: (line) => lines.push(line),
   });
@@ -105,6 +113,9 @@ describe("pnpm evidence:check", () => {
     expect(out).toContain("4 saved builds");
     expect(out).toContain("Without Qloo: the store, read-only, 1 town");
     expect(out).toMatch(/no run record/);
+    expect(out).toContain(
+      "Section 31's builds: the synthetic pin, 1 build, 1 read by id.",
+    );
     const table = out.split("\n").filter((line) => line.startsWith("|"));
     expect(table).toHaveLength(2 + claims.length);
     expect(table[2]).toMatch(
