@@ -15,7 +15,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { FestivalScreen } from "@/components/festival-screen";
 import { billPlaces } from "@/lib/places";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
-import { syntheticSavedBuild } from "../../e2e/synthetic-build";
+import {
+  syntheticRefillStream,
+  syntheticSavedBuild,
+} from "../../e2e/synthetic-build";
 import { FIRST_BILL } from "../m4b/first-bill-fixture";
 
 afterEach(() => {
@@ -69,5 +72,45 @@ describe("the setlist after a live run fails (WS12 item 9)", () => {
       ).toHaveLength(saved.trace.length),
     );
     expect(sheet.textContent).toContain(`${saved.trace.length} Qloo calls`);
+  });
+});
+
+describe("the setlist after a refill on the first screen (WS12 item 9)", () => {
+  it("lists the saved build's calls, then the refill's, numbered on from them", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) =>
+        url === "/api/refill"
+          ? new Response(
+              syntheticRefillStream(
+                JSON.parse(String(init?.body)).unavailableId,
+              ),
+              NDJSON,
+            )
+          : new Response(null, { status: 404 }),
+      ),
+    );
+    render(<FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={BILL} />);
+    const bill = screen.getByRole("region", { name: "Undercard draft" });
+    fireEvent.click(within(bill).getByRole("button", { name: "Hollow Pines" }));
+    fireEvent.click(
+      within(screen.getByRole("region", { name: "Act card" })).getByRole(
+        "button",
+        { name: "Unavailable" },
+      ),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Fee" }));
+    await within(bill).findByRole("article", { name: "Sego Lily" });
+    const items = within(
+      screen.getByRole("region", { name: "The AI agent's setlist" }),
+    ).getAllByRole("listitem", { name: /^Call \d+/ });
+    const names = items.map((item) => item.getAttribute("aria-label"));
+    expect(items).toHaveLength(saved.trace.length + 1);
+    expect(new Set(names.map((name) => name?.split(":")[0])).size).toBe(
+      names.length,
+    );
+    expect(names.at(-1)).toMatch(
+      new RegExp(`^Call ${saved.trace.length + 1}: `),
+    );
   });
 });

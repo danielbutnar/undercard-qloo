@@ -1094,9 +1094,18 @@ export function FestivalScreen({
     firstBill !== null &&
     state.errorCode !== "not-full";
   const streamed = ownRunCalls && !failedOverSaved;
+  const savedTrace = firstBill?.trace ?? [];
   const setlistTrace: TraceCall[] = streamed
     ? state.calls
-    : [...(firstBill?.trace ?? []), ...(ownRunCalls ? [] : state.calls)];
+    : [
+        ...savedTrace,
+        // A refill made since, numbered on from the saved build's calls (its own count starts
+        // at 1 when the build wasn't replayed first).
+        ...(ownRunCalls ? [] : state.calls).map((call, index) => ({
+          ...call,
+          n: savedTrace.length + index + 1,
+        })),
+      ];
   const setlist = setlistLines(setlistTrace, {
     venues: allVenues,
     bands: festival.feeBands,
