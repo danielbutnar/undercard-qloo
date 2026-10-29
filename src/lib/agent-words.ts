@@ -20,6 +20,13 @@ import type { LocalPick } from "./local-pick";
 export const skippedLine = (place: string, reason: string) =>
   `Skipped ${place}: listed by Qloo, but ${reason.trim()}`;
 
+/**
+ * A refill or a redraft served from the rankings a 2.0 build already holds, which makes no Qloo
+ * call (Daniel, 29 Oct, 10:40: "Never silent"): said in the trace and on the setlist.
+ */
+export const HELD_REFILL_LINE =
+  "Refilled from the rankings already read: no new Qloo call.";
+
 /** The first words of a refusal's line, by which a comparison counts them (Daniel, 19:20). */
 export const REFUSED_PREFIX = "Tried to stop after ";
 
@@ -261,7 +268,7 @@ export function climbsLine(
   const { venueClimb, controlClimb } = act.localLift;
   const own = `${climbWord(venueClimb) ?? "no climb"} with ${act.anchorVenue.name}'s fans`;
   const abroad = climbWord(controlClimb);
-  return `${own} · ${abroad ? `${abroad} with` : "no climb with"} a room in ${act.localLift.control.town} with similar Qloo popularity`;
+  return `${own} · ${abroad ? `${abroad} with` : "no climb with"} a venue in ${act.localLift.control.town} with similar Qloo popularity`;
 }
 
 /**
@@ -280,9 +287,9 @@ export const controlCallLine = ({
 }) => {
   const where = town ? `in ${town} ` : "";
   return noFanData
-    ? `Qloo had no fan data for ${noFanData}: the next room ${where}with similar Qloo popularity is read.`
+    ? `Qloo had no fan data for ${noFanData}: the next venue ${where}with similar Qloo popularity is read.`
     : controlFor
-      ? `The control for ${controlFor}: a room ${where}with similar Qloo popularity.`
+      ? `The control for ${controlFor}: a venue ${where}with similar Qloo popularity.`
       : null;
 };
 

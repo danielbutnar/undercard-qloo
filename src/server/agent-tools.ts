@@ -428,7 +428,7 @@ export function createToolbox({
     const label = tagNames.get(tag) ?? tag;
     // As find_venues reads a town (M6j): the plain name, then "town, region" when it misses.
     controlRooms ??= (async () => {
-      const summary = `${town.city} places tagged ${label}, to find each venue's control: a room in ${town.city} with similar Qloo popularity`;
+      const summary = `${town.city} places tagged ${label}, to find each venue's control: a venue in ${town.city} with similar Qloo popularity`;
       const plain = await callQloo(
         "control_venues",
         "/v2/insights",
@@ -492,7 +492,7 @@ export function createToolbox({
             callQloo(
               "control_artists",
               "/v2/insights",
-              `${bandLabel(band)}-band artists for the headliners and ${room.name}, a room in ${controlTown.city} with similar Qloo popularity, the control for ${venue.name}${ageNote}`,
+              `${bandLabel(band)}-band artists for the headliners and ${room.name}, a venue in ${controlTown.city} with similar Qloo popularity, the control for ${venue.name}${ageNote}`,
               () =>
                 qloo.scoredArtists({
                   signalEntityIds: [...headliners, room.entityId],

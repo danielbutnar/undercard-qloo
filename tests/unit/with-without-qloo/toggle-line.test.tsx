@@ -17,8 +17,10 @@ afterEach(() => {
   window.history.replaceState(null, "", "/");
 });
 
-// Corrected 2026-10-22: Duluth's two lineups share one act (evidence 31), so the line says so.
-const LINE = `Across ${counts.towns} towns, the model alone and Qloo share one act, in one town, and ${counts.picksPassing} of the model's ${counts.picks} picks pass all three checks.`;
+// Recounted 2026-10-29 from the 29 re-run builds of 28 October (Agent 2.0) beside the model's
+// saved picks, matched by name: one act, in Duluth. "Pass all three checks" was the 1.0 rule's,
+// so it's gone (Daniel, 29 Oct, 09:45); section 31's record stays in with-without-qloo.json.
+const LINE = `Across ${counts.towns} towns, the model alone and Qloo share one act, in one town.`;
 const quiet = () =>
   vi.stubGlobal(
     "fetch",

@@ -256,6 +256,13 @@
   font-weight: 700;
   text-align: center;
 }
+/* On a phone the line keeps to one line with its "· or run it live ↓" (Daniel, 29 Oct), so the
+   first act still shows before any scroll. */
+@media (max-width: 599px) {
+  .chart-app.fs .fs-watch .watch-sub {
+    font-size: 12px;
+  }
+}
 @media (min-width: 1100px) {
   .chart-app.fs .fs-watch {
     grid-area: town;
@@ -285,6 +292,19 @@
    Qloo calls list's "Run the agent live instead". */
 @media (max-width: 1099px), (max-height: 760px) {
   .chart-app.fs .fs-live {
+    display: none;
+  }
+}
+/* The line under Watch ends on a link to the setlist's "Play it live" (Daniel, 29 Oct), except
+   where "Run it live" itself stands under Watch. */
+.chart-app.fs .watch-live-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+@media (min-width: 1250px) and (min-height: 960px) {
+  .chart-app.fs .watch-live-link {
     display: none;
   }
 }

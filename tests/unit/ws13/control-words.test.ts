@@ -21,7 +21,10 @@ import {
   scriptedModel,
 } from "./agent-kit";
 
+// What the planner reads stays as the 29 re-runs and section 38 measured it; what the page
+// shows says venue (Daniel, 29 Oct, 09:45).
 const SIMILAR = "a room in Aarhus with similar Qloo popularity";
+const SHOWN = "a venue in Aarhus with similar Qloo popularity";
 
 describe("the control in the trace (Daniel, 17:10)", () => {
   it("names the room, its town and the venue it is the control for, and never says matched", async () => {
@@ -48,11 +51,11 @@ describe("the control in the trace (Daniel, 17:10)", () => {
     for (const call of reads)
       expect(call.summary).toMatch(
         new RegExp(
-          `-band artists for the headliners and Aarhus Hall, ${SIMILAR}, the control for (The Lantern Room|Fort Street Ballroom)`,
+          `-band artists for the headliners and Aarhus Hall, ${SHOWN}, the control for (The Lantern Room|Fort Street Ballroom)`,
         ),
       );
     expect(calls.find((call) => call.tool === "control_venues")?.summary).toBe(
-      `Aarhus places tagged Live music venue, to find each venue's control: ${SIMILAR}`,
+      `Aarhus places tagged Live music venue, to find each venue's control: ${SHOWN}`,
     );
     for (const call of calls) expect(call.summary).not.toMatch(/matched/i);
   });
@@ -60,9 +63,9 @@ describe("the control in the trace (Daniel, 17:10)", () => {
   it("gives a control's call line in the same words", () => {
     expect(
       controlCallLine({ controlFor: "The Lantern Room", town: "Aarhus" }),
-    ).toBe(`The control for The Lantern Room: ${SIMILAR}.`);
+    ).toBe(`The control for The Lantern Room: ${SHOWN}.`);
     expect(controlCallLine({ noFanData: "Aarhus Club", town: "Aarhus" })).toBe(
-      "Qloo had no fan data for Aarhus Club: the next room in Aarhus with similar Qloo popularity is read.",
+      "Qloo had no fan data for Aarhus Club: the next venue in Aarhus with similar Qloo popularity is read.",
     );
   });
 });

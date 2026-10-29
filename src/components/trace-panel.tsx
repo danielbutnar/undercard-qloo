@@ -331,6 +331,12 @@ export function TracePanel({
           </ol>
         )}
         {/* WS13.2: the trace's last line says why the agent stopped reading venues. */}
+        {/* A refill or redraft from the rankings already read: no call, said (10:40). */}
+        {state.refillNotes.map((text, index) => (
+          <p key={`held-${index}`} className="trace-line">
+            {text}
+          </p>
+        ))}
         {state.stopped && state.calls.length > 0 && (
           <p className="trace-line">{state.stopped.text}</p>
         )}

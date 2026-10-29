@@ -1,3 +1,4 @@
+import { HELD_REFILL_LINE } from "@/lib/agent-words";
 import { z } from "zod";
 import {
   assembleLineup,
@@ -123,7 +124,7 @@ export async function handleRedraft({
       );
       emit({
         type: "status",
-        text: `Redrafted ${heldCount} ${heldCount === 1 ? "slot" : "slots"} from the rankings this build already holds: no new Qloo call.`,
+        text: HELD_REFILL_LINE,
       });
     }
     // The slots left open after that.
@@ -212,7 +213,7 @@ export async function handleRedraft({
               n: m,
               tool: "redraft",
               endpoint: read.call?.path ?? "/v2/insights",
-              summary: `Redraft: ${band.label}-band artists for the headliners and ${control.name}, a room in ${control.town} with similar Qloo popularity, the control for ${venue.name}, minus the board`,
+              summary: `Redraft: ${band.label}-band artists for the headliners and ${control.name}, a venue in ${control.town} with similar Qloo popularity, the control for ${venue.name}, minus the board`,
               params: (read.call?.params ?? []).map(([key, value]) => ({
                 key,
                 value: readable(value),

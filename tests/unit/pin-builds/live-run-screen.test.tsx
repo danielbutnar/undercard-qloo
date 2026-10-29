@@ -31,7 +31,13 @@ const SKIP = { name: "Skip to the lineup" };
 const WATCH = { name: "Watch the AI agent build it" };
 const RUN_LIVE = { name: "Play it live" };
 const drafted = () => document.querySelector(".drafted")?.textContent ?? "";
-const under = () => document.querySelector(".watch-sub")?.textContent ?? "";
+// The line's own words, without its link to the setlist's "Play it live" (Daniel, 29 Oct).
+const under = () => {
+  const line = document.querySelector(".watch-sub")?.cloneNode(true) as
+    HTMLElement | undefined;
+  line?.querySelector(".watch-live-link")?.remove();
+  return line?.textContent ?? "";
+};
 
 /**
  * A server holding Boise's saved build, dated like production's (12:13 UTC on 17 October), or

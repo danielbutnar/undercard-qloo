@@ -6,11 +6,11 @@ import { SYNTHETIC } from "./env";
 
 test.skip(SYNTHETIC === "empty", "needs a saved build");
 
-const LINE =
-  /^Across \d+ towns, .+, and \d+ of the model's \d+ picks pass all three checks\.$/;
+// Recounted from the 2.0 re-runs (Daniel, 29 Oct): the shared acts only, in How it works' fold.
+const LINE = /^Across \d+ towns, the model alone and Qloo share [^,]+, in [^,]+\.$/;
 // Prompt-4: under the toggle, the line counts each check.
 const CHECKS_LINE =
-  /^Across \d+ towns, the model alone picked \d+ acts; Qloo found \d+ of them\. Of those \d+, \d+ sit above the fee range, \d+ share two genres with the headliners, and \d+ pass all three of the rule's checks\.$/;
+  /^Across \d+ towns, the model alone picked \d+ acts; Qloo found \d+ of them\. Of those \d+, \d+ sit above the fee range, and \d+ share two genres with the headliners\.$/;
 
 test("the per-check line sits under the toggle, and the With and Without Qloo line on How it works", async ({
   page,

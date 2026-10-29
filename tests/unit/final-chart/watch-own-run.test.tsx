@@ -31,7 +31,13 @@ const builds = (fetch: ReturnType<typeof vi.fn>) =>
   fetch.mock.calls.filter(([url]) => url === "/api/undercard").length;
 const SKIP = { name: "Skip to the lineup" };
 const WATCH = { name: "Watch the AI agent build it" };
-const under = () => document.querySelector(".watch-sub")?.textContent ?? "";
+// The line's own words, without its link to the setlist's "Play it live" (Daniel, 29 Oct).
+const under = () => {
+  const line = document.querySelector(".watch-sub")?.cloneNode(true) as
+    HTMLElement | undefined;
+  line?.querySelector(".watch-live-link")?.remove();
+  return line?.textContent ?? "";
+};
 
 describe("Watch on a judge's own run", () => {
   it("replays the run on screen, with no new request, and the lineup stays", async () => {
@@ -109,12 +115,8 @@ describe("The line under Watch on a saved town", () => {
         }}
       />,
     );
-    expect(under()).toBe(
-      "Replays how the agent drafted Boise",
-    );
-    fireEvent.click(
-      screen.getAllByRole("button", { name: "Play it live" })[0],
-    );
+    expect(under()).toBe("Replays how the agent drafted Boise");
+    fireEvent.click(screen.getAllByRole("button", { name: "Play it live" })[0]);
     fireEvent.click(await screen.findByRole("button", SKIP));
     await waitFor(() => expect(screen.getByRole("button", WATCH)).toBeTruthy());
     expect(under()).toBe("Replays the saved build's Qloo calls");
@@ -183,7 +185,9 @@ describe("A judge's run that didn't finish", () => {
       }),
     ).toBeTruthy();
     expect(screen.queryByRole("button", AGAIN)).toBeNull();
-    expect(screen.queryByRole("button", { name: "Build undercard" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Build undercard" }),
+    ).toBeNull();
     expect(under()).toBe("");
   });
 
@@ -242,9 +246,13 @@ describe("A judge's run run again over a lineup on screen", () => {
     );
     const draft = screen.getByRole("region", { name: "Undercard draft" });
     fireEvent.click(
-      await screen.findByRole("button", { name: "Run the agent again" }, {
-        timeout: 5000,
-      }),
+      await screen.findByRole(
+        "button",
+        { name: "Run the agent again" },
+        {
+          timeout: 5000,
+        },
+      ),
     );
     await waitFor(() => expect(bodies).toHaveLength(2));
     return { bodies, draft };

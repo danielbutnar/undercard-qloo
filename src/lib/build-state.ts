@@ -1,3 +1,4 @@
+import { HELD_REFILL_LINE } from "./agent-words";
 import type { StopLine } from "./agent-words";
 import type { ClimbEvent } from "./lift-climb";
 import type { RunningSlot } from "./running-order";
@@ -31,6 +32,8 @@ export interface BuildState {
   /** Calls on the trace when the running refill started; its calls number on from here. */
   refillBase: number;
   refillError: string | null;
+  /** Each refill or redraft served from the rankings the build holds: no Qloo call (10:40). */
+  refillNotes: string[];
   /** Why the act being refilled dropped out, until its replacement arrives. */
   refillReason: UnavailableReason | null;
   /** Replacements on the board, by act id: whose slot each took, and why. */
@@ -79,6 +82,7 @@ export const IDLE_BUILD: BuildState = {
   refilling: null,
   refillBase: 0,
   refillError: null,
+  refillNotes: [],
   refillReason: null,
   replaced: {},
   kept: null,
@@ -147,6 +151,11 @@ function restoreKept(state: BuildState, refusal: string): BuildState {
 
 function applyRefillEvent(state: BuildState, event: BuildEvent): BuildState {
   switch (event.type) {
+    // Daniel, 29 Oct (10:40), "Never silent": a slot served from the rankings already read.
+    case "status":
+      return event.text === HELD_REFILL_LINE
+        ? { ...state, refillNotes: [...state.refillNotes, event.text] }
+        : state;
     case "call":
       return withCall(state, {
         ...event.call,

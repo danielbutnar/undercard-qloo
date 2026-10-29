@@ -293,7 +293,7 @@ export function DirectorsCut({
         line={
           <p>
             {act.localLift
-              ? `To get on, an act needs a climb of ${MIN_LIFT} places or more, a local lift of ${LOCAL_LIFT_BAR} or more over a room in ${act.localLift.control.town} with similar Qloo popularity, a Qloo popularity inside its tier (${formatPopularityRange(band)}) and two genres shared with the headliners. ${act.name} passes them all.`
+              ? `To get on, an act needs a climb of ${MIN_LIFT} places or more, a local lift of ${LOCAL_LIFT_BAR} or more over a venue in ${act.localLift.control.town} with similar Qloo popularity, a Qloo popularity inside its tier (${formatPopularityRange(band)}) and two genres shared with the headliners. ${act.name} passes them all.`
               : `To get on, an act needs a climb of ${MIN_LIFT} places or more, a Qloo popularity inside its tier (${formatPopularityRange(band)}) and two genres shared with the headliners. ${act.name} passes all three.`}
           </p>
         }
@@ -465,7 +465,7 @@ const TESTED: readonly {
     id: "shown",
     verdict: "Shown",
     big: "244 of 290",
-    line: "244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a music room abroad of similar Qloo popularity.",
+    line: "244 of the 290 acts Undercard 1.0 booked (its bills of 17 and 18 October) climbed at least 5 places more with the town venue that put them on the bill than with a music venue abroad of similar Qloo popularity.",
     section:
       "37. The control test across the 29 towns, written before any call",
   },
@@ -484,7 +484,7 @@ const TESTED: readonly {
     line: "At 33 real festivals, Undercard's shortlists held 3 of the acts the festivals actually booked; the AI model alone held 11. Neither test bar was met.",
     section:
       "38. An outside yardstick at real festivals, written before any call",
-    how: "All three shortlists had the same headliners and the same brief, and a hit is any act on the festival's lineup except its headliners. 6 of the model's 11 hits are acts outside the fee bands Undercard is given. Counting only the booked acts inside those bands: Undercard 3, the model 2, Undercard with another country's venues 1. The model may also recall real lineups from its training. Against Undercard with another country's venues, Undercard won 3 festivals to 2, which doesn't meet that bar either.",
+    how: "All three shortlists had the same headliners and the same brief, and a hit is any act on the festival's lineup except its headliners. 6 of the model's 11 hits are acts outside the fee bands Undercard is given; inside them, the model held 5, Undercard 3 and Undercard with another country's venues 2. The model may also recall real lineups from its training. Asked for an undercard in 29 towns (section 31), the same model put 204 of the 268 picks Qloo found above the top of those fee bands. Against Undercard with another country's venues, Undercard won 3 festivals to 2, which doesn't meet that bar either.",
   },
 ];
 

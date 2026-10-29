@@ -10,7 +10,7 @@ import {
 } from "./method/directors-cut";
 import { AgentChoices } from "./method/follow-one-act";
 import { ImageCredit } from "./chart/image-credit";
-import { WithWithoutLine } from "./chart/with-without-line";
+import { RerunsLine, WithWithoutLine } from "./chart/with-without-line";
 import { VideoSlot } from "./video-slot";
 import "./chart/chart.css";
 import "./chart/first-screen.css";
@@ -98,7 +98,19 @@ export function MethodPage({
         </p>
 
         <div className="chart-app fs directors-cut">
-          <TestedStamps method={<WithWithoutLine />}>
+          <TestedStamps
+            method={
+              <>
+                {/* Daniel, 29 Oct: the old SHOWN stand-in, with the 2.0 re-runs' numbers. */}
+                <p className="mode-number">
+                  In all 29 checked towns, the AI agent drafted a full bill from
+                  the town&apos;s own venues, and every Qloo call is listed.
+                </p>
+                <RerunsLine />
+                <WithWithoutLine />
+              </>
+            }
+          >
             <p className="mt-3 text-label">
               <Link href="/method/evidence" className="link">
                 The evidence: every test with its result, limit and source, and

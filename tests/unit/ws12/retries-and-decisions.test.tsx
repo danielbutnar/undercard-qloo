@@ -11,7 +11,7 @@ import {
   setlistCue,
   setlistLines,
 } from "@/components/chart/setlist-words";
-import { watchCallLine } from "@/components/chart/words";
+import { callWords, watchCallLine } from "@/components/chart/words";
 import { FestivalScreen } from "@/components/festival-screen";
 import { MethodPage } from "@/components/method-page";
 import { refusedLine, skippedLine } from "@/lib/agent-words";
@@ -152,5 +152,29 @@ describe("retries beside every call count (Daniel, 19:20)", () => {
       screen.getByRole("region", { name: "The AI agent's choices" })
         .textContent,
     ).toContain(`in ${BILL.calls} Qloo calls, plus 3 retries. Here`);
+  });
+});
+
+describe("a saved trace line's control, as the page shows it (Daniel, 29 Oct, 09:45)", () => {
+  it("says venue where the saved line says room, and keeps the rest", () => {
+    // The 29 saved re-run builds' trace text, which is never edited.
+    expect(
+      callWords(
+        "Mid-band artists for the headliners and Strada Hall, a room in Bucharest with similar Qloo popularity, the control for Venue 227",
+      ),
+    ).toBe(
+      "Mid-tier artists for the headliners and Strada Hall, a venue in Bucharest with similar Qloo popularity, the control for Venue 227",
+    );
+    expect(
+      callWords(
+        "Bucharest places tagged Live music venue, to find each venue's control: a room in Bucharest with similar Qloo popularity",
+      ),
+    ).toBe(
+      "Bucharest places tagged Live music venue, to find each venue's control: a venue in Bucharest with similar Qloo popularity",
+    );
+    // A venue's own name keeps its words.
+    expect(callWords("Mid-band artists for The Lantern Room")).toBe(
+      "Mid-tier artists for The Lantern Room",
+    );
   });
 });
