@@ -283,6 +283,12 @@
   border: 3px solid var(--color-ink);
   background: var(--color-surface);
   box-shadow: 10px 10px 0 var(--color-ink);
+  /* The stamps land from 1.7 times their size, and before the page's scripts hold a ticket
+     below the fold back, past its edge they widened a phone's page (WS18): the mask below
+     already hides what falls outside the ticket (its border box); this keeps it out of the
+     page's width too, cut where the mask cuts (the margin needs both axes clipped). */
+  overflow: clip;
+  overflow-clip-margin: 3px;
   /* Two notches where the stub tears off. */
   -webkit-mask:
     radial-gradient(
