@@ -242,10 +242,7 @@ export function YourFestival({
             </p>
           )}
           {freeText && (
-            <section
-              aria-labelledby="free-town-title"
-              className="panel yours-free"
-            >
+            <section aria-labelledby="free-town-title" className="panel yours-free">
               <h2 id="free-town-title" className="panel-title">
                 Or name another town
               </h2>
