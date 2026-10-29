@@ -10,6 +10,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  describe as describeComputation,
   evaluate,
   loadEvidence,
   PINNED_RECORD,
@@ -182,5 +183,77 @@ describe("the pinned 1.0 record", () => {
     );
     expect(pinned?.ids.size).toBe(29);
     expect(pinned?.ids.get(BOISE)).toBe("27de886f-1ddf-48f1-856d-d2cb5493443d");
+  });
+});
+
+// Daniel, 29 October 13:30: every claim about earlier builds reads the builds it measured, by id,
+// as section 31's do, failing closed without the record. The pinned 1.0 builds are replayed
+// in-process from the store, through the app's own replay handler, with no Qloo or model call.
+describe("claims about earlier builds", () => {
+  const boiseFull = {
+    kind: "full-lineups",
+    towns: ["Boise"],
+    builds: "pinned-1.0",
+  } as const;
+
+  it("read the build the record pins, by id, even when the latest pointer names another", async () => {
+    const { cache, first, second } = await movedPointer();
+    const load = (id: string) =>
+      loadEvidence({
+        base: "http://synthetic.test",
+        fetch: noReplays,
+        store: cache,
+        design: null,
+        pinned: pin(BOISE, id),
+      });
+    // The latest replays fail here, so only the pinned build can answer: the first build of 10
+    // acts fills the bill, the second of 6 doesn't.
+    expect(evaluate(boiseFull, await load(first.id))).toBe(1);
+    expect(evaluate(boiseFull, await load(second.id))).toBe(0);
+    const data = await load(first.id);
+    expect(
+      evaluate({ kind: "full-lineups", towns: ["Boise"] }, data),
+    ).toHaveProperty("missing");
+    expect(describeComputation(boiseFull)).toContain("the pinned 1.0 build");
+  });
+
+  it("read the pinned builds by id and never a latest pointer, writing nothing", async () => {
+    const { cache: moved, first } = await movedPointer();
+    const { cache, keys } = watched(moved);
+    const data = await loadEvidence({
+      base: "http://synthetic.test",
+      fetch: noReplays,
+      store: cache,
+      design: null,
+      pinned: pin(BOISE, first.id),
+    });
+    expect(evaluate(boiseFull, data)).toBe(1);
+    expect(keys).toContain(`undercard:build:v1:id:${first.id}`);
+    expect(keys.filter((key) => key.includes(":latest:"))).toEqual([]);
+  });
+
+  it("have no data, saying why, without the record or the store", async () => {
+    const { cache, first } = await movedPointer();
+    const noRecord = await loadEvidence({
+      base: "http://synthetic.test",
+      fetch: noReplays,
+      store: cache,
+      design: null,
+      pinned: null,
+    });
+    expect(evaluate(boiseFull, noRecord)).toEqual({
+      missing: `no pinned 1.0 record (${PINNED_RECORD}): claims about the 1.0 builds read them by id`,
+    });
+    const noStore = await loadEvidence({
+      base: "http://synthetic.test",
+      fetch: noReplays,
+      store: null,
+      design: null,
+      pinned: pin(BOISE, first.id),
+    });
+    expect(evaluate(boiseFull, noStore)).toEqual({
+      missing:
+        "no store: the pinned 1.0 builds are read from it by id, read-only",
+    });
   });
 });

@@ -20,12 +20,13 @@ import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
 import { checkedFestival, TOWNS } from "@/lib/towns";
 import { lineupMeasures } from "@/lib/with-without";
 import { QLOO_CALL_CAP } from "@/server/agent-tools";
-import { createBuildStore } from "@/server/build-store";
+import { createBuildStore, type BuildStore } from "@/server/build-store";
 import { handleLlmOnly } from "@/server/llm-only";
 import { createQlooClient, QlooCacheMiss } from "@/server/qloo";
 import type { QlooCache } from "@/server/qloo-cache";
 import type { RateLimiter } from "@/server/rate-limit";
 import { REFILL_CALL_CAP } from "@/server/refill";
+import { handleUndercardBuild } from "@/server/undercard-build";
 import { assemblyFromSaved } from "@/server/venue-switch";
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -446,8 +447,14 @@ type TownSet = "all" | "later" | readonly string[];
 export type WithQlooCount =
   "acts" | "found" | "inRange" | "twoGenres" | "climbs" | "allThree";
 
-/** A number re-derived from the replays, the store or the code; describe() says which. */
-export type Computation =
+/**
+ * A number re-derived from the replays, the store or the code; describe() says which. A claim
+ * about the builds saved before 29 October reads the builds it measured, by id, when it says
+ * builds: "pinned-1.0" (Daniel, 2026-10-29 13:30).
+ */
+export type Computation = Computed & { builds?: "pinned-1.0" };
+
+type Computed =
   | { kind: "venue-acts"; town: string; venue: string }
   | { kind: "venues-tested"; town: string }
   | { kind: "calls"; town: string }
@@ -501,6 +508,11 @@ export interface EvidenceData {
   without: WithoutData | Missing | null;
   /** Section 31's run as its raw files recorded it. */
   run: RunRecord | null;
+  /**
+   * The 1.0 builds the pinned record names, replayed in-process by id (pinnedReplays), for the
+   * claims about them; why there are none. Unset reads as none, so those claims fail closed.
+   */
+  pinnedTowns?: TownBuild[] | Missing;
 }
 
 const BOISE = CHECKED_TOWNS[0].city;
@@ -658,6 +670,13 @@ const WITH_WORDS: Record<WithQlooCount, string> = {
 
 /** Where a computation's number comes from, in words, for the table. */
 export function describe(computation: Computation): string {
+  const from = describeComputed(computation);
+  return computation.builds === "pinned-1.0"
+    ? `${from}, on the pinned 1.0 builds, by id`
+    : from;
+}
+
+function describeComputed(computation: Computed): string {
   const c = computation;
   switch (c.kind) {
     case "venue-acts":
@@ -777,6 +796,15 @@ export function evaluate(
   computation: Computation,
   data: EvidenceData,
 ): Derived {
+  if (computation.builds !== "pinned-1.0")
+    return evaluateComputed(computation, data);
+  const pinned = data.pinnedTowns ?? NO_PINNED_REPLAYS;
+  return isMissing(pinned)
+    ? pinned
+    : evaluateComputed(computation, { ...data, towns: pinned });
+}
+
+function evaluateComputed(computation: Computed, data: EvidenceData): Derived {
   const c = computation;
   switch (c.kind) {
     case "venue-acts": {
@@ -1095,6 +1123,81 @@ const NO_PIN = missing(
   `no pinned 1.0 record (${PINNED_RECORD}): section 31's builds are read by its ids`,
 );
 
+const NO_PINNED_REPLAYS = missing(
+  `no pinned 1.0 record (${PINNED_RECORD}): claims about the 1.0 builds read them by id`,
+);
+
+const NO_STORE_REPLAYS = missing(
+  "no store: the pinned 1.0 builds are read from it by id, read-only",
+);
+
+/** A replay is never limited; the limiter is never asked. */
+const NO_LIMIT: RateLimiter = {
+  kind: "memory",
+  check: async () => {
+    throw new Error("evidence:check only replays saved builds");
+  },
+};
+
+/**
+ * The 1.0 builds the pinned record names, each replayed in-process the way a judge's replay
+ * streams it (Daniel, 2026-10-29 13:30): read from the store by id, read-only, then run through
+ * the app's own replay handler with a Qloo client that answers from the cache or throws, so no
+ * Qloo or model call is made, no latest pointer is read and nothing is written. A town whose
+ * pinned build isn't stored, or is another festival's, has no saved build to replay.
+ */
+export async function pinnedReplays(
+  store: QlooCache,
+  pinned: PinnedBuilds,
+  { towns = CHECKED_TOWNS, concurrency = 4 } = {},
+): Promise<TownBuild[]> {
+  const cache = readOnlyCache(store);
+  const builds = createBuildStore(cache);
+  const cachedQloo = createQlooClient({
+    apiKey: "",
+    cache,
+    cacheOnly: true,
+    fetch: noQloo,
+  });
+  const replayOf = async (town: CheckedTown): Promise<TownBuild> => {
+    const festival = checkedFestival(town);
+    const id = pinned.ids.get(festival.id);
+    const build = id ? await builds.byId(id) : null;
+    const saved = build && build.festivalId === festival.id ? build : null;
+    const store: BuildStore = { ...builds, latest: async () => saved };
+    const local: typeof fetch = async () =>
+      handleUndercardBuild({
+        festival,
+        qloo: () => null,
+        model: () => null,
+        store,
+        fresh: false,
+        replayOnly: true,
+        replayDelayMs: 0,
+        limiter: NO_LIMIT,
+        ip: "evidence-check",
+        cachedQloo: () => cachedQloo,
+      });
+    return {
+      town,
+      festival,
+      replay: await replayOnly("http://pinned.invalid", festival.id, local),
+    };
+  };
+  const out: TownBuild[] = new Array(towns.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < towns.length) {
+      const index = next++;
+      out[index] = await replayOf(towns[index]);
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, towns.length) }, worker),
+  );
+  return out;
+}
+
 const WITH_COUNTS: readonly WithQlooCount[] = [
   "acts",
   "found",
@@ -1383,11 +1486,24 @@ export async function loadEvidence({
       );
     }
   };
-  const [towns, without] = await Promise.all([
+  const replaysOfPinned = async (
+    cache: QlooCache,
+  ): Promise<TownBuild[] | Missing> => {
+    if (!pinned) return NO_PINNED_REPLAYS;
+    try {
+      return await pinnedReplays(cache, pinned);
+    } catch (error) {
+      return missing(
+        `the store didn't answer: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  };
+  const [towns, without, pinnedTowns] = await Promise.all([
     loadReplays(base, { fetch: fetchImpl }),
     store ? fromStore(store) : Promise.resolve(raw.without),
+    store ? replaysOfPinned(store) : Promise.resolve(NO_STORE_REPLAYS),
   ]);
-  return { towns, without, run: raw.run };
+  return { towns, without, run: raw.run, pinnedTowns };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1514,6 +1630,10 @@ export async function main(
   );
   print(
     `Section 31's builds: ${section31 ? `${section31.source}, ${plural(section31.ids.size, "build", "builds")}${isMissing(without) || !without.withQloo ? "" : `, ${without.withQloo.builds} read by id`}` : NO_PIN.missing}.`,
+  );
+  const pinnedTowns = data.pinnedTowns ?? NO_PINNED_REPLAYS;
+  print(
+    `The pinned 1.0 builds, for the claims about them: ${isMissing(pinnedTowns) ? pinnedTowns.missing : `${plural(pinnedTowns.filter((town) => town.replay.lineup).length, "build", "builds")} replayed in-process by id from the store, with no Qloo or model call`}.`,
   );
   print("");
   print(formatTable(rows).trimEnd());
