@@ -8,10 +8,9 @@ import {
   fireEvent,
   render,
   screen,
-  waitFor,
   within,
 } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FestivalScreen } from "@/components/festival-screen";
 import { MethodPage } from "@/components/method-page";
 import type { Festival } from "@/lib/festival";
@@ -28,9 +27,22 @@ import {
   syntheticTownBuild,
   syntheticVenueSwitch,
 } from "../../e2e/synthetic-build";
+import { lag, settle, SLOW_MS } from "../test-clock";
+
+// The tests read a clock they move themselves, never the wall clock (Daniel, 2026-10-28), so a
+// loaded machine can't fail them: Watch's pace runs on it, so each edition is read in turn, at
+// no real cost. requestAnimationFrame and performance.now stay real: How it works asks for no
+// frame, and the first screen's one frame-paced motion, the town's camera glide, needs a
+// measured viewport that jsdom never gives.
+beforeEach(() => {
+  vi.useFakeTimers({
+    toFake: ["setTimeout", "clearTimeout", "setInterval", "clearInterval"],
+  });
+});
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   window.history.replaceState(null, "", "/");
 });
@@ -49,18 +61,19 @@ async function bill(build: SavedBuild, noFanData?: string[]) {
   return { ...first, ...(noFanData ? { noFanData } : {}) } as FirstBill;
 }
 
-function answer(stream = "") {
+function answer(stream = "", latency = 0) {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (url: string) =>
-      url.startsWith("/api/venue-switch")
+    vi.fn(async (url: string) => {
+      await lag(latency);
+      return url.startsWith("/api/venue-switch")
         ? Response.json(syntheticVenueSwitch())
         : url.startsWith("/api/undercard")
           ? new Response(stream, {
               headers: { "content-type": "application/x-ndjson" },
             })
-          : new Response(null, { status: 404 }),
-    ),
+          : new Response(null, { status: 404 });
+    }),
   );
 }
 
@@ -120,24 +133,25 @@ describe("How it works' AI agent's choices", () => {
   });
 });
 
-describe("Watch", () => {
+describe.each([
+  { speed: "at full speed", latency: 0 },
+  { speed: "on a slow machine", latency: SLOW_MS },
+])("Watch, $speed", ({ latency }) => {
   async function watch(
     festival: Festival,
     saved: SavedBuild,
     first: FirstBill,
   ) {
-    answer(syntheticReplayStream(saved));
+    answer(syntheticReplayStream(saved), latency);
     render(<FestivalScreen festival={festival} firstBill={first} />);
     fireEvent.click(
       screen.getByRole("button", { name: "Watch the AI agent build it" }),
     );
     return screen.getByRole("region", { name: "Undercard draft" });
   }
-  // Watch paces its editions in real time (0.8 s a headliners' list, 1.6 s a venue's).
+  // Watch paces its editions on the test's clock (0.8 s a headliners' list, 1.6 s a venue's).
   const at = async (region: HTMLElement, title: string) =>
-    waitFor(() => expect(within(region).getByText(title)).toBeTruthy(), {
-      timeout: 12_000,
-    });
+    settle(() => expect(within(region).queryAllByText(title)).toHaveLength(1));
 
   it("says Qloo had no fan data for a venue's edition in place of its no-act line", async () => {
     const saved = syntheticSavedBuild();
