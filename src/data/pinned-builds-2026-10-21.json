@@ -1,0 +1,151 @@
+{
+  "about": "Undercard 1.0's saved builds, as each checked town's latest pointer named them on 21 October 2026: Undercard's own build ids, towns and build dates, nothing read from a Qloo answer. Section 31's claims in evidence:check read these builds by id.",
+  "readAt": "2026-10-21T20:47:37.594Z",
+  "builds": [
+    {
+      "town": "Boise",
+      "buildId": "27de886f-1ddf-48f1-856d-d2cb5493443d",
+      "createdAt": "2026-10-17T12:13:02.971Z"
+    },
+    {
+      "town": "Austin",
+      "buildId": "3ca2bdb2-add3-42bb-b49b-f9f7b84cf528",
+      "createdAt": "2026-10-17T14:57:06.405Z"
+    },
+    {
+      "town": "Denver",
+      "buildId": "feee6cbb-b158-45ef-b6cb-d6352763b5ca",
+      "createdAt": "2026-10-17T14:58:05.941Z"
+    },
+    {
+      "town": "Nashville",
+      "buildId": "ce6a52b7-485a-49b3-bf49-7367779ce87f",
+      "createdAt": "2026-10-17T14:59:04.558Z"
+    },
+    {
+      "town": "Raleigh",
+      "buildId": "7aec560c-1722-4d5c-8ef2-a1a9679da80e",
+      "createdAt": "2026-10-17T19:59:22.803Z"
+    },
+    {
+      "town": "Chicago",
+      "buildId": "2463c70e-88ff-433c-8ad0-41db95211f45",
+      "createdAt": "2026-10-17T20:00:06.636Z"
+    },
+    {
+      "town": "Seattle",
+      "buildId": "95068579-df3c-4bc1-84df-adc47b479c1f",
+      "createdAt": "2026-10-17T20:00:50.824Z"
+    },
+    {
+      "town": "Minneapolis",
+      "buildId": "89242868-cdce-4e10-b92f-079de744d26d",
+      "createdAt": "2026-10-17T20:01:34.505Z"
+    },
+    {
+      "town": "Duluth",
+      "buildId": "3110dcc3-4561-4c04-ac15-0f88cfc7df88",
+      "createdAt": "2026-10-17T20:02:18.892Z"
+    },
+    {
+      "town": "Kansas City",
+      "buildId": "4b7e108e-ea5f-4032-83bc-2686297a0a9e",
+      "createdAt": "2026-10-17T20:03:03.714Z"
+    },
+    {
+      "town": "Asheville",
+      "buildId": "13c554e9-eba5-425f-b9ff-8f7c77d1087a",
+      "createdAt": "2026-10-17T20:03:47.468Z"
+    },
+    {
+      "town": "Bozeman",
+      "buildId": "c023e722-1d37-4b95-8ceb-204692049a8b",
+      "createdAt": "2026-10-17T20:04:33.863Z"
+    },
+    {
+      "town": "Burlington",
+      "buildId": "e109a046-72ee-4895-903f-3217b843f52c",
+      "createdAt": "2026-10-17T20:05:14.443Z"
+    },
+    {
+      "town": "Calgary",
+      "buildId": "6006f425-3caa-48b2-9e5d-9bd2bf26b9b6",
+      "createdAt": "2026-10-17T20:05:57.591Z"
+    },
+    {
+      "town": "Toronto",
+      "buildId": "b39108a2-65e1-4e76-a6d6-bcfed0f17636",
+      "createdAt": "2026-10-17T20:06:42.692Z"
+    },
+    {
+      "town": "Montreal",
+      "buildId": "cb7435b5-4127-47e9-8fbe-936a71c1c92c",
+      "createdAt": "2026-10-17T20:07:28.351Z"
+    },
+    {
+      "town": "Reykjavík",
+      "buildId": "1372478f-a798-48e6-9adf-a31da2ca8d5e",
+      "createdAt": "2026-10-17T20:08:11.255Z"
+    },
+    {
+      "town": "Oslo",
+      "buildId": "cc42ea32-9738-4c75-a6e9-46bf57e17cac",
+      "createdAt": "2026-10-17T20:08:56.567Z"
+    },
+    {
+      "town": "Aarhus",
+      "buildId": "40185f82-611c-496f-9390-109631a2cdc5",
+      "createdAt": "2026-10-17T20:09:41.508Z"
+    },
+    {
+      "town": "Tallinn",
+      "buildId": "6c0d9606-4791-44d4-8ac2-deb8da90fe1c",
+      "createdAt": "2026-10-17T20:10:26.929Z"
+    },
+    {
+      "town": "Berlin",
+      "buildId": "8ceafc28-897b-43a7-970c-bec5e41ed207",
+      "createdAt": "2026-10-17T20:11:11.327Z"
+    },
+    {
+      "town": "Hamburg",
+      "buildId": "0873131a-b4b8-412a-b60a-c2aba1c53ca6",
+      "createdAt": "2026-10-17T20:11:55.815Z"
+    },
+    {
+      "town": "Utrecht",
+      "buildId": "7796c5b7-3ec1-40b2-8258-dc5096d7fac2",
+      "createdAt": "2026-10-17T20:12:39.004Z"
+    },
+    {
+      "town": "Rotterdam",
+      "buildId": "aed94bf8-fcf7-4154-9aec-3359e9905180",
+      "createdAt": "2026-10-17T20:13:24.400Z"
+    },
+    {
+      "town": "Paris",
+      "buildId": "ad5a8091-977d-4840-807c-94db225b99be",
+      "createdAt": "2026-10-17T20:14:09.323Z"
+    },
+    {
+      "town": "Vienna",
+      "buildId": "43c5150e-ba9a-4a13-a95f-bc1d33175086",
+      "createdAt": "2026-10-17T20:14:55.754Z"
+    },
+    {
+      "town": "Bucharest",
+      "buildId": "b1890f51-146e-48a6-a58d-60130ce0b26c",
+      "createdAt": "2026-10-17T20:15:38.644Z"
+    },
+    {
+      "town": "Cluj-Napoca",
+      "buildId": "c9196fb2-d6f4-41c8-a11a-55d8ffaca299",
+      "createdAt": "2026-10-18T09:52:40.074Z"
+    },
+    {
+      "town": "Wrexham",
+      "buildId": "696c6f19-9c5d-4d07-8adc-0546bb73c3e3",
+      "createdAt": "2026-10-17T20:17:08.285Z"
+    }
+  ]
+}

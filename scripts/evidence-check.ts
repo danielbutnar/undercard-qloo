@@ -1043,9 +1043,10 @@ export interface WithoutData {
  * Section 31's builds (Daniel, 2026-10-29): the 1.0 builds it measured on 21 October, by id, as
  * each festival's latest pointer named them before the pin was deployed. Its claims read these
  * builds even after the deploy moves the pointers to the 2.0 builds; every other claim reads the
- * latest builds.
+ * latest builds. The record is committed (Daniel, 11:40), each entry only the town, the build id
+ * and the build date, so a fresh clone names the same builds.
  */
-export const PINNED_RECORD = "pinned-builds/latest-pointers-2026-10-21.json";
+export const PINNED_RECORD = "src/data/pinned-builds-2026-10-21.json";
 
 export interface PinnedBuilds {
   source: string;
@@ -1055,28 +1056,43 @@ export interface PinnedBuilds {
 
 const PinnedRecord = z
   .object({
+    about: z.string(),
     readAt: z.string(),
-    festivals: z.array(
-      z.object({ festivalId: z.string(), buildId: z.string() }).passthrough(),
+    builds: z.array(
+      z
+        .object({
+          town: z.string(),
+          buildId: z.string(),
+          createdAt: z.string(),
+        })
+        .strict(),
     ),
   })
-  .passthrough();
+  .strict();
 
-/** The pinned 1.0 record under the design folder, or null when it isn't there or doesn't read. */
-export function readPinned(design: string): PinnedBuilds | null {
-  const path = join(design, PINNED_RECORD);
+/**
+ * The pinned 1.0 record under the repository's root, each town's build id keyed by its checked
+ * festival, or null when it isn't there, doesn't read, holds more than each entry's town, build id
+ * and date, or names a town that isn't checked.
+ */
+export function readPinned(root: string): PinnedBuilds | null {
+  const path = join(root, PINNED_RECORD);
   const record = readJson(path, PinnedRecord);
   if (!record) return null;
+  const ids = new Map<string, string>();
+  for (const { town, buildId } of record.builds) {
+    const checked = CHECKED_TOWNS.find((entry) => entry.city === town);
+    if (!checked) return null;
+    ids.set(checkedFestival(checked).id, buildId);
+  }
   return {
-    source: `the pinned 1.0 record, ${path}, of ${record.readAt}`,
-    ids: new Map(
-      record.festivals.map((entry) => [entry.festivalId, entry.buildId]),
-    ),
+    source: `the pinned 1.0 record, ${PINNED_RECORD}, of ${record.readAt}`,
+    ids,
   };
 }
 
 const NO_PIN = missing(
-  `no pinned 1.0 record (.design/${PINNED_RECORD}): section 31's builds are read by its ids`,
+  `no pinned 1.0 record (${PINNED_RECORD}): section 31's builds are read by its ids`,
 );
 
 const WITH_COUNTS: readonly WithQlooCount[] = [
@@ -1457,14 +1473,15 @@ export async function main(
     fetch?: typeof fetch;
     /** The store to read; from the environment when undefined. */
     store?: QlooCache | null;
-    /** Section 31's builds; from --design's pinned 1.0 record when undefined. */
+    /** Section 31's builds; from the committed pinned 1.0 record when undefined. */
     pinned?: PinnedBuilds | null;
     read?: (file: string) => string | null;
     print?: (line: string) => void;
   } = {},
 ): Promise<0 | 1> {
   const options = parseArgs(argv);
-  const section31 = pinned === undefined ? readPinned(options.design) : pinned;
+  const section31 =
+    pinned === undefined ? readPinned(fileURLToPath(ROOT)) : pinned;
   const data = await loadEvidence({
     base: options.base,
     fetch: fetchImpl,

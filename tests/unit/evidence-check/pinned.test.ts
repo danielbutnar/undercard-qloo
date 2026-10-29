@@ -1,12 +1,13 @@
 // WS17 phase 2a (Daniel, 29 October, 10:40): section 31 measured the 1.0 builds, so the claims
 // that rest on it (With and Without Qloo, and the review's measures) read those builds by id from
-// the pinned 1.0 record, .design/pinned-builds/latest-pointers-2026-10-21.json, through the build
-// store, read-only. When the deploy moves a festival's latest pointer to its 2.0 build, they
+// the pinned 1.0 record, src/data/pinned-builds-2026-10-21.json (committed on Daniel's yes of 11:40:
+// each entry only the town, the build id and the build date), through the build store, read-only. When the deploy moves a festival's latest pointer to its 2.0 build, they
 // still read the 1.0 build. Every other claim keeps reading the latest builds. Invented data
 // throughout: the synthetic store, with Boise's pointer moved to a second build.
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   evaluate,
@@ -125,30 +126,32 @@ describe("section 31's claims", () => {
       { kind: "measure", of: "distinct-with" },
     ] as const)
       expect(evaluate(computation, data)).toEqual({
-        missing: `no pinned 1.0 record (.design/${PINNED_RECORD}): section 31's builds are read by its ids`,
+        missing: `no pinned 1.0 record (${PINNED_RECORD}): section 31's builds are read by its ids`,
       });
   });
 });
 
+/** A record under a temporary root, as the committed one sits under the repository's. */
+function recordAt(builds: unknown[]) {
+  const dir = mkdtempSync(join(tmpdir(), "evidence-pinned-"));
+  mkdirSync(join(dir, dirname(PINNED_RECORD)), { recursive: true });
+  writeFileSync(
+    join(dir, PINNED_RECORD),
+    JSON.stringify({
+      about: "The test's record.",
+      readAt: "2026-10-21T20:47:37.594Z",
+      builds,
+    }),
+  );
+  return dir;
+}
+
 describe("the pinned 1.0 record", () => {
-  it("gives each festival's build id, from the design folder", () => {
-    const dir = mkdtempSync(join(tmpdir(), "evidence-pinned-"));
-    mkdirSync(join(dir, "pinned-builds"));
-    writeFileSync(
-      join(dir, PINNED_RECORD),
-      JSON.stringify({
-        readAt: "2026-10-21T20:47:37.594Z",
-        festivals: [
-          { city: "Boise", festivalId: BOISE, buildId: "b-1", replayed: true },
-          {
-            city: "Austin",
-            festivalId: `${BOISE}-austin`,
-            buildId: "a-1",
-            replayed: true,
-          },
-        ],
-      }),
-    );
+  it("gives each checked town's festival its build id, by town", () => {
+    const dir = recordAt([
+      { town: "Boise", buildId: "b-1", createdAt: "2026-10-17T12:13:02.971Z" },
+      { town: "Austin", buildId: "a-1", createdAt: "2026-10-17T14:57:06.405Z" },
+    ]);
     const pinned = readPinned(dir);
     expect(pinned?.ids).toEqual(
       new Map([
@@ -156,8 +159,28 @@ describe("the pinned 1.0 record", () => {
         [`${BOISE}-austin`, "a-1"],
       ]),
     );
-    expect(pinned?.source).toContain(join(dir, PINNED_RECORD));
+    expect(pinned?.source).toContain(PINNED_RECORD);
     expect(pinned?.source).toContain("2026-10-21T20:47:37.594Z");
-    expect(readPinned(join(tmpdir(), "no-such-design-dir"))).toBeNull();
+    expect(readPinned(join(tmpdir(), "no-such-root-dir"))).toBeNull();
+  });
+
+  it("refuses an entry with more than its town, build id and date, or a town not checked", () => {
+    const extra = {
+      town: "Boise",
+      buildId: "b-1",
+      createdAt: "2026-10-17T12:13:02.971Z",
+    };
+    expect(readPinned(recordAt([{ ...extra, acts: ["An act"] }]))).toBeNull();
+    expect(
+      readPinned(recordAt([{ ...extra, town: "Springfield" }])),
+    ).toBeNull();
+  });
+
+  it("reads the committed record: the 29 checked towns' 1.0 builds", () => {
+    const pinned = readPinned(
+      fileURLToPath(new URL("../../../", import.meta.url)),
+    );
+    expect(pinned?.ids.size).toBe(29);
+    expect(pinned?.ids.get(BOISE)).toBe("27de886f-1ddf-48f1-856d-d2cb5493443d");
   });
 });
