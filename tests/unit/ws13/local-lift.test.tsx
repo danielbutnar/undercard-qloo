@@ -363,7 +363,7 @@ describe("the card's line (WS13.3)", () => {
 
   it("gives both climbs in words", () => {
     expect(climbsLine(entry)).toBe(
-      "↑15 with Venue 227's fans · ↑2 with a room in Bucharest with similar Qloo popularity",
+      "↑15 with Venue 227's fans · ↑2 with a venue in Bucharest with similar Qloo popularity",
     );
     expect(
       climbsLine({
@@ -371,7 +371,7 @@ describe("the card's line (WS13.3)", () => {
         localLift: { ...entry.localLift!, controlClimb: -3 },
       }),
     ).toBe(
-      "↑15 with Venue 227's fans · ↓3 with a room in Bucharest with similar Qloo popularity",
+      "↑15 with Venue 227's fans · ↓3 with a venue in Bucharest with similar Qloo popularity",
     );
     expect(
       climbsLine({
@@ -379,7 +379,7 @@ describe("the card's line (WS13.3)", () => {
         localLift: { ...entry.localLift!, controlClimb: 0 },
       }),
     ).toBe(
-      "↑15 with Venue 227's fans · no climb with a room in Bucharest with similar Qloo popularity",
+      "↑15 with Venue 227's fans · no climb with a venue in Bucharest with similar Qloo popularity",
     );
     expect(climbsLine({ ...entry, localLift: undefined })).toBeNull();
   });
@@ -388,7 +388,7 @@ describe("the card's line (WS13.3)", () => {
     render(<ActCard act={entry} />);
     expect(
       screen.getByText(
-        "↑15 with Venue 227's fans · ↑2 with a room in Bucharest with similar Qloo popularity",
+        "↑15 with Venue 227's fans · ↑2 with a venue in Bucharest with similar Qloo popularity",
       ),
     ).toBeTruthy();
   });

@@ -293,7 +293,7 @@ export function DirectorsCut({
         line={
           <p>
             {act.localLift
-              ? `To get on, an act needs a climb of ${MIN_LIFT} places or more, a local lift of ${LOCAL_LIFT_BAR} or more over a room in ${act.localLift.control.town} with similar Qloo popularity, a Qloo popularity inside its tier (${formatPopularityRange(band)}) and two genres shared with the headliners. ${act.name} passes them all.`
+              ? `To get on, an act needs a climb of ${MIN_LIFT} places or more, a local lift of ${LOCAL_LIFT_BAR} or more over a venue in ${act.localLift.control.town} with similar Qloo popularity, a Qloo popularity inside its tier (${formatPopularityRange(band)}) and two genres shared with the headliners. ${act.name} passes them all.`
               : `To get on, an act needs a climb of ${MIN_LIFT} places or more, a Qloo popularity inside its tier (${formatPopularityRange(band)}) and two genres shared with the headliners. ${act.name} passes all three.`}
           </p>
         }
@@ -465,7 +465,7 @@ const TESTED: readonly {
     id: "shown",
     verdict: "Shown",
     big: "244 of 290",
-    line: "244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a music room abroad of similar Qloo popularity.",
+    line: "244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a music venue abroad of similar Qloo popularity.",
     section:
       "37. The control test across the 29 towns, written before any call",
   },

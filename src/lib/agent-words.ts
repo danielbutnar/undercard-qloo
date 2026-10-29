@@ -261,7 +261,7 @@ export function climbsLine(
   const { venueClimb, controlClimb } = act.localLift;
   const own = `${climbWord(venueClimb) ?? "no climb"} with ${act.anchorVenue.name}'s fans`;
   const abroad = climbWord(controlClimb);
-  return `${own} · ${abroad ? `${abroad} with` : "no climb with"} a room in ${act.localLift.control.town} with similar Qloo popularity`;
+  return `${own} · ${abroad ? `${abroad} with` : "no climb with"} a venue in ${act.localLift.control.town} with similar Qloo popularity`;
 }
 
 /**
@@ -280,9 +280,9 @@ export const controlCallLine = ({
 }) => {
   const where = town ? `in ${town} ` : "";
   return noFanData
-    ? `Qloo had no fan data for ${noFanData}: the next room ${where}with similar Qloo popularity is read.`
+    ? `Qloo had no fan data for ${noFanData}: the next venue ${where}with similar Qloo popularity is read.`
     : controlFor
-      ? `The control for ${controlFor}: a room ${where}with similar Qloo popularity.`
+      ? `The control for ${controlFor}: a venue ${where}with similar Qloo popularity.`
       : null;
 };
 

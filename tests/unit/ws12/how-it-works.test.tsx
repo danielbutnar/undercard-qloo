@@ -130,7 +130,7 @@ describe("How it works as the director's cut of Watch (WS12 item 2)", () => {
       ["Not shown", "3 vs 11"],
     ]);
     expect(stamps[0].textContent).toContain(
-      "244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a music room abroad of similar Qloo popularity.",
+      "244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a music venue abroad of similar Qloo popularity.",
     );
     const not = stamps[2];
     expect(not.querySelector(".dc-verdict-line")?.textContent).toBe(
@@ -194,10 +194,10 @@ describe("How it works tells a 2.0 build's rule from the saved act (Daniel, 2026
     ),
   })!;
 
-  it("names the local lift over a room in the control's town with similar Qloo popularity", () => {
+  it("names the local lift over a venue in the control's town with similar Qloo popularity", () => {
     render(<MethodPage story={lifted} videoUrl={null} />);
     expect(scene(3).textContent).toContain(
-      "a local lift of 5 or more over a room in Elsewhere with similar Qloo popularity",
+      "a local lift of 5 or more over a venue in Elsewhere with similar Qloo popularity",
     );
     expect(
       screen.getByRole("region", { name: "Who does what" }).textContent,

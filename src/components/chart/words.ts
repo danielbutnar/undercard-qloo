@@ -135,7 +135,14 @@ export function watchLine({
  * artists for the headliners and …"); the saved line itself keeps its words, which the app parses.
  */
 export const callWords = (summary: string) =>
-  summary.replace(/\b(Mid|Opener)-band\b/g, "$1-tier");
+  summary
+    .replace(/\b(Mid|Opener)-band\b/g, "$1-tier")
+    // Daniel, 29 Oct (09:45): the control is "a venue in <town> with similar Qloo popularity".
+    // The 29 saved re-run builds say "room" in their trace text, which is never edited.
+    .replace(
+      /\b([Rr])oom((?: in [^,;]+?)? with similar Qloo popularity)/g,
+      (_, r: string, rest: string) => `${r === "R" ? "V" : "v"}enue${rest}`,
+    );
 
 export const watchCallLine = (
   call: Pick<TraceCall, "n" | "summary" | "resultCount" | "retried">,

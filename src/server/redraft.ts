@@ -212,7 +212,7 @@ export async function handleRedraft({
               n: m,
               tool: "redraft",
               endpoint: read.call?.path ?? "/v2/insights",
-              summary: `Redraft: ${band.label}-band artists for the headliners and ${control.name}, a room in ${control.town} with similar Qloo popularity, the control for ${venue.name}, minus the board`,
+              summary: `Redraft: ${band.label}-band artists for the headliners and ${control.name}, a venue in ${control.town} with similar Qloo popularity, the control for ${venue.name}, minus the board`,
               params: (read.call?.params ?? []).map(([key, value]) => ({
                 key,
                 value: readable(value),
