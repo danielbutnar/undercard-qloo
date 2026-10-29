@@ -1110,7 +1110,11 @@ export function FestivalScreen({
     venues: allVenues,
     bands: festival.feeBands,
     noFanData: fanless,
-    notes: streamed ? state.notes : (firstBill?.notes ?? []),
+    notes: [
+      ...(streamed ? state.notes : (firstBill?.notes ?? [])),
+      // A refill or redraft from the rankings already read, after the calls (10:40).
+      ...state.refillNotes.map((text) => ({ at: setlistTrace.length, text })),
+    ],
   });
   // The drafted line's count: the build's, or, on a run cut short with acts on the poster
   // (not-full), the calls it made (WS12 item 9: it said "No undercard drafted yet.").

@@ -1,3 +1,4 @@
+import { HELD_REFILL_LINE } from "@/lib/agent-words";
 import { z } from "zod";
 import { assembleLineup, type VenueRef } from "@/lib/assemble-lineup";
 import { FEE_BAND_IDS } from "@/lib/fee-bands";
@@ -124,7 +125,7 @@ export async function handleRefill({
       if (next) {
         emit({
           type: "status",
-          text: "Refilled from the rankings this build already holds: no new Qloo call.",
+          text: HELD_REFILL_LINE,
         });
         emit({ type: "refill", replaces: unavailableId, act: next });
         emit({ type: "done", calls: 0, ms: Date.now() - started });

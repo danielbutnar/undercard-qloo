@@ -1,4 +1,4 @@
-import { REFUSED_PREFIX } from "@/lib/agent-words";
+import { HELD_REFILL_LINE, REFUSED_PREFIX } from "@/lib/agent-words";
 import { MIN_LIFT } from "@/lib/assemble-lineup";
 import type { TraceCall } from "@/lib/build-events";
 import type { FeeBand, FeeBandId } from "@/lib/fee-bands";
@@ -262,7 +262,9 @@ export const setlistCue = (note: string) =>
  * It reads on its own on the setlist, with no cue in front; a place's own words keep their bands.
  */
 const isDecision = (note: string) =>
-  note.startsWith("Skipped ") || note.startsWith(REFUSED_PREFIX);
+  note.startsWith("Skipped ") ||
+  note.startsWith(REFUSED_PREFIX) ||
+  note === HELD_REFILL_LINE;
 
 const AFTER_BUILD = new Set(["refill", "redraft", "running_order"]);
 

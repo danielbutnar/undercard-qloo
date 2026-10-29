@@ -1,3 +1,4 @@
+import { HELD_REFILL_LINE } from "@/lib/agent-words";
 import { z } from "zod";
 import {
   assembleLineup,
@@ -123,7 +124,7 @@ export async function handleRedraft({
       );
       emit({
         type: "status",
-        text: `Redrafted ${heldCount} ${heldCount === 1 ? "slot" : "slots"} from the rankings this build already holds: no new Qloo call.`,
+        text: HELD_REFILL_LINE,
       });
     }
     // The slots left open after that.
