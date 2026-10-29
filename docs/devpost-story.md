@@ -26,7 +26,7 @@ The demo festival, Sagebrush Sound, is fictional: Boise, Idaho, with Khruangbin 
 
 - **The draft bill.** The page opens on the saved build: each act in the colour of the Boise venue whose fans lifted it, with its rank and its climb in Qloo's ranking.
 - **Watch the AI agent build it.** The saved build replays in the town, call by call, and the AI agent's setlist lists every Qloo call with its result count, its parameters and the agent's line for each choice.
-- **Each act's evidence.** Its card gives its place for the headliners' fans alone and with the venue's fans added, its climb with that venue and with a room abroad of similar Qloo popularity, its Qloo popularity inside the tier's fee range, and the genres it shares with the headliners.
+- **Each act's evidence.** Its card gives its place for the headliners' fans alone and with the venue's fans added, its climb with that venue and with its control, a music venue abroad of similar Qloo popularity, its Qloo popularity inside the tier's fee range, and the genres it shares with the headliners.
 - **Unavailable, Keep and Redraft the rest.** Mark an act unavailable with the buyer's reason (radius clause, routing or fee), and its slot refills from the same tier by the same rule. Keep the acts worth a call, and Redraft the rest refills the others.
 - **Local picks, for the buyer to check.** The agent may name acts from the town it knows of. Each is looked up on Qloo and shown with Qloo's numbers in its own box; it takes a slot only if the buyer adds it.
 - **Without Qloo.** The same brief, fee ranges included, goes to the AI model alone with no tools, so it can't see the town's venues or Qloo's numbers. Its picks come with its own reasons, and Qloo's numbers are looked up afterwards: a contrast, not a score.
@@ -38,7 +38,7 @@ The demo festival, Sagebrush Sound, is fictional: Boise, Idaho, with Khruangbin 
 
 Each of these tests had its bar written into docs/evidence.md before its first call, and each result is reported as it came.
 
-- **SHOWN: 244 of 290** (section 37, 28 October 2026). 244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a music room abroad of similar Qloo popularity. By a rule written before the test, that result set Undercard 2.0's bar: a local lift of 5 places.
+- **SHOWN: 244 of 290** (section 37, 28 October 2026). 244 of the 290 acts Undercard 1.0 booked climbed at least 5 places more with the town venue that put them on the bill than with a music venue abroad of similar Qloo popularity. By a rule written before the test, that result set Undercard 2.0's bar: a local lift of 5 places.
 - **PARTLY SHOWN: 20 of 30** (sections 26 and 34, 21 and 22 October 2026). 20 of 30 real festivals where the acts booked showed more lift from the town's venues than random acts of their tier; another country's venues did it at 18.
 - **NOT SHOWN: 3 vs 11** (section 38, 28 October 2026). At 33 real festivals, Undercard's shortlists held 3 of the acts the festivals actually booked; the AI model alone held 11. Neither test bar was met.
 
@@ -49,7 +49,7 @@ So Undercard doesn't claim to pick what festivals would book, or to beat asking 
 **Who does what.** The AI agent, Claude Sonnet 5.5 working through tools that make the Qloo calls, plans the calls: which venues to read, in what order, and when to stop. Qloo knows the taste. A fixed rule in the app's code picks the acts. The buyer makes every call.
 
 **Agent 2.0, as deployed.**
-- It reads at least two music rooms with fan data, each with a control room abroad of similar Qloo popularity, in a checked town in another country (Boise's controls are in Bucharest); a town with fewer such rooms says so. A venue Qloo has no fan data for is skipped, and the trace says so.
+- It reads at least two music venues with fan data, each beside its control: a music venue in a checked town in another country with similar Qloo popularity (for Boise, a venue in Bucharest with similar Qloo popularity). A town with fewer such venues says so. A venue Qloo has no fan data for is skipped, and the trace says so.
 - An act books only if it climbs at least 5 places with the town's venue and at least 5 more than with the control, its Qloo popularity sits inside its tier's fee range, and it shares two genres with the headliners. The strongest Qloo match fills each slot first; a tier with too few such acts stays open.
 - The cap is 28 Qloo calls a build, with retries shown on each call's line and in every count.
 - A refill or a redraft first takes an act that passes from the rankings the build already holds, with no new call; otherwise it reads more venues with their controls, in at most 5 Qloo calls.
@@ -59,7 +59,7 @@ So Undercard doesn't claim to pick what festivals would book, or to beat asking 
 **Qloo calls used, and why.** All GET, at https://hackathon.api.qloo.com:
 - `/search`: each booked headliner, and each local pick.
 - `/v2/tags`: the tag Qloo puts on live music venues.
-- `/v2/insights` with `filter.type=urn:entity:place`: the town's tagged places, and the control town's music rooms.
+- `/v2/insights` with `filter.type=urn:entity:place`: the town's tagged places, and the control town's music venues.
 - `/v2/analysis/compare`: the genres the headliners share, which rank the genres a card shows.
 - `/v2/insights` with `filter.type=urn:entity:artist`: each tier ranked for the headliners alone, then with a venue's fans added, then with its control's, always inside the tier's popularity range and with the crowd's age.
 - `/v2/insights` with `signal.location.query`: Qloo's location signal for the town, a second reading on the card, outside the rule.
@@ -79,16 +79,16 @@ GET https://hackathon.api.qloo.com/v2/insights
 → 50 ranked artists
 ```
 
-The same call without the venue gives the headliners-only ranking, and with the control room in the venue's place, the control's ranking. An act's climb is its place without the venue minus its place with it; its local lift is its climb with the venue minus its climb with the control.
+The same call without the venue gives the headliners-only ranking, and with the control venue in its place, the control's ranking. An act's climb is its place without the venue minus its place with it; its local lift is its climb with the venue minus its climb with the control.
 
 The app is Next.js and TypeScript on Vercel. Qloo's answers and the saved builds are cached server-side in Upstash Redis through the end of judging and never committed. Claude Code wrote most of the code; README.md's AI usage section says what it wrote.
 
 ### Challenges we ran into
 
-- **Venues Qloo has no fan data for.** Adding such a venue to the headliners leaves their ranking as it was, which looks like a venue that lifts nothing. Agent 2.0 reads Qloo's warning, skips the venue, reads the next music room and says so in the trace.
+- **Venues Qloo has no fan data for.** Adding such a venue to the headliners leaves their ranking as it was, which looks like a venue that lifts nothing. Agent 2.0 reads Qloo's warning, skips the venue, reads the next music venue and says so in the trace.
 - **Whose climb is it?** A venue abroad can lift the same act. That's why every venue now has its control, and why the bar came from a test written before it ran.
 - **Qloo's rate limit.** The client keeps few calls in flight and retries a busy answer with backoff; a retry shows on its call's line and never counts as a new call.
-- **Places that aren't music rooms.** Qloo's venue tag also covers parks, arenas and restaurants. The agent gives its reason when it skips a place, and a card says when its venue isn't a club.
+- **Places that aren't music venues.** Qloo's venue tag also covers parks, arenas and restaurants. The agent gives its reason when it skips a place, and a card says when its venue isn't a club.
 
 ### Accomplishments that we're proud of
 
@@ -99,7 +99,7 @@ The app is Next.js and TypeScript on Vercel. Qloo's answers and the saved builds
 
 ### What we learned
 
-A town's venues move Qloo's ranking, and most of 1.0's bookings held up against a room abroad. On the outside yardstick, though, the AI model alone held more of the acts real festivals booked than Undercard's shortlists did. Undercard doesn't pick what a festival would book. It gives a buyer a draft whose every pick can be checked, inside the buyer's fee ranges.
+A town's venues move Qloo's ranking, and most of 1.0's bookings held up against a music venue abroad. On the outside yardstick, though, the AI model alone held more of the acts real festivals booked than Undercard's shortlists did. Undercard doesn't pick what a festival would book. It gives a buyer a draft whose every pick can be checked, inside the buyer's fee ranges.
 
 ### Limits
 
@@ -138,6 +138,6 @@ No login and no API key. These steps are the demo path in SPEC.md, section 3.
 
 1. Open https://undercard-daniel-51ed.vercel.app. Sagebrush Sound opens on its saved draft: the booked headliners sit over 4 mid-size and 6 opening acts, each in the colour of the Boise venue whose fans lifted it, with its rank and its climb in Qloo's ranking (NEW when it entered the top 50). In the town, each venue the agent read counts the acts its fans lifted, or says Qloo had no fan data for it.
 2. Press **Watch the AI agent build it**. The saved build replays in the town, call by call, each caption naming its Qloo call and result count. Under the town, the AI agent's setlist lists every call, and the full calls list under it gives each call's parameters. A replay is never limited. To run the agent live instead, press **Play it live** on the setlist (or **Run it live** under Watch, on a large screen); a live run is limited per IP and per day.
-3. Click an act. Its card says why it's here: its place for the headliners' fans alone and with the venue's fans added, its climb with that venue and with a room abroad of similar Qloo popularity, its Qloo popularity inside the tier's fee range, and two genres it shares with the headliners. Keep, Unavailable and Close stay in view.
+3. Click an act. Its card says why it's here: its place for the headliners' fans alone and with the venue's fans added, its climb with that venue and with its control, a music venue abroad of similar Qloo popularity, its Qloo popularity inside the tier's fee range, and two genres it shares with the headliners. Keep, Unavailable and Close stay in view.
 4. Press **Unavailable** and give a reason: radius clause, routing or fee. Undercard refills the slot from the same tier by the same rule. If an act in the rankings the build already holds passes, it takes the slot with no new Qloo call; otherwise Undercard makes at most 5 Qloo calls, each listed with the refill's reason. The replacement prints into the slot.
 5. Flip to **Without Qloo**: the same brief answered by the AI model alone, its reason under each pick, checked on Qloo afterwards. Flip back and press **Export CSV** to download the draft.

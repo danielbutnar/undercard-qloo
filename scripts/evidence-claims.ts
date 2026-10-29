@@ -343,7 +343,7 @@ export const CLAIMS: readonly Entry[] = [
   // Agent 2.0, as deployed: its rule and its caps, from the code.
   {
     file: STORY,
-    phrase: "It reads at least {two} music rooms with fan data",
+    phrase: "It reads at least {two} music venues with fan data",
     equals: NOT,
     why: TWO_ROOMS,
   },
