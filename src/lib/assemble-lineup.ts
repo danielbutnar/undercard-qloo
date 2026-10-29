@@ -105,7 +105,10 @@ const isGenre = (tag: ArtistTag) =>
 // Qloo writes some tag names with spaced hyphens ("Lo - Fi").
 const tidy = (name: string) => name.replace(/\s*-\s*/g, "-").trim();
 
-/** Weight per normalized tag name: one per headliner that carries it, plus the Compare score. */
+/**
+ * Weight per normalized tag name: one per headliner that carries it, plus the Compare score of
+ * each compared genre tag passed in (none as built: see assemblyOf in src/server/agent-tools.ts).
+ */
 export function headlinerTagWeights(input: AssemblyInput) {
   const weights = new Map<string, number>();
   for (const headliner of input.headliners) {

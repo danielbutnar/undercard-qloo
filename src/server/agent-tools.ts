@@ -347,6 +347,7 @@ export function assemblyOf(
       (name) => state.headliners.get(name.toLowerCase()) ?? [],
     ),
     comparedTags: state.comparedTags
+      // Keeps none as built: Compare's tags come typed "urn:tag", the genre in their subtype.
       .filter(({ tag }) => isGenreTag(tag.type))
       .map(({ tag, score }) => ({ name: tag.name, score })),
     baselines: state.baselines,
