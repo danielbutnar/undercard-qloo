@@ -238,12 +238,17 @@ describe("a headliner not found, read from the run's stream", () => {
 });
 
 describe("the other places the app compares act names", () => {
-  it("the pitch check keeps section 18's rule until Daniel's yes: folding it moves Boise's example", async () => {
+  // Daniel, 2026-10-29 (20:00): the pitch check folds too (WS18 item 4), with its Boise example
+  // re-warmed in a window he named.
+  it("the pitch check searches two spellings of one act once, and finds Qloo's spelling", async () => {
     expect(
       distinctNames(["Fjørd Lights", "Fjord Lights", "fjord lights"]),
     ).toEqual({
-      names: ["Fjørd Lights", "Fjord Lights"],
-      repeats: [{ name: "fjord lights", sameAs: "Fjord Lights" }],
+      names: ["Fjørd Lights"],
+      repeats: [
+        { name: "Fjord Lights", sameAs: "Fjørd Lights" },
+        { name: "fjord lights", sameAs: "Fjørd Lights" },
+      ],
     });
     const qloo = {
       search: async () => ({
@@ -264,7 +269,10 @@ describe("the other places the app compares act names", () => {
       } as Parameters<typeof resolveNames>[0]["budget"],
       headlinerIds: new Set(),
     });
-    expect(acts[0].status).toBe("not-found");
+    expect(acts[0]).toMatchObject({
+      status: "found",
+      artist: { name: "Fjørd Lights" },
+    });
   });
 
   it("Your festival takes two different headliners, not one act in two spellings", () => {

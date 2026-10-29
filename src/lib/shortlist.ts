@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { TraceCallSchema } from "./build-events";
+import { CHECKED_TOWNS } from "./checked-towns";
 import { FEE_BAND_IDS } from "./fee-bands";
-import { normalise } from "./pick-tests";
+import { nameKey } from "./pick-tests";
+import { checkedFestival } from "./towns";
 
 /**
  * The buyer's shortlist (WS4): a buyer picks one of the checked towns and pastes the acts
@@ -24,6 +26,48 @@ export function pastedNames(text: string): string[] {
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter((line) => line !== "");
+}
+
+/** The towns a check can be for: the checked towns' festivals, by id. */
+const CHECKED_IDS = new Set(
+  CHECKED_TOWNS.map((town) => checkedFestival(town).id),
+);
+
+/** Whether a festival is one of the checked towns, so the pitch check can be for it. */
+export const isCheckedFestival = (festivalId: string) =>
+  CHECKED_IDS.has(festivalId);
+
+/**
+ * A link that opens the pitch check on a list (WS18 item 4: "Check its picks on Qloo →"): its
+ * town and its names fill the form, and nothing runs until the buyer presses the button.
+ */
+export function shortlistHref({
+  festivalId,
+  names,
+}: {
+  festivalId: string;
+  names: readonly string[];
+}): string {
+  const search = new URLSearchParams([
+    ["town", festivalId],
+    ...names.map((name): [string, string] => ["act", name]),
+  ]);
+  return `/shortlist?${search}`;
+}
+
+/** The town and names a link opens the pitch check on; null unless it names a checked town. */
+export function shortlistFromSearch(
+  search: string,
+): { festivalId: string; names: string[] } | null {
+  const params = new URLSearchParams(search);
+  const festivalId = params.get("town") ?? "";
+  if (!isCheckedFestival(festivalId)) return null;
+  const names = params
+    .getAll("act")
+    .map((name) => name.trim().slice(0, 200))
+    .filter((name) => name !== "")
+    .slice(0, SHORTLIST_MAX_NAMES);
+  return { festivalId, names };
 }
 
 /** A name checked once: typed twice, or naming the same act on Qloo as one before it. */
@@ -220,9 +264,9 @@ export function climbOf(
 }
 
 /**
- * The names to search, each once: a repeat after section 18's normalising (accents, case, a
- * bracketed note, a leading "The") keeps the first spelling. The pitch check keeps section 18's
- * rule until Daniel says yes to folding it (WS18): folding moves Boise's example.
+ * The names to search, each once: a repeat after the app's full fold (nameKey: accents and the
+ * letters they leave folded, case, a bracketed note, a leading "The") keeps the first spelling
+ * (Daniel, 2026-10-29, 20:00: the pitch check folds too).
  */
 export function distinctNames(names: readonly string[]): {
   names: string[];
@@ -233,7 +277,7 @@ export function distinctNames(names: readonly string[]): {
   for (const raw of names) {
     const name = raw.trim();
     if (name === "") continue;
-    const key = normalise(name) || name.toLowerCase();
+    const key = nameKey(name);
     const seen = first.get(key);
     if (seen !== undefined) repeats.push({ name, sameAs: seen });
     else first.set(key, name);

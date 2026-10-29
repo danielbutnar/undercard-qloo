@@ -27,9 +27,10 @@ describe("links to the shortlist", () => {
     render(
       <FestivalScreen festival={SAGEBRUSH_SOUND} firstBill={FIRST_BILL} />,
     );
-    const link = screen.getByRole("link", {
-      name: "Check the acts you've been pitched",
-    });
+    // One name everywhere on the site (Daniel, 2026-10-29, WS18 item 4): the nav has it too.
+    const link = within(
+      screen.getByRole("region", { name: "Undercard draft" }),
+    ).getByRole("link", { name: "Check a shortlist" });
     expect(link.getAttribute("href")).toBe("/shortlist");
     const own = within(screen.getByRole("region", { name: "Undercard draft" })).getByRole("link", { name: /Draft your own festival/ });
     expect(own.parentElement).toBe(link.parentElement);
@@ -44,7 +45,7 @@ describe("links to the shortlist", () => {
       />,
     );
     const link = screen.getByRole("link", {
-      name: "Check the acts you've been pitched against a town's venue fans",
+      name: "Check a shortlist against a town's venue fans",
     });
     expect(link.getAttribute("href")).toBe("/shortlist");
   });

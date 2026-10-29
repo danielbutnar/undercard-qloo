@@ -54,20 +54,34 @@ function errorOf(body: unknown): string {
  */
 export function ShortlistScreen({
   example = null,
+  linked = null,
 }: {
   /**
    * Boise's example (step 5), read on the server from the Qloo cache alone: the model's own
    * picks fill the form, and their rows show until the buyer's first check.
    */
   example?: ShortlistExample | null;
+  /**
+   * A link's town and names (WS18 item 4: "Check its picks on Qloo →"), read on the server: they
+   * fill the form, and nothing runs until the buyer presses the button. The example's rows stay
+   * only when the link asks for the example's own list.
+   */
+  linked?: { festivalId: string; names: string[] } | null;
 } = {}) {
+  const exampleNames = example ? example.names.join("\n") : "";
+  const linkedNames = linked ? linked.names.join("\n") : "";
+  const ownList =
+    !linked ||
+    (example !== null &&
+      linked.festivalId === example.festivalId &&
+      (!linkedNames || linkedNames === exampleNames));
   const [festivalId, setFestivalId] = useState(
-    example?.festivalId ?? SAGEBRUSH_SOUND.id,
+    linked?.festivalId ?? example?.festivalId ?? SAGEBRUSH_SOUND.id,
   );
-  const [text, setText] = useState(example ? example.names.join("\n") : "");
+  const [text, setText] = useState(linkedNames || exampleNames);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [result, setResult] = useState<Shortlist | null>(
-    example?.shortlist ?? null,
+    ownList ? (example?.shortlist ?? null) : null,
   );
   // Each answered check brings its rows into view (a phone shows them under the form); until
   // the first, the rows on show are the example's.
@@ -112,7 +126,7 @@ export function ShortlistScreen({
 
   return (
     <div className="chart-app stage-bg">
-      <TopBar />
+      <TopBar pitch={false} />
       <main className="shortlist">
         <div className="shortlist-lead">
           <h1 className="compare-title">{SHORTLIST_TITLE}</h1>

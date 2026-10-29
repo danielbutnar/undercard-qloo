@@ -9,10 +9,13 @@ export function TopBar({
   children,
   method = true,
   yours = true,
+  pitch = true,
 }: {
   children?: ReactNode;
   method?: boolean;
   yours?: boolean;
+  /** The pitch check, in every page's nav under one name (Daniel, 2026-10-29, WS18 item 4). */
+  pitch?: boolean;
 }) {
   return (
     <header className="topbar">
@@ -28,6 +31,11 @@ export function TopBar({
         {children}
         {method && <Link href="/method">How it works</Link>}
         {yours && <Link href="/your-festival">Your festival</Link>}
+        {pitch && (
+          <Link href="/shortlist" prefetch={false}>
+            Check a shortlist
+          </Link>
+        )}
       </nav>
     </header>
   );

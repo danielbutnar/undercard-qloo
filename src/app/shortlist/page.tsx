@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { cacheLife } from "next/cache";
 import { ShortlistScreen } from "@/components/shortlist/shortlist-screen";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
+import { shortlistFromSearch } from "@/lib/shortlist";
 import { createQlooCache } from "@/server/qloo-cache";
 import { shortlistExample } from "@/server/shortlist";
 
@@ -24,6 +25,22 @@ async function example() {
   }).catch(() => null);
 }
 
-export default async function ShortlistPage() {
-  return <ShortlistScreen example={await example()} />;
+// A link's town and names come from the URL (WS18 item 4), as Your festival's do (M6h), so the
+// page waits for them rather than showing another list first.
+export const instant = false;
+
+export default async function ShortlistPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(await searchParams))
+    for (const one of [value ?? []].flat()) query.append(key, one);
+  return (
+    <ShortlistScreen
+      example={await example()}
+      linked={shortlistFromSearch(query.toString())}
+    />
+  );
 }

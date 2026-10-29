@@ -2138,3 +2138,28 @@
   font-weight: 800;
   line-height: 1.35;
 }
+
+/* WS18 item 4: Without Qloo's line under the dot chart, then the pitch check on the picks. */
+.chart-app.fs .model-line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: 520px;
+  margin: 4px auto 0;
+  text-align: center;
+}
+.chart-app.fs .model-line p {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+/* WS18 item 4: the pitch check is in the nav; on a phone three links don't fit beside the
+   wordmark, and a second row pushes the first act below the fold, so there it is the button
+   under the poster, by the same name. */
+@media (max-width: 767px) {
+  .chart-app.fs .fs-top .nav .nav-pitch {
+    display: none;
+  }
+}

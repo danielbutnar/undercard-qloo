@@ -91,7 +91,7 @@ export function MethodPage({
 
         <p className="how-sub">
           <Link href="/shortlist" prefetch={false} className="link">
-            Check the acts you&apos;ve been pitched against a town&apos;s venue
+            Check a shortlist against a town&apos;s venue
             fans
           </Link>
         </p>

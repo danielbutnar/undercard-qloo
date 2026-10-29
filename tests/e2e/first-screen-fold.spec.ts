@@ -29,7 +29,14 @@ async function aboveTheFold(page: Page, town: string, withPicker = true) {
     /^An AI agent for festival bookers, built on Qloo, a taste-data service that maps what fans of one artist, venue or film also like\.$/,
   );
   await expect(tagline).toBeInViewport({ ratio: 1 });
-  for (const name of ["How it works", "Your festival"])
+  // WS18 item 4: the pitch check is in the nav too, from 768 px wide (on a phone it is the
+  // button under the poster).
+  const wide = (page.viewportSize()?.width ?? 0) >= 768;
+  for (const name of [
+    "How it works",
+    "Your festival",
+    ...(wide ? ["Check a shortlist"] : []),
+  ])
     await expect(banner.getByRole("link", { name })).toBeInViewport({
       ratio: 1,
     });

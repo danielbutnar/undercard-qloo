@@ -26,6 +26,7 @@ import {
   type KeyVenue,
 } from "@/components/chart/poster";
 import {
+  CHECK_PICKS,
   climbMark,
   exampleAct,
   exampleHint,
@@ -34,6 +35,7 @@ import {
   leadLine,
   legendLine,
   MISSED_CUT,
+  modelLine,
   oneActLine,
   openBandLine,
   openPosterLine,
@@ -121,6 +123,7 @@ import type { FirstBill } from "@/lib/first-bill";
 import type { ClimbEvent } from "@/lib/lift-climb";
 import type { Act } from "@/lib/lineup";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
+import { isCheckedFestival, shortlistHref } from "@/lib/shortlist";
 import { TOWNS, townHref, townOf } from "@/lib/towns";
 import type { UnavailableReason } from "@/lib/unavailable";
 import { venueHues } from "@/lib/venue-colours";
@@ -1633,7 +1636,7 @@ export function FestivalScreen({
               {/* No prefetch: on a dev server each act card opened re-prefetched the
                   shortlist, and the demo path's card step went from 19 s to 42 s. */}
               <Link href="/shortlist" prefetch={false} className="tool">
-                Check the acts you&apos;ve been pitched
+                Check a shortlist
               </Link>
             </>
           )}
@@ -1721,6 +1724,25 @@ export function FestivalScreen({
           counts={counts}
         />
       )}
+      {/* Daniel, 2026-10-29 (WS18 item 4): under the dot chart, what the model alone did at real
+          festivals and what it can't do here, N from this answer; then the second job. */}
+      {counts && llm.state.checks && llm.state.checks.length > 0 && (
+        <div className="model-line">
+          <p>{modelLine(festival.city, counts)}</p>
+          {isCheckedFestival(festival.id) && (
+            <Link
+              href={shortlistHref({
+                festivalId: festival.id,
+                names: modelPicks.map((pick) => pick.name),
+              })}
+              prefetch={false}
+              className="tool model-check"
+            >
+              {CHECK_PICKS}
+            </Link>
+          )}
+        </div>
+      )}
       {llm.state.lineup && (
         <ModelPicks
           festival={festival}
@@ -1775,6 +1797,10 @@ export function FestivalScreen({
             )}
             <Link href="/method">How it works</Link>
             <Link href="/your-festival">Your festival</Link>
+            {/* No prefetch, as the button under the poster (the demo path's card step). */}
+            <Link href="/shortlist" prefetch={false} className="nav-pitch">
+              Check a shortlist
+            </Link>
           </nav>
         </header>
 

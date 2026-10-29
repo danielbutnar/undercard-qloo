@@ -125,6 +125,9 @@ export const exampleNote = (picks: number, city: string) =>
 export const examplePending = (picks: number, city: string) =>
   `The model alone picked these ${picks} acts for ${city}, without Qloo. Press ${CHECK_BUTTON} to sort them by ${city}'s venue fans.`;
 
-/** The climb's one-line key over the rows. */
+/**
+ * The climb's one-line key over the rows (Daniel, 2026-10-29, WS18 item 4): what the ▲ counts,
+ * places among the pasted acts, not in Qloo's top 50, with no control read.
+ */
 export const CLIMB_KEY =
-  "places it climbs among your acts once a venue's fans join the headliners' fans";
+  "places it climbs among the acts you pasted, not in Qloo's top 50, once a venue's fans join the headliners'; this check reads no venue abroad";

@@ -480,6 +480,20 @@ export function withoutSummary(
   return `Checked on Qloo afterwards: ${listNames(parts)}${climbs}.`;
 }
 
+/**
+ * Without Qloo's line under the dot chart (Daniel, 2026-10-29, WS18 item 4): what the model alone
+ * did at real festivals (section 38) and what it can't do here, N counted from this answer.
+ */
+export function modelLine(
+  city: string,
+  counts: Pick<WithoutCounts, "picks" | "above">,
+): string {
+  return `At 33 real festivals, the model alone named more of the acts the festivals booked than Undercard did, 11 to 3 (section 38). It can't read ${city}'s venue fans, and ${counts.above} of these ${counts.picks} picks ${counts.above === 1 ? "sits" : "sit"} above the popularity range that stands in for the fee.`;
+}
+
+/** Under that line: the pitch check on the model's picks (WS18 item 4). */
+export const CHECK_PICKS = "Check its picks on Qloo →";
+
 /** The Without Qloo list's head: the model's picks have no slots (docs/evidence.md section 31). */
 export const modelPicksTitle = (picks: number) =>
   `The model's ${picks} ${picks === 1 ? "pick" : "picks"}`;

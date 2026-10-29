@@ -763,7 +763,7 @@ Binding until 05:45 Bucharest on Saturday 31 October (03:45 UTC). Until Wednesda
 Order (Daniel, 17:25): item 1, item 4, item 6, item 7's How it works band, item 5. Each test first, one commit, before and after shots in .design/shots/ws18b/.
 
 - [x] Item 1, one evidence story everywhere: the three checks in the same words on the card, the ticket, the poster's key (under the acts, so every act stays above the fold) and How it works; the card's Why names both climbs and the local lift; the control's one line where the venue abroad first appears; the ticket's Anton ↑ drawn as an SVG; mid-size and opening only; popularity out of 100; drafted and picks, never books; How it works' who-does-what line from the README; the SHOWN clause (290 of 290); WS16's glossary test brought forward (tests/unit/ws18/glossary.test.tsx)
-- [ ] Item 4, check any list as the second job
+- [x] Item 4, check any list as the second job: Without Qloo's line under the dot chart with N from the town's own checks and "Check its picks on Qloo →" opening the pitch check filled in, nothing run; the pitch check in the nav as "Check a shortlist" (on the landing from 768 px wide; on a phone the button under the poster); its ▲ key says what it counts; its names fold as every comparison does (Daniel, 20:00), with Boise's example re-warmed in his window (4 Qloo calls, 29 October 18:01 UTC); its venue colours already matched the landing's (a test pins it)
 - [ ] Item 6, accuracy in the replay and the calls list
 - [ ] Item 7, How it works' empty band
 - [ ] Item 5, Your festival's fee ranges and crowd age
