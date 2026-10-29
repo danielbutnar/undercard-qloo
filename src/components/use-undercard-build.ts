@@ -94,6 +94,8 @@ export function useUndercardBuild(
               ]),
             ],
             ...(reason ? { reason } : {}),
+            // WS18 item 3: a "fee" replacement sits below the act's popularity.
+            popularity: act.popularity,
           },
           controller.signal,
           (event) => dispatch({ type: "refillEvent", event }),
@@ -109,6 +111,13 @@ export function useUndercardBuild(
       }
     },
     [festivalId],
+  );
+
+  // WS18 item 3: Undo on the refill's receipt, and the receipt gone at an action made elsewhere.
+  const undoRefill = useCallback(() => dispatch({ type: "undoRefill" }), []);
+  const clearReceipt = useCallback(
+    () => dispatch({ type: "clearReceipt" }),
+    [],
   );
 
   const toggleKeep = useCallback(
@@ -204,5 +213,7 @@ export function useUndercardBuild(
     runningOrder,
     closeOrder,
     toggleLocal,
+    undoRefill,
+    clearReceipt,
   };
 }

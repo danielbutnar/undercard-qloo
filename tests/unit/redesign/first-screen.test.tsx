@@ -254,12 +254,13 @@ describe("the poster", () => {
 });
 
 describe("the town", () => {
-  it("explains its colours with the places Qloo listed, and signs each venue with its acts", async () => {
+  // WS18 item 2 (Daniel, 29 Oct): one sentence of each venue's acts; the colour key is the poster's.
+  it("says in one sentence what each venue's fans put on the bill, and signs each venue with its acts", async () => {
     withSwitch();
     open();
     expect(
       within(town()).getByText(
-        /^Qloo listed 8 live-music places in Boise\. The AI agent tested these 3 venues\. Coloured: their fans lifted acts onto your poster\. Grey: none of their acts are on your poster\.$/,
+        /^The Lantern Room's fans lifted 7 acts onto this lineup, Fort Street Ballroom's 3 and Cottonwood Social Hall's none\.$/,
       ),
     ).toBeTruthy();
     const signs = await within(town()).findAllByRole("button", {

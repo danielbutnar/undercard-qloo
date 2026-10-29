@@ -482,7 +482,8 @@ export function syntheticRefillStream(
   );
   return ndjson([
     { type: "call", call },
-    { type: "refill", replaces, act: replacement },
+    // Its place in its venue's ranking, for the receipt (WS18 item 3): up 13, 25th to 12th.
+    { type: "refill", replaces, act: replacement, place: { now: 12, was: 25 } },
     { type: "done", calls: 1, ms: 1500 },
   ]);
 }

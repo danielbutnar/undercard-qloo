@@ -18,6 +18,7 @@ import {
   MISSED_CUT,
   listNames,
   modelPicksTitle,
+  NOTE_WORDS,
   oneActLine,
   openBandLine,
   venueReadLine,
@@ -302,46 +303,115 @@ describe("the lead and the town", () => {
     });
   });
 
-  it("explains the coloured and grey venues, with the places Qloo listed", () => {
-    expect(
-      legendLine({ city: "Boise", placesListed: 8, tested: 3, lifting: 2 }),
-    ).toEqual({
-      title: "Venues the agent tested",
-      text: "Qloo listed 8 live-music places in Boise. The AI agent tested these 3 venues. Coloured: their fans lifted acts onto your poster. Grey: none of their acts are on your poster.",
-    });
-    expect(
-      legendLine({ city: "Boise", placesListed: null, tested: 2, lifting: 2 })
-        .text,
-    ).toBe(
-      "The AI agent tested these 2 venues. Coloured: their fans lifted acts onto your poster.",
-    );
-    // WS8: the search's cap of 20 is "at least 20"; one place and one venue in the singular.
-    expect(
-      legendLine({ city: "Boise", placesListed: 20, tested: 3, lifting: 3 })
-        .text,
-    ).toMatch(/^Qloo listed at least 20 live-music places in Boise\. /);
-    expect(
-      legendLine({ city: "Boise", placesListed: 1, tested: 1, lifting: 1 })
-        .text,
-    ).toMatch(
-      /^Qloo listed 1 live-music place in Boise\. The AI agent tested this venue\. /,
-    );
-    expect(
-      legendLine({ city: "Boise", placesListed: 8, tested: 0, lifting: 0 })
-        .title,
-    ).toBe("No venues read yet");
+  // WS18 item 2 (Daniel, 29 Oct): the lines from "Qloo listed 8 live-music places" to "Grey: none
+  // of their acts are on your poster" became one sentence of at most 25 words, built from the
+  // build on screen. The colour key stays on the poster.
+  it("says in one sentence what each venue's fans put on the bill", () => {
     expect(
       legendLine({
         city: "Boise",
-        placesListed: 8,
-        tested: 3,
-        lifting: 2,
+        venues: [
+          { name: "Venue 227", lifted: 8 },
+          { name: "Venue 418 (V418)", lifted: 2 },
+          { name: "Venue 166 Boise", lifted: 0, noFanData: true },
+        ],
+      }),
+    ).toEqual({
+      title: "Venues the agent tested",
+      text: "Venue 227's fans lifted 8 acts onto this lineup and Venue 418's 2; Qloo had no fan data for Venue 166 Boise.",
+    });
+    // The strongest venue first, whatever the order given; a venue whose fans lifted no act on
+    // the bill says none.
+    expect(
+      legendLine({
+        city: "Larkspur",
+        venues: [
+          { name: "Fort Street Ballroom (FSB)", lifted: 1 },
+          { name: "The Lantern Room", lifted: 9 },
+          { name: "Cottonwood Social Hall", lifted: 0 },
+        ],
+      }).text,
+    ).toBe(
+      "The Lantern Room's fans lifted 9 acts onto this lineup, Fort Street Ballroom's 1 and Cottonwood Social Hall's none.",
+    );
+    // One act; a name that already ends in 's keeps it.
+    expect(
+      legendLine({
+        city: "Larkspur",
+        venues: [{ name: "Juniper's", lifted: 1 }],
+      }).text,
+    ).toBe("Juniper's fans lifted 1 act onto this lineup.");
+    // A venue switched off on the poster's key says so.
+    expect(
+      legendLine({
+        city: "Larkspur",
+        venues: [
+          { name: "The Lantern Room", lifted: 0, off: true },
+          { name: "Fort Street Ballroom", lifted: 6 },
+        ],
+      }).text,
+    ).toBe(
+      "Fort Street Ballroom's fans lifted 6 acts onto this lineup; The Lantern Room's fans are switched off.",
+    );
+    expect(legendLine({ city: "Boise", venues: [] }).title).toBe(
+      "No venues read yet",
+    );
+    expect(
+      legendLine({
+        city: "Boise",
+        venues: [{ name: "Venue 227", lifted: 8 }],
         without: true,
       }),
     ).toEqual({
       title: "No venues read",
       text: "Without Qloo, the model has no venue's fans to read: its picks come from what it already knows.",
     });
+  });
+
+  it("keeps the sentence to 25 words however long the town's names run", () => {
+    const words = (text: string) => text.split(/\s+/).filter(Boolean).length;
+    // Long names drop "onto this lineup" first, and keep every name and number.
+    const long = legendLine({
+      city: "Larkspur",
+      venues: [
+        { name: "The Old Juniper Mill Music Hall", lifted: 7 },
+        { name: "Larkspur Community Arts Hall", lifted: 3 },
+        { name: "The Copper Kettle", lifted: 0, noFanData: true },
+      ],
+    }).text;
+    expect(long).toBe(
+      "The Old Juniper Mill Music Hall's fans lifted 7 acts and Larkspur Community Arts Hall's 3; Qloo had no fan data for The Copper Kettle.",
+    );
+    expect(words(long)).toBe(NOTE_WORDS);
+    // Longer still, the venues Qloo had no fan data for are counted, not named.
+    expect(
+      legendLine({
+        city: "Larkspur",
+        venues: [
+          { name: "The Old Juniper Mill Music Hall", lifted: 8 },
+          { name: "Larkspur Community Arts Hall", lifted: 2 },
+          { name: "The Copper Kettle Social Club", lifted: 0, noFanData: true },
+          { name: "Larkspur Legion Hall", lifted: 0, noFanData: true },
+        ],
+      }).text,
+    ).toBe(
+      "The Old Juniper Mill Music Hall's fans lifted 8 acts and Larkspur Community Arts Hall's 2; Qloo had no fan data for 2 more.",
+    );
+    // However many venues and however long their names, never more than 25 words.
+    for (const count of [1, 2, 3, 5, 8])
+      expect(
+        words(
+          legendLine({
+            city: "Larkspur",
+            venues: Array.from({ length: count }, (_, index) => ({
+              name: `The Very Long Named Music Hall and Social Club Number ${index + 1}`,
+              lifted: index < 3 ? 4 - index : 0,
+              noFanData: index >= 3 && index % 2 === 1,
+              off: index === 4,
+            })),
+          }).text,
+        ),
+      ).toBeLessThanOrEqual(NOTE_WORDS);
   });
 
   it("signs each venue with its acts on the poster, or why it has none", () => {

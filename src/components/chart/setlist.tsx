@@ -37,6 +37,7 @@ function lineLabel(line: SetlistLine, margin: string | null): string {
 export function Setlist({
   festival,
   createdAt,
+  plan = null,
   lines,
   closing,
   hues,
@@ -45,6 +46,11 @@ export function Setlist({
   children,
 }: {
   festival: { name: string; city: string };
+  /**
+   * The agent's plan line, first under the heading (Daniel, 29 Oct, 20:40), in its own words: the
+   * setlist's plain words don't touch it.
+   */
+  plan?: string | null;
   /** When the build on the sheet was made; left out while a run is under way. */
   createdAt?: string;
   lines: readonly SetlistLine[];
@@ -78,6 +84,9 @@ export function Setlist({
             {plusRetries(buildRetryCount(lines))}
           </p>
         </div>
+        {plan && (
+          <p className="setlist-agent setlist-plan">The AI agent: {plan}</p>
+        )}
         <ol aria-label="The calls, in order" className="setlist-lines">
           {lines.map((line, index) => {
             const ring = line.n === circled;

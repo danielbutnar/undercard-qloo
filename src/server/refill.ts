@@ -3,6 +3,8 @@ import { z } from "zod";
 import { assembleLineup, type VenueRef } from "@/lib/assemble-lineup";
 import { FEE_BAND_IDS } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
+import type { Act } from "@/lib/lineup";
+import { billPlaces } from "@/lib/places";
 import { UNAVAILABLE_REASON_IDS, UNAVAILABLE_REASONS } from "@/lib/unavailable";
 import type { BuildStore } from "./build-store";
 import { controlRanking, recordedControl, retriedOf } from "./control-reads";
@@ -32,6 +34,8 @@ export const RefillRequestSchema = z.object({
   excludeIds: z.array(z.string().min(1)).max(60),
   /** Why the act dropped out, in the buyer's words; the refill's trace line names it. */
   reason: z.enum(UNAVAILABLE_REASON_IDS).optional(),
+  /** The unavailable act's Qloo popularity: a "fee" replacement sits below it (WS18 item 3). */
+  popularity: z.number().min(0).max(1).optional(),
 });
 
 /**
@@ -76,6 +80,7 @@ export async function handleRefill({
     anchorVenueId,
     excludeIds,
     reason,
+    popularity,
   } = request.data;
   const saved = await store.byId(buildId);
   if (!saved || saved.festivalId !== festival.id) {
@@ -109,6 +114,39 @@ export async function handleRefill({
     const venues = venueOrder(context.anchors, bandId, anchorVenueId);
     const cap = twoPointOh ? REFILL_CALL_CAP : ONE_POINT_OH_REFILL_CAP;
 
+    // WS18 item 3 (Daniel, 29 Oct): the fee steers the refill. A "fee" replacement must also sit
+    // below the replaced act's popularity, in the same tier; if none of the acts that pass does,
+    // the strongest that passes takes the slot, and the refill says so for the receipt.
+    const below =
+      reason === "fee"
+        ? (popularity ??
+          saved.lineup.acts.find((act) => act.entityId === unavailableId)
+            ?.popularity)
+        : undefined;
+    /** From acts that pass, strongest first: the one the slot takes, and whether the fee gave. */
+    const choose = (passing: readonly Act[]) => {
+      const open = passing.filter((act) => !excluded.includes(act.entityId));
+      const cheaper =
+        below === undefined
+          ? open[0]
+          : open.find((act) => act.popularity < below);
+      return {
+        act: cheaper ?? open[0],
+        feeFallback: cheaper === undefined && open.length > 0,
+      };
+    };
+    // The act booked, with its place in its venue's ranking as the first bill reads it.
+    const book = (act: Act, feeFallback: boolean) => {
+      const place = billPlaces([act], context.baselines)[act.entityId];
+      emit({
+        type: "refill",
+        replaces: unavailableId,
+        act,
+        ...(place ? { place } : {}),
+        ...(feeFallback ? { feeFallback: true as const } : {}),
+      });
+    };
+
     // Daniel, 2026-10-28: before any call, an act that already passes the bar in the rankings the
     // build holds (the venue runs and their controls, from the cache only) takes the slot.
     const cached = twoPointOh ? cachedQloo() : null;
@@ -117,17 +155,19 @@ export async function handleRefill({
         () => null,
       );
       const next = held
-        ? assembleLineup({
-            ...held,
-            bands: [{ ...band, slots: 50 }],
-          }).acts.find((act) => !excluded.includes(act.entityId))
-        : undefined;
-      if (next) {
+        ? choose(
+            assembleLineup({
+              ...held,
+              bands: [{ ...band, slots: 50 }],
+            }).acts,
+          )
+        : null;
+      if (next?.act) {
         emit({
           type: "status",
           text: HELD_REFILL_LINE,
         });
-        emit({ type: "refill", replaces: unavailableId, act: next });
+        book(next.act, next.feeFallback);
         emit({ type: "done", calls: 0, ms: Date.now() - started });
         return;
       }
@@ -268,24 +308,27 @@ export async function handleRefill({
         });
       }
 
-      const [act] = assembleLineup({
-        bands: [{ ...band, slots: 1 }],
-        headliners: context.headliners,
-        comparedTags: context.comparedTags,
-        baselines: { [bandId]: baseline },
-        venueRuns: [
-          {
-            venue,
-            band: bandId,
-            artists: artists.filter(
-              (artist) => !excluded.includes(artist.entityId),
-            ),
-            ...(control ? { control: controlRun ?? null } : {}),
-          },
-        ],
-      }).acts;
+      const { act, feeFallback } = choose(
+        assembleLineup({
+          // A fee refill weighs every act that passes; any other takes the strongest.
+          bands: [{ ...band, slots: below === undefined ? 1 : 50 }],
+          headliners: context.headliners,
+          comparedTags: context.comparedTags,
+          baselines: { [bandId]: baseline },
+          venueRuns: [
+            {
+              venue,
+              band: bandId,
+              artists: artists.filter(
+                (artist) => !excluded.includes(artist.entityId),
+              ),
+              ...(control ? { control: controlRun ?? null } : {}),
+            },
+          ],
+        }).acts,
+      );
       if (act) {
-        emit({ type: "refill", replaces: unavailableId, act });
+        book(act, feeFallback);
         emit({ type: "done", calls, ms: Date.now() - started });
         return;
       }
