@@ -1201,6 +1201,11 @@
   font-weight: 800;
   font-size: var(--text-label);
 }
+.chart-app .card-reasons-note {
+  flex-basis: 100%;
+  font-weight: 600;
+  font-size: var(--text-label);
+}
 .chart-app .card-gone .card-name {
   color: var(--color-muted);
   text-decoration: line-through;

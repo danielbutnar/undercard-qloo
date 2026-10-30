@@ -39,6 +39,7 @@ import {
   oneActLine,
   openBandLine,
   openPosterLine,
+  receiptLine,
   regionCode,
   KEY_SIGNAL,
   ruleLine,
@@ -599,6 +600,8 @@ export function FestivalScreen({
     runningOrder,
     closeOrder,
     toggleLocal,
+    undoRefill,
+    clearReceipt,
   } = useUndercardBuild(
     firstBoard(firstBill),
     festival.id,
@@ -702,10 +705,6 @@ export function FestivalScreen({
     : shownActs.filter((act) => !state.unavailable.includes(act.entityId));
   const openAct = shownActs.find((act) => act.entityId === openId) ?? null;
   const calls = state.summary?.calls ?? firstBill?.calls;
-  const placesListed =
-    state.calls.find((call) => call.tool === "find_venues")?.resultCount ??
-    firstBill?.placesListed ??
-    null;
   const busy =
     state.status === "building" ||
     state.refilling !== null ||
@@ -876,6 +875,7 @@ export function FestivalScreen({
     setMode(next);
     setOpenId(null);
     setPickedVenue(null);
+    clearReceipt();
     if (
       next === "llm" &&
       (llm.state.status === "idle" || llm.state.status === "error")
@@ -1110,12 +1110,19 @@ export function FestivalScreen({
           n: savedTrace.length + index + 1,
         })),
       ];
+  // The saved build's plan line, first on the setlist under its heading and not again where the
+  // agent said it (Daniel, 29 Oct, 20:40).
+  const planLine = streamed ? null : (firstBill?.plan?.trim() ?? null) || null;
   const setlist = setlistLines(setlistTrace, {
     venues: allVenues,
     bands: festival.feeBands,
     noFanData: fanless,
     notes: [
-      ...(streamed ? state.notes : (firstBill?.notes ?? [])),
+      ...(streamed
+        ? state.notes
+        : (firstBill?.notes ?? []).filter(
+            (note) => note.text.trim() !== planLine,
+          )),
       // A refill or redraft from the rankings already read, after the calls (10:40).
       ...state.refillNotes.map((text) => ({ at: setlistTrace.length, text })),
     ],
@@ -1246,14 +1253,12 @@ export function FestivalScreen({
       ? withoutCounts(modelPicks, llm.state.checks, festival)
       : null;
   const lead = leadLine(festival, without);
+  // WS18 item 2: one sentence of each venue the build read and the acts its fans put on the bill
+  // on screen, as the poster's key counts them.
   const legend = legendLine({
     city: festival.city,
-    placesListed,
-    tested: allVenues.length,
-    lifting: sceneVenues.filter((venue) => venue.lifted > 0).length,
+    venues: sceneVenues,
     without,
-    // WS13.7 (WS8 item 16): why these venues, in the agent's own line, for the saved build.
-    plan: onFirst ? firstBill?.plan : undefined,
   });
   const onShow = TOWNS.filter((town) => towns.includes(town.slug));
   const current = townOf(festival).slug;
@@ -1289,7 +1294,10 @@ export function FestivalScreen({
           venueLines.find((line) => line.entityId === picked.entityId)?.kind
         }
         switchable={!custom && switcher.status === "ready" && !busy}
-        onToggle={() => switcher.toggle(picked.entityId)}
+        onToggle={() => {
+          clearReceipt();
+          switcher.toggle(picked.entityId);
+        }}
         onAct={(act) => openCard(act)}
         onClose={() => setPickedVenue(null)}
       />
@@ -1428,6 +1436,7 @@ export function FestivalScreen({
         }
         onToggle={(id) => {
           setOpenId(null);
+          clearReceipt();
           switcher.toggle(id);
         }}
         quiet={watching}
@@ -1454,6 +1463,27 @@ export function FestivalScreen({
             All venues on
           </button>
         </p>
+      )}
+      {/* WS18 item 3: the last refill's receipt, with Undo, until the buyer's next action. */}
+      {state.receipt && !watching && !whatIf && (
+        <div
+          role="status"
+          aria-label="The last refill"
+          className="whatif refill-receipt"
+        >
+          <span>{receiptLine(state.receipt)}</span>{" "}
+          <button
+            type="button"
+            className="switch-reset"
+            disabled={busy}
+            onClick={() => {
+              setOpenId(null);
+              undoRefill();
+            }}
+          >
+            Undo
+          </button>
+        </div>
       )}
       {allOpen ? (
         <div role="status" className="poster-open">
@@ -1484,6 +1514,11 @@ export function FestivalScreen({
                 openId={openAct?.entityId ?? null}
                 keeping={whatIf ? [] : state.keeping}
                 unavailable={whatIf ? [] : state.unavailable}
+                replacement={
+                  whatIf || watching
+                    ? null
+                    : (state.receipt?.in.entityId ?? null)
+                }
                 onOpen={watching ? undefined : openCard}
                 onPoint={
                   watching ? undefined : (act) => setPointedId(act.entityId)
@@ -1982,6 +2017,7 @@ export function FestivalScreen({
               <div className="fs-below-cols">
                 <Setlist
                   festival={festival}
+                  plan={planLine}
                   createdAt={
                     state.calls.length > 0
                       ? state.build?.createdAt

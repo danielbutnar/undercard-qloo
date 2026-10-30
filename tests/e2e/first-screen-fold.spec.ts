@@ -81,8 +81,9 @@ test.describe("the first screen above the fold", () => {
         await open(page, path);
         await aboveTheFold(page, town);
         const scene = page.getByRole("region", { name: "Your town" });
+        // WS18 item 2: the town's one sentence of each venue's acts.
         await expect(
-          scene.getByText(/Qloo listed (at least )?\d+ live-music places? in /),
+          scene.getByText(/'s fans lifted (\d+ acts?|no act)/),
         ).toBeInViewport({ ratio: 1 });
         const signs = scene.getByRole("button", {
           name: /\. Show this venue$/,

@@ -9,7 +9,6 @@ import { afterEach, describe, expect, it } from "vitest";
 import { agentLineFor } from "@/lib/agent-words";
 import type { TraceCall } from "@/lib/build-events";
 import { AGENT_DECIDES } from "@/components/chart/words";
-import { legendLine } from "@/components/chart/poster-words";
 import { CallRow } from "@/components/trace-panel";
 import { SYSTEM_PROMPT } from "@/server/agent";
 import { AGENT_TOOLS } from "@/server/agent-tools";
@@ -166,21 +165,16 @@ describe("where the lines show (WS13.7)", () => {
     expect(AGENT_DECIDES).toMatch(/chose which venues/);
   });
 
-  it("says why these venues in the town's note, from the agent's own line", async () => {
+  // WS18 item 2 (Daniel, 29 Oct): the town's note became one sentence of each venue's acts; the
+  // plan sat inside the lines it replaced, so the note no longer quotes it. The bill keeps it.
+  it("keeps the agent's line on why these venues with the saved build", async () => {
     const { saved, store } = await savedRun();
     const bill = await readFirstBill(store, LARKSPUR_FESTIVAL.id);
     expect(bill?.plan).toBe(saved.plan);
-    const legend = legendLine({
-      city: "Larkspur",
-      placesListed: 4,
-      tested: 3,
-      lifting: 2,
-      plan: bill?.plan,
-    });
-    expect(legend.text).toContain(`The agent's plan: ${PLAN_SUMMARY}`);
+    expect(bill?.plan).toBe(PLAN_SUMMARY);
   });
 
-  it("uses a 1.0 build's line naming its anchors, and stays as it is without one", async () => {
+  it("uses a 1.0 build's line naming its anchors", async () => {
     const store = createBuildStore(createMemoryCache());
     const old: SavedBuild = {
       id: "one-point-oh",
@@ -203,13 +197,6 @@ describe("where the lines show (WS13.7)", () => {
     expect((await readFirstBill(store, LARKSPUR_FESTIVAL.id))?.plan).toBe(
       "Anchors: The Lantern Room for both tiers.",
     );
-    const plain = legendLine({
-      city: "Larkspur",
-      placesListed: 4,
-      tested: 1,
-      lifting: 1,
-    });
-    expect(plain.text).not.toMatch(/plan/);
   });
 
   it("shows nothing for a call with no line", () => {

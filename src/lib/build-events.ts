@@ -52,11 +52,27 @@ export const BuildEventSchema = z.discriminatedUnion("type", [
   }),
   z.object({ type: z.literal("lineup"), lineup: LineupSchema }),
   /** A refill's result: the act that takes the unavailable act's slot. */
-  z.object({ type: z.literal("refill"), replaces: z.string(), act: ActSchema }),
+  z.object({
+    type: z.literal("refill"),
+    replaces: z.string(),
+    act: ActSchema,
+    /** Its place in its venue's ranking, and for the headliners' fans alone (WS18 item 3). */
+    place: z
+      .object({
+        now: z.number().int().positive(),
+        was: z.number().int().positive().nullable(),
+      })
+      .optional(),
+    /** A fee refill found no act below the replaced act's popularity: the strongest that passes. */
+    feeFallback: z.literal(true).optional(),
+  }),
   /** One step of the lift, visible (M9a): a band's list after one Qloo call. */
   ClimbEventSchema,
   /** A running order (M8a): two stages, the acts on at the same time sharing the least. */
-  z.object({ type: z.literal("running-order"), slots: z.array(RunningSlotSchema) }),
+  z.object({
+    type: z.literal("running-order"),
+    slots: z.array(RunningSlotSchema),
+  }),
   /** A redraft's result (M8c): each slot not kept, with the act that now takes it. */
   z.object({
     type: z.literal("redraft"),

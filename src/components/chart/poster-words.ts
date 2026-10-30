@@ -1,9 +1,11 @@
+import type { RefillReceipt } from "@/lib/build-state";
 import { feeBandFor, type FeeBand, type FeeBandId } from "@/lib/fee-bands";
 import type { Festival } from "@/lib/festival";
 import type { Act } from "@/lib/lineup";
 import type { PickCheck } from "@/lib/llm-only";
 import { liftOf } from "@/lib/marks";
 import { SAGEBRUSH_SOUND } from "@/lib/sagebrush";
+import { UNAVAILABLE_REASONS } from "@/lib/unavailable";
 import type { Placed } from "@/lib/venue-switch";
 import { ordinal } from "./words";
 
@@ -38,52 +40,132 @@ export function leadLine(
   };
 }
 
-/** The town's legend over the scene: what the coloured and grey venues are. */
+/**
+ * A venue in the town's note: the acts its fans put on the bill on screen, whether its fans are
+ * switched off, and whether Qloo had fan data for it.
+ */
+export interface NoteVenue {
+  name: string;
+  lifted: number;
+  off?: boolean;
+  noFanData?: boolean;
+}
+
+/** The town's note is one sentence of at most this many words (WS18 item 2). */
+export const NOTE_WORDS = 25;
+
+/** A venue's name as its sign and the poster's key print it (town-scene.tsx's signName). */
+const shownName = (name: string) =>
+  name.replace(/\s*\([^)]*\)/g, "").trim() || name;
+/** "Venue 227's"; a name that already ends in 's keeps it ("Venue 225"). */
+const whose = (name: string) => (/['’]s$/.test(name) ? name : `${name}'s`);
+const andList = (parts: readonly string[]) =>
+  parts.length < 2
+    ? (parts[0] ?? "")
+    : `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}`;
+const wordCount = (text: string) => text.split(/\s+/).filter(Boolean).length;
+const actsWord = (n: number) =>
+  n === 0 ? "no act" : n === 1 ? "1 act" : `${n} acts`;
+
+/**
+ * The town's note (WS18 item 2, Daniel, 29 Oct): one sentence of at most 25 words, from the
+ * build on screen, as "Venue 227's fans lifted N acts onto this lineup and Visual Arts
+ * Collective's 2; Qloo had no fan data for Venue 166 Boise" ("lineup", not "bill": the
+ * first screen keeps M6r's rule, Daniel at 20:40). The colour key stays on the poster. Where a
+ * town's names run long, it drops "onto this lineup", then counts the venues Qloo had no fan data
+ * for and those switched off, then all but the strongest venue, rather than name them.
+ */
+function townNote(venues: readonly NoteVenue[]): string {
+  const on = venues.filter((venue) => !venue.off);
+  const named = [
+    ...on
+      .filter((venue) => venue.lifted > 0)
+      .sort((a, b) => b.lifted - a.lifted),
+    ...on.filter((venue) => venue.lifted === 0 && !venue.noFanData),
+  ];
+  const fanless = on.filter((venue) => venue.lifted === 0 && venue.noFanData);
+  const off = venues.filter((venue) => venue.off);
+  const draft = (bill: boolean, counted: boolean, strongest: boolean) => {
+    const lead = strongest ? named.slice(0, 1) : named;
+    const rest = named.slice(lead.length);
+    const restActs = rest.reduce((sum, venue) => sum + venue.lifted, 0);
+    const clauses: string[] = [];
+    if (lead.length > 0) {
+      const [first, ...others] = lead;
+      clauses.push(
+        andList([
+          `${whose(shownName(first.name))} fans lifted ${actsWord(first.lifted)}${bill ? " onto this lineup" : ""}`,
+          ...others.map(
+            (venue) =>
+              `${whose(shownName(venue.name))} ${venue.lifted || "none"}`,
+          ),
+          ...(rest.length > 0
+            ? [
+                `${rest.length === 1 ? "one more venue's" : `${rest.length} more venues'`} ${restActs || "none"}`,
+              ]
+            : []),
+        ]),
+      );
+    }
+    if (fanless.length > 0)
+      clauses.push(
+        `Qloo had no fan data for ${
+          counted
+            ? fanless.length === 1
+              ? "one more"
+              : `${fanless.length} more`
+            : andList(fanless.map((venue) => shownName(venue.name)))
+        }`,
+      );
+    if (off.length > 0)
+      clauses.push(
+        `${
+          counted
+            ? off.length === 1
+              ? "one venue's"
+              : `${off.length} venues'`
+            : andList(off.map((venue) => whose(shownName(venue.name))))
+        } fans are switched off`,
+      );
+    const text = `${clauses.join("; ")}.`;
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  };
+  for (const [bill, counted, strongest] of [
+    [true, false, false],
+    [false, false, false],
+    [false, true, false],
+    [false, true, true],
+  ] as const) {
+    const text = draft(bill, counted, strongest);
+    if (wordCount(text) <= NOTE_WORDS) return text;
+  }
+  // Names longer than the note itself: the counts alone.
+  const total = named.reduce((sum, venue) => sum + venue.lifted, 0);
+  return `${venues.length === 1 ? "One venue's" : `${venues.length} venues'`} fans lifted ${actsWord(total)} onto this lineup.`;
+}
+
+/** The town's legend over the scene: each venue the build read, and what its fans put on the bill. */
 export function legendLine({
   city,
-  placesListed,
-  tested,
-  lifting,
+  venues,
   without = false,
-  plan,
 }: {
   city: string;
-  /** Live-music places Qloo listed in the town, from the build's venue search. */
-  placesListed: number | null;
-  /** Venues whose fans the build read. */
-  tested: number;
-  /** Of those, the venues whose fans lifted an act onto the lineup. */
-  lifting: number;
+  /** The venues whose fans the build read, as the town stands them. */
+  venues: readonly NoteVenue[];
   without?: boolean;
-  /** The agent's own line on why these venues (WS13.7), when the build has one. */
-  plan?: string;
 }): { title: string; text: string } {
   if (without)
     return {
       title: "No venues read",
       text: "Without Qloo, the model has no venue's fans to read: its picks come from what it already knows.",
     };
-  if (tested === 0)
+  if (venues.length === 0)
     return {
       title: "No venues read yet",
       text: `Once the AI agent drafts the lineup, the ${city} venues whose fans it tested stand here.`,
     };
-  // WS8: Qloo's search lists places (its cap is 20); the agent tested venues among them.
-  const testedWords = `The AI agent tested ${tested === 1 ? "this venue" : `these ${tested} venues`}.`;
-  const found =
-    placesListed !== null
-      ? `Qloo listed ${placesListed >= 20 ? "at least 20" : placesListed} live-music ${placesListed === 1 ? "place" : "places"} in ${city}. ${testedWords}`
-      : testedWords;
-  const key =
-    lifting === tested
-      ? "Coloured: their fans lifted acts onto your poster."
-      : lifting === 0
-        ? "Grey: none of their acts are on your poster."
-        : "Coloured: their fans lifted acts onto your poster. Grey: none of their acts are on your poster.";
-  const why = plan?.trim()
-    ? ` The agent's plan: ${plan.trim()}${/[.!?]$/.test(plan.trim()) ? "" : "."}`
-    : "";
-  return { title: "Venues the agent tested", text: `${found}${why} ${key}` };
+  return { title: "Venues the agent tested", text: townNote(venues) };
 }
 
 /** A venue's sign in the town: its acts on the poster, or why it has none. */
@@ -148,6 +230,26 @@ export function climbMark(act: Pick<Act, "reason">): string | null {
   const lift = liftOf(act);
   if (!lift) return null;
   return lift.kind === "new" ? "NEW" : `↑${lift.places}`;
+}
+
+/**
+ * The last refill's receipt on the poster (WS18 item 3, Daniel, 29 Oct), as "Act 111 out
+ * (routing) → Act 124, Nth, NEW · from the rankings already read, no new Qloo call".
+ */
+export function receiptLine(receipt: RefillReceipt): string {
+  const why = receipt.reason ? ` (${UNAVAILABLE_REASONS[receipt.reason]})` : "";
+  const where = [
+    receipt.place ? ordinal(receipt.place.now) : null,
+    climbMark(receipt.in),
+  ].filter(Boolean);
+  const from =
+    receipt.calls === 0
+      ? "from the rankings already read, no new Qloo call"
+      : `from ${receipt.calls} new Qloo ${receipt.calls === 1 ? "call" : "calls"}`;
+  const fee = receipt.feeFallback
+    ? ` · no act below ${receipt.out.name}'s popularity passed: the strongest that does took the slot`
+    : "";
+  return `${receipt.out.name} out${why} → ${receipt.in.name}${where.length ? `, ${where.join(", ")}` : ""} · ${from}${fee}`;
 }
 
 /**

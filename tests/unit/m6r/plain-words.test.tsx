@@ -81,7 +81,8 @@ describe("plain words, round 2 (M6r)", () => {
   });
 
   // M6r: the plain word first, the buyer's word once in brackets. WS9's first screen says
-  // poster, lineup and slots, and never the buyer's "bill" on its own.
+  // poster, lineup and slots, and never the buyer's "bill" on its own (Daniel, 29 Oct, 20:40: the
+  // town's note says "onto this lineup", so the rule holds with no exception).
   it("never says a bare bill", async () => {
     await firstScreen();
     const text = visibleText().replace("lineup (the bill)", "");

@@ -102,10 +102,11 @@ describe("a town's screen", () => {
         screen.getByRole("region", { name: "What Undercard does" }),
       ).getByText(/from what fans of Austin's music venues like\.$/),
     ).toBeTruthy();
-    // The town's legend names the town (the second venue switch went with WS12 item 1).
+    // The town's legend names its venues and the acts their fans put on the lineup (WS18 item 2:
+    // one sentence, from the build); the lead above names the town.
     expect(
       screen.getByRole("region", { name: "Your town" }).textContent,
-    ).toContain("in Austin");
+    ).toContain("The Lantern Room's fans lifted 7 acts onto this lineup");
     const draft = screen.getByRole("region", { name: "Undercard draft" });
     fireEvent.click(
       within(draft).getByRole("button", { name: "Hollow Pines" }),
@@ -145,8 +146,8 @@ describe("a town's screen", () => {
     // Once, for the town's own festival and the saved build on screen.
     expect(switches).toHaveLength(1);
     const asked = String(switches[0][0]);
-    expect(asked.startsWith(`/api/venue-switch?festival=${austin.id}&build=`)).toBe(
-      true,
-    );
+    expect(
+      asked.startsWith(`/api/venue-switch?festival=${austin.id}&build=`),
+    ).toBe(true);
   });
 });

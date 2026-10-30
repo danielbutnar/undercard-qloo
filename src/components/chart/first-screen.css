@@ -1094,6 +1094,11 @@
   .chart-app.fs .poster-sheet > .poster-open ~ * {
     order: 2;
   }
+  /* WS18 item 3: a refill's receipt, which only follows the buyer's action, stays over the tiers
+     with its Undo in view. */
+  .chart-app.fs .poster-sheet > .refill-receipt {
+    order: 0;
+  }
 }
 /* WS8 (item 12a): the note under the headliners. */
 .chart-app.fs .poster-headliners-note {
@@ -1459,6 +1464,11 @@
 }
 .chart-app.fs .poster-act.is-kept {
   outline: 3px solid var(--color-ink);
+  outline-offset: 2px;
+}
+/* WS18 item 3: the last refill's replacement, until the buyer's next action. */
+.chart-app.fs .poster-act.is-replacement {
+  outline: 3px dashed var(--color-ink);
   outline-offset: 2px;
 }
 .chart-app.fs .poster-flag {
